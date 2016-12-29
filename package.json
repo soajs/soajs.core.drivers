@@ -1,0 +1,26 @@
+{
+  "name": "soajs.core.drivers",
+  "description": "SOAJS Driver Strategies",
+  "version": "0.0.1",
+  "author": {
+    "name": "soajs team",
+    "email": "team@soajs.org"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:soajs/soajs.core.drivers.git"
+  },
+  "license": "Apache-2.0",
+  "engines": {
+    "node": "*"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "dependencies": {
+    "async": "^2.1.4",
+    "clone": "^2.1.0",
+    "dockerode": "^2.3.1",
+    "kubernetes-client": "^3.0.0"
+  }
+}
