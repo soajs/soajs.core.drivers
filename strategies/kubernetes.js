@@ -41,8 +41,7 @@ function getDockerCerts(certs, gfs, db, cb) { //NOTE: common function for docker
 
 let lib = {
 	getDeployer (options, cb) => {
-        // let config = utils.cloneObj(deployerConfig);
-        let config = JSON.parse(JSON.stringify (options.deployerConfig));
+        let config = clone(options.deployerConfig);
 		let kubernetes = {}, kubeConfig;
 
 		getClusterCertificates(config, (error, certs) => {
