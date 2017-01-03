@@ -51,8 +51,7 @@ let lib = {
 		 - remote and target: get deployer for target node
 		 */
 
-		// var config = utils.cloneObj(deployerConfig);
-        let config = JSON.parse(JSON.stringify (options.deployerConfig)); //TODO: change
+        let config = clone(options.deployerConfig);
 		let docker;
 
 		if (config.socketPath) {
