@@ -492,6 +492,39 @@ let engine = {
      */
     deleteTasksOrPods (options, cb) {
 
+    },
+
+	/**
+     * Get the latest version of a deployed service
+     * Returns integer: service version
+     * @param {Object} options
+     * @param {Function} cb
+     * @returns {*}
+     */
+    getLatestVersion (options, cb) {
+
+    },
+
+    /**
+     * Get the domain/host name of a deployed service (per version)
+     * Sample response: {"1":"DOMAIN","2":"DOMAIN"}
+     * @param {Object} options
+     * @param {Function} cb
+     * @returns {*}
+     */
+    getServiceHost (options, cb) {
+
+    },
+
+    /**
+     * Get the domain/host names of controllers per environment for all environments
+     * {"dev":{"1":"DOMAIN","2":"DOMAIN"}}
+     * @param {Object} options
+     * @param {Function} cb
+     * @returns {*}
+     */
+    getControllerEnvHost (options, cb) {
+
     }
 
 };
