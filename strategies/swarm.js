@@ -322,7 +322,7 @@ let engine = {
      * @returns {*}
      */
     deployService (options, cb) {
-		let payload = clone(require(__dirname + '../schemas/service.template.js'));
+		let payload = clone(require(__dirname + '../schemas/swarm/service.template.js'));
 		payload.Name = options.params.context.dockerParams.env + '-' + options.params.context.dockerParams.name;
 		payload.TaskTemplate.ContainerSpec.Image = options.soajs.inputmaskData.imagePrefix + '/' + ((options.params.context.origin === 'service' || options.params.context.origin === 'controller') ? options.params.config.images.services : options.params.config.images.nginx);
 		payload.TaskTemplate.ContainerSpec.Env = options.params.context.dockerParams.variables;
