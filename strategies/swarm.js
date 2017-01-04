@@ -5,114 +5,111 @@ let async = require('async');
 let Grid = require('gridfs-stream');
 let clone = require('clone');
 
+let gridfsColl = 'fs.files';
+
 function checkError(error, cb, fCb) {
-	if (error) {
-		return cb(error, null);
-	}
-	return fCb();
-}
-
-function getDockerCerts(certs, gfs, db, cb) { //NOTE: common function for docker and kubernetes driver
-	let certBuffers = {};
-	async.each(certs, function (oneCert, callback) {
-		let gs = new gfs.mongo.GridStore(db, oneCert._id, 'r', { //TODO: update to support model injection
-			root: 'fs',
-			w: 1,
-			fsync: true
-		});
-
-		gs.open(function (error, gstore) {
-			checkError(error, callback, function () {
-				gstore.read(function (error, filedata) {
-					checkError(error, callback, function () {
-						gstore.close();
-
-						let certName = oneCert.filename.split('.')[0];
-						certBuffers[oneCert.metadata.certType] = filedata;
-						return callback(null, true);
-					});
-				});
-			});
-		});
-	}, function (error, result) {
-		checkError(error, cb, function () {
-			return cb(null, certBuffers);
-		});
-	});
+	return (error) ? cb(error) : fCb();
 }
 
 let lib = {
 	getDeployer (options, cb) {
-        //(soajs, deployerConfig, model, cb)
-		/**
-		 Three options:
-		 - local: use socket port
-		 - remote: get fastest manager node and use it
-		 - remote and target: get deployer for target node
-		 */
-
-        let config = clone(options.deployerConfig);
+		let config = clone(options.deployerConfig);
 		let docker;
 
+		//local deployments can use the unix socket
 		if (config.socketPath) {
 			docker = new Docker({socketPath: config.socketPath});
 			return cb(null, docker);
 		}
 
-		getClusterCertificates(config, (error, certs) => {
-			checkError(error, cb, () => {
-
-				if (config.flags && (config.flags.newNode || config.flags.targetNode)) {
-					getTargetNode(config, (error, target) => {
-						checkError(error, cb, () => {
-							let dockerConfig = buildDockerConfig(target.host, target.port, certs);
-							docker = new Docker(dockerConfig);
-							return cb(null, docker);
-						});
-					});
-				}
-				else {
-					return getManagerNodeDeployer(config, certs, cb);
-				}
-			});
-		});
-
-
-		function getTargetNode(config, callback) {
-			if (!config.host || !config.port) {
-				return callback({message: 'Missing host/port info'});
-			}
-			return callback(null, {host: config.host, port: config.port});
+		//remote deployments can use unix socket if function does not require connection to worker nodes
+		//dashboard containers are guaranteed to be deployed on manager nodes
+		if (!config.flags || (config.flags && !config.flags.targetNode)) {
+			docker = new Docker({socketPath: config.socketPath});
+			return cb(null, docker);
 		}
 
-		function getManagerNodeDeployer(config, certs, cb) {
-			if (!config.nodes || config.nodes.length === 0) {
-				return cb({message: 'No manager nodes found in this environment\'s deployer'});
+		//remote deployments should use certificates if function requires connecting to a worker node
+		if (config.flags && config.flags.targetNode) {
+			getTargetNode(options, (error, target) => {
+				checkError(error, cb, () => {
+					findCerts(options, (error, certs) => {
+						checkError(error, cb, () => {
+							return cb(null, new Docker(buildDockerConfig(target.host, target.port, certs)));
+						});
+					});
+				});
+			});
+		}
+
+		function findCerts(options, cb) {
+			if (!options.params.envCode) {
+				return cb(600);
 			}
 
 			let opts = {
-				collection: dockerColl,
-				conditions: { recordType: 'node', role: 'manager' }
+				collection: gridfsColl,
+				conditions: {
+					['metadata.env.' + config.params.envCode.toUpperCase()]: config.params.selectedDriver
+				}
 			};
 
-			options.model.findEntries(options.soajs, opts, (error, managerNodes) => {
+			options.model.findEntries(options.soajs, opts, (error, certs) => {
 				checkError(error, cb, () => {
-					async.detect(managerNodes, (oneNode, callback) => {
-						let dockerConfig = buildDockerConfig(oneNode.ip, oneNode.dockerPort, certs);
-						let docker = new Docker(dockerConfig);
-						docker.ping((error, response) => {
-							//error is insignificant in this case
-							return callback(null, response);
+					if (!certs || certs.length === 0) {
+						return cb(600);
+					}
+
+					options.model.getDb(options.soajs).getMongoDB((error, db) => {
+						checkError(error, cb, () => {
+							let gfs = Grid(db, options.model.getDb(options.soajs).mongodb);
+							return pullCerts(certs, gfs, db, cb);
 						});
-					}, (error, fastestNodeRecord) => {
-						//error is insignificant in this case
-						if (!fastestNodeRecord) {
-							return cb({'message': 'ERROR: unable to connect to a manager node'});
-						}
-						let dockerConfig = buildDockerConfig(fastestNodeRecord.ip, fastestNodeRecord.dockerPort, certs);
-						let docker = new Docker(dockerConfig);
-						return cb(null, docker);
 					});
+				});
+			});
+		}
+
+		function pullCerts(certs, gfs, db, cb) {
+			var certBuffers = {};
+			async.each(certs, (oneCert, callback) => {
+				var gs = new gfs.mongo.GridStore(db, oneCert._id, 'r', { //TODO: update to support model injection
+					root: 'fs',
+					w: 1,
+					fsync: true
+				});
+
+				gs.open((error, gstore) => {
+					checkError(error, callback, () => {
+						gstore.read((error, filedata) => {
+							checkError(error, callback, () => {
+								gstore.close();
+
+								var certName = oneCert.filename.split('.')[0];
+								certBuffers[oneCert.metadata.certType] = filedata;
+								return callback(null, true);
+							});
+						});
+					});
+				});
+			}, (error, result) => {
+				checkError(error, cb, () => {
+					return cb(null, certBuffers);
+				});
+			});
+		}
+
+		function getTargetNode(options, cb) {
+			let customOptions = clone(options);
+			delete customOptions.flags.targetNode;
+			engine.inspectNode(customOptions, (error, node) => {
+				checkError(error, cb, () => {
+					if (node.Spec.Role === 'manager') {
+						return cb(null, {host: node.ManagerStatus.Addr.split(':')[0], port: ''}); //TODO: find a way to get engine port
+					}
+					else {
+						return cb(null, {host: node.Status.Addr, port: ''}); //TODO: find a way to get engine port
+					}
 				});
 			});
 		}
@@ -126,36 +123,6 @@ let lib = {
 			});
 
 			return dockerConfig;
-		}
-
-		function getClusterCertificates(config, callback) {
-			if (!config.envCode) {
-				return callback({message: 'Missing environment code'});
-			}
-
-			let opts = {
-				collection: gridfsColl,
-				conditions: {}
-			};
-			opts.conditions['metadata.env.' + config.envCode.toUpperCase()] = config.selectedDriver;
-			options.model.findEntries(options.soajs, opts, (error, certs) => {
-				checkError(error, callback, () => {
-					if (!certs || (certs && certs.length === 0)) {
-						return callback({
-							code: 741,
-							message: 'No certificates for ' + config.envCode + ' environment found'
-						});
-					}
-
-					options.model.getDb(options.soajs).getMongoDB((error, db) => {
-						checkError(error, callback, () => {
-							let gfs = Grid(db, options.model.getDb(options.soajs).mongodb);
-							let counter = 0;
-							return getDockerCerts(certs, gfs, db, callback);
-						});
-					});
-				});
-			});
 		}
 	}
 };
@@ -181,7 +148,22 @@ let engine = {
      * @returns {*}
      */
     addNode (options, cb) {
-
+		options.deployerConfig.flags = { targetNode: true };
+		lib.getDeployer(options, (error, deployer) => {
+			checkError(error, cb, () => {
+				deployer.swarmJoin(options.params, (error) => {
+					checkError(error, cb, () => {
+						//TODO: update env records, deployer object, if new node is manager add it to list
+						if (options.params.role === 'manager') {
+							return cb(null, true);
+						}
+						else {
+							return cb(null, true);
+						}
+					});
+				});
+			});
+		});
     },
 
     /**
@@ -191,7 +173,7 @@ let engine = {
      * @param {Function} cb
      * @returns {*}
      */
-    removeNode (options, cb) { //options should include backgroundCB
+    removeNode (options, cb) {
         /*
 		 - get deployer for target node
 		 - leave swarm
@@ -200,7 +182,7 @@ let engine = {
 		 - remove node
 		 */
 
-        let deployerConfig = JSON.parse(JSON.stringify (options.deployerConfig));
+        let deployerConfig = clone(options.deployerConfig);
 
         options.deployerConfig.host = options.params.ip;
         options.deployerConfig.port = options.params.dockerPort;
@@ -260,7 +242,12 @@ let engine = {
      * @returns {*}
      */
     inspectNode (options, cb) {
-
+		lib.getDeployer(options, (error, deployer) => {
+			checkError(error, cb, () => {
+				let node = deployer.getNode(options.params.id);
+				node.inspect(cb);
+			});
+		});
     },
 
     /**
@@ -271,7 +258,11 @@ let engine = {
      * @returns {*}
      */
     listNodes (options, cb) {
-
+		lib.getDeployer(options, (error, deployer) => {
+			checkError(error, cb, () => {
+				deployer.listNodes(cb);
+			});
+		});
     },
 
     /**
@@ -282,7 +273,30 @@ let engine = {
      * @returns {*}
      */
     buildNodeRecord (options, cb) {
+		var record = {
+			recordType: 'node',
+			id: options.params.node.ID,
+			name: options.params.node.Description.Hostname,
+			availability: options.params.node.Spec.Availability,
+			role: options.params.node.Spec.Role,
+			resources: {
+				cpuCount: options.params.node.Description.Resources.NanoCPUs / 1000000000,
+				memory: options.params.node.Description.Resources.MemoryBytes
+			},
+			tokens: options.params.managerNodes[0].tokens
+		};
 
+		if (record.role === 'manager') {
+			record.ip = options.params.node.ManagerStatus.Addr.split(':')[0];
+			record.dockerPort = options.soajs.inputmaskData.port;
+			record.swarmPort = options.params.node.ManagerStatus.Addr.split(':')[1];
+		}
+		else {
+			record.ip = options.soajs.inputmaskData.host;
+			record.dockerPort = options.soajs.inputmaskData.port;
+			record.swarmPort = options.params.swarmPort;
+		}
+		return cb(record);
     },
 
     /**
@@ -293,7 +307,11 @@ let engine = {
      * @returns {*}
      */
     listServices (options, cb) {
-
+		lib.getDeployer(options, (error, deployer) => {
+			checkError(error, cb, () => {
+				deployer.listServices({}, cb);
+			});
+		});
     },
 
     /**
@@ -429,7 +447,7 @@ let engine = {
      * @returns {*}
      */
     inspectTask (options, cb) {
-        //NOTE: user is expected not to have the task name but not its id. API does not support inspect a task by its name directly
+        //NOTE: user is expected to have the task name but not its id. API does not support inspect a task by its name directly
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, cb, () => {
                 let serviceName = options.params.taskName.split('.')[0];
@@ -670,7 +688,21 @@ let engine = {
      * @returns {*}
      */
     listNetworks (options, cb) {
+		let params = {};
 
+		if (!options.params.all) {
+			params.filters = {
+				type: {
+					custom: true
+				}
+			};
+		}
+
+		lib.getDeployer(options, (error, deployer) => {
+			checkError(error, cb, () => {
+				deployer.listNetworks(params, cb);
+			});
+		});
     },
 
     /**
@@ -681,7 +713,12 @@ let engine = {
      * @returns {*}
      */
     inspectNetwork (options, cb) {
-
+		lib.getDeployer(options, (error, deployer) => {
+			checkError(error, cb, () => {
+				let network = deployer.getNetwork(options.params.id);
+				network.inspect(cb);
+			});
+		});
     },
 
     /**
@@ -692,7 +729,14 @@ let engine = {
      * @returns {*}
      */
     createNetwork (options, cb) {
+		let payload = clone(require(__dirname + '../schemas/network.template.js'));
+		payload.Name = options.params.networkName;
 
+		lib.getDeployer(options, (error, deployer) => {
+			checkError(error, cb, () => {
+				deployer.createNetwork(payload, cb);
+			});
+		});
     },
 
     /**
@@ -703,7 +747,14 @@ let engine = {
      * @returns {*}
      */
     deleteServices (options, cb) {
-
+		engine.listServices(options, (error, services) => {
+			checkError(error, cb, () => {
+				async.each(services, (oneService, callback) => {
+					options.params.id = oneService.ID;
+					engine.deleteService(options, callback);
+				}, cb);
+			});
+		});
     },
 
     /** //TODO: review
@@ -725,18 +776,45 @@ let engine = {
      * @returns {*}
      */
     getLatestVersion (options, cb) {
+		engine.listServices(options, (error, services) => {
+			checkError(error, cb, () => {
+				let latestVersion = 0, match;
+				services.forEach(function (oneService) {
+					match = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.env.code'] === options.params.env &&
+							oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.name'] === options.params.service;
 
+					if (match) {
+						if (oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.version'] > latestVersion) {
+							latestVersion = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.version'];
+						}
+					}
+				});
+
+				return cb(null, latestVersion);
+			});
+		});
     },
 
     /**
      * Get the domain/host name of a deployed service (per version)
-     * Sample response: {"1":"DOMAIN","2":"DOMAIN"}
+     * Sample response: {"1":"DOMAIN","2":"DOMAIN"}, input: service name, version
      * @param {Object} options
      * @param {Function} cb
      * @returns {*}
      */
     getServiceHost (options, cb) {
-
+		engine.listServices(options, (error, services) => {
+			checkError(error, cb, () => {
+				async.detect(services, (oneService, callback) => {
+					let match = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.env.code'] === options.params.env &&
+								oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.name'] === options.params.service &&
+								oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.version'] === options.params.version;
+					return callback(null, match);
+				}, (error, service) => {
+					return cb(null, ((service && service.Spec && service.Spec.Name) ? service.Spec.Name : null));
+				});
+			});
+		});
     },
 
     /**
@@ -747,7 +825,19 @@ let engine = {
      * @returns {*}
      */
     getControllerEnvHost (options, cb) {
+		engine.listServices(options, (error, services) => {
+			checkError(error, cb, () => {
+				let envs = {}, match;
+				services.forEach(function (oneService) {
+					match = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.env.code'] === options.params.env &&
+							oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.name'] === 'controller';
 
+
+				});
+
+				//TODO
+			});
+		});
     }
 
 };
