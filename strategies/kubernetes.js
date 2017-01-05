@@ -9,35 +9,6 @@ function checkError(error, cb) {
     return (error) ? cb(error) : true;
 }
 
-function getDockerCerts(certs, gfs, db, cb) { //NOTE: common function for docker and kubernetes driver
-    let certBuffers = {};
-    async.each(certs, function (oneCert, callback) {
-        let gs = new gfs.mongo.GridStore(db, oneCert._id, 'r', { //TODO: update to support model injection
-            root: 'fs',
-            w: 1,
-            fsync: true
-        });
-
-        gs.open(function (error, gstore) {
-            checkError(error, callback, function () {
-                gstore.read(function (error, filedata) {
-                    checkError(error, callback, function () {
-                        gstore.close();
-
-                        let certName = oneCert.filename.split('.')[0];
-                        certBuffers[oneCert.metadata.certType] = filedata;
-                        return callback(null, true);
-                    });
-                });
-            });
-        });
-    }, function (error, result) {
-        checkError(error, cb, function () {
-            return cb(null, certBuffers);
-        });
-    });
-}
-
 let lib = {
     getDeployer(options, cb) {
         let kubernetes = {};
