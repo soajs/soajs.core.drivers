@@ -59,26 +59,26 @@ let lib = {
 let engine = {
 
     /**
-	* List nodes in a cluster
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
-	listNodes (options, cb) {
-		lib.getDeployer(options, (error, deployer) => {
+    * List nodes in a cluster
+    *
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
+    listNodes (options, cb) {
+        lib.getDeployer(options, (error, deployer) => {
             checkError(error, cb);
             deployer.core.nodes.get({}, cb);
         });
-	},
+    },
 
     /**
-     * Adds a node to a cluster
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
+    * Adds a node to a cluster
+    *
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
     addNode (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, cb);
@@ -109,12 +109,12 @@ let engine = {
     },
 
     /**
-     * Removes a node from a cluster
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
+    * Removes a node from a cluster
+    *
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
     removeNode (options, cb) { //options should include backgroundCB
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, cb);
@@ -123,12 +123,12 @@ let engine = {
     },
 
     /**
-     * Updates a node's role or availability
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
+    * Updates a node's role or availability
+    *
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
     updateNode (options, cb) {
         //Only supports availability for now, role update not included yet
         let updateValue;
@@ -147,12 +147,12 @@ let engine = {
     },
 
     /**
-     * Creates a new deployment for a SOAJS service
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
+    * Creates a new deployment for a SOAJS service
+    *
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
     deployService (options, cb) {
         let kubernetesServiceParams = {};
         let template = clone(require(__dirname + '../schemas/kubernetes/service.template.js'));
@@ -267,11 +267,11 @@ let engine = {
     },
 
     /**
-     * Scales a deployed services up/down depending on current replica count and new one
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
+    * Scales a deployed services up/down depending on current replica count and new one
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
     scaleService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, cb);
@@ -281,12 +281,12 @@ let engine = {
     },
 
     /**
-     * Gathers and returns information about specified service and a list of its tasks/pods
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
+    * Gathers and returns information about specified service and a list of its tasks/pods
+    *
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
     inspectService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, cb);
@@ -306,12 +306,12 @@ let engine = {
     },
 
     /**
-     * Recursively fetches a service's tasks/pods and returns the same output as inspectService() only when the desired number of tasks/pods is available
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
+    * Recursively fetches a service's tasks/pods and returns the same output as inspectService() only when the desired number of tasks/pods is available
+    *
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
     getServiceComponents (options, cb) {
         engine.inspectService(options, (error, info) => {
             checkError(error, cb);
@@ -333,12 +333,12 @@ let engine = {
     },
 
     /**
-     * Deletes a deployed service
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
+    * Deletes a deployed service
+    *
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
     deleteService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, cb);
@@ -467,10 +467,10 @@ let engine = {
     },
 
     /**
-     * Returns a kubernetes replica set
-     * @param options
-     * @param cb
-     */
+    * Returns a kubernetes replica set
+    * @param options
+    * @param cb
+    */
     getReplicaSet(options, cb) {
         options.requestOptions = injectCerts(options);
         options.requestOptions.qs = {
@@ -484,10 +484,10 @@ let engine = {
     },
 
     /**
-     * Deletes a kubernetes replica set
-     * @param options
-     * @param cb
-     */
+    * Deletes a kubernetes replica set
+    * @param options
+    * @param cb
+    */
     deleteReplicaSet(options, cb) {
         options.requestOptions = injectCerts(options);
         options.requestOptions.uri += '/' + options.params.rsName;
@@ -501,10 +501,10 @@ let engine = {
     },
 
     /**
-     * updates a kubernetes replica set
-     * @param options
-     * @param cb
-     */
+    * updates a kubernetes replica set
+    * @param options
+    * @param cb
+    */
     updateReplicaSet(options, cb) {
         options.requestOptions = injectCerts(options);
         options.requestOptions.uri += '/' + options.replicaSet.metadata.name;
@@ -517,10 +517,10 @@ let engine = {
     },
 
     /**
-     * Injects the certificates
-     * @param options
-     * @returns {*}
-     */
+    * Injects the certificates
+    * @param options
+    * @returns {*}
+    */
     injectCerts (options) {
         lib.getDeployer(options, (error, deployer) => {
             options.requestOptions.ca = deployer.extensions.requestOptions.ca;
@@ -531,10 +531,10 @@ let engine = {
     },
 
     /**
-     * Deletes a kubernetes pod
-     * @param options
-     * @param cb
-     */
+    * Deletes a kubernetes pod
+    * @param options
+    * @param cb
+    */
     deletePod (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, cb);
@@ -543,10 +543,10 @@ let engine = {
     },
 
     /**
-     * Returns a kubernetes deployment
-     * @param options
-     * @param cb
-     */
+    * Returns a kubernetes deployment
+    * @param options
+    * @param cb
+    */
     getDeployment (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, cb);
@@ -555,10 +555,10 @@ let engine = {
     },
 
     /**
-     * Deletes a kubernetes deployment
-     * @param options
-     * @param cb
-     */
+    * Deletes a kubernetes deployment
+    * @param options
+    * @param cb
+    */
     deleteDeployment (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, cb);
@@ -567,12 +567,12 @@ let engine = {
     },
 
     /**
-     * Collects and returns a container logs based on a pre-defined 'tail' value
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
+    * Collects and returns a container logs based on a pre-defined 'tail' value
+    *
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
     getContainerLogs (options, res) {
         lib.getDeployer(options, (error, deployer) => {
             if (error) {
@@ -599,12 +599,12 @@ let engine = {
     },
 
     /**
-     * Loops over current saved container records and returns any new instances not yet saved in docker collection
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
+    * Loops over current saved container records and returns any new instances not yet saved in docker collection
+    *
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
     getNewInstances (options, cb) {
         let newInstances = [];
         async.each(options.params.serviceInfo.tasks, (onePod, callback) => {
@@ -625,12 +625,12 @@ let engine = {
     },
 
     /**
-     * Loops over current saved container records and returns any saved records in docker collection that no longer exist in the cluster
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
+    * Loops over current saved container records and returns any saved records in docker collection that no longer exist in the cluster
+    *
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
     getRemovedInstances (options, cb) {
         let rmInstances = [];
         async.each(options.params.dockerRecords, (oneRecord, callback) => {
@@ -652,12 +652,12 @@ let engine = {
     },
 
     /** //TODO: review
-     * Create a kubernetes service in order to expose port or domain name, strategy in this case is restricted to kubernetes
-     * NOTE: can be merged with deployService (recommended)
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
+    * Create a kubernetes service in order to expose port or domain name, strategy in this case is restricted to kubernetes
+    * NOTE: can be merged with deployService (recommended)
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
     createKubeService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, cb);
@@ -666,12 +666,12 @@ let engine = {
     },
 
     /** //TODO: review
-     * List kubernetes services, strategy in this case is restricted to kubernetes
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
+    * List kubernetes services, strategy in this case is restricted to kubernetes
+    *
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
     listKubeServices (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, cb);
@@ -680,12 +680,12 @@ let engine = {
     },
 
     /** //TODO: review
-     * Delete kubernetes service, strategy in this case is restricted to kubernetes
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
+    * Delete kubernetes service, strategy in this case is restricted to kubernetes
+    *
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
     deleteKubeService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, cb);
