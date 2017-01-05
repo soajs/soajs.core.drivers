@@ -1,3 +1,5 @@
+/*jshint esversion: 6 */
+
 "use strict";
 
 let K8Api = require('kubernetes-client');
