@@ -9,8 +9,8 @@ let clone = require('clone');
 
 let gridfsColl = 'fs.files';
 
-function checkError(error, cb) {
-	return (error) ? cb(error) : true;
+function checkError(error, cb, scb) {
+	return (error) ? cb(error) : scb();
 }
 
 let lib = {
@@ -31,10 +31,12 @@ let lib = {
 		//remote deployments should use certificates if function requires connecting to a worker node
 		if (config.flags && config.flags.targetNode) {
 			getTargetNode(options, (error, target) => {
-				checkError(error, cb);
-				findCerts(options, (error, certs) => {
-					checkError(error, cb);
-					return cb(null, new Docker(buildDockerConfig(target.host, target.port, certs)));
+				checkError(error, cb, () => {
+					findCerts(options, (error, certs) => {
+						checkError(error, cb, () => {
+							return cb(null, new Docker(buildDockerConfig(target.host, target.port, certs)));
+						});
+					});
 				});
 			});
 		}
@@ -52,15 +54,17 @@ let lib = {
 			};
 
 			options.model.findEntries(options.soajs, opts, (error, certs) => {
-				checkError(error, cb);
-				if (!certs || certs.length === 0) {
-					return cb(600);
-				}
+				checkError(error, cb, () => {
+					if (!certs || certs.length === 0) {
+						return cb(600);
+					}
 
-				options.model.getDb(options.soajs).getMongoDB((error, db) => {
-					checkError(error, cb);
-					let gfs = Grid(db, options.model.getDb(options.soajs).mongodb);
-					return pullCerts(certs, gfs, db, cb);
+					options.model.getDb(options.soajs).getMongoDB((error, db) => {
+						checkError(error, cb, () => {
+							let gfs = Grid(db, options.model.getDb(options.soajs).mongodb);
+							return pullCerts(certs, gfs, db, cb);
+						});
+					});
 				});
 			});
 		}
@@ -75,19 +79,22 @@ let lib = {
 				});
 
 				gs.open((error, gstore) => {
-					checkError(error, callback);
-					gstore.read((error, filedata) => {
-						checkError(error, callback);
-						gstore.close();
+					checkError(error, callback, () => {
+						gstore.read((error, filedata) => {
+							checkError(error, callback, () => {
+								gstore.close();
 
-						var certName = oneCert.filename.split('.')[0];
-						certBuffers[oneCert.metadata.certType] = filedata;
-						return callback(null, true);
+								var certName = oneCert.filename.split('.')[0];
+								certBuffers[oneCert.metadata.certType] = filedata;
+								return callback(null, true);
+							});
+						});
 					});
 				});
 			}, (error, result) => {
-				checkError(error, cb);
-				return cb(null, certBuffers);
+				checkError(error, cb, () => {
+					return cb(null, certBuffers);
+				});
 			});
 		}
 
@@ -95,13 +102,14 @@ let lib = {
 			let customOptions = clone(options);
 			delete customOptions.flags.targetNode;
 			engine.inspectNode(customOptions, (error, node) => {
-				checkError(error, cb);
-				if (node.Spec.Role === 'manager') {
-					return cb(null, {host: node.ManagerStatus.Addr.split(':')[0], port: '2376'}); //TODO: get port from env record, deployer object
-				}
-				else {
-					return cb(null, {host: node.Status.Addr, port: '2376'}); //TODO: get port from env record, deployer object
-				}
+				checkError(error, cb, () => {
+					if (node.Spec.Role === 'manager') {
+						return cb(null, {host: node.ManagerStatus.Addr.split(':')[0], port: '2376'}); //TODO: get port from env record, deployer object
+					}
+					else {
+						return cb(null, {host: node.Status.Addr, port: '2376'}); //TODO: get port from env record, deployer object
+					}
+				});
 			});
 		}
 
@@ -129,12 +137,15 @@ let engine = {
     */
     inspectCluster (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb);
-			deployer.swarmInspect((error, swarm) => {
-				checkError(error, cb);
-				deployer.info((error, info) => {
-					checkError(error, cb);
-					return cb(null, {swarm, info});
+			checkError(error, cb, () => {
+				deployer.swarmInspect((error, swarm) => {
+					checkError(error, cb, () => {
+						deployer.info((error, info) => {
+							checkError(error, cb, () => {
+								return cb(null, {swarm, info});
+							});
+						});
+					});
 				});
 			});
 		});
@@ -150,19 +161,21 @@ let engine = {
 	addNode (options, cb) {
 		let payload = {};
 		engine.inspectCluster(options, (error, cluster) => {
-			checkError(error, cb);
-			buildManagerNodeList(cluster.info.Swarm.ManagerNodes, (error, remoteAddrs) => {
-				//error is null, no need to check it
-				let swarmPort = cluster.info.Swarm.RemoteManagers[0].Addr.split(':')[1]; //swarm port is being copied from any of the manger nodes in the swarm
-				payload.ListenAddr = '0.0.0.0:' + swarmPort;
-				payload.AdverstiseAddr = options.soajs.inputmaskData.host + ':' + swarmPort;
-				payload.RemoteAddrs = remoteAddrs;
-				payload.JoinToken = ((options.soajs.inputmaskData.role === 'manager') ? cluster.swarm.JoinTokens.Manager : cluster.swarm.JoinTokens.Worker);
+			checkError(error, cb, () => {
+				buildManagerNodeList(cluster.info.Swarm.ManagerNodes, (error, remoteAddrs) => {
+					//error is null, no need to check it
+					let swarmPort = cluster.info.Swarm.RemoteManagers[0].Addr.split(':')[1]; //swarm port is being copied from any of the manger nodes in the swarm
+					payload.ListenAddr = '0.0.0.0:' + swarmPort;
+					payload.AdverstiseAddr = options.soajs.inputmaskData.host + ':' + swarmPort;
+					payload.RemoteAddrs = remoteAddrs;
+					payload.JoinToken = ((options.soajs.inputmaskData.role === 'manager') ? cluster.swarm.JoinTokens.Manager : cluster.swarm.JoinTokens.Worker);
 
-				options.deployerConfig.flags = { targetNode: true };
-				lib.getDeployer(options, (error, deployer) => {
-					checkError(error, cb);
-					deployer.swarmJoin(options.params, cb);
+					options.deployerConfig.flags = { targetNode: true };
+					lib.getDeployer(options, (error, deployer) => {
+						checkError(error, cb, () => {
+							deployer.swarmJoin(options.params, cb);
+						});
+					});
 				});
 			});
 		});
@@ -197,17 +210,20 @@ let engine = {
 		options.deployerConfig.port = options.params.dockerPort;
 		options.deployerConfig.flags = { targetNode: true };
 		lib.getDeployer(options, (error, targetDeployer) => {
-			checkError(error, cb);
-			targetDeployer.swarmLeave((error) => {
-				checkError(error, cb);
-				//return response and remove node entry from swarm in the background
-				cb(null, true);
+			checkError(error, cb, () => {
+				targetDeployer.swarmLeave((error) => {
+					checkError(error, cb, () => {
+						//return response and remove node entry from swarm in the background
+						cb(null, true);
 
-				options.deployerConfig = deployerConfig;
-				lib.getDeployer(options, (error, deployer) => {
-					checkError(error, cb);
-					let node = deployer.getNode(options.params.id);
-					setTimeout(node.remove.bind(null, options.backgroundCB), 20000);
+						options.deployerConfig = deployerConfig;
+						lib.getDeployer(options, (error, deployer) => {
+							checkError(error, cb, () => {
+								let node = deployer.getNode(options.params.id);
+								setTimeout(node.remove.bind(null, options.backgroundCB), 20000);
+							});
+						});
+					});
 				});
 			});
 		});
@@ -222,16 +238,19 @@ let engine = {
 	*/
 	updateNode (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb);
-			let node = deployer.getNode(options.params.nodeId);
+			checkError(error, cb, () => {
+				let node = deployer.getNode(options.params.nodeId);
 
-			//need to inspect node in order to get its current version and pass it to update call
-			node.inspect((error, node) => {
-				checkError(error, cb);
-				options.params.version = node.Version.Index;
-				node.update(options.params, (error) => {
-					checkError(error, cb);
-					return cb(null, true);
+				//need to inspect node in order to get its current version and pass it to update call
+				node.inspect((error, node) => {
+					checkError(error, cb, () => {
+						options.params.version = node.Version.Index;
+						node.update(options.params, (error) => {
+							checkError(error, cb, () => {
+								return cb(null, true);
+							});
+						});
+					});
 				});
 			});
 		});
@@ -246,10 +265,10 @@ let engine = {
 	*/
 	inspectNode (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb);
-
-			let node = deployer.getNode(options.params.id);
-			node.inspect(cb);
+			checkError(error, cb, () => {
+				let node = deployer.getNode(options.params.id);
+				node.inspect(cb);
+			});
 		});
 	},
 
@@ -262,8 +281,9 @@ let engine = {
 	*/
 	listNodes (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb);
-			deployer.listNodes(cb);
+			checkError(error, cb, () => {
+				deployer.listNodes(cb);
+			});
 		});
 	},
 
@@ -276,8 +296,9 @@ let engine = {
 	*/
 	listServices (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb);
-			deployer.listServices({}, cb);
+			checkError(error, cb, () => {
+				deployer.listServices({}, cb);
+			});
 		});
 	},
 
@@ -307,8 +328,9 @@ let engine = {
 
 
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb);
-			deployer.createService(payload, cb);
+			checkError(error, cb, () => {
+				deployer.createService(payload, cb);
+			});
 		});
 	},
 
@@ -321,16 +343,18 @@ let engine = {
 	*/
 	scaleService (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb);
-			options.params.excludeTasks = true;
-			engine.inspectService(options, (error, info) => {
-				checkError(error, cb);
-				let service = deployer.getService(info.service.ID); //NOTE: api does not allow using service name for update ops
-				let update = info.service.Spec;
+			checkError(error, cb, () => {
+				options.params.excludeTasks = true;
+				engine.inspectService(options, (error, info) => {
+					checkError(error, cb, () => {
+						let service = deployer.getService(info.service.ID); //NOTE: api does not allow using service name for update ops
+						let update = info.service.Spec;
 
-				update.version = info.service.Version.Index;
-				update.Mode.Replicated.Replicas = options.params.scale;
-				service.update(update, cb);
+						update.version = info.service.Version.Index;
+						update.Mode.Replicated.Replicas = options.params.scale;
+						service.update(update, cb);
+					});
+				});
 			});
 		});
 	},
@@ -344,21 +368,23 @@ let engine = {
 	*/
 	inspectService (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb);
-			let service = deployer.getService(options.params.id || options.params.serviceName);
-			service.inspect((error, serviceInfo) => {
-				checkError(error, cb);
+			checkError(error, cb, () => {
+				let service = deployer.getService(options.params.id || options.params.serviceName);
+				service.inspect((error, serviceInfo) => {
+					checkError(error, cb, () => {
+						if (options.params.excludeTasks) {
+							return cb(null, { service: serviceInfo });
+						}
 
-				if (options.params.excludeTasks) {
-					return cb(null, { service: serviceInfo });
-				}
-
-				let params = {
-					filters: { service: [options.serviceName] }
-				};
-				deployer.listTasks(params, (error, serviceTasks) => {
-					checkError(error, cb);
-					return cb(null, { service: serviceInfo, tasks: serviceTasks });
+						let params = {
+							filters: { service: [options.serviceName] }
+						};
+						deployer.listTasks(params, (error, serviceTasks) => {
+							checkError(error, cb, () => {
+								return cb(null, { service: serviceInfo, tasks: serviceTasks });
+							});
+						});
+					});
 				});
 			});
 		});
@@ -373,9 +399,10 @@ let engine = {
 	*/
 	deleteService (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb);
-			let service = deployer.getService(options.params.id || options.params.serviceName);
-			service.remove(cb);
+			checkError(error, cb, () => {
+				let service = deployer.getService(options.params.id || options.params.serviceName);
+				service.remove(cb);
+			});
 		});
 	},
 
@@ -388,21 +415,22 @@ let engine = {
 	*/
 	getServiceComponents (options, cb) {
 		engine.inspectService(options, (error, info) => {
-			checkError(error, cb);
-			let runningTasks = [];
-			info.tasks.forEach((oneTask) => {
-				if (oneTask.Status.State === 'running') {
-					runningTasks.push(oneTask);
+			checkError(error, cb, () => {
+				let runningTasks = [];
+				info.tasks.forEach((oneTask) => {
+					if (oneTask.Status.State === 'running') {
+						runningTasks.push(oneTask);
+					}
+				});
+
+				if (runningTasks.length !== options.params.serviceCount) {
+					setTimeout(engine.getServiceComponents.bind(null, options, cb), 500);
+				}
+				else {
+					info.tasks = runningTasks;
+					return cb(null, info);
 				}
 			});
-
-			if (runningTasks.length !== options.params.serviceCount) {
-				setTimeout(engine.getServiceComponents.bind(null, options, cb), 500);
-			}
-			else {
-				info.tasks = runningTasks;
-				return cb(null, info);
-			}
 		});
 	},
 
@@ -416,22 +444,24 @@ let engine = {
 	inspectTask (options, cb) {
 		//NOTE: user is expected to have the task name but not its id. API does not support inspect a task by its name directly
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb);
-			let serviceName = options.params.taskName.split('.')[0];
-			let taskSlot = options.params.taskName.split('.')[1];
-			let params = { filters: { service: [serviceName] } };
+			checkError(error, cb, () => {
+				let serviceName = options.params.taskName.split('.')[0];
+				let taskSlot = options.params.taskName.split('.')[1];
+				let params = { filters: { service: [serviceName] } };
 
-			deployer.listTasks(params, (error, tasks) => {
-				checkError(error, cb);
-				let found;
-				for (let i = 0; i < tasks.length; i++) {
-					if (tasks[i].Slot === taskSlot) {
-						found = tasks[i];
-						break;
-					}
-				}
+				deployer.listTasks(params, (error, tasks) => {
+					checkError(error, cb, () => {
+						let found;
+						for (let i = 0; i < tasks.length; i++) {
+							if (tasks[i].Slot === taskSlot) {
+								found = tasks[i];
+								break;
+							}
+						}
 
-				return ((found) ? cb(null, found) : cb());
+						return ((found) ? cb(null, found) : cb());
+					});
+				});
 			});
 		});
 	},
@@ -460,16 +490,18 @@ let engine = {
 			conditions: { recordType: 'node', id: options.params.nodeId }
 		};
 		options.model.findEntry(options.soajs, opts, (error, node) => {
-			checkError(error || !node, cb);
-			//TODO: replace ip/port with node id
-			options.deployerConfig.host = node.ip;
-			options.deployerConfig.port = node.dockerPort;
-			options.deployerConfig.flags = { targetNode: true };
+			checkError(error || !node, cb, () => {
+				//TODO: replace ip/port with node id
+				options.deployerConfig.host = node.ip;
+				options.deployerConfig.port = node.dockerPort;
+				options.deployerConfig.flags = { targetNode: true };
 
-			lib.getDeployer(options, (error, deployer) => {
-				checkError(error, cb);
-				let container = deployer.getContainer(options.params.containerId);
-				container.inspect(cb);
+				lib.getDeployer(options, (error, deployer) => {
+					checkError(error, cb, () => {
+						let container = deployer.getContainer(options.params.containerId);
+						container.inspect(cb);
+					});
+				});
 			});
 		});
 	},
@@ -625,8 +657,9 @@ let engine = {
 		}
 
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb);
-			deployer.listNetworks(params, cb);
+			checkError(error, cb, () => {
+				deployer.listNetworks(params, cb);
+			});
 		});
 	},
 
@@ -639,9 +672,10 @@ let engine = {
 	*/
 	inspectNetwork (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb);
-			let network = deployer.getNetwork(options.params.id);
-			network.inspect(cb);
+			checkError(error, cb, () => {
+				let network = deployer.getNetwork(options.params.id);
+				network.inspect(cb);
+			});
 		});
 	},
 
@@ -657,8 +691,9 @@ let engine = {
 		payload.Name = options.params.networkName;
 
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb);
-			deployer.createNetwork(payload, cb);
+			checkError(error, cb, () => {
+				deployer.createNetwork(payload, cb);
+			});
 		});
 	},
 
@@ -671,11 +706,12 @@ let engine = {
 	*/
 	deleteServices (options, cb) {
 		engine.listServices(options, (error, services) => {
-			checkError(error, cb);
-			async.each(services, (oneService, callback) => {
-				options.params.id = oneService.ID;
-				engine.deleteService(options, callback);
-			}, cb);
+			checkError(error, cb, () => {
+				async.each(services, (oneService, callback) => {
+					options.params.id = oneService.ID;
+					engine.deleteService(options, callback);
+				}, cb);
+			});
 		});
 	},
 
@@ -699,20 +735,21 @@ let engine = {
 	*/
 	getLatestVersion (options, cb) {
 		engine.listServices(options, (error, services) => {
-			checkError(error, cb)
-			let latestVersion = 0, match;
-			services.forEach(function (oneService) {
-				match = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.env.code'] === options.params.env &&
-				oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.name'] === options.params.service;
+			checkError(error, cb, () => {
+				let latestVersion = 0, match;
+				services.forEach(function (oneService) {
+					match = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.env.code'] === options.params.env &&
+					oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.name'] === options.params.service;
 
-				if (match) {
-					if (oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.version'] > latestVersion) {
-						latestVersion = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.version'];
+					if (match) {
+						if (oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.version'] > latestVersion) {
+							latestVersion = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.version'];
+						}
 					}
-				}
-			});
+				});
 
-			return cb(null, latestVersion);
+				return cb(null, latestVersion);
+			});
 		});
 	},
 
@@ -725,14 +762,15 @@ let engine = {
 	*/
 	getServiceHost (options, cb) {
 		engine.listServices(options, (error, services) => {
-			checkError(error, cb);
-			async.detect(services, (oneService, callback) => {
-				let match = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.env.code'] === options.params.env &&
-				oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.name'] === options.params.service &&
-				oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.version'] === options.params.version;
-				return callback(null, match);
-			}, (error, service) => {
-				return cb(null, ((service && service.Spec && service.Spec.Name) ? service.Spec.Name : null));
+			checkError(error, cb, () => {
+				async.detect(services, (oneService, callback) => {
+					let match = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.env.code'] === options.params.env &&
+					oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.name'] === options.params.service &&
+					oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.version'] === options.params.version;
+					return callback(null, match);
+				}, (error, service) => {
+					return cb(null, ((service && service.Spec && service.Spec.Name) ? service.Spec.Name : null));
+				});
 			});
 		});
 	},
@@ -746,16 +784,17 @@ let engine = {
 	*/
 	getControllerEnvHost (options, cb) {
 		engine.listServices(options, (error, services) => {
-			checkError(error, cb);
-			let envs = {}, match;
-			services.forEach(function (oneService) {
-				match = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.env.code'] === options.params.env &&
-				oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.name'] === 'controller';
+			checkError(error, cb, () => {
+				let envs = {}, match;
+				services.forEach(function (oneService) {
+					match = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.env.code'] === options.params.env &&
+					oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.name'] === 'controller';
 
 
+				});
+
+				//TODO
 			});
-
-			//TODO
 		});
 	}
 
