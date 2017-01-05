@@ -214,53 +214,6 @@ let engine = {
     },
 
     /**
-     * Generates an object that contains all required information about a node
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
-    buildNodeRecord (options, cb) {
-        function calcMemory (memory) {
-            var value = memory.substring(0, options.node.status.capacity.memory.length - 2);
-            var unit = memory.substring(memory.length - 2);
-
-            if (unit === 'Ki') value += '000';
-            else if (unit === 'Mi') value += '000000';
-
-            return parseInt(value);
-        }
-
-        function getIP (addresses) {
-            var ip = '';
-            for (var i = 0; i < addresses.length; i++) {
-                if (addresses[i].type === 'LegacyHostIP') {
-                    ip = addresses[i].address;
-                }
-            }
-
-            return ip;
-        }
-
-        var record = {
-            recordType: 'node',
-            id: options.node.metadata.uid,
-            name: options.node.metadata.name,
-            availability: ((!options.node.spec.unschedulable) ? 'active' : 'drained'),
-            role: ((options.node.metadata.labels['kubeadm.alpha.kubernetes.io/role'] === 'master') ? 'manager' : 'worker'),
-            ip: getIP (options.node.status.addresses),
-            port: options.node.status.daemonEndpoints.kubeletEndpoint.Port,
-            resources: {
-                cpuCount: options.node.status.capacity.cpu,
-                memory: calcMemory(options.node.status.capacity.memory)
-            },
-            tokens: options.managerNodes[0].tokens || {}
-        };
-
-        return cb(record);
-    },
-
-    /**
      * Creates a new deployment for a SOAJS service
      *
      * @param {Object} options
@@ -451,15 +404,6 @@ let engine = {
         });
     },
 
-
-    getDeployments (options, cb) {
-        lib.getDeployer(options, (error, deployer) => {
-            checkError(error, cb, () => {
-                deployer.extensions.namespaces.deployments.get(options.params, cb);
-            });
-        });
-    },
-
     /**
      * Deletes a deployed service
      *
@@ -485,7 +429,7 @@ let engine = {
                     key: deployer.extensions.requestOptions.key
                 };
                 options.params = {name: options.serviceName};
-                engine.getDeployments(options, (error, deployment) => {
+                engine.getDeployment(options, (error, deployment) => {
                     checkError(error, cb, () => {
                         deployment.spec.replicas = 0;
                         options.params = {name: options.serviceName, body: deployment};
@@ -736,29 +680,6 @@ let engine = {
                 return options.res.jsonp(options.soajs.buildResponse(null, {data: logData}));
             });
         });
-    },
-
-    /**
-     * Generates an object that contains all required information about a container
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
-    buildContainerRecords (options, cb) {
-        async.map(options.params.serviceInfo.tasks, (onePod, callback) => {
-            var record = {
-                type: options.params.serviceType,
-                env: options.soajs.inputmaskData.envCode.toLowerCase(),
-                running: true,
-                recordType: 'container',
-                deployer: options.deployerConfig,
-                taskName: onePod.metadata.name,
-                serviceName: options.params.serviceInfo.service.metadata.name
-            };
-
-            return callback(null, record);
-        }, cb);
     },
 
     /**
