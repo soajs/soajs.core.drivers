@@ -224,6 +224,34 @@ module.exports = {
     },
 
     /**
+     * Returns a kubernetes deployment
+     * @param options
+     * @param cb
+     */
+    getDeployment (options, cb) {
+        getStrategy(options, (error, strategy) => {
+            checkError(error, cb);
+            checkIfSupported({strategy: strategy, function: 'getDeployment'}, cb, () => {
+                strategy.getDeployment(options, cb);
+            });
+        });
+    },
+
+    /**
+     * Deletes a kubernetes deployment
+     * @param options
+     * @param cb
+     */
+    deleteDeployment (options, cb) {
+        getStrategy(options, (error, strategy) => {
+            checkError(error, cb);
+            checkIfSupported({strategy: strategy, function: 'deleteDeployment'}, cb, () => {
+                strategy.deleteDeployment(options, cb);
+            });
+        });
+    },
+
+    /**
     * Inspects and returns information about a specified task/pod
     *
     * @param {Object} options
@@ -251,6 +279,76 @@ module.exports = {
             checkError(error, cb);
             checkIfSupported({strategy: strategy, function: 'deleteService'}, cb, () => {
                 strategy.deleteService(options, cb);
+            });
+        });
+    },
+
+    /**
+     * Returns a kubernetes replica set
+     * @param options
+     * @param cb
+     */
+    getReplicaSet (options, cb) {
+        getStrategy(options, (error, strategy) => {
+            checkError(error, cb);
+            checkIfSupported({strategy: strategy, function: 'getReplicaSet'}, cb, () => {
+                strategy.getReplicaSet(options, cb);
+            });
+        });
+    },
+
+    /**
+     * Deletes a kubernetes replica set
+     * @param options
+     * @param cb
+     */
+    deleteReplicaSet (options, cb) {
+        getStrategy(options, (error, strategy) => {
+            checkError(error, cb);
+            checkIfSupported({strategy: strategy, function: 'deleteReplicaSet'}, cb, () => {
+                strategy.deleteReplicaSet(options, cb);
+            });
+        });
+    },
+
+    /**
+     * updates a kubernetes replica set
+     * @param options
+     * @param cb
+     */
+    updateReplicaSet (options, cb) {
+        getStrategy(options, (error, strategy) => {
+            checkError(error, cb);
+            checkIfSupported({strategy: strategy, function: 'updateReplicaSet'}, cb, () => {
+                strategy.updateReplicaSet(options, cb);
+            });
+        });
+    },
+
+    /**
+     * Injects the certificates
+     * @param options
+     * @returns {*}
+     */
+    injectCerts (options, cb) {
+        getStrategy(options, (error, strategy) => {
+            checkError(error, cb);
+            checkIfSupported({strategy: strategy, function: 'injectCerts'}, cb, () => {
+                strategy.injectCerts(options, cb);
+            });
+        });
+    },
+
+    /**
+     * Deletes a kubernetes pod
+     * @param options
+     * @param cb
+     */
+    deletePod (options, cb) {
+        getStrategy(options, (error, strategy) => {
+            checkError(error, cb);
+            checkIfSupported({strategy: strategy, function: 'deletePod'}, cb, () => {
+                strategy.deletePod(options, cb);
             });
         });
     },
