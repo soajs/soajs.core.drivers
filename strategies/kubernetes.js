@@ -42,100 +42,38 @@ function getDockerCerts(certs, gfs, db, cb) { //NOTE: common function for docker
 }
 
 let lib = {
-    getDeployer (options, cb) {
-        let config = clone(options.deployerConfig);
-        let kubernetes = {}, kubeConfig;
+    getDeployer(options, cb) {
+        let kubernetes = {};
+        let kubeProxyURL = process.env.SOAJS_KUBE_PROXY_URL || '127.0.0.1';
+        let kubeProxyPort = process.env.SOAJS_KUBE_PROXY_PORT || 8001;
 
-        getClusterCertificates(config, (error, certs) => {
-            checkError(error, cb, () => {
-                getManagerNodeDeployer(config, certs, cb);
-            });
-        });
+        let kubeConfig = { url: kubeProxyURL + ':' + kubeProxyPort };
 
-        function getManagerNodeDeployer(config, certs, cb) {
-            if (!config.nodes || config.nodes.length === 0) {
-                return cb({message: 'No manager nodes found in this environment\'s deployer'});
-            }
+        kubeConfig.version = 'v1';
+        kubernetes.core = new K8Api.Core(kubeConfig);
 
-            let opts = {
-                collection: dockerColl,
-                conditions: { recordType: 'node', role: 'manager' }
-            };
+        kubeConfig.version = 'v1beta1';
+        kubernetes.extensions = new K8Api.Extensions(kubeConfig);
 
-            options.model.findEntries(soajs, opts, (error, managerNodes) => {
-                checkError(error, cb, () => {
-                    async.detect(managerNodes, (oneNode, callback) => {
-                        kubeConfig = buildKubeConfig(oneNode.ip, oneNode.kubePort, certs);
-                        kubeConfig.version = 'v1';
-                        kubernetes = new K8Api.Core(kubeConfig);
-                        kubernetes.namespaces.pods.get({}, (error, response) => { //TODO: find better ping call
-                            //error is insignificant in this case
-                            return callback(null, response);
-                        });
-                    }, (error, fastestNodeRecord) => {
-                        //error is insignificant in this case
-                        if (!fastestNodeRecord) {
-                            return cb({'message': 'ERROR: unable to connect to a manager node'});
-                        }
-                        kubeConfig = buildKubeConfig(fastestNodeRecord.ip, fastestNodeRecord.kubePort, certs);
-                        kubernetes = {};
-                        kubeConfig.version = 'v1';
-                        kubernetes.core = new K8Api.Core(kubeConfig);
-                        kubeConfig.version = 'v1beta1';
-                        kubernetes.extensions = new K8Api.Extensions(kubeConfig);
-
-                        return cb(null, kubernetes);
-                    });
-                });
-            });
-        }
-
-        function buildKubeConfig(host, port, certs) {
-            var kubeConfig = {
-                url: 'https://' + host + ':' + port
-            };
-
-            var certKeys = Object.keys(certs);
-            certKeys.forEach((oneCertKey) => {
-                kubeConfig[oneCertKey] = certs[oneCertKey];
-            });
-
-            return kubeConfig;
-        }
-
-        function getClusterCertificates(config, callback) {
-            if (!config.envCode) {
-                return callback({message: 'Missing environment code'});
-            }
-
-            var opts = {
-                collection: gridfsColl,
-                conditions: {}
-            };
-            opts.conditions['metadata.env.' + config.envCode.toUpperCase()] = config.selectedDriver;
-            model.findEntries(soajs, opts, (error, certs) => {
-                checkError(error, callback, () => {
-                    if (!certs || (certs && certs.length === 0)) {
-                        return callback({
-                            code: 741,
-                            message: 'No certificates for ' + config.envCode + ' environment found'
-                        });
-                    }
-
-                    model.getDb(soajs).getMongoDb((error, db) => {
-                        checkError(error, callback, () => {
-                            var gfs = Grid(db, model.getDb(soajs).mongodb);
-                            var counter = 0;
-                            return getCerts(certs, gfs, db, callback);
-                        });
-                    });
-                });
-            });
-        }
+        return cb(null, kubernetes);
     }
 };
 
 let engine = {
+
+    /**
+	* List nodes in a cluster
+	*
+	* @param {Object} options
+	* @param {Function} cb
+	* @returns {*}
+	*/
+	listNodes (options, cb) {
+		lib.getDeployer(options, (error, deployer) => {
+            checkError(error, cb);
+            deployer.core.nodes.get({}, cb);
+        });
+	},
 
     /**
      * Adds a node to a cluster

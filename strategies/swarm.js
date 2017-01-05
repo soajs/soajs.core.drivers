@@ -106,7 +106,7 @@ let lib = {
 		}
 
 		function buildDockerConfig(host, port, certs) {
-			let dockerConfig = { host: host, port: port };
+			let dockerConfig = { host, port };
 
 			let certKeys = Object.keys(certs);
 			certKeys.forEach((oneCertKey) => {
