@@ -48,6 +48,22 @@ function getStrategy(options, cb) {
 module.exports = {
 
     /**
+    * Inspect cluster
+    *
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
+    inspectCluster (options, cb) {
+        getStrategy(options, (error, strategy) => {
+            checkError(error, cb);
+            checkIfSupported({strategy: strategy, function: 'inspectCluster'}, cb, () => {
+                strategy.inspectCluster(options, cb);
+            });
+        });
+    },
+
+    /**
     * Adds a node to a cluster
     *
     * @param {Object} options

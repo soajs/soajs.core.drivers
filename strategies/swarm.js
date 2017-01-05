@@ -1,3 +1,5 @@
+/*jshint esversion: 6 */
+
 "use strict";
 
 let Docker = require('dockerode');
@@ -119,6 +121,26 @@ let lib = {
 let engine = {
 
 	/**
+    * Inspect cluster, returns general cluster info + list of manager nodes
+    *
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
+    inspectCluster (options, cb) {
+        lib.getDeployer(options, (error, deployer) => {
+			checkError(error, cb);
+			deployer.swarmInspect((error, swarm) => {
+				checkError(error, cb);
+				deployer.info((error, info) => {
+					checkError(error, cb);
+					return cb(null, {swarm, info});
+				});
+			});
+		});
+    },
+
+	/**
 	* Adds a node to a cluster
 	*
 	* @param {Object} options
@@ -126,20 +148,31 @@ let engine = {
 	* @returns {*}
 	*/
 	addNode (options, cb) {
-		options.deployerConfig.flags = { targetNode: true };
-		lib.getDeployer(options, (error, deployer) => {
+		let payload = {};
+		engine.inspectCluster(options, (error, cluster) => {
 			checkError(error, cb);
-			deployer.swarmJoin(options.params, (error) => {
-				checkError(error, cb);
-				//TODO: update env records, deployer object, if new node is manager add it to list
-				if (options.params.role === 'manager') {
-					return cb(null, true);
-				}
-				else {
-					return cb(null, true);
-				}
+			buildManagerNodeList(cluster.info.Swarm.ManagerNodes, (error, remoteAddrs) => {
+				//error is null, no need to check it
+				let swarmPort = cluster.info.Swarm.RemoteManagers[0].Addr.split(':')[1]; //swarm port is being copied from any of the manger nodes in the swarm
+				payload.ListenAddr = '0.0.0.0:' + swarmPort;
+				payload.AdverstiseAddr = options.soajs.inputmaskData.host + ':' + swarmPort;
+				payload.RemoteAddrs = remoteAddrs;
+				payload.JoinToken = ((options.soajs.inputmaskData.role === 'manager') ? cluster.swarm.JoinTokens.Manager : cluster.swarm.JoinTokens.Worker);
+
+				options.deployerConfig.flags = { targetNode: true };
+				lib.getDeployer(options, (error, deployer) => {
+					checkError(error, cb);
+					deployer.swarmJoin(options.params, cb);
+				});
 			});
 		});
+
+		//this function takes a list of manager nodes and returns an array in the format required by the swarm api
+		function buildManagerNodeList (nodeList, cb) {
+			async.map(nodeList, (oneNode, callback) => {
+				return callback(null, oneNode.Addr);
+			}, cb);
+		}
 	},
 
 	/**
@@ -483,7 +516,7 @@ let engine = {
 	* @returns {*}
 	*/
 	deleteContainer (options, cb) {
-		
+
 	},
 
 	/**
