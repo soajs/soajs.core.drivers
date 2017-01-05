@@ -268,40 +268,6 @@ let engine = {
 	},
 
 	/**
-	* Generates an object that contains all required information about a node
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
-	buildNodeRecord (options, cb) {
-		var record = {
-			recordType: 'node',
-			id: options.params.node.ID,
-			name: options.params.node.Description.Hostname,
-			availability: options.params.node.Spec.Availability,
-			role: options.params.node.Spec.Role,
-			resources: {
-				cpuCount: options.params.node.Description.Resources.NanoCPUs / 1000000000,
-				memory: options.params.node.Description.Resources.MemoryBytes
-			},
-			tokens: options.params.managerNodes[0].tokens
-		};
-
-		if (record.role === 'manager') {
-			record.ip = options.params.node.ManagerStatus.Addr.split(':')[0];
-			record.dockerPort = options.soajs.inputmaskData.port;
-			record.swarmPort = options.params.node.ManagerStatus.Addr.split(':')[1];
-		}
-		else {
-			record.ip = options.soajs.inputmaskData.host;
-			record.dockerPort = options.soajs.inputmaskData.port;
-			record.swarmPort = options.params.swarmPort;
-		}
-		return cb(record);
-	},
-
-	/**
 	* List services/deployments currently available
 	*
 	* @param {Object} options
@@ -585,43 +551,6 @@ let engine = {
 				});
 			});
 		});
-	},
-
-	/**
-	* Generates an object that contains all required information about a container
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
-	buildContainerRecords (options, cb) {
-		async.map(options.params.serviceInfo.tasks, (oneInstance, callback) => {
-			options.params.nodeId = oneInstance.NodeID;
-			options.params.containerId = oneInstance.Status.ContainerStatus.ContainerID;
-
-			engine.inspectContainer(options, (error, container) => {
-				checkError(error, cb);
-				let newRecord = {
-					type: options.params.serviceType,
-					env: options.soajs.inputmaskData.envCode.toLowerCase(),
-					running: true,
-					recordType: 'container',
-					deployer: options.deployerConfig,
-					taskName: container.Config.Labels['com.docker.swarm.task.name'],
-					serviceName: container.Config.Labels['com.docker.swarm.service.name']
-				};
-
-				//NOTE: cleaning dots from field names to avoid mongo error
-				let labels = Object.keys(containerInfo.Config.Labels);
-				labels.forEach((oneLabel) => {
-					container.Config.Labels[oneLabel.replace(/\./g, '-')] = container.Config.Labels[oneLabel];
-					delete container.Config.Labels[oneLabel];
-				});
-				newRecord.info = containerInfo;
-
-				return callback(null, newRecord);
-			});
-		}, cb);
 	},
 
 	/**
