@@ -146,22 +146,6 @@ module.exports = {
     },
 
     /**
-    * Generates an object that contains all required information about a node
-    *
-    * @param {Object} options
-    * @param {Function} cb
-    * @returns {*}
-    */
-    buildNodeRecord (options, cb) {
-        getStrategy(options, (error, strategy) => {
-            checkError(error, cb);
-            checkIfSupported({strategy: strategy, function: 'buildNodeRecord'}, cb, () => {
-                strategy.buildNodeRecord(options, cb);
-            });
-        });
-    },
-
-    /**
     * List services/deployments currently available
     *
     * @param {Object} options
@@ -431,22 +415,6 @@ module.exports = {
             checkError(error, cb);
             checkIfSupported({strategy: strategy, function: 'getContainerLogs'}, cb, () => {
                 strategy.getContainerLogs(options, cb);
-            });
-        });
-    },
-
-    /**
-    * Generates an object that contains all required information about a container
-    *
-    * @param {Object} options
-    * @param {Function} cb
-    * @returns {*}
-    */
-    buildContainerRecords (options, cb) {
-        getStrategy(options, (error, strategy) => {
-            checkError(error, cb);
-            checkIfSupported({strategy: strategy, function: 'buildContainerRecords'}, cb, () => {
-                strategy.buildContainerRecords(options, cb);
             });
         });
     },
