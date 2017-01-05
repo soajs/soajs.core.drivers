@@ -25,7 +25,7 @@ let lib = {
 		//remote deployments can use unix socket if function does not require connection to worker nodes
 		//dashboard containers are guaranteed to be deployed on manager nodes
 		if (!config.flags || (config.flags && !config.flags.targetNode)) {
-			return cb(null, new Docker({socketPath: config.socketPath});
+			return cb(null, new Docker({socketPath: config.socketPath}));
 		}
 
 		//remote deployments should use certificates if function requires connecting to a worker node

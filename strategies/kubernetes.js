@@ -5,11 +5,8 @@
 let K8Api = require('kubernetes-client');
 let async = require('async');
 
-function checkError(error, cb, fCb) {
-    if (error) {
-        return cb(error, null);
-    }
-    return fCb();
+function checkError(error, cb) {
+    return (error) ? cb(error) : true;
 }
 
 function getDockerCerts(certs, gfs, db, cb) { //NOTE: common function for docker and kubernetes driver
@@ -84,30 +81,28 @@ let engine = {
      */
     addNode (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
-            checkError(error, cb, () => {
-                engine.listNodes(options, (error, nodeList) => {
-                    checkError(error, cb, function () {
-                        async.detect(nodeList.items, (oneNode, callback) => {
-                            for (var i = 0; i < oneNode.status.addresses.length; i++) {
-                                if (oneNode.status.addresses[i].type === 'LegacyHostIP') {
-                                    return callback(oneNode.status.addresses[i].address === soajs.inputmaskData.host);
-                                }
-                            }
+            checkError(error, cb);
+            engine.listNodes(options, (error, nodeList) => {
+                checkError(error, cb);
+                async.detect(nodeList.items, (oneNode, callback) => {
+                    for (var i = 0; i < oneNode.status.addresses.length; i++) {
+                        if (oneNode.status.addresses[i].type === 'LegacyHostIP') {
+                            return callback(oneNode.status.addresses[i].address === soajs.inputmaskData.host);
+                        }
+                    }
 
-                            return callback(false);
-                        }, (targetNodeRecord) => {
-                            if (!targetNodeRecord) {
-                                return cb({'message': 'ERROR: Could not find node in cluster, aborting ...'});
-                            }
+                    return callback(false);
+                }, (targetNodeRecord) => {
+                    if (!targetNodeRecord) {
+                        return cb({'message': 'ERROR: Could not find node in cluster, aborting ...'});
+                    }
 
-                            var nodeInfo = {
-                                role: targetNodeRecord.role,
-                                name: targetNodeRecord.name
-                            };
+                    var nodeInfo = {
+                        role: targetNodeRecord.role,
+                        name: targetNodeRecord.name
+                    };
 
-                            return cb(null, targetNodeRecord, nodeInfo);
-                        });
-                    });
+                    return cb(null, targetNodeRecord, nodeInfo);
                 });
             });
         });
@@ -122,9 +117,8 @@ let engine = {
      */
     removeNode (options, cb) { //options should include backgroundCB
         lib.getDeployer(options, (error, deployer) => {
-            checkError(error, cb, () => {
-                deployer.core.node.delete({name: options.params.name}, cb);
-            });
+            checkError(error, cb);
+            deployer.core.node.delete({name: options.params.name}, cb);
         });
     },
 
@@ -142,14 +136,13 @@ let engine = {
         else if (options.params.Availability === 'drain') updateValue = true;
 
         lib.getDeployer(options, (error, deployer) => {
-            checkError(error, cb, () => {
-                deployer.core.node.get({name: options.params.nodeName}, (error, node) => {
-                    checkError(error, cb, () => {
-                        node.spec.unschedulable = updateValue;
-                        deployer.core.nodes.put({name: options.params.nodeName, body: node}, cb);
-                    });
-                });
+            checkError(error, cb);
+            deployer.core.node.get({name: options.params.nodeName}, (error, node) => {
+                checkError(error, cb);
+                node.spec.unschedulable = updateValue;
+                deployer.core.nodes.put({name: options.params.nodeName, body: node}, cb);
             });
+
         });
     },
 
@@ -223,22 +216,21 @@ let engine = {
         }
 
         lib.getDeployer(soajs, deployerConfig, model, function (error, deployer) {
-            checkError(error, cb, function () {
-                if (Object.keys(kubernetesServiceParams).length > 0) {
-                    options.params = {body: kubernetesServiceParams};
-                    engine.createKubeService(options, (error) => {
-                        checkError(error, cb, function () {
-                            soajs.log.debug('Deployer params: ' + JSON.stringify (deploymentParams));
-                            deployer.extensions.namespaces.deployments.post({body: deploymentParams}, cb);
-                        });
-                    });
-                }
-                else {
-                    soajs.log.debug('Deployer params: ' + JSON.stringify (haDeploymentParams));
-                    deployer.extensions.namespaces.deployments.post({body: haDeploymentParams}, cb);
-                }
+            checkError(error, cb);
+            if (Object.keys(kubernetesServiceParams).length > 0) {
+                options.params = {body: kubernetesServiceParams};
+                engine.createKubeService(options, (error) => {
+                    checkError(error, cb);
+                    soajs.log.debug('Deployer params: ' + JSON.stringify (deploymentParams));
+                    deployer.extensions.namespaces.deployments.post({body: deploymentParams}, cb);
+                });
+            }
+            else {
+                soajs.log.debug('Deployer params: ' + JSON.stringify (haDeploymentParams));
+                deployer.extensions.namespaces.deployments.post({body: haDeploymentParams}, cb);
+            }
 
-            });
+
         });
 
         //Build the environment variable
@@ -282,9 +274,9 @@ let engine = {
      */
     scaleService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
-            checkError(error, cb, () => {
-                deployer.extensions.namespaces.deployments.put({name: options.params.serviceName, body: deployment}, cb);
-            });
+            checkError(error, cb);
+            deployer.extensions.namespaces.deployments.put({name: options.params.serviceName, body: deployment}, cb);
+
         });
     },
 
@@ -297,20 +289,17 @@ let engine = {
      */
     inspectService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
-            checkError(error, cb, () => {
-                deployer.extensions.namespaces.deployments.get(options.params.serviceName, (error, deployment) => {
-                    checkError(error, cb, () => {
+            checkError(error, cb);
+            deployer.extensions.namespaces.deployments.get(options.params.serviceName, (error, deployment) => {
+                checkError(error, cb);
 
-                        if (options.params.excludeTasks) {
-                            return cb(null, {service: deployment});
-                        }
+                if (options.params.excludeTasks) {
+                    return cb(null, {service: deployment});
+                }
 
-                        deployer.core.namespaces.pods.get({qs: {labelSelector: 'soajs-app=' + options.params.serviceName}}, (error, podsList) => {
-                            checkError(error, cb, () => {
-                                return cb(null, {service: deployment, tasks: podsList.items});
-                            });
-                        });
-                    });
+                deployer.core.namespaces.pods.get({qs: {labelSelector: 'soajs-app=' + options.params.serviceName}}, (error, podsList) => {
+                    checkError(error, cb);
+                    return cb(null, {service: deployment, tasks: podsList.items});
                 });
             });
         });
@@ -325,22 +314,21 @@ let engine = {
      */
     getServiceComponents (options, cb) {
         engine.inspectService(options, (error, info) => {
-            checkError(error, cb, () => {
-                let runningPods = [];
-                info.tasks.forEach((onePod) => {
-                    if (onePod.metadata.labels['soajs-app'] === options.params.serviceName && onePod.status.phase === 'Running') {
-                        runningPods.push(onePod);
-                    }
-                });
-
-                if (runningPods.length !== options.params.serviceCount) {
-                    setTimeout(engine.getServiceComponents.bind(null, options, cb), 500);
-                }
-                else {
-                    info.tasks = runningPods;
-                    return cb(null, info);
+            checkError(error, cb);
+            let runningPods = [];
+            info.tasks.forEach((onePod) => {
+                if (onePod.metadata.labels['soajs-app'] === options.params.serviceName && onePod.status.phase === 'Running') {
+                    runningPods.push(onePod);
                 }
             });
+
+            if (runningPods.length !== options.params.serviceCount) {
+                setTimeout(engine.getServiceComponents.bind(null, options, cb), 500);
+            }
+            else {
+                info.tasks = runningPods;
+                return cb(null, info);
+            }
         });
     },
 
@@ -353,72 +341,62 @@ let engine = {
      */
     deleteService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
-            checkError(error, cb, function () {
-                var body = {
-                    gracePeriodSeconds: 0
-                };
+            checkError(error, cb);
+            var body = {
+                gracePeriodSeconds: 0
+            };
 
-                var requestOptions = {
-                    uri: deployer.extensions.url + deployer.extensions.path + '/namespaces/default/replicasets',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    json: true,
-                    ca: deployer.extensions.requestOptions.ca,
-                    cert: deployer.extensions.requestOptions.cert,
-                    key: deployer.extensions.requestOptions.key
-                };
-                options.params = {name: options.serviceName};
-                engine.getDeployment(options, (error, deployment) => {
-                    checkError(error, cb, () => {
-                        deployment.spec.replicas = 0;
-                        options.params = {name: options.serviceName, body: deployment};
-                        engine.scaleService(options, (error) => {
-                            checkError(error, cb, () => {
-                                ensureDeployment(deployer, (error) => {
-                                    checkError(error, cb, function () {
-                                        options.requestOptions = utils.cloneObj(requestOptions);
-                                        engine.getReplicaSet(options, (error, replicaSet) => {
-                                            checkError(error, cb, () => {
-                                                options.requestOptions = utils.cloneObj(requestOptions);
-                                                engine.updateReplicaSet(options, replicaSet, {replicas: 0}, (error) => {
-                                                    checkError(error, cb, function () {
-                                                        ensureReplicaSet(deployer, utils.cloneObj(requestOptions), (error) => {
-                                                            checkError(error, cb, () => {
-                                                                options.requestOptions = utils.cloneObj(requestOptions);
-                                                                options.params = {rsName: replicaSet.metadata.name};
-                                                                engine.deleteReplicaSet(options, (error) => {
-                                                                    checkError(error, cb, () => {
-                                                                        getDeleteKubeService(deployer, (error) => {
-                                                                            checkError(error, cb, () => {
-                                                                                options.params = {name: options.serviceName, body: body};
-                                                                                engine.deleteDeployment(options, (error) => {
-                                                                                    checkError(error, cb, () => {
+            var requestOptions = {
+                uri: deployer.extensions.url + deployer.extensions.path + '/namespaces/default/replicasets',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                json: true,
+                ca: deployer.extensions.requestOptions.ca,
+                cert: deployer.extensions.requestOptions.cert,
+                key: deployer.extensions.requestOptions.key
+            };
+            options.params = {name: options.serviceName};
+            engine.getDeployment(options, (error, deployment) => {
+                checkError(error, cb);
+                deployment.spec.replicas = 0;
+                options.params = {name: options.serviceName, body: deployment};
+                engine.scaleService(options, (error) => {
+                    checkError(error, cb);
+                    ensureDeployment(deployer, (error) => {
+                        checkError(error, cb);
+                        options.requestOptions = utils.cloneObj(requestOptions);
+                        engine.getReplicaSet(options, (error, replicaSet) => {
+                            checkError(error, cb);
+                            options.requestOptions = utils.cloneObj(requestOptions);
+                            engine.updateReplicaSet(options, replicaSet, {replicas: 0}, (error) => {
+                                checkError(error, cb);
+                                ensureReplicaSet(deployer, utils.cloneObj(requestOptions), (error) => {
+                                    checkError(error, cb);
+                                    options.requestOptions = utils.cloneObj(requestOptions);
+                                    options.params = {rsName: replicaSet.metadata.name};
+                                    engine.deleteReplicaSet(options, (error) => {
+                                        checkError(error, cb);
+                                        getDeleteKubeService(deployer, (error) => {
+                                            checkError(error, cb);
+                                            options.params = {name: options.serviceName, body: body};
+                                            engine.deleteDeployment(options, (error) => {
+                                                checkError(error, cb);
 
-                                                                                        cb(null, true);
-                                                                                        //delete pods in background
-                                                                                        options.params = {
-                                                                                            qs: {
-                                                                                                labelSelector: 'soajs-app=' + options.serviceName
-                                                                                            }
-                                                                                        };
-                                                                                        engine.deletePods(options, (error) => {
-                                                                                            if (error) {
-                                                                                                soajs.log.error('Unable to delete pods of ' + options.serviceName);
-                                                                                            }
-                                                                                            else {
-                                                                                                soajs.log.debug('Pods of ' + options.serviceName + ' deleted successfully');
-                                                                                            }
-                                                                                        });
-                                                                                    });
-                                                                                });
-                                                                            });
-                                                                        });
-                                                                    });
-                                                                });
-                                                            });
-                                                        });
-                                                    });
+                                                cb(null, true);
+                                                //delete pods in background
+                                                options.params = {
+                                                    qs: {
+                                                        labelSelector: 'soajs-app=' + options.serviceName
+                                                    }
+                                                };
+                                                engine.deletePods(options, (error) => {
+                                                    if (error) {
+                                                        soajs.log.error('Unable to delete pods of ' + options.serviceName);
+                                                    }
+                                                    else {
+                                                        soajs.log.debug('Pods of ' + options.serviceName + ' deleted successfully');
+                                                    }
                                                 });
                                             });
                                         });
@@ -428,62 +406,63 @@ let engine = {
                         });
                     });
                 });
+            });
 
-                function ensureDeployment(deployer, callback) {
-                    options.params = {name: options.serviceName};
-                    engine.getDeployment(options, (error, deployment) => {
-                        checkError(error, cb, function () {
-                            if (deployment.spec.replicas === 0) {
-                                return callback(null, true);
-                            }
-                            else {
-                                setTimeout(function () {
-                                    return ensureDeployment(deployer, callback);
-                                }, 500);
-                            }
-                        });
-                    });
-                }
-
-                function ensureReplicaSet(deployer, requestOptions, callback) {
-                    options.requestOptions = requestOptions;
-                    engine.getReplicaSet(opyions, function (error, replicaSet) {
-                        if (error) {
-                            return callback(error);
-                        }
-
-                        if (!replicaSet) {
-                            return callback(null, true)
-                        }
-
-                        if (replicaSet.spec.replicas === 0) {
-                            return callback(null, true)
-                        }
-                        else {
-                            setTimeout(function () {
-                                return ensureReplicaSet(deployer, requestOptions, callback);
-                            }, 500);
-                        }
-                    });
-                }
-
-                function getDeleteKubeService(deployer, callback) {
-                    if (options.serviceType === 'controller' || options.serviceType === 'nginx') {
-                        var kubeServiceName = options.serviceName + '-service';
-                        options.params = {name: kubeServiceName};
-                        engine.listKubeServices(options, function (error, service) {
-                            checkError(error, cb, function () {
-                                options.params = {name: kubeServiceName, body: body};
-                                engine.deleteKubeService(options, callback);
-                            });
-                        });
-                    }
-                    else {
+            function ensureDeployment(deployer, callback) {
+                options.params = {name: options.serviceName};
+                engine.getDeployment(options, (error, deployment) => {
+                    checkError(error, cb);
+                    if (deployment.spec.replicas === 0) {
                         return callback(null, true);
                     }
-                }
+                    else {
+                        setTimeout(function () {
+                            return ensureDeployment(deployer, callback);
+                        }, 500);
+                    }
 
-            });
+                });
+            }
+
+            function ensureReplicaSet(deployer, requestOptions, callback) {
+                options.requestOptions = requestOptions;
+                engine.getReplicaSet(opyions, function (error, replicaSet) {
+                    if (error) {
+                        return callback(error);
+                    }
+
+                    if (!replicaSet) {
+                        return callback(null, true)
+                    }
+
+                    if (replicaSet.spec.replicas === 0) {
+                        return callback(null, true)
+                    }
+                    else {
+                        setTimeout(function () {
+                            return ensureReplicaSet(deployer, requestOptions, callback);
+                        }, 500);
+                    }
+                });
+            }
+
+            function getDeleteKubeService(deployer, callback) {
+                if (options.serviceType === 'controller' || options.serviceType === 'nginx') {
+                    var kubeServiceName = options.serviceName + '-service';
+                    options.params = {name: kubeServiceName};
+                    engine.listKubeServices(options, function (error, service) {
+                        checkError(error, cb);
+                        options.params = {name: kubeServiceName, body: body};
+                        engine.deleteKubeService(options, callback);
+
+                    });
+                }
+                else {
+                    return callback(null, true);
+                }
+            }
+
+
         });
     },
 
@@ -558,9 +537,8 @@ let engine = {
      */
     deletePod (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
-            checkError(error, cb, () => {
-                deployer.core.namespaces.pods.delete(options.params, cb);
-            });
+            checkError(error, cb);
+            deployer.core.namespaces.pods.delete(options.params, cb);
         });
     },
 
@@ -571,9 +549,8 @@ let engine = {
      */
     getDeployment (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
-            checkError(error, cb, () => {
-                deployer.extensions.namespaces.deployments.get(options.params, cb);
-            });
+            checkError(error, cb);
+            deployer.extensions.namespaces.deployments.get(options.params, cb);
         });
     },
 
@@ -584,9 +561,8 @@ let engine = {
      */
     deleteDeployment (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
-            checkError(error, cb, () => {
-                deployer.extensions.namespaces.deployments.delete(options.params, cb);
-            });
+            checkError(error, cb);
+            deployer.extensions.namespaces.deployments.delete(options.params, cb);
         });
     },
 
@@ -684,11 +660,8 @@ let engine = {
      */
     createKubeService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
-            checkError(error, cb, () => {
-                checkError(error, cb, () => {
-                    deployer.core.namespaces.services.post(options.params, cb);
-                });
-            });
+            checkError(error, cb);
+            deployer.core.namespaces.services.post(options.params, cb);
         });
     },
 
@@ -701,11 +674,8 @@ let engine = {
      */
     listKubeServices (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
-            checkError(error, cb, () => {
-                checkError(error, cb, () => {
-                    deployer.core.namespaces.services.get(options.params, cb);
-                });
-            });
+            checkError(error, cb);
+            deployer.core.namespaces.services.get(options.params, cb);
         });
     },
 
@@ -718,11 +688,8 @@ let engine = {
      */
     deleteKubeService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
-            checkError(error, cb, () => {
-                checkError(error, cb, () => {
-                    deployer.core.namespaces.services.delete(options.params, cb);
-                });
-            });
+            checkError(error, cb);
+            deployer.core.namespaces.services.delete(options.params, cb);
         });
     }
 
