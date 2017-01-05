@@ -7,26 +7,23 @@ let clone = require('clone');
 
 let gridfsColl = 'fs.files';
 
-function checkError(error, cb, fCb) {
+function checkError(error, cb) {
 	return (error) ? cb(error) : true;
 }
 
 let lib = {
 	getDeployer (options, cb) {
 		let config = clone(options.deployerConfig);
-		let docker;
 
 		//local deployments can use the unix socket
 		if (config.socketPath) {
-			docker = new Docker({socketPath: config.socketPath});
-			return cb(null, docker);
+			return cb(null, new Docker({socketPath: config.socketPath}));
 		}
 
 		//remote deployments can use unix socket if function does not require connection to worker nodes
 		//dashboard containers are guaranteed to be deployed on manager nodes
 		if (!config.flags || (config.flags && !config.flags.targetNode)) {
-			docker = new Docker({socketPath: config.socketPath});
-			return cb(null, docker);
+			return cb(null, new Docker({socketPath: config.socketPath});
 		}
 
 		//remote deployments should use certificates if function requires connecting to a worker node
@@ -98,10 +95,10 @@ let lib = {
 			engine.inspectNode(customOptions, (error, node) => {
 				checkError(error, cb);
 				if (node.Spec.Role === 'manager') {
-					return cb(null, {host: node.ManagerStatus.Addr.split(':')[0], port: ''}); //TODO: find a way to get engine port
+					return cb(null, {host: node.ManagerStatus.Addr.split(':')[0], port: '2376'}); //TODO: get port from env record, deployer object
 				}
 				else {
-					return cb(null, {host: node.Status.Addr, port: ''}); //TODO: find a way to get engine port
+					return cb(null, {host: node.Status.Addr, port: '2376'}); //TODO: get port from env record, deployer object
 				}
 			});
 		}
@@ -120,17 +117,6 @@ let lib = {
 };
 
 let engine = {
-
-	/**
-	* Inspect a swarm cluster, strategy in this case is restricted to swarm
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
-	inspectCluster (options, cb) {
-
-	},
 
 	/**
 	* Adds a node to a cluster
@@ -318,6 +304,13 @@ let engine = {
 		payload.Networks[0].Target = 'soajsnet';
 		payload.Labels['org.soajs.env.code'] = options.params.context.dockerParams.env;
 		payload.Labels['org.soajs.service.name'] = options.params.context.dockerParams.name;
+		payload.Labels['org.soajs.service.version'] = options.params.context.dockerParams.version;
+
+
+		lib.getDeployer(options, (error, deployer) => {
+			checkError(error, cb);
+			deployer.createService(payload, cb);
+		});
 	},
 
 	/**
@@ -469,6 +462,7 @@ let engine = {
 		};
 		options.model.findEntry(options.soajs, opts, (error, node) => {
 			checkError(error || !node, cb);
+			//TODO: replace ip/port with node id
 			options.deployerConfig.host = node.ip;
 			options.deployerConfig.port = node.dockerPort;
 			options.deployerConfig.flags = { targetNode: true };
@@ -489,7 +483,7 @@ let engine = {
 	* @returns {*}
 	*/
 	deleteContainer (options, cb) {
-		//TODO: make this work with the deployment script
+		
 	},
 
 	/**

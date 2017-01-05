@@ -48,22 +48,6 @@ function getStrategy(options, cb) {
 module.exports = {
 
     /**
-    * Inspect a swarm cluster, strategy in this case is restricted to swarm
-    *
-    * @param {Object} options
-    * @param {Function} cb
-    * @returns {*}
-    */
-    inspectCluster (options, cb) {
-        getStrategy(options, (error, strategy) => {
-            checkError(error, cb);
-            checkIfSupported({strategy: strategy, function: 'inspectCluster'}, cb, () => {
-                strategy.inspectCluster(options, cb);
-            });
-        });
-    },
-
-    /**
     * Adds a node to a cluster
     *
     * @param {Object} options
