@@ -9,8 +9,17 @@ let clone = require('clone');
 
 let gridfsColl = 'fs.files';
 
-function checkError(error, cb, scb) {
-	return (error) ? cb(error) : scb();
+let errorFile = require('../utils/errors.js');
+
+function checkError(error, code, cb, scb) {
+	if(error)
+		return cb({
+			"error": error,
+			"code": code,
+			"msg": errorFile[code]
+		});
+	else
+		return scb();
 }
 
 let lib = {
@@ -137,7 +146,7 @@ let engine = {
     */
     inspectCluster (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb, () => {
+			checkError(error, 520, cb, () => {
 				deployer.swarmInspect((error, swarm) => {
 					checkError(error, cb, () => {
 						deployer.info((error, info) => {
@@ -172,7 +181,7 @@ let engine = {
 
 					options.deployerConfig.flags = { targetNode: true };
 					lib.getDeployer(options, (error, deployer) => {
-						checkError(error, cb, () => {
+						checkError(error, 519, cb, () => {
 							deployer.swarmJoin(options.params, cb);
 						});
 					});
@@ -210,7 +219,7 @@ let engine = {
 		options.deployerConfig.port = options.params.dockerPort;
 		options.deployerConfig.flags = { targetNode: true };
 		lib.getDeployer(options, (error, targetDeployer) => {
-			checkError(error, cb, () => {
+			checkError(error, 519, cb, () => {
 				targetDeployer.swarmLeave((error) => {
 					checkError(error, cb, () => {
 						//return response and remove node entry from swarm in the background
@@ -218,7 +227,7 @@ let engine = {
 
 						options.deployerConfig = deployerConfig;
 						lib.getDeployer(options, (error, deployer) => {
-							checkError(error, cb, () => {
+							checkError(error, 519, cb, () => {
 								let node = deployer.getNode(options.params.id);
 								setTimeout(node.remove.bind(null, options.backgroundCB), 20000);
 							});
@@ -238,7 +247,7 @@ let engine = {
 	*/
 	updateNode (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb, () => {
+			checkError(error, 519, cb, () => {
 				let node = deployer.getNode(options.params.nodeId);
 
 				//need to inspect node in order to get its current version and pass it to update call
@@ -265,7 +274,7 @@ let engine = {
 	*/
 	inspectNode (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb, () => {
+			checkError(error, 519, cb, () => {
 				let node = deployer.getNode(options.params.id);
 				node.inspect(cb);
 			});
@@ -281,7 +290,7 @@ let engine = {
 	*/
 	listNodes (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb, () => {
+			checkError(error, 519, cb, () => {
 				deployer.listNodes(cb);
 			});
 		});
