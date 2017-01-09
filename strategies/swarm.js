@@ -138,19 +138,19 @@ let lib = {
 let engine = {
 
 	/**
-    * Inspect cluster, returns general cluster info + list of manager nodes
-    *
-    * @param {Object} options
-    * @param {Function} cb
-    * @returns {*}
-    */
-    inspectCluster (options, cb) {
-        lib.getDeployer(options, (error, deployer) => {
-			checkError(error, 520, cb, () => {
+	 * Inspect cluster, returns general cluster info + list of manager nodes
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	inspectCluster (options, cb) {
+		lib.getDeployer(options, (error, deployer) => {
+			checkError(error, 540, cb, () => {
 				deployer.swarmInspect((error, swarm) => {
-					checkError(error, cb, () => {
+					checkError(error, 541, cb, () => {
 						deployer.info((error, info) => {
-							checkError(error, cb, () => {
+							checkError(error, 542, cb, () => {
 								return cb(null, {swarm, info});
 							});
 						});
@@ -158,19 +158,19 @@ let engine = {
 				});
 			});
 		});
-    },
+	},
 
 	/**
-	* Adds a node to a cluster
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Adds a node to a cluster
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	addNode (options, cb) {
 		let payload = {};
 		engine.inspectCluster(options, (error, cluster) => {
-			checkError(error, cb, () => {
+			checkError(error, 543, cb, () => {
 				buildManagerNodeList(cluster.info.Swarm.ManagerNodes, (error, remoteAddrs) => {
 					//error is null, no need to check it
 					let swarmPort = cluster.info.Swarm.RemoteManagers[0].Addr.split(':')[1]; //swarm port is being copied from any of the manger nodes in the swarm
@@ -181,8 +181,12 @@ let engine = {
 
 					options.deployerConfig.flags = { targetNode: true };
 					lib.getDeployer(options, (error, deployer) => {
-						checkError(error, 519, cb, () => {
-							deployer.swarmJoin(options.params, cb);
+						checkError(error, 540, cb, () => {
+							deployer.swarmJoin(options.params, (error, res) => {
+								checkError(error, 544, cb, () => {
+									return cb(null, res);
+								});
+							});
 						});
 					});
 				});
@@ -198,20 +202,20 @@ let engine = {
 	},
 
 	/**
-	* Removes a node from a cluster
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Removes a node from a cluster
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	removeNode (options, cb) {
 		/*
-		- get deployer for target node
-		- leave swarm
-		- return success response
-		- get deployer of a manager node in the swarm
-		- remove node
-		*/
+		 - get deployer for target node
+		 - leave swarm
+		 - return success response
+		 - get deployer of a manager node in the swarm
+		 - remove node
+		 */
 
 		let deployerConfig = clone(options.deployerConfig);
 
@@ -219,15 +223,15 @@ let engine = {
 		options.deployerConfig.port = options.params.dockerPort;
 		options.deployerConfig.flags = { targetNode: true };
 		lib.getDeployer(options, (error, targetDeployer) => {
-			checkError(error, 519, cb, () => {
+			checkError(error, 540, cb, () => {
 				targetDeployer.swarmLeave((error) => {
-					checkError(error, cb, () => {
+					checkError(error, 545, cb, () => {
 						//return response and remove node entry from swarm in the background
 						cb(null, true);
 
 						options.deployerConfig = deployerConfig;
 						lib.getDeployer(options, (error, deployer) => {
-							checkError(error, 519, cb, () => {
+							checkError(error, 540, cb, () => {
 								let node = deployer.getNode(options.params.id);
 								setTimeout(node.remove.bind(null, options.backgroundCB), 20000);
 							});
@@ -239,23 +243,22 @@ let engine = {
 	},
 
 	/**
-	* Updates a node's role or availability
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Updates a node's role or availability
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	updateNode (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, 519, cb, () => {
+			checkError(error, 540, cb, () => {
 				let node = deployer.getNode(options.params.nodeId);
-
 				//need to inspect node in order to get its current version and pass it to update call
 				node.inspect((error, node) => {
-					checkError(error, cb, () => {
+					checkError(error, 547, cb, () => {
 						options.params.version = node.Version.Index;
 						node.update(options.params, (error) => {
-							checkError(error, cb, () => {
+							checkError(error, 546, cb, () => {
 								return cb(null, true);
 							});
 						});
@@ -266,58 +269,70 @@ let engine = {
 	},
 
 	/**
-	* Inspect a node, strategy in this case is restricted to swarm
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Inspect a node, strategy in this case is restricted to swarm
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	inspectNode (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, 519, cb, () => {
+			checkError(error, 540, cb, () => {
 				let node = deployer.getNode(options.params.id);
-				node.inspect(cb);
+				node.inspect((error, node) => {
+					checkError(error, 547, cb, () => {
+						return cb(null, node);
+					});
+				});
 			});
 		});
 	},
 
 	/**
-	* List nodes in a cluster
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * List nodes in a cluster
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	listNodes (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, 519, cb, () => {
-				deployer.listNodes(cb);
+			checkError(error, 540, cb, () => {
+				deployer.listNodes((error, nodes) => {
+					checkError(error, 548, cb, () => {
+						return cb(null, nodes);
+					});
+				});
 			});
 		});
 	},
 
 	/**
-	* List services/deployments currently available
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * List services/deployments currently available
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	listServices (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb, () => {
-				deployer.listServices({}, cb);
+			checkError(error, 540, cb, () => {
+				deployer.listServices({}, (error, services) => {
+					checkError(error, 549, cb, () => {
+						return cb(null, services);
+					});
+				});
 			});
 		});
 	},
 
 	/**
-	* Creates a new deployment for a SOAJS scaleHAService
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Creates a new deployment for a SOAJS scaleHAService
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	deployService (options, cb) {
 		let payload = clone(require(__dirname + '../schemas/swarm/service.template.js'));
 		payload.Name = options.params.context.dockerParams.env + '-' + options.params.context.dockerParams.name;
@@ -337,31 +352,10 @@ let engine = {
 
 
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb, () => {
-				deployer.createService(payload, cb);
-			});
-		});
-	},
-
-	/**
-	* Scales a deployed services up/down depending on current replica count and new one
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
-	scaleService (options, cb) {
-		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb, () => {
-				options.params.excludeTasks = true;
-				engine.inspectService(options, (error, info) => {
-					checkError(error, cb, () => {
-						let service = deployer.getService(info.service.ID); //NOTE: api does not allow using service name for update ops
-						let update = info.service.Spec;
-
-						update.version = info.service.Version.Index;
-						update.Mode.Replicated.Replicas = options.params.scale;
-						service.update(update, cb);
+			checkError(error, 540, cb, () => {
+				deployer.createService(payload, (error, service) => {
+					checkError(error, 549, cb, () => {
+						return cb(null, service);
 					});
 				});
 			});
@@ -369,18 +363,47 @@ let engine = {
 	},
 
 	/**
-	* Gathers and returns information about specified service and a list of its tasks/pods
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Scales a deployed services up/down depending on current replica count and new one
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	scaleService (options, cb) {
+		lib.getDeployer(options, (error, deployer) => {
+			checkError(error, 540, cb, () => {
+				options.params.excludeTasks = true;
+				engine.inspectService(options, (error, info) => {
+					checkError(error, 550, cb, () => {
+						let service = deployer.getService(info.service.ID); //NOTE: api does not allow using service name for update ops
+						let update = info.service.Spec;
+
+						update.version = info.service.Version.Index;
+						update.Mode.Replicated.Replicas = options.params.scale;
+						service.update(update, (error, service) => {
+							checkError(error, 551, cb, () => {
+								return cb(null, service);
+							});
+						});
+					});
+				});
+			});
+		});
+	},
+
+	/**
+	 * Gathers and returns information about specified service and a list of its tasks/pods
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	inspectService (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb, () => {
+			checkError(error, 540, cb, () => {
 				let service = deployer.getService(options.params.id || options.params.serviceName);
 				service.inspect((error, serviceInfo) => {
-					checkError(error, cb, () => {
+					checkError(error, 550, cb, () => {
 						if (options.params.excludeTasks) {
 							return cb(null, { service: serviceInfo });
 						}
@@ -389,7 +412,7 @@ let engine = {
 							filters: { service: [options.serviceName] }
 						};
 						deployer.listTasks(params, (error, serviceTasks) => {
-							checkError(error, cb, () => {
+							checkError(error, 552, cb, () => {
 								return cb(null, { service: serviceInfo, tasks: serviceTasks });
 							});
 						});
@@ -400,31 +423,35 @@ let engine = {
 	},
 
 	/**
-	* Deletes a deployed service
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Deletes a deployed service
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	deleteService (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb, () => {
+			checkError(error, 540, cb, () => {
 				let service = deployer.getService(options.params.id || options.params.serviceName);
-				service.remove(cb);
+				service.remove((error, service) => {
+					checkError(error, 553, cb, () => {
+						return cb(null, service);
+					});
+				});
 			});
 		});
 	},
 
 	/**
-	* Recursively fetches a service's tasks/pods and returns the same output as inspectService() only when the desired number of tasks/pods is available
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Recursively fetches a service's tasks/pods and returns the same output as inspectService() only when the desired number of tasks/pods is available
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	getServiceComponents (options, cb) {
 		engine.inspectService(options, (error, info) => {
-			checkError(error, cb, () => {
+			checkError(error, 550, cb, () => {
 				let runningTasks = [];
 				info.tasks.forEach((oneTask) => {
 					if (oneTask.Status.State === 'running') {
@@ -433,7 +460,11 @@ let engine = {
 				});
 
 				if (runningTasks.length !== options.params.serviceCount) {
-					setTimeout(engine.getServiceComponents.bind(null, options, cb), 500);
+					setTimeout(engine.getServiceComponents.bind(null, options, (error, components) => {
+						checkError(error, 554, cb, () => {
+							return cb(null, components);
+						});
+					});, 500);
 				}
 				else {
 					info.tasks = runningTasks;
@@ -444,22 +475,22 @@ let engine = {
 	},
 
 	/**
-	* Inspects and returns information about a specified task/pod
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Inspects and returns information about a specified task/pod
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	inspectTask (options, cb) {
 		//NOTE: user is expected to have the task name but not its id. API does not support inspect a task by its name directly
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb, () => {
+			checkError(error, 540, cb, () => {
 				let serviceName = options.params.taskName.split('.')[0];
 				let taskSlot = options.params.taskName.split('.')[1];
 				let params = { filters: { service: [serviceName] } };
 
 				deployer.listTasks(params, (error, tasks) => {
-					checkError(error, cb, () => {
+					checkError(error, 555, cb, () => {
 						let found;
 						for (let i = 0; i < tasks.length; i++) {
 							if (tasks[i].Slot === taskSlot) {
@@ -476,23 +507,24 @@ let engine = {
 	},
 
 	/**
-	* Lists containers ona specified node, strategy is restricted to swarm
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Lists containers ona specified node, strategy is restricted to swarm
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	listContainers (options, cb) {
 		//TODO: make this work with the deployment script
 	},
 
 	/**
-	* Inspects and returns information about a container in a specified node
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Inspects and returns information about a container in a specified node
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	//todo: modify the method in order not to use the docker collection anymore
 	inspectContainer (options, cb) {
 		let opts = {
 			collection: dockerColl,
@@ -506,7 +538,7 @@ let engine = {
 				options.deployerConfig.flags = { targetNode: true };
 
 				lib.getDeployer(options, (error, deployer) => {
-					checkError(error, cb, () => {
+					checkError(error, 540, cb, () => {
 						let container = deployer.getContainer(options.params.containerId);
 						container.inspect(cb);
 					});
@@ -516,29 +548,26 @@ let engine = {
 	},
 
 	/**
-	* Delete container, strategy is this case is restricted to swarm
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Delete container, strategy is this case is restricted to swarm
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	deleteContainer (options, cb) {
 
 	},
 
 	/**
-	* Collects and returns a container logs from a specific node
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Collects and returns a container logs from a specific node
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	getContainerLogs (options, res) {
 		engine.inspectTask(options, (error, task) => {
-			if (error) {
-				options.soajs.log.error(error);
-				return options.res.jsonp(options.soajs.buildResponse({code: 811, msg: error.message}));
-			}
+
 
 			let containerId = task.Status.ContainerStatus.ContainerID;
 			let opts = {
@@ -548,46 +577,41 @@ let engine = {
 
 			model.findEntry(options.soajs, opts, (error, node) => {
 				if (error || !node) {
-					error = ((error) ? error: {message: 'Node record not found'});
+					error = ((error) ? error : {message: 'Node record not found'});
 					options.soajs.log.error(error);
 					return options.res.jsonp(options.soajs.buildResponse({code: 601, msg: error.message}));
 				}
 
 				options.deployerConfig.host = node.ip;
 				options.deployerConfig.port = node.dockerPort;
-				options.deployerConfig.flags = { targetNode: true };
+				options.deployerConfig.flags = {targetNode: true};
 				lib.getDeployer(options, (error, deployer) => {
-					if (error) {
-						options.soajs.log.error(error);
-						return options.res.jsonp(options.soajs.buildResponse({code: 601, msg: error.message}));
-					}
+					checkError(error, 540, cb, () => {
 
-					let container = deployer.getContainer(containerId);
-					let logOptions = {
-						stdout: true,
-						stderr: true,
-						tail: options.params.tail || 400
-					};
+						let container = deployer.getContainer(containerId);
+						let logOptions = {
+							stdout: true,
+							stderr: true,
+							tail: options.params.tail || 400
+						};
 
-					container.logs(logOptions, (error, logStream) => {
-						if (error) {
-							options.soajs.log.error(error);
-							return options.res.jsonp(options.soajs.buildResponse({code: 601, msg: error.message}));
-						}
+						container.logs(logOptions, (error, logStream) => {
+							checkError(error, cb, () => {
+							let data = '', chunk;
+							logStream.setEncoding('utf8');
+							logStream.on('readable', () => {
+								let handle = this;
+								while ((chunk = handle.read()) !== null) {
+									data += chunk.toString('utf8');
+								}
+							});
 
-						let data = '', chunk;
-						logStream.setEncoding('utf8');
-						logStream.on('readable', () => {
-							let handle = this;
-							while ((chunk = handle.read()) !== null) {
-								data += chunk.toString('utf8');
-							}
+							logStream.on('end', () => {
+								logStream.destroy();
+								return cb(null, {data: data}));
+							});
 						});
-
-						logStream.on('end', () => {
-							logStream.destroy();
-							return options.res.jsonp(options.soajs.buildResponse(null, {data: data}));
-						});
+					});
 					});
 				});
 			});
@@ -595,65 +619,12 @@ let engine = {
 	},
 
 	/**
-	* Loops over current saved container records and returns any new instances not yet saved in docker collection
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
-	getNewInstances (options, cb) {
-		let newInstances = [];
-		async.each(options.params.serviceInfo.tasks, (oneTask, callback) => {
-			let found, taskName = options.params.serviceInfo.service.Spec.Name + '.' + oneTask.Slot;
-			for (let i = 0; i < options.params.dockerRecords.length; i++) {
-				found = (options.params.dockerRecords[i].taskName === taskName);
-				if (found) break;
-			}
-
-			if (!found) {
-				newInstances.push(oneTask);
-			}
-
-			return callback(null, true);
-		}, (error, result) => {
-			return cb(newInstances);
-		});
-	},
-
-	/**
-	* Loops over current saved container records and returns any saved records in docker collection that no longer exist in the cluster
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
-	getRemovedInstances (options, cb) {
-		let rmInstances = [];
-		async.each(options.params.dockerRecords, (oneRecord, callback) => {
-			let found;
-			for (let i = 0; i < options.params.serviceInfo.tasks.length; i++) {
-				let taskName = options.params.serviceInfo.Spec.Name + '.' + options.params.serviceInfo.tasks[i].Slot;
-				found = (taskName === oneRecord.taskName);
-				if (found) break;
-			}
-
-			if (!found) {
-				rmInstances.push(oneRecord);
-			}
-
-			return callback(null, true);
-		}, (error, result) => {
-			return cb(rmInstances);
-		});
-	},
-
-	/**
-	* List available networks, strategy in this case is restricted to swarm
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * List available networks, strategy in this case is restricted to swarm
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	listNetworks (options, cb) {
 		let params = {};
 
@@ -666,89 +637,105 @@ let engine = {
 		}
 
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb, () => {
-				deployer.listNetworks(params, cb);
+			checkError(error, 540, cb, () => {
+				deployer.listNetworks(params, (error, networks) => {
+					checkError(error, 556, cb, () => {
+						return cb(null, networks);
+					});
+				});
 			});
 		});
 	},
 
 	/**
-	* Inspect network, strategy in this case is restricted to swarm
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Inspect network, strategy in this case is restricted to swarm
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	inspectNetwork (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb, () => {
+			checkError(error, 540, cb, () => {
 				let network = deployer.getNetwork(options.params.id);
-				network.inspect(cb);
+				network.inspect((error, network) => {
+					checkError(error, 556, cb, () => {
+						return cb(null, network);
+					});
+				});
 			});
 		});
 	},
 
 	/**
-	* Create new network, strategy in this case is restricted to swarm
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Create new network, strategy in this case is restricted to swarm
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	createNetwork (options, cb) {
 		let payload = clone(require(__dirname + '../schemas/network.template.js'));
 		payload.Name = options.params.networkName;
 
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb, () => {
-				deployer.createNetwork(payload, cb);
+			checkError(error, 540, cb, () => {
+				deployer.createNetwork(payload, (error, network) => {
+					checkError(error, 557, cb, () => {
+						return cb(null, network);
+					});
+				});
 			});
 		});
 	},
 
 	/**
-	* Delete all deployed services
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Delete all deployed services
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	deleteServices (options, cb) {
 		engine.listServices(options, (error, services) => {
-			checkError(error, cb, () => {
+			checkError(error, 549, cb, () => {
 				async.each(services, (oneService, callback) => {
 					options.params.id = oneService.ID;
 					engine.deleteService(options, callback);
-				}, cb);
+				}, (error, services) => {
+					checkError(error, 559, cb, () => {
+						return cb(null, services);
+					});
+				});
 			});
 		});
 	},
 
 	/** //TODO: review
-	* Delete all tasks or pods
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Delete all tasks or pods
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	deleteTasksOrPods (options, cb) {
 
 	},
 
 	/**
-	* Get the latest version of a deployed service
-	* Returns integer: service version
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Get the latest version of a deployed service
+	 * Returns integer: service version
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	getLatestVersion (options, cb) {
 		engine.listServices(options, (error, services) => {
-			checkError(error, cb, () => {
+			checkError(error, 549, cb, () => {
 				let latestVersion = 0, match;
 				services.forEach(function (oneService) {
 					match = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.env.code'] === options.params.env &&
-					oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.name'] === options.params.service;
+						oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.name'] === options.params.service;
 
 					if (match) {
 						if (oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.version'] > latestVersion) {
@@ -763,43 +750,43 @@ let engine = {
 	},
 
 	/**
-	* Get the domain/host name of a deployed service (per version)
-	* Sample response: {"1":"DOMAIN","2":"DOMAIN"}, input: service name, version
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Get the domain/host name of a deployed service (per version)
+	 * Sample response: {"1":"DOMAIN","2":"DOMAIN"}, input: service name, version
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	getServiceHost (options, cb) {
 		engine.listServices(options, (error, services) => {
-			checkError(error, cb, () => {
+			checkError(error, 549, cb, () => {
 				async.detect(services, (oneService, callback) => {
 					let match = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.env.code'] === options.params.env &&
-					oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.name'] === options.params.service &&
-					oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.version'] === options.params.version;
+						oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.name'] === options.params.service &&
+						oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.version'] === options.params.version;
 					return callback(null, match);
 				}, (error, service) => {
-					return cb(null, ((service && service.Spec && service.Spec.Name) ? service.Spec.Name : null));
+					checkError(error, 560, cb, () => {
+						return cb(null, ((service && service.Spec && service.Spec.Name) ? service.Spec.Name : null));
+					});
 				});
 			});
 		});
 	},
 
 	/**
-	* Get the domain/host names of controllers per environment for all environments
-	* {"dev":{"1":"DOMAIN","2":"DOMAIN"}}
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
+	 * Get the domain/host names of controllers per environment for all environments
+	 * {"dev":{"1":"DOMAIN","2":"DOMAIN"}}
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
 	getControllerEnvHost (options, cb) {
 		engine.listServices(options, (error, services) => {
 			checkError(error, cb, () => {
 				let envs = {}, match;
 				services.forEach(function (oneService) {
 					match = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.env.code'] === options.params.env &&
-					oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.name'] === 'controller';
-
-
+						oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.name'] === 'controller';
 				});
 
 				//TODO
