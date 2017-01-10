@@ -171,7 +171,7 @@ let engine = {
             kubernetesServiceParams.metadata.name = serviceName + '-service';
             kubernetesServiceParams.spec.type = "NodePort";
             kubernetesServiceParams.spec.selector = {
-                "soajs-app": serviceName
+                "soajs.service.label": serviceName
             };
             kubernetesServiceParams.spec.ports.port = 80;
             kubernetesServiceParams.spec.ports.targetPort = 80;
@@ -182,7 +182,7 @@ let engine = {
             kubernetesServiceParams = template.service;
             kubernetesServiceParams.metadata.name = serviceName + '-service';
             kubernetesServiceParams.spec.selector = {
-                "soajs-app": "soajs-service"
+                "soajs.service.label": "soajs-service"
             };
             kubernetesServiceParams.spec.ports.port = 4000;
             kubernetesServiceParams.spec.ports.targetPort = 4000;
@@ -197,11 +197,11 @@ let engine = {
         };
         deploymentParams.spec.replicas = options.soajs.inputmaskData.haCount;
         deploymentParams.spec.selector.matchLabels = {
-            "soajs-app": serviceName
+            "soajs.service.label": serviceName
         };
         deploymentParams.spec.template.metadata.name = serviceName;
         deploymentParams.spec.template.metadata.labels = {
-            "soajs-app": serviceName
+            "soajs.service.label": serviceName
         };
         deploymentParams.spec.spec.containers[0].name = serviceName;
         deploymentParams.spec.spec.containers[0].image = options.soajs.inputmaskData.imagePrefix + '/' + ((options.context.origin === 'service' || options.context.origin === 'controller') ? options.config.images.services : options.config.images.nginx);
@@ -314,7 +314,7 @@ let engine = {
                             return cb(null, {service: deployment});
                         }
 
-                        deployer.core.namespaces.pods.get({qs: {labelSelector: 'soajs-app=' + options.params.serviceName}}, (error, podsList) => {
+                        deployer.core.namespaces.pods.get({qs: {labelSelector: 'soajs.service.label=' + options.params.serviceName}}, (error, podsList) => {
                             checkError(error, 529, cb, () => {
                                 return cb(null, {service: deployment, tasks: podsList.items});
                             });
@@ -337,7 +337,7 @@ let engine = {
             checkError(error, 529, cb, () => {
                 let runningPods = [];
                 info.tasks.forEach((onePod) => {
-                    if (onePod.metadata.labels['soajs-app'] === options.params.serviceName && onePod.status.phase === 'Running') {
+                    if (onePod.metadata.labels['soajs.service.label'] === options.params.serviceName && onePod.status.phase === 'Running') {
                         runningPods.push(onePod);
                     }
                 });
@@ -406,7 +406,7 @@ let engine = {
                                                                                     //delete pods in background
                                                                                     options.params = {
                                                                                         qs: {
-                                                                                            labelSelector: 'soajs-app=' + options.serviceName
+                                                                                            labelSelector: 'soajs.service.label=' + options.serviceName
                                                                                         }
                                                                                     };
                                                                                     engine.deletePods(options, (error) => {
