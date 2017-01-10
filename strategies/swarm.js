@@ -150,9 +150,7 @@ let engine = {
 				deployer.swarmInspect((error, swarm) => {
 					checkError(error, 541, cb, () => {
 						deployer.info((error, info) => {
-							checkError(error, 542, cb, () => {
-								return cb(null, {swarm, info});
-							});
+							checkError(error, 542, cb, cb.bind(null, {swarm, info}));
 						});
 					});
 				});

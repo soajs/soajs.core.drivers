@@ -690,8 +690,71 @@ let engine = {
                 });
             });
         });
-    }
+    },
 
+    /**
+	 * Get the latest version of a deployed service
+	 * Returns integer: service version
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	getLatestVersion (options, cb) {
+		lib.getDeployer(options, (error, deployer) => {
+            checkError(error, 520, () => {
+                let filter = {
+                    labelSelector: 'soajs.env.code=' + options.params.env + ', soajs.env.service.name=' + options.params.serviceName
+                };
+                let latestVersion = 0;
+                deployer.extensions.deployments.get({qs: filter}, (error, deploymentList) => {
+                    checkError(error, 536, cb, () => {
+                        deploymentList.items.forEach((oneDeployment) => {
+                            if (oneDeployment.metadata.labels['soajs.service.version'] > latestVersion) {
+                                latestVersion = oneDeployment.metadata.labels['soajs.service.version'];
+                            }
+                        });
+
+                        return cb(null, latestVersion);
+                    });
+                });
+            });
+        });
+	},
+
+    /**
+	 * Get the domain/host name of a deployed service (per version)
+	 * Sample response: {"1":"DOMAIN","2":"DOMAIN"}, input: service name, version
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	getServiceHost (options, cb) {
+		lib.getDeployer(options, (error, deployer) => {
+            checkError(error, 520, () => {
+                let filter = {
+                    labelSelector: 'soajs.env.code=' + options.params.env + ', soajs.service.name=' + options.params.serviceName + ', soajs.service.version=' + options.params.serviceVersion
+                };
+
+                deployer.core.services.get({qs: filter}, (error, serviceList) => {
+                    checkError(error, 600, cb, () => {
+                        //only one service must match the filter, therefore serviceList will contain only one item
+                        return cb(null, serviceList.items[0].metadata.name);
+                    });
+                });
+            });
+        });
+	},
+
+    /**
+	 * Get the domain/host names of controllers per environment for all environments
+	 * {"dev":{"1":"DOMAIN","2":"DOMAIN"}}
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	getControllerEnvHost (options, cb) {
+        //TODO
+	}
 };
 
 module.exports = engine;
