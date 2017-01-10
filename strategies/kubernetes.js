@@ -4,6 +4,9 @@
 
 let K8Api = require('kubernetes-client');
 let async = require('async');
+let clone = require('clone');
+let request = require('request');
+
 let errorFile = require('../utils/errors.js');
 
 function checkError(error, code, cb, scb) {
@@ -71,7 +74,7 @@ let engine = {
                         async.detect(nodeList.items, (oneNode, callback) => {
                             for (var i = 0; i < oneNode.status.addresses.length; i++) {
                                 if (oneNode.status.addresses[i].type === 'LegacyHostIP') {
-                                    return callback(oneNode.status.addresses[i].address === soajs.inputmaskData.host);
+                                    return callback(oneNode.status.addresses[i].address === options.soajs.inputmaskData.host);
                                 }
                             }
 
@@ -169,7 +172,7 @@ let engine = {
             kubernetesServiceParams.spec.type = "NodePort";
             kubernetesServiceParams.spec.selector = {
                 "soajs-app": serviceName
-            }
+            };
             kubernetesServiceParams.spec.ports.port = 80;
             kubernetesServiceParams.spec.ports.targetPort = 80;
             kubernetesServiceParams.spec.ports.nodePort = options.soajs.inputmaskData.exposedPort;
@@ -180,7 +183,7 @@ let engine = {
             kubernetesServiceParams.metadata.name = serviceName + '-service';
             kubernetesServiceParams.spec.selector = {
                 "soajs-app": "soajs-service"
-            }
+            };
             kubernetesServiceParams.spec.ports.port = 4000;
             kubernetesServiceParams.spec.ports.targetPort = 4000;
         }
@@ -191,17 +194,17 @@ let engine = {
         deploymentParams.metadata.labels = {
             "soajs.service": options.context.dockerParams.name,
             "soajs.env": options.context.dockerParams.env
-        }
-        deploymentParams.spec.replicas = soajs.inputmaskData.haCount;
+        };
+        deploymentParams.spec.replicas = options.soajs.inputmaskData.haCount;
         deploymentParams.spec.selector.matchLabels = {
             "soajs-app": serviceName
-        }
+        };
         deploymentParams.spec.template.metadata.name = serviceName;
         deploymentParams.spec.template.metadata.labels = {
             "soajs-app": serviceName
-        }
+        };
         deploymentParams.spec.spec.containers[0].name = serviceName;
-        deploymentParams.spec.spec.containers[0].image = soajs.inputmaskData.imagePrefix + '/' + ((options.context.origin === 'service' || options.context.origin === 'controller') ? options.config.images.services : options.config.images.nginx);
+        deploymentParams.spec.spec.containers[0].image = options.soajs.inputmaskData.imagePrefix + '/' + ((options.context.origin === 'service' || options.context.origin === 'controller') ? options.config.images.services : options.config.images.nginx);
         deploymentParams.spec.spec.containers[0].workingDir = options.config.imagesDir;
         deploymentParams.spec.spec.containers[0].command = options.config.imagesDir;
         deploymentParams.spec.spec.containers[0].args = options.context.dockerParams.Cmd.splice(1);
@@ -215,13 +218,13 @@ let engine = {
             deploymentParams.spec.template.spec.containers[0].args = ['-c', 'sleep 36000'];
         }
 
-        lib.getDeployer(soajs, deployerConfig, model, function (error, deployer) {
+        lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
                 if (Object.keys(kubernetesServiceParams).length > 0) {
                     options.params = {body: kubernetesServiceParams};
                     engine.createKubeService(options, (error) => {
                         checkError(error, 525, cb, () => {
-                            soajs.log.debug('Deployer params: ' + JSON.stringify (deploymentParams));
+                            // options.soajs.log.debug('Deployer params: ' + JSON.stringify (deploymentParams));
                             deployer.extensions.namespaces.deployments.post({body: deploymentParams}, (error, res) => {
                                 checkError(error, 526, cb, () => {
                                     return cb(null, res);
@@ -231,8 +234,8 @@ let engine = {
                     });
                 }
                 else {
-                    soajs.log.debug('Deployer params: ' + JSON.stringify (haDeploymentParams));
-                    deployer.extensions.namespaces.deployments.post({body: haDeploymentParams}, (error, res) => {
+                    // options.soajs.log.debug('Deployer params: ' + JSON.stringify (haDeploymentParams));
+                    deployer.extensions.namespaces.deployments.post({body: deploymentParams}, (error, res) => {
                         checkError(error, 526, cb, () => {
                             return cb(null, res);
                         });
@@ -283,11 +286,14 @@ let engine = {
     scaleService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
-                deployer.extensions.namespaces.deployments.put({name: options.params.serviceName, body: deployment}, (error, res) => {
-                    checkError(error, 527, cb, () => {
-                        return cb(null, res);
-                    });
-                });
+                deployer.extensions.namespaces.deployments.get({name: options.params.serviceName}, (error, deployment) => {
+					checkError(error, 536, cb, () => {
+						deployment.spec.replicas = options.params.scale;
+						deployer.extensions.namespaces.deployments.put({name: options.serviceName, body: deployment}, (error, result) => {
+                            checkError(error, 527, cb, cb.bind(null, null, result));
+                        });
+					});
+				});
             });
         });
     },
@@ -405,7 +411,7 @@ let engine = {
                                                                                     };
                                                                                     engine.deletePods(options, (error) => {
                                                                                         checkError(error, 539, cb, () => {
-                                                                                            soajs.log.debug('Pods of ' + options.serviceName + ' deleted successfully');
+                                                                                            // options.soajs.log.debug('Pods of ' + options.serviceName + ' deleted successfully');
                                                                                         });
                                                                                     });
                                                                                 });
@@ -435,9 +441,7 @@ let engine = {
                             return callback(null, true);
                         }
                         else {
-                            setTimeout(function () {
-                                return ensureDeployment(deployer, callback);
-                            }, 500);
+                            setTimeout(ensureDeployment.bind(null, deployer, callback), 500);
                         }
                     });
                 });
@@ -445,22 +449,20 @@ let engine = {
 
             function ensureReplicaSet(deployer, requestOptions, callback) {
                 options.requestOptions = requestOptions;
-                engine.getReplicaSet(opyions, function (error, replicaSet) {
+                engine.getReplicaSet(options, function (error, replicaSet) {
                     if (error) {
                         return callback(error);
                     }
 
                     if (!replicaSet) {
-                        return callback(null, true)
+                        return callback(null, true);
                     }
 
                     if (replicaSet.spec.replicas === 0) {
-                        return callback(null, true)
+                        return callback(null, true);
                     }
                     else {
-                        setTimeout(function () {
-                            return ensureReplicaSet(deployer, requestOptions, callback);
-                        }, 500);
+                        setTimeout(ensureReplicaSet.bind(null, deployer, requestOptions, callback), 500);
                     }
                 });
             }
@@ -493,7 +495,7 @@ let engine = {
     getReplicaSet(options, cb) {
         options.requestOptions = engine.injectCerts(options);
         options.requestOptions.qs = {
-            labelSelector: 'soajs-app=' + options.serviceName
+            labelSelector: 'soajs.service.label=' + options.serviceName
         };
 
         request.get(options.requestOptions, (error, response, body) => {
@@ -533,7 +535,7 @@ let engine = {
         options.requestOptions.uri += '/' + options.replicaSet.metadata.name;
         options.requestOptions.body.replicaSet.spec = {
             replicas : options.params.replicas
-        }
+        };
         request.put(options.requestOptions, function (error, response, body) {
             checkError(error, 531, cb, () => {
                 return cb(error, body);
@@ -548,12 +550,14 @@ let engine = {
      */
     injectCerts (options) {
         lib.getDeployer(options, (error, deployer) => {
-            checkError(error, 520, cb, () => {
-                options.requestOptions.ca = deployer.extensions.requestOptions.ca;
-                options.requestOptions.cert = deployer.extensions.requestOptions.cert;
-                options.requestOptions.key = deployer.extensions.requestOptions.key;
-                return options;
-            });
+            if (error) {
+                return null;
+            }
+
+            options.requestOptions.ca = deployer.extensions.requestOptions.ca;
+            options.requestOptions.cert = deployer.extensions.requestOptions.cert;
+            options.requestOptions.key = deployer.extensions.requestOptions.key;
+            return options;
         });
     },
 
