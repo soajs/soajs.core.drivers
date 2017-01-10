@@ -50,11 +50,11 @@ module.exports = {
 
     555: "Unable to inspect the docker swarm task",
 
-    556: "Unable to list the docker swarm networks"
+    556: "Unable to list the docker swarm networks",
     557: "Unable to inspect the docker swarm network",
     558: "Unable to create the docker swarm network",
 
     559: "Unable to delete the docker swarm services",
 
-    560 "Unable to get the docker swarm service host"
+    560: "Unable to get the docker swarm service host"
 };
