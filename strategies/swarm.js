@@ -462,7 +462,7 @@ let engine = {
 						checkError(error, 554, cb, () => {
 							return cb(null, components);
 						});
-					});, 500);
+					}), 500);
 				}
 				else {
 					info.tasks = runningTasks;
@@ -606,7 +606,7 @@ let engine = {
 
 							logStream.on('end', () => {
 								logStream.destroy();
-								return cb(null, {data: data}));
+								return cb(null, {data: data})
 							});
 						});
 					});
