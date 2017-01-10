@@ -373,23 +373,6 @@ module.exports = {
     },
 
     /**
-     * Lists containers on a specified node, strategy is restricted to swarm
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
-    listContainers (options, cb) {
-        getStrategy(options, (error, strategy) => {
-            checkError(error, cb, () => {
-                checkIfSupported({strategy: strategy, function: 'listContainers'}, cb, () => {
-                    strategy.listContainers(options, cb);
-                });
-            });
-        });
-    },
-
-    /**
      * Inspects and returns information about a container
      *
      * @param {Object} options
@@ -401,23 +384,6 @@ module.exports = {
             checkError(error, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'inspectContainer'}, cb, () => {
                     strategy.inspectContainer(options, cb);
-                });
-            });
-        });
-    },
-
-    /**
-     * Delete container, strategy is this case is restricted to swarm
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
-    deleteContainer (options, cb) {
-        getStrategy(options, (error, strategy) => {
-            checkError(error, cb, () => {
-                checkIfSupported({strategy: strategy, function: 'deleteContainer'}, cb, () => {
-                    strategy.deleteContainer(options, cb);
                 });
             });
         });
@@ -554,23 +520,6 @@ module.exports = {
             checkError(error, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'deleteServices'}, cb, () => {
                     strategy.deleteServices(options, cb);
-                });
-            });
-        });
-    },
-
-    /** //TODO: review
-     * Delete all tasks or pods
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
-    deleteTasksOrPods (options, cb) {
-        getStrategy(options, (error, strategy) => {
-            checkError(error, cb, () => {
-                checkIfSupported({strategy: strategy, function: 'deleteTasksOrPods'}, cb, () => {
-                    strategy.deleteTasksOrPods(options, cb);
                 });
             });
         });
