@@ -29,7 +29,7 @@ function checkIfSupported(options, cb, fcb) {
 }
 
 function getStrategy(options, cb) {
-    checkCache(options, function (error, strategy) {
+    checkCache(options, (error, strategy) => {
         if (strategy) return strategy;
 
         let path = "./strategies/" + options.strategy + ".js";
