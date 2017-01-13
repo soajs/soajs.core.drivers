@@ -4,7 +4,7 @@
 
 let fs = require('fs');
 let cache = {};
-let errorFile = require('../utils/errors.js');
+let errorFile = require('./utils/errors.js');
 
 function checkError(error, code, cb, scb) {
     if(error)
