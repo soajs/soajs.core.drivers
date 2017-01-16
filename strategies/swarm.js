@@ -298,7 +298,26 @@ let engine = {
 			checkError(error, 540, cb, () => {
 				deployer.listNodes((error, nodes) => {
 					checkError(error, 548, cb, () => {
-						return cb(null, nodes);
+
+						//normalize response
+						let record = {};
+						async.map(nodes, (oneNode, callback) => {
+							record = {
+								id: oneNode.ID,
+								hostname: oneNode.Description.Hostname,
+								ip: '',
+								version: oneNode.Version.Index,
+								spec: {
+									role: oneNode.Spec.Role,
+									availability: oneNode.Spec.Availability
+								},
+								resources: {
+									cpus: oneNode.Description.Resources.NanoCPUs / 1000000000,
+									memory: oneNode.Description.Resources.MemoryBytes
+								}
+							};
+							return callback(null, record);
+						}, cb);
 					});
 				});
 			});
@@ -317,7 +336,23 @@ let engine = {
 			checkError(error, 540, cb, () => {
 				deployer.listServices({}, (error, services) => {
 					checkError(error, 549, cb, () => {
-						return cb(null, services);
+
+						//normalize response
+						let record = {};
+						async.map(services, (oneService, callback) => {
+							record = {
+								id: oneService.ID,
+								version: oneService.Version.Index,
+								name: oneService.Spec.Name,
+								service: {
+									name: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.service.name'] : null),
+									env: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.env.code'] : null)
+								}
+								//TODO
+							};
+
+							return callback(null, record);
+						}, cb);
 					});
 				});
 			});
@@ -436,38 +471,6 @@ let engine = {
 						return cb(null, service);
 					});
 				});
-			});
-		});
-	},
-
-	/**
-	 * Recursively fetches a service's tasks/pods and returns the same output as inspectService() only when the desired number of tasks/pods is available
-	 *
-	 * @param {Object} options
-	 * @param {Function} cb
-	 * @returns {*}
-	 */
-	getServiceComponents (options, cb) {
-		engine.inspectService(options, (error, info) => {
-			checkError(error, 550, cb, () => {
-				let runningTasks = [];
-				info.tasks.forEach((oneTask) => {
-					if (oneTask.Status.State === 'running') {
-						runningTasks.push(oneTask);
-					}
-				});
-
-				if (runningTasks.length !== options.params.serviceCount) {
-					setTimeout(engine.getServiceComponents.bind(null, options, (error, components) => {
-						checkError(error, 554, cb, () => {
-							return cb(null, components);
-						});
-					}), 500);
-				}
-				else {
-					info.tasks = runningTasks;
-					return cb(null, info);
-				}
 			});
 		});
 	},

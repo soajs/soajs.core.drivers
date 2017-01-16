@@ -30,7 +30,7 @@ function checkIfSupported(options, cb, fcb) {
 
 function getStrategy(options, cb) {
     checkCache(options, (error, strategy) => {
-        if (strategy) return strategy;
+        if (strategy) return cb(null, strategy);
 
         let path = __dirname + "/strategies/" + options.strategy + ".js";
         checkStrategy(path, (error) => {
@@ -51,6 +51,7 @@ function getStrategy(options, cb) {
         if (cache[options.strategy]) {
             return cb(null, cache[options.strategy]);
         }
+
         return cb();
     }
 
