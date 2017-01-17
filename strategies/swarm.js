@@ -182,7 +182,7 @@ let engine = {
 						checkError(error, 540, cb, () => {
 							deployer.swarmJoin(options.params, (error, res) => {
 								checkError(error, 544, cb, () => {
-									return cb(null, res);
+									return cb(null, true);
 								});
 							});
 						});
@@ -217,8 +217,8 @@ let engine = {
 
 		let deployerConfig = clone(options.deployerConfig);
 
-		options.deployerConfig.host = options.params.ip;
-		options.deployerConfig.port = options.params.dockerPort;
+		// options.deployerConfig.host = options.params.ip;
+		// options.deployerConfig.port = options.params.dockerPort;
 		options.deployerConfig.flags = { targetNode: true };
 		lib.getDeployer(options, (error, targetDeployer) => {
 			checkError(error, 540, cb, () => {
@@ -279,7 +279,23 @@ let engine = {
 				let node = deployer.getNode(options.params.id);
 				node.inspect((error, node) => {
 					checkError(error, 547, cb, () => {
-						return cb(null, node);
+
+						let record = {
+							if: node.ID,
+							hostname: node.Description.Hostname,
+							ip: '',
+							version: node.Version.Index,
+							spec: {
+								role: node.Spec.Role,
+								availability: node.Spec.Availability
+							},
+							resources: {
+								cpus: node.Description.Resources.NanoCPUs / 1000000000,
+								memory: node.Description.Resources.MemoryBytes
+							}
+						};
+
+						return cb(null, record);
 					});
 				});
 			});
@@ -386,9 +402,9 @@ let engine = {
 
 		lib.getDeployer(options, (error, deployer) => {
 			checkError(error, 540, cb, () => {
-				deployer.createService(payload, (error, service) => {
+				deployer.createService(payload, (error, serviceId) => {
 					checkError(error, 549, cb, () => {
-						return cb(null, service);
+						return cb(null, serviceId);
 					});
 				});
 			});
@@ -413,9 +429,9 @@ let engine = {
 
 						update.version = info.service.Version.Index;
 						update.Mode.Replicated.Replicas = options.params.scale;
-						service.update(update, (error, service) => {
+						service.update(update, (error) => {
 							checkError(error, 551, cb, () => {
-								return cb(null, service);
+								return cb(null, true);
 							});
 						});
 					});
@@ -466,9 +482,9 @@ let engine = {
 		lib.getDeployer(options, (error, deployer) => {
 			checkError(error, 540, cb, () => {
 				let service = deployer.getService(options.params.id || options.params.serviceName);
-				service.remove((error, service) => {
+				service.remove((error) => {
 					checkError(error, 553, cb, () => {
-						return cb(null, service);
+						return cb(null, true);
 					});
 				});
 			});
@@ -686,9 +702,9 @@ let engine = {
 				async.each(services, (oneService, callback) => {
 					options.params.id = oneService.ID;
 					engine.deleteService(options, callback);
-				}, (error, services) => {
+				}, (error) => {
 					checkError(error, 559, cb, () => {
-						return cb(null, services);
+						return cb(null, true);
 					});
 				});
 			});
