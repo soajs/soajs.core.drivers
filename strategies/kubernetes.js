@@ -50,9 +50,25 @@ let engine = {
     listNodes (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
-                deployer.core.nodes.get({}, (error, res) => {
+                deployer.core.nodes.get({}, (error, nodes) => {
                     checkError(error, 521, cb, () => {
-                        return cb(null, res);
+                        //normalize response
+                        let record = {};
+                        async.map(nodes, (oneNode, callback) => {
+                            record = {
+                                id: oneNode.metadata.providerID,
+                                hostname: oneNode.metadata.name,
+                                ip: '',
+                                version: oneNode.metadata.resourceVersion,
+                                spec: {
+                                    //todo: find out the two specs
+                                    role: '',
+                                    availability: ''
+                                },
+                                resources: oneNode.status.capacity
+                            };
+                            return callback(null, record);
+                        }, cb);
                     });
                 });
             });
@@ -61,7 +77,7 @@ let engine = {
 
     /**
      * Adds a node to a cluster
-     *
+     * todo: should be deprecated
      * @param {Object} options
      * @param {Function} cb
      * @returns {*}
@@ -113,7 +129,7 @@ let engine = {
             checkError(error, 520, cb, () => {
                 deployer.core.node.delete({name: options.params.name}, (error, res) => {
                     checkError(error, 523, cb, () => {
-                        return cb(null, res);
+                        return cb(null, true);
                     });
                 });
             });
@@ -140,7 +156,7 @@ let engine = {
                         node.spec.unschedulable = updateValue;
                         deployer.core.nodes.put({name: options.params.nodeName, body: node}, (error, res) => {
                             checkError(error, 524, cb, () => {
-                                return cb(null, res);
+                                return cb(null, true);
                             });
                         });
                     });
@@ -411,7 +427,7 @@ let engine = {
                                                                                     };
                                                                                     engine.deletePods(options, (error) => {
                                                                                         checkError(error, 539, cb, () => {
-                                                                                            // options.soajs.log.debug('Pods of ' + options.serviceName + ' deleted successfully');
+                                                                                            return cb(null, true);
                                                                                         });
                                                                                     });
                                                                                 });
@@ -605,7 +621,7 @@ let engine = {
             checkError(error, 520, cb, () => {
                 deployer.extensions.namespaces.deployments.delete(options.params, (error, res) => {
                     checkError(error, 535, cb, () => {
-                        return cb(null, res);
+                        return cb(null, true);
                     });
                 });
             });
@@ -651,7 +667,7 @@ let engine = {
             checkError(error, 520, cb, () => {
                 deployer.core.namespaces.services.post(options.params, (error, res) => {
                    checkError(error, 525, cb, () => {
-                       return cb(null, res);
+                       return cb(null, res.metadata.uid);
                     });
                 });
             });
@@ -670,7 +686,22 @@ let engine = {
             checkError(error, 520, cb, () => {
                 deployer.core.namespaces.services.get(options.params, (error, res) => {
                     checkError(error, 533, cb, () => {
-                        return cb(null, res);
+                        //normalize response
+                        let record = {};
+                        async.map(services, (oneService, callback) => {
+                            record = {
+                                id: oneService.metadata.uid,
+                                version: oneService.metadata.resourceVersion,
+                                name: oneService.metadata.name,
+                                service: {
+                                    name: ((oneService.metadata.labels) ? oneService.metadata.labels['soajs.service.name'] : null),
+                                    env: ((oneService.metadata.labels) ? oneService.metadata.labels['soajs.env.code'] : null)
+                                }
+                                //TODO
+                            };
+
+                            return callback(null, record);
+                        }, cb);
                     });
                 });
             });
@@ -689,7 +720,7 @@ let engine = {
             checkError(error, 520, cb, () => {
                 deployer.core.namespaces.services.delete(options.params, (error, res) => {
                     checkError(error, 534, cb, () => {
-                        return cb(null, res);
+                        return cb(null, true);
                     });
                 });
             });
