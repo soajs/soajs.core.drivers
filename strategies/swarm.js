@@ -2,14 +2,14 @@
 
 "use strict";
 
-let Docker = require('dockerode');
-let async = require('async');
-let Grid = require('gridfs-stream');
-let clone = require('clone');
+const Docker = require('dockerode');
+const async = require('async');
+const Grid = require('gridfs-stream');
+const clone = require('clone');
 
-let gridfsColl = 'fs.files';
+const gridfsColl = 'fs.files';
 
-let errorFile = require('../utils/errors.js');
+const errorFile = require('../utils/errors.js');
 
 function checkError(error, code, cb, scb) {
 	if(error)
@@ -26,12 +26,7 @@ let lib = {
 	getDeployer (options, cb) {
 		let config = clone(options.deployerConfig);
 
-		//local deployments can use the unix socket
-		if (config.socketPath) {
-			return cb(null, new Docker({socketPath: config.socketPath}));
-		}
-
-		//remote deployments can use unix socket if function does not require connection to worker nodes
+		//local & remote deployments can use unix socket if function does not require connection to worker nodes
 		//dashboard containers are guaranteed to be deployed on manager nodes
 		if (!config.flags || (config.flags && !config.flags.targetNode)) {
 			return cb(null, new Docker({socketPath: config.socketPath}));
@@ -361,9 +356,11 @@ let engine = {
 								version: oneService.Version.Index,
 								name: oneService.Spec.Name,
 								service: {
+									env: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.env.code'] : null),
 									name: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.service.name'] : null),
-									env: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.env.code'] : null)
-								}
+									version: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.service.version'] : null)
+								},
+								ports: []
 								//TODO
 							};
 
