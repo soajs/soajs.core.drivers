@@ -358,10 +358,10 @@ let engine = {
 								service: {
 									env: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.env.code'] : null),
 									name: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.service.name'] : null),
+									group: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.service.version'] : null),
 									version: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.service.version'] : null)
 								},
 								ports: []
-								//TODO
 							};
 
 							return callback(null, record);
@@ -438,7 +438,7 @@ let engine = {
 	},
 
 	/**
-	 * Gathers and returns information about specified service and a list of its tasks/pods
+	 * Gathers and returns information about specified service and a list of its tasks
 	 *
 	 * @param {Object} options
 	 * @param {Function} cb
@@ -450,8 +450,21 @@ let engine = {
 				let service = deployer.getService(options.params.id || options.params.serviceName);
 				service.inspect((error, serviceInfo) => {
 					checkError(error, 550, cb, () => {
+
+						let service = {
+							id: serviceInfo.ID,
+							version: serviceInfo.Version.Index,
+							name: serviceInfo.Spec.Name,
+							service: {
+								env: ((serviceInfo.Spec.Labels) ? serviceInfo.Spec.Labels['soajs.env.code'] : null),
+								name: ((serviceInfo.Spec.Labels) ? serviceInfo.Spec.Labels['soajs.service.name'] : null),
+								version: ((serviceInfo.Spec.Labels) ? serviceInfo.Spec.Labels['soajs.service.version'] : null)
+							},
+							ports: []
+						};
+
 						if (options.params.excludeTasks) {
-							return cb(null, { service: serviceInfo });
+							return cb(null, { service });
 						}
 
 						let params = {
@@ -459,7 +472,37 @@ let engine = {
 						};
 						deployer.listTasks(params, (error, serviceTasks) => {
 							checkError(error, 552, cb, () => {
-								return cb(null, { service: serviceInfo, tasks: serviceTasks });
+
+								async.map(serviceTasks, (oneTask, callback) => {
+									let task = {
+										id: oneTask.ID,
+										version: oneTask.Version.Index,
+										name: service.name + '.' + oneTask.Slot, //might add extra value later
+										ref: {
+											slot: oneTask.Slot,
+											service: {
+												name: service.name,
+												id: oneTask.ServiceID
+											},
+											node: {
+												id: oneTask.NodeID
+											},
+											container: {
+												id: oneTask.Status.ContainerStatus.ContainerID
+											}
+										},
+										status: {
+											ts: oneTask.Status.Timestamp, //timestamp of the last status update
+											state: oneTask.Status.State, //current state of the task, example: running
+											desiredState: oneTask.DesiredState, //desired state of the task, example: running
+											message: oneTask.Status.Message //current message of the task, example: started or error,
+										}
+									};
+
+									return callback(null, task);
+								}, (error, tasks) => {
+									return cb(null, { service, tasks });
+								});
 							});
 						});
 					});
@@ -496,24 +539,43 @@ let engine = {
 	 * @returns {*}
 	 */
 	inspectTask (options, cb) {
-		//NOTE: user is expected to have the task name but not its id. API does not support inspect a task by its name directly
 		lib.getDeployer(options, (error, deployer) => {
 			checkError(error, 540, cb, () => {
-				let serviceName = options.params.taskName.split('.')[0];
-				let taskSlot = options.params.taskName.split('.')[1];
-				let params = { filters: { service: [serviceName] } };
-
-				deployer.listTasks(params, (error, tasks) => {
+				let task = deployer.getTask(options.params.taskId);
+				task.inspect((error, taskInfo) => {
 					checkError(error, 555, cb, () => {
-						let found;
-						for (let i = 0; i < tasks.length; i++) {
-							if (tasks[i].Slot === taskSlot) {
-								found = tasks[i];
-								break;
-							}
-						}
+						options.params.id = taskInfo.ServiceID;
+						options.params.excludeTasks = true;
+						engine.inspectService(options, (error, service) => {
+							checkError(error, 550, cb, () => {
+								let taskRecord = {
+									id: taskInfo.ID,
+									version: taskInfo.Version.Index,
+									name: service.name + '.' + taskInfo.Slot, //might add extra value later
+									ref: {
+										slot: taskInfo.Slot,
+										service: {
+											name: service.name,
+											id: taskInfo.ServiceID
+										},
+										node: {
+											id: taskInfo.NodeID
+										},
+										container: {
+											id: taskInfo.Status.ContainerStatus.ContainerID
+										}
+									},
+									status: {
+										ts: taskInfo.Status.Timestamp, //timestamp of the last status update
+										state: taskInfo.Status.State, //current state of the task, example: running
+										desiredState: taskInfo.DesiredState, //desired state of the task, example: running
+										message: taskInfo.Status.Message //current message of the task, example: started or error,
+									}
+								};
 
-						return ((found) ? cb(null, found) : cb());
+								return cb(null, taskRecord);
+							});
+						});
 					});
 				});
 			});
