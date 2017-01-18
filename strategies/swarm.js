@@ -12,14 +12,18 @@ const gridfsColl = 'fs.files';
 const errorFile = require('../utils/errors.js');
 
 function checkError(error, code, cb, scb) {
-	if(error)
+	if(error) {
+		console.log ('ERROR: code: ' + code + ', msg: ' + errorFile[code] + ', stack: ' + error); //for debugging purposes
 		return cb({
-			"error": error,
-			"code": code,
-			"msg": errorFile[code]
+			source: 'driver',
+			value: error,
+			code: code,
+			msg: errorFile[code]
 		});
-	else
+	}
+	else {
 		return scb();
+	}
 }
 
 let lib = {
