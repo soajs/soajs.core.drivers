@@ -243,7 +243,7 @@ let engine = {
                             // options.soajs.log.debug('Deployer params: ' + JSON.stringify (deploymentParams));
                             deployer.extensions.namespaces.deployments.post({body: deploymentParams}, (error, res) => {
                                 checkError(error, 526, cb, () => {
-                                    return cb(null, res);
+                                    return cb(null, true);
                                 });
                             });
                         });
@@ -253,7 +253,7 @@ let engine = {
                     // options.soajs.log.debug('Deployer params: ' + JSON.stringify (haDeploymentParams));
                     deployer.extensions.namespaces.deployments.post({body: deploymentParams}, (error, res) => {
                         checkError(error, 526, cb, () => {
-                            return cb(null, res);
+                            return cb(null, true);
                         });
                     });
                 }
@@ -306,7 +306,10 @@ let engine = {
 					checkError(error, 536, cb, () => {
 						deployment.spec.replicas = options.params.scale;
 						deployer.extensions.namespaces.deployments.put({name: options.serviceName, body: deployment}, (error, result) => {
-                            checkError(error, 527, cb, cb.bind(null, null, result));
+                            checkError(error, 527, cb, () => {
+                                cb.bind(null, null, result);
+                                return (null, true);
+                            });
                         });
 					});
 				});
@@ -324,15 +327,58 @@ let engine = {
     inspectService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
-                deployer.extensions.namespaces.deployments.get(options.params.serviceName, (error, deployment) => {
+                deployer.extensions.namespaces.deployment.get(options.params.serviceName, (error, deployment) => {
                     checkError(error, 528, cb, () => {
+
+                        let service = {
+                            id: deploymentmetadata.uid,
+                            version: deployment.metadata.resourceVersion,
+                            name: deployment.metadata.name,
+                            service: {
+                                env: ((deployment.metadata.Labels) ? deployment.metadata.Labels['soajs.env.code'] : null),
+                                name: ((deployment.metadata.Labels) ? deployment.metadata.Labels['soajs.service.name'] : null),
+                                version: ((deployment.metadata.Labels) ? deployment.metadata.Labels['soajs.service.version'] : null)
+                            },
+                            ports: []
+                        };
+
                         if (options.params.excludeTasks) {
-                            return cb(null, {service: deployment});
+                            return cb(null, {service: service});
                         }
 
                         deployer.core.namespaces.pods.get({qs: {labelSelector: 'soajs.service.label=' + options.params.serviceName}}, (error, podsList) => {
                             checkError(error, 529, cb, () => {
-                                return cb(null, {service: deployment, tasks: podsList.items});
+                                async.map(servicePods, (onePod, callback) => {
+                                    let pod = {
+                                        id: onePod.metadata.uid,
+                                        version: onePod.metadata.resourceVersion,
+                                        name: service.name + '.' + onePod.metadata.name, //might add extra value later
+                                        ref: {
+                                            //todo: slot: onePod.Slot,
+                                            service: {
+                                                name: service.name,
+                                                id: onePod.metadata.uid
+                                            },
+                                            node: {
+                                                id: onePod.nodeName
+                                            },
+                                            container: {
+                                                id: onePod.status.containerStatus[0].containerID
+                                            }
+                                        },
+                                        status: {
+                                            ts: onePod.metadata.creationTimestamp, //timestamp of the pod creation
+                                            state: onePod.status.phase, //current state of the pod, example: running
+                                            message: onePod.status.message //current message of the pod, example: started or error,
+                                        }
+                                    };
+
+                                    return callback(null, pod);
+                                }, (error, pods) => {
+                                    return cb(null, { service, pods });
+                                });
+                                
+                                return cb(null, {service, pods});
                             });
                         });
                     });
@@ -536,7 +582,7 @@ let engine = {
 
         request.delete(options.requestOptions, (error, response, body) => {
             checkError(error, 532, cb, () => {
-                return cb(error, body);
+                return cb(error, true);
             });
         });
     },
@@ -554,7 +600,7 @@ let engine = {
         };
         request.put(options.requestOptions, function (error, response, body) {
             checkError(error, 531, cb, () => {
-                return cb(error, body);
+                return cb(error, true);
             });
         });
     },
@@ -587,7 +633,7 @@ let engine = {
             checkError(error, 520, cb, () => {
                 deployer.core.namespaces.pods.delete(options.params, (error, res) => {
                     checkError(error, 539, cb, () => {
-                        return cb(null, res);
+                        return cb(null, true);
                     });
                 });
             });
@@ -602,9 +648,20 @@ let engine = {
     getDeployment (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
-                deployer.extensions.namespaces.deployments.get(options.params, (error, res) => {
+                deployer.extensions.namespaces.deployments.get(options.params, (error, deployment) => {
                     checkError(error, 536, cb, () => {
-                        return cb(null, res);
+                        let service = {
+                            id: deployment.metadata.uid,
+                            version: deployment.metadata.resourceVersion,
+                            name: deployment.metadata.name,
+                            service: {
+                                env: ((deployment.metadata.Labels) ? deployment.metadata.Labels['soajs.env.code'] : null),
+                                name: ((deployment.metadata.Labels) ? deployment.metadata.Labels['soajs.service.name'] : null),
+                                version: ((deployment.metadata.Labels) ? deployment.metadata.Labels['soajs.service.version'] : null)
+                            },
+                            ports: []
+                        };
+                        return cb(null, service);
                     });
                 });
             });
@@ -773,7 +830,7 @@ let engine = {
                 deployer.core.services.get({qs: filter}, (error, serviceList) => {
                     checkError(error, 600, cb, () => {
                         //only one service must match the filter, therefore serviceList will contain only one item
-                        return cb(null, serviceList.items[0].metadata.name);
+                        return cb(null, serviceList.metadata.name);
                     });
                 });
             });
