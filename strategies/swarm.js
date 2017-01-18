@@ -28,7 +28,7 @@ function checkError(error, code, cb, scb) {
 
 let lib = {
 	getDeployer (options, cb) {
-		let config = clone(options.deployerConfig);
+		let config = options.deployerConfig;
 
 		//local & remote deployments can use unix socket if function does not require connection to worker nodes
 		//dashboard containers are guaranteed to be deployed on manager nodes
