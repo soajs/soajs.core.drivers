@@ -2,12 +2,12 @@
 
 "use strict";
 
-let K8Api = require('kubernetes-client');
-let async = require('async');
-let clone = require('clone');
-let request = require('request');
+const K8Api = require('kubernetes-client');
+const async = require('async');
+const clone = require('clone');
+const request = require('request');
 
-let errorFile = require('../utils/errors.js');
+const errorFile = require('../utils/errors.js');
 
 function checkError(error, code, cb, scb) {
     if(error)
@@ -377,7 +377,7 @@ let engine = {
                                 }, (error, pods) => {
                                     return cb(null, { service, pods });
                                 });
-                                
+
                                 return cb(null, {service, pods});
                             });
                         });
