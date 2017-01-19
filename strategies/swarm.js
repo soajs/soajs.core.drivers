@@ -107,7 +107,7 @@ let lib = {
 
 		function getTargetNode(options, cb) {
 			let customOptions = utils.cloneObj(options);
-			delete customOptions.flags.targetNode;
+			delete customOptions.deployerConfig.flags.targetNode;
 			engine.inspectNode(customOptions, (error, node) => {
 				checkError(error, cb, () => {
 					if (node.role === 'manager') {
