@@ -4,6 +4,7 @@ module.exports = {
     //common errors
     518: "The chosen strategy does not exist",
     519: "The chosen driver does not support the selected function",
+
     //kubernetes errors
     520: "Unable to retrieve the kubernetes deployer",
     521: "Unable to list the Kubernetes cluster nodes",
@@ -57,5 +58,8 @@ module.exports = {
 
     559: "Unable to delete the docker swarm services",
 
-    560: "Unable to get the docker swarm service host"
+    560: "Unable to get the docker swarm service host",
+
+    561: "Unable to reach the specified node",
+    652: "Unable to add node to swarm, specified node is already part of a swarm"
 };

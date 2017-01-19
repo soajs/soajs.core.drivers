@@ -106,18 +106,29 @@ let lib = {
 		}
 
 		function getTargetNode(options, cb) {
-			let customOptions = utils.cloneObj(options);
-			delete customOptions.deployerConfig.flags.targetNode;
-			engine.inspectNode(customOptions, (error, node) => {
-				checkError(error, cb, () => {
-					if (node.role === 'manager') {
-						return cb(null, {host: node.managerStatus.address.split(':')[0], port: '2376'}); //TODO: get port from env record, deployer object
-					}
-					else {
-						return cb(null, {host: node.ip, port: '2376'}); //TODO: get port from env record, deployer object
-					}
+			if (config.flags.swarmMember) {
+				let customOptions = utils.cloneObj(options);
+				delete customOptions.deployerConfig.flags.targetNode;
+				//node is already part of the swarm, inspect it to obtain its address
+				engine.inspectNode(customOptions, (error, node) => {
+					checkError(error, cb, () => { //TODO: wrong params, update!!
+						if (node.role === 'manager') {
+							return cb(null, {host: node.managerStatus.address.split(':')[0], port: '2376'}); //TODO: get port from env record, deployer object
+						}
+						else {
+							return cb(null, {host: node.ip, port: '2376'}); //TODO: get port from env record, deployer object
+						}
+					});
 				});
-			});
+			}
+			else {
+				//swarmMember = false flag means the target node is a new node that should be added to the cluster, invoked by addNode()
+				engine.inspectDockerEngine(options, (error, info) => {
+					checkError(error, cb, () => { //TODO: wrong params, update!!
+						return cb(null, {host: options.params.host, port: options.params.port});
+					});
+				});
+			}
 		}
 
 		function buildDockerConfig(host, port, certs) {
@@ -175,7 +186,7 @@ let engine = {
 					payload.RemoteAddrs = remoteAddrs;
 					payload.JoinToken = ((options.params.role === 'manager') ? cluster.swarm.JoinTokens.Manager : cluster.swarm.JoinTokens.Worker);
 
-					options.deployerConfig.flags = { targetNode: true };
+					options.deployerConfig.flags = { targetNode: true, swarmMember: false };
 					lib.getDeployer(options, (error, deployer) => {
 						checkError(error, 540, cb, () => {
 							deployer.swarmJoin(payload, (error, res) => {
@@ -217,7 +228,7 @@ let engine = {
 
 		// options.deployerConfig.host = options.params.ip;
 		// options.deployerConfig.port = options.params.dockerPort;
-		options.deployerConfig.flags = { targetNode: true };
+		options.deployerConfig.flags = { targetNode: true, swarmMember: true };
 		lib.getDeployer(options, (error, targetDeployer) => {
 			checkError(error, 540, cb, () => {
 				targetDeployer.swarmLeave((error) => {
@@ -265,7 +276,7 @@ let engine = {
 	},
 
 	/**
-	 * Inspect a node, strategy in this case is restricted to swarm
+	 * Inspect a node that is already part of the cluster, strategy in this case is restricted to swarm
 	 *
 	 * @param {Object} options
 	 * @param {Function} cb
@@ -304,6 +315,28 @@ let engine = {
 						}
 
 						return cb(null, record);
+					});
+				});
+			});
+		});
+	},
+
+	/**
+	* Inspect a node that is provisioned with docker but not part of the cluster
+	*
+	* @param {Object} options
+	* @param {Function} cb
+	* @returns {*}
+	*/
+	inspectDockerEngine (options, cb) {
+		options.deployerConfig.flags = { targetNode: true, swarmMember: false };
+		lib.getDeployer(options, (error, deployer) => {
+			checkError(error, 540, () => {
+				deployer.info((error, info) => {
+					checkError(error, 561, cb, () => {
+						checkError((info.Swarm && info.Swarm.LocalNodeState === 'active'), 652, cb, () => {
+							return cb(null, info);
+						});
 					});
 				});
 			});
@@ -625,7 +658,7 @@ let engine = {
 				//TODO: replace ip/port with node id
 				options.deployerConfig.host = node.ip;
 				options.deployerConfig.port = node.dockerPort;
-				options.deployerConfig.flags = { targetNode: true };
+				options.deployerConfig.flags = { targetNode: true, swarmMember: true };
 
 				lib.getDeployer(options, (error, deployer) => {
 					checkError(error, 540, cb, () => {
@@ -666,7 +699,7 @@ let engine = {
 
 				 options.deployerConfig.host = node.ip;
 				 options.deployerConfig.port = node.dockerPort;
-				 options.deployerConfig.flags = {targetNode: true};
+				 options.deployerConfig.flags = { targetNode: true, swarmMember: true };
 				 lib.getDeployer(options, (error, deployer) => {
 					 checkError(error, 540, cb, () => {
 
