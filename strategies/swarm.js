@@ -5,15 +5,14 @@
 const Docker = require('dockerode');
 const async = require('async');
 const Grid = require('gridfs-stream');
-const clone = require('clone');
 
 const gridfsColl = 'fs.files';
 
+const utils = require('../utils/utils.js');
 const errorFile = require('../utils/errors.js');
 
 function checkError(error, code, cb, scb) {
 	if(error) {
-		console.log ('ERROR: code: ' + code + ', msg: ' + errorFile[code] + ', stack: ' + error); //for debugging purposes
 		return cb({
 			source: 'driver',
 			value: error,
@@ -107,15 +106,15 @@ let lib = {
 		}
 
 		function getTargetNode(options, cb) {
-			let customOptions = clone(options);
+			let customOptions = utils.cloneObj(options);
 			delete customOptions.flags.targetNode;
 			engine.inspectNode(customOptions, (error, node) => {
 				checkError(error, cb, () => {
-					if (node.Spec.Role === 'manager') {
-						return cb(null, {host: node.ManagerStatus.Addr.split(':')[0], port: '2376'}); //TODO: get port from env record, deployer object
+					if (node.role === 'manager') {
+						return cb(null, {host: node.managerStatus.address.split(':')[0], port: '2376'}); //TODO: get port from env record, deployer object
 					}
 					else {
-						return cb(null, {host: node.Status.Addr, port: '2376'}); //TODO: get port from env record, deployer object
+						return cb(null, {host: node.ip, port: '2376'}); //TODO: get port from env record, deployer object
 					}
 				});
 			});
@@ -172,14 +171,14 @@ let engine = {
 					//error is null, no need to check it
 					let swarmPort = cluster.info.Swarm.RemoteManagers[0].Addr.split(':')[1]; //swarm port is being copied from any of the manger nodes in the swarm
 					payload.ListenAddr = '0.0.0.0:' + swarmPort;
-					payload.AdverstiseAddr = options.soajs.inputmaskData.host + ':' + swarmPort;
+					payload.AdverstiseAddr = options.params.host + ':' + swarmPort;
 					payload.RemoteAddrs = remoteAddrs;
-					payload.JoinToken = ((options.soajs.inputmaskData.role === 'manager') ? cluster.swarm.JoinTokens.Manager : cluster.swarm.JoinTokens.Worker);
+					payload.JoinToken = ((options.params.role === 'manager') ? cluster.swarm.JoinTokens.Manager : cluster.swarm.JoinTokens.Worker);
 
 					options.deployerConfig.flags = { targetNode: true };
 					lib.getDeployer(options, (error, deployer) => {
 						checkError(error, 540, cb, () => {
-							deployer.swarmJoin(options.params, (error, res) => {
+							deployer.swarmJoin(payload, (error, res) => {
 								checkError(error, 544, cb, () => {
 									return cb(null, true);
 								});
@@ -214,7 +213,7 @@ let engine = {
 		 - remove node
 		 */
 
-		let deployerConfig = clone(options.deployerConfig);
+		let deployerConfig = utils.cloneObj(options.deployerConfig);
 
 		// options.deployerConfig.host = options.params.ip;
 		// options.deployerConfig.port = options.params.dockerPort;
@@ -280,10 +279,12 @@ let engine = {
 					checkError(error, 547, cb, () => {
 
 						let record = {
-							if: node.ID,
+							id: node.ID,
 							hostname: node.Description.Hostname,
-							ip: '',
+							ip: node.Status.Addr,
 							version: node.Version.Index,
+							role: node.Spec.Role,
+							state: node.Status.State,
 							spec: {
 								role: node.Spec.Role,
 								availability: node.Spec.Availability
@@ -293,6 +294,14 @@ let engine = {
 								memory: node.Description.Resources.MemoryBytes
 							}
 						};
+
+						if (record.role === 'manager') {
+							record.managerStatus = {
+								leader: node.ManagerStatus.Leader,
+								reachability: node.ManagerStatus.Reachability,
+								address: node.ManagerStatus.Addr
+							};
+						}
 
 						return cb(null, record);
 					});
@@ -313,15 +322,16 @@ let engine = {
 			checkError(error, 540, cb, () => {
 				deployer.listNodes((error, nodes) => {
 					checkError(error, 548, cb, () => {
-
 						//normalize response
 						let record = {};
 						async.map(nodes, (oneNode, callback) => {
 							record = {
 								id: oneNode.ID,
 								hostname: oneNode.Description.Hostname,
-								ip: '',
+								ip: oneNode.Status.Addr,
 								version: oneNode.Version.Index,
+								role: oneNode.Spec.Role,
+								state: oneNode.Status.State,
 								spec: {
 									role: oneNode.Spec.Role,
 									availability: oneNode.Spec.Availability
@@ -331,6 +341,15 @@ let engine = {
 									memory: oneNode.Description.Resources.MemoryBytes
 								}
 							};
+
+							if (record.role === 'manager') {
+								record.managerStatus = {
+									leader: oneNode.ManagerStatus.Leader,
+									reachability: oneNode.ManagerStatus.Reachability,
+									address: oneNode.ManagerStatus.Addr
+								};
+							}
+
 							return callback(null, record);
 						}, cb);
 					});
@@ -384,7 +403,7 @@ let engine = {
 	 * @returns {*}
 	 */
 	deployService (options, cb) {
-		let payload = clone(require(__dirname + '../schemas/swarm/service.template.js'));
+		let payload = utils.cloneObj(require(__dirname + '../schemas/swarm/service.template.js'));
 		payload.Name = options.params.context.dockerParams.env + '-' + options.params.context.dockerParams.name;
 		payload.TaskTemplate.ContainerSpec.Image = options.soajs.inputmaskData.imagePrefix + '/' + ((options.params.context.origin === 'service' || options.params.context.origin === 'controller') ? options.params.config.images.services : options.params.config.images.nginx);
 		payload.TaskTemplate.ContainerSpec.Env = options.params.context.dockerParams.variables;
@@ -738,7 +757,7 @@ let engine = {
 	 * @returns {*}
 	 */
 	createNetwork (options, cb) {
-		let payload = clone(require(__dirname + '../schemas/network.template.js'));
+		let payload = utils.utils.cloneObj(require(__dirname + '../schemas/network.template.js'));
 		payload.Name = options.params.networkName;
 
 		lib.getDeployer(options, (error, deployer) => {

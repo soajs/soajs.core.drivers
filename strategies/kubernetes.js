@@ -4,9 +4,9 @@
 
 const K8Api = require('kubernetes-client');
 const async = require('async');
-const clone = require('clone');
 const request = require('request');
 
+const utils = require('../utils/utils.js');
 const errorFile = require('../utils/errors.js');
 
 function checkError(error, code, cb, scb) {
@@ -41,6 +41,51 @@ let lib = {
 let engine = {
 
     /**
+     * Inspect a node in the cluster
+     *
+     * @param {Object} options
+     * @param {Function} cb
+     * @returns {*}
+     */
+    inspectNode (options, cb) {
+        lib.getDeployer(options, (error, deployer) => {
+            checkError(error, 520, cb, () => {
+                //TODO: implement
+
+
+
+                //TODO: update to match kubernetes api response
+                // let record = {
+                //     id: node.ID,
+                //     hostname: node.Description.Hostname,
+                //     ip: '',
+                //     version: node.Version.Index,
+                //     role: node.Spec.Role,
+                //     state: '', //TODO: add state value
+                //     spec: {
+                //         role: node.Spec.Role,
+                //         availability: node.Spec.Availability
+                //     },
+                //     resources: {
+                //         cpus: node.Description.Resources.NanoCPUs / 1000000000,
+                //         memory: node.Description.Resources.MemoryBytes
+                //     }
+                // };
+
+                // if (record.role === 'manager') {
+                //     record.managerStatus = {
+                //         leader: node.ManagerStatus.Leader,
+                //         reachability: node.ManagerStatus.Reachability,
+                //         address: node.ManagerStatus.Addr
+                //     };
+                // }
+                //
+                // return cb(null, record);
+            });
+        });
+    },
+
+    /**
      * List nodes in a cluster
      *
      * @param {Object} options
@@ -60,6 +105,8 @@ let engine = {
                                 hostname: oneNode.metadata.name,
                                 ip: '',
                                 version: oneNode.metadata.resourceVersion,
+                                role: '', //TODO: add role value
+                                state: '', //TODO: add state value
                                 spec: {
                                     //todo: find out the two specs
                                     role: '',
@@ -67,6 +114,16 @@ let engine = {
                                 },
                                 resources: oneNode.status.capacity
                             };
+
+                            //TODO: add manager status if this node is a manager
+                            //NOTE: kubernetes calls mnanager nodes 'masters'
+                            // if (record.role === 'manager') {
+							// 	record.managerStatus = {
+							// 		leader: node.ManagerStatus.Leader,
+							// 		reachability: node.ManagerStatus.Reachability,
+							// 		address: node.ManagerStatus.Addr
+							// 	};
+							// }
                             return callback(null, record);
                         }, cb);
                     });
@@ -174,7 +231,7 @@ let engine = {
      */
     deployService (options, cb) {
         let kubernetesServiceParams = {};
-        let template = clone(require(__dirname + '../schemas/kubernetes/service.template.js'));
+        let template = utils.cloneObj(require(__dirname + '../schemas/kubernetes/service.template.js'));
         let serviceName = options.context.dockerParams.env + '-' + options.context.dockerParams.name;
         //service params if deploying a service or a controller
         if (options.context.origin === 'service' || options.context.origin === 'controller') {
@@ -447,15 +504,15 @@ let engine = {
                         engine.scaleService(options, (error) => {
                             checkError(error, 527, cb, () => {
                                 ensureDeployment(deployer, (error) => {
-                                    options.requestOptions = clone(requestOptions);
+                                    options.requestOptions = utils.cloneObj(requestOptions);
                                     engine.getReplicaSet(options, (error, replicaSet) => {
                                         checkError(error, 530, cb, () => {
-                                            options.requestOptions = clone(requestOptions);
+                                            options.requestOptions = utils.cloneObj(requestOptions);
                                             engine.updateReplicaSet(options, replicaSet, {replicas: 0}, (error) => {
                                                 checkError(error, 531, cb, () => {
-                                                    ensureReplicaSet(deployer, clone(requestOptions), (error) => {
+                                                    ensureReplicaSet(deployer, utils.cloneObj(requestOptions), (error) => {
                                                         checkError(error, 530, cb, () => {
-                                                            options.requestOptions = clone(requestOptions);
+                                                            options.requestOptions = utils.cloneObj(requestOptions);
                                                             options.params = {rsName: replicaSet.metadata.name};
                                                             engine.deleteReplicaSet(options, (error) => {
                                                                 checkError(error, 532, cb, () => {
