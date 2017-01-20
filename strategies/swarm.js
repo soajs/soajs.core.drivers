@@ -239,7 +239,7 @@ let engine = {
 		 lib.getDeployer(options, (error, targetDeployer) => {
 			 checkError(error, 540, cb, () => {
 				 targetDeployer.swarmLeave((error) => {
-					checkError(error, 545, () => {
+					checkError(error, 545, cb, () => {
 						//return response and remove the node entry from the swarm in the background
 						cb(null, true);
 
