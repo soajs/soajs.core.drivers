@@ -199,6 +199,23 @@ module.exports = {
     },
 
     /**
+     * Redeploy a service/deployment (sync)
+     *
+     * @param {Object} options
+     * @param {Function} cb
+     * @returns {*}
+     */
+    redeployService (options, cb) {
+        getStrategy(options, (error, strategy) => {
+            checkError(error, 518, cb, () => {
+                checkIfSupported({strategy: strategy, function: 'redeployService'}, cb, () => {
+                    strategy.redeployService(options, cb);
+                });
+            });
+        });
+    },
+
+    /**
      * Scales a deployed services up/down depending on current replica count and new one
      *
      * @param {Object} options

@@ -34,7 +34,7 @@ let lib = {
 		if (!config.flags || (config.flags && !config.flags.targetNode)) {
 			deployer = new Docker({socketPath: config.socketPath});
 			lib.ping({ deployer }, (error) => {
-				checkError(error, cb, () => { //TODO: fix params
+				checkError(error, 600, cb, () => { //TODO: fix params
 					return cb(null, deployer);
 				});
 			});
@@ -43,12 +43,12 @@ let lib = {
 		//remote deployments should use certificates if function requires connecting to a worker node
 		if (config.flags && config.flags.targetNode) {
 			getTargetNode(options, (error, target) => {
-				checkError(error, cb, () => {
+				checkError(error, 600, cb, () => {
 					findCerts(options, (error, certs) => {
-						checkError(error, cb, () => {
+						checkError(error, 600, cb, () => {
 							deployer = new Docker(buildDockerConfig(target.host, target.port, certs));
 							lib.ping({ deployer }, (error) => {
-								checkError(error, cb, () => { //TODO: fix
+								checkError(error, 600, cb, () => { //TODO: fix
 									return cb(null, deployer);
 								});
 							});
@@ -71,13 +71,13 @@ let lib = {
 			};
 
 			options.model.findEntries(options.soajs, opts, (error, certs) => {
-				checkError(error, cb, () => {
+				checkError(error, 600, cb, () => {
 					if (!certs || certs.length === 0) {
 						return cb(600);
 					}
 
 					options.model.getDb(options.soajs).getMongoDB((error, db) => {
-						checkError(error, cb, () => {
+						checkError(error, 600, cb, () => {
 							let gfs = Grid(db, options.model.getDb(options.soajs).mongodb);
 							return pullCerts(certs, gfs, db, cb);
 						});
@@ -96,9 +96,9 @@ let lib = {
 				});
 
 				gs.open((error, gstore) => {
-					checkError(error, callback, () => {
+					checkError(error, 600, callback, () => {
 						gstore.read((error, filedata) => {
-							checkError(error, callback, () => {
+							checkError(error, 600, callback, () => {
 								gstore.close();
 
 								var certName = oneCert.filename.split('.')[0];
@@ -109,7 +109,7 @@ let lib = {
 					});
 				});
 			}, (error, result) => {
-				checkError(error, cb, () => {
+				checkError(error, 600, cb, () => {
 					return cb(null, certBuffers);
 				});
 			});
@@ -121,7 +121,7 @@ let lib = {
 				delete customOptions.deployerConfig.flags.targetNode;
 				//node is already part of the swarm, inspect it to obtain its address
 				engine.inspectNode(customOptions, (error, node) => {
-					checkError(error, cb, () => { //TODO: wrong params, update!!
+					checkError(error, 600, cb, () => { //TODO: wrong params, update!!
 						if (node.role === 'manager') {
 							return cb(null, {host: node.managerStatus.address.split(':')[0], port: '2376'}); //TODO: get port from env record, deployer object
 						}
@@ -440,7 +440,7 @@ let engine = {
 	},
 
 	/**
-	 * Creates a new deployment for a SOAJS scaleHAService
+	 * Creates a new deployment for a SOAJS service
 	 *
 	 * @param {Object} options
 	 * @param {Function} cb
@@ -474,6 +474,38 @@ let engine = {
 			});
 		});
 	},
+
+	/**
+	 * Redeploy a service
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	 redeployService (options, cb) {
+		lib.getDeployer(options, (error, deployer) => {
+			checkError(error, cb, 540, () => {
+				let service = deployer.getService(options.params.id);
+				service.inspect((error, service) => {
+					checkError(error, cb, 550, () => {
+						let update = service.Spec;
+						update.version = service.Version.Index;
+
+						if (service.Spec.Labels['soajs.service.sync.count']) {
+							update.Labels['soajs.service.sync.count'] += 1;
+						}
+						else {
+							update.Labels['soajs.service.sync.count'] = 1;
+						}
+
+						service.update(update, (error) => {
+							checkError(error, cb, 653, cb.bind(null, null, true));
+						});
+					});
+				});
+			});
+		});
+	 },
 
 	/**
 	 * Scales a deployed services up/down depending on current replica count and new one

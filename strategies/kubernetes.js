@@ -103,10 +103,10 @@ let engine = {
                             record = {
                                 id: oneNode.metadata.providerID,
                                 hostname: oneNode.metadata.name,
-                                ip: '',
+                                ip: '', //only set the ip address of the node
                                 version: oneNode.metadata.resourceVersion,
-                                role: '', //TODO: add role value
-                                state: '', //TODO: add state value
+                                role: '', //TODO: add role value, set to 'manager' or 'worker'
+                                state: '', //TODO: add state value, set to 'ready' or ?
                                 spec: {
                                     //todo: find out the two specs
                                     role: '',
@@ -119,9 +119,9 @@ let engine = {
                             //NOTE: kubernetes calls mnanager nodes 'masters'
                             // if (record.role === 'manager') {
 							// 	record.managerStatus = {
-							// 		leader: node.ManagerStatus.Leader,
-							// 		reachability: node.ManagerStatus.Reachability,
-							// 		address: node.ManagerStatus.Addr
+							// 		leader: node.ManagerStatus.Leader, if yes, set value to true (boolean)
+							// 		reachability: node.ManagerStatus.Reachability, if 'master', set value to 'manager'
+							// 		address: node.ManagerStatus.Addr, ip_address:port
 							// 	};
 							// }
                             return callback(null, record);
