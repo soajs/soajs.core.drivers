@@ -27,12 +27,17 @@ function checkError(error, code, cb, scb) {
 
 let lib = {
 	getDeployer (options, cb) {
-		let config = options.deployerConfig;
+		let config = options.deployerConfig, deployer;
 
 		//local & remote deployments can use unix socket if function does not require connection to worker nodes
 		//dashboard containers are guaranteed to be deployed on manager nodes
 		if (!config.flags || (config.flags && !config.flags.targetNode)) {
-			return cb(null, new Docker({socketPath: config.socketPath}));
+			deployer = new Docker({socketPath: config.socketPath});
+			lib.ping({ deployer }, (error) => {
+				checkError(error, cb, () => { //TODO: fix params
+					return cb(null, deployer);
+				});
+			});
 		}
 
 		//remote deployments should use certificates if function requires connecting to a worker node
@@ -41,7 +46,12 @@ let lib = {
 				checkError(error, cb, () => {
 					findCerts(options, (error, certs) => {
 						checkError(error, cb, () => {
-							return cb(null, new Docker(buildDockerConfig(target.host, target.port, certs)));
+							deployer = new Docker(buildDockerConfig(target.host, target.port, certs));
+							lib.ping({ deployer }, (error) => {
+								checkError(error, cb, () => { //TODO: fix
+									return cb(null, deployer);
+								});
+							});
 						});
 					});
 				});
@@ -123,11 +133,8 @@ let lib = {
 			}
 			else {
 				//swarmMember = false flag means the target node is a new node that should be added to the cluster, invoked by addNode()
-				engine.inspectDockerEngine(options, (error, info) => {
-					checkError(error, cb, () => { //TODO: wrong params, update!!
-						return cb(null, {host: options.params.host, port: options.params.port});
-					});
-				});
+				//we only need to return the host/port provided by the user, the ping function will later test if a connection can be established
+				return cb(null, {host: options.params.host, port: options.params.port});
 			}
 		}
 
@@ -141,6 +148,10 @@ let lib = {
 
 			return dockerConfig;
 		}
+	},
+
+	ping (options, cb) {
+		options.deployer.ping(cb);
 	}
 };
 
@@ -334,7 +345,7 @@ let engine = {
 			checkError(error, 540, () => {
 				deployer.info((error, info) => {
 					checkError(error, 561, cb, () => {
-						checkError((info.Swarm && info.Swarm.LocalNodeState === 'active'), 652, cb, () => {
+						checkError((info && info.Swarm && info.Swarm.LocalNodeState === 'active'), 652, cb, () => {
 							return cb(null, info);
 						});
 					});
