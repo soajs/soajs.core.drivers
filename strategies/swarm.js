@@ -265,12 +265,19 @@ let engine = {
 	updateNode (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
 			checkError(error, 540, cb, () => {
-				let node = deployer.getNode(options.params.nodeId);
+				let node = deployer.getNode(options.params.id);
 				//need to inspect node in order to get its current version and pass it to update call
 				node.inspect((error, node) => {
 					checkError(error, 547, cb, () => {
-						options.params.version = node.Version.Index;
-						node.update(options.params, (error) => {
+						let update = {
+							version: node.Version.Index,
+						};
+
+						delete options.params.id;
+						Object.keys(options.params).forEach((oneUpdateParam) => {
+							update[oneUpdateParam.charAt[0].toUpperCase() + oneUpdateParam.slice(1)] = options.params[oneUpdateParam];
+						});
+						node.update(update, (error) => {
 							checkError(error, 546, cb, () => {
 								return cb(null, true);
 							});
@@ -320,28 +327,6 @@ let engine = {
 						}
 
 						return cb(null, record);
-					});
-				});
-			});
-		});
-	},
-
-	/**
-	* Inspect a node that is provisioned with docker but not part of the cluster
-	*
-	* @param {Object} options
-	* @param {Function} cb
-	* @returns {*}
-	*/
-	inspectDockerEngine (options, cb) {
-		options.deployerConfig.flags = { targetNode: true, swarmMember: false };
-		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, 540, () => {
-				deployer.info((error, info) => {
-					checkError(error, 561, cb, () => {
-						checkError((info && info.Swarm && info.Swarm.LocalNodeState === 'active'), 652, cb, () => {
-							return cb(null, info);
-						});
 					});
 				});
 			});
@@ -418,7 +403,7 @@ let engine = {
 								service: {
 									env: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.env.code'] : null),
 									name: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.service.name'] : null),
-									group: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.service.version'] : null),
+									group: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.service.group'] : null),
 									version: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.service.version'] : null)
 								},
 								ports: []
