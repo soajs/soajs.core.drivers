@@ -66,7 +66,7 @@ let lib = {
 			let opts = {
 				collection: gridfsColl,
 				conditions: {
-					['metadata.env.' + config.env.toUpperCase()]: config.driver
+					['metadata.env.' + options.env.toUpperCase()]: options.driver
 				}
 			};
 
@@ -189,7 +189,7 @@ let engine = {
 		let payload = {};
 		engine.inspectCluster(options, (error, cluster) => {
 			checkError(error, 543, cb, () => {
-				buildManagerNodeList(cluster.info.Swarm.ManagerNodes, (error, remoteAddrs) => {
+				buildManagerNodeList(cluster.info.Swarm.RemoteManagers, (error, remoteAddrs) => {
 					//error is null, no need to check it
 					let swarmPort = cluster.info.Swarm.RemoteManagers[0].Addr.split(':')[1]; //swarm port is being copied from any of the manger nodes in the swarm
 					payload.ListenAddr = '0.0.0.0:' + swarmPort;
