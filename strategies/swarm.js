@@ -299,7 +299,6 @@ let engine = {
 							hostname: node.Description.Hostname,
 							ip: node.Status.Addr,
 							version: node.Version.Index,
-							role: node.Spec.Role,
 							state: node.Status.State,
 							spec: {
 								role: node.Spec.Role,
@@ -311,7 +310,7 @@ let engine = {
 							}
 						};
 
-						if (record.role === 'manager') {
+						if (record.spec.role === 'manager') {
 							record.managerStatus = {
 								leader: node.ManagerStatus.Leader,
 								reachability: node.ManagerStatus.Reachability,
@@ -368,7 +367,6 @@ let engine = {
 								hostname: oneNode.Description.Hostname,
 								ip: oneNode.Status.Addr,
 								version: oneNode.Version.Index,
-								role: oneNode.Spec.Role,
 								state: oneNode.Status.State,
 								spec: {
 									role: oneNode.Spec.Role,
@@ -380,7 +378,7 @@ let engine = {
 								}
 							};
 
-							if (record.role === 'manager') {
+							if (record.spec.role === 'manager') {
 								record.managerStatus = {
 									leader: oneNode.ManagerStatus.Leader,
 									reachability: oneNode.ManagerStatus.Reachability,
