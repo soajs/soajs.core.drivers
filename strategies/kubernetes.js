@@ -105,11 +105,10 @@ let engine = {
                                 hostname: oneNode.metadata.name,
                                 ip: '', //only set the ip address of the node
                                 version: oneNode.metadata.resourceVersion,
-                                role: '', //TODO: add role value, set to 'manager' or 'worker'
-                                state: '', //TODO: add state value, set to 'ready' or ?
+                                state: oneNode.status.conditions.status,
                                 spec: {
                                     //todo: find out the two specs
-                                    role: '',
+                                    role: 'manager', //TODO: make it dynamic
                                     availability: ''
                                 },
                                 resources: oneNode.status.capacity
@@ -370,6 +369,39 @@ let engine = {
                         });
 					});
 				});
+            });
+        });
+    },
+
+    /**
+     * Redeploy a service
+     *
+     * @param {Object} options
+     * @param {Function} cb
+     * @returns {*}
+     */
+    redeployService (options, cb) {
+        lib.getDeployer(options, (error, deployer) => {
+            checkError(error, 520, cb, () => {
+                deployer.extensions.namespaces.deployments.get({name: options.params.serviceName}, (error, deployment) => {
+                    checkError(error, 536, cb, () => {
+                        let update = service.spec;
+                        update.version = deployment.metadata.resourceVersion;
+
+                        if (service.spec.labels['soajs.service.sync.count']) {
+                            update.labels['soajs.service.sync.count'] += 1;
+                        }
+                        else {
+                            update.labels['soajs.service.sync.count'] = 1;
+                        }
+                        deployer.extensions.namespaces.deployments.put(update, (error, result) => {
+                            checkError(error, 527, cb, () => {
+                                cb.bind(null, null, result);
+                                return (null, true);
+                            });
+                        });
+                    });
+                });
             });
         });
     },
