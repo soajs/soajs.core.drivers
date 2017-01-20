@@ -3,7 +3,7 @@
 module.exports = {
     //generic error for testing purposes
     600: "Generic error",
-    
+
     //common errors
     518: "The chosen strategy does not exist",
     519: "The chosen driver does not support the selected function",
@@ -66,5 +66,7 @@ module.exports = {
     561: "Unable to reach the specified node",
     652: "Unable to add node to swarm, specified node is already part of a swarm",
 
-    653: "Unable to redeploy service"
+    653: "Unable to redeploy service",
+
+    654: "Unable to remove node"
 };

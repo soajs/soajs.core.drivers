@@ -230,7 +230,6 @@ let engine = {
 		/*
 		 - get deployer for target node
 		 - leave swarm
-		 - return success response
 		 - get deployer of a manager node in the swarm
 		 - remove node
 		 */
@@ -240,14 +239,14 @@ let engine = {
 			 checkError(error, 540, cb, () => {
 				 targetDeployer.swarmLeave((error) => {
 					checkError(error, 545, cb, () => {
-						//return response and remove the node entry from the swarm in the background
-						cb(null, true);
 
 						delete options.deployerConfig.flags;
 						lib.getDeployer(options, (error, deployer) => {
 							checkError(error, 540, cb, () => {
 								let node = deployer.getNode(options.params.id);
-								setTimeout(node.remove.bind(null, options.params.backgroundCB), 20000);
+								node.remove({force: true}, (error) => {
+									checkError(error, 654, cb, cb.bind(null, null, true));
+								});
 							});
 						});
 					});
