@@ -59,14 +59,14 @@ let lib = {
 		}
 
 		function findCerts(options, cb) {
-			if (!options.params.envCode) {
+			if (!options.env) {
 				return cb(600);
 			}
 
 			let opts = {
 				collection: gridfsColl,
 				conditions: {
-					['metadata.env.' + config.params.envCode.toUpperCase()]: config.params.selectedDriver
+					['metadata.env.' + config.env.toUpperCase()]: config.driver
 				}
 			};
 
