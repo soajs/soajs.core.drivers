@@ -235,29 +235,23 @@ let engine = {
 		 - remove node
 		 */
 
-		let deployerConfig = utils.cloneObj(options.deployerConfig);
-
-		// options.deployerConfig.host = options.params.ip;
-		// options.deployerConfig.port = options.params.dockerPort;
-		options.deployerConfig.flags = { targetNode: true, swarmMember: true };
-		lib.getDeployer(options, (error, targetDeployer) => {
-			checkError(error, 540, cb, () => {
-				targetDeployer.swarmLeave((error) => {
-					checkError(error, 545, cb, () => {
-						//return response and remove node entry from swarm in the background
-						cb(null, true);
-
-						options.deployerConfig = deployerConfig;
+		 options.deployerConfig.flags = { targetNode: true, swarmMember: true };
+		 lib.getDeployer(options, (error, targetDeployer) => {
+			 checkError(error, 540, cb, () => {
+				 targetDeployer.swarmLeave((error) => {
+					checkError(error, 545, () => {
+						//return response and remove the node entry from the swarm in the background
+						delete options.deployerConfig.flags;
 						lib.getDeployer(options, (error, deployer) => {
 							checkError(error, 540, cb, () => {
 								let node = deployer.getNode(options.params.id);
-								setTimeout(node.remove.bind(null, options.backgroundCB), 20000);
+								setTimeout(node.remove.bind(null, options.params.backgroundCB), 20000);
 							});
 						});
 					});
-				});
-			});
-		});
+				 });
+			 });
+		 });
 	},
 
 	/**
