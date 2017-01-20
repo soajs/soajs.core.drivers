@@ -235,29 +235,25 @@ let engine = {
 		 - remove node
 		 */
 
-		let deployerConfig = utils.cloneObj(options.deployerConfig);
-
-		// options.deployerConfig.host = options.params.ip;
-		// options.deployerConfig.port = options.params.dockerPort;
-		options.deployerConfig.flags = { targetNode: true, swarmMember: true };
-		lib.getDeployer(options, (error, targetDeployer) => {
-			checkError(error, 540, cb, () => {
-				targetDeployer.swarmLeave((error) => {
+		 options.deployerConfig.flags = { targetNode: true, swarmMember: true };
+		 lib.getDeployer(options, (error, targetDeployer) => {
+			 checkError(error, 540, cb, () => {
+				 targetDeployer.swarmLeave((error) => {
 					checkError(error, 545, cb, () => {
-						//return response and remove node entry from swarm in the background
+						//return response and remove the node entry from the swarm in the background
 						cb(null, true);
 
-						options.deployerConfig = deployerConfig;
+						delete options.deployerConfig.flags;
 						lib.getDeployer(options, (error, deployer) => {
 							checkError(error, 540, cb, () => {
 								let node = deployer.getNode(options.params.id);
-								setTimeout(node.remove.bind(null, options.backgroundCB), 20000);
+								setTimeout(node.remove.bind(null, options.params.backgroundCB), 20000);
 							});
 						});
 					});
-				});
-			});
-		});
+				 });
+			 });
+		 });
 	},
 
 	/**
@@ -305,7 +301,6 @@ let engine = {
 							hostname: node.Description.Hostname,
 							ip: node.Status.Addr,
 							version: node.Version.Index,
-							role: node.Spec.Role,
 							state: node.Status.State,
 							spec: {
 								role: node.Spec.Role,
@@ -317,7 +312,7 @@ let engine = {
 							}
 						};
 
-						if (record.role === 'manager') {
+						if (record.spec.role === 'manager') {
 							record.managerStatus = {
 								leader: node.ManagerStatus.Leader,
 								reachability: node.ManagerStatus.Reachability,
@@ -374,7 +369,6 @@ let engine = {
 								hostname: oneNode.Description.Hostname,
 								ip: oneNode.Status.Addr,
 								version: oneNode.Version.Index,
-								role: oneNode.Spec.Role,
 								state: oneNode.Status.State,
 								spec: {
 									role: oneNode.Spec.Role,
@@ -386,7 +380,7 @@ let engine = {
 								}
 							};
 
-							if (record.role === 'manager') {
+							if (record.spec.role === 'manager') {
 								record.managerStatus = {
 									leader: oneNode.ManagerStatus.Leader,
 									reachability: oneNode.ManagerStatus.Reachability,
