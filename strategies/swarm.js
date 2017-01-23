@@ -427,7 +427,7 @@ let engine = {
 	deployService (options, cb) {
 		let payload = utils.cloneObj(require(__dirname + '/../schemas/swarm/service.template.js'));
 		options.params.variables.push('SOAJS_DEPLOY_HA=swarm');
-		
+
 		payload.Name = options.params.name;
 		payload.TaskTemplate.ContainerSpec.Image = options.params.image;
 		payload.TaskTemplate.ContainerSpec.Env = options.params.variables;
@@ -507,13 +507,12 @@ let engine = {
 	scaleService (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
 			checkError(error, 540, cb, () => {
-				options.params.excludeTasks = true;
-				engine.inspectService(options, (error, info) => {
+				//NOTE: not using engine.inspectService() since the required info are not included in its response
+				let service = deployer.getService(options.params.id);
+				service.inspect((error, serviceInfo) => {
 					checkError(error, 550, cb, () => {
-						let service = deployer.getService(info.service.ID); //NOTE: api does not allow using service name for update ops
-						let update = info.service.Spec;
-
-						update.version = info.service.Version.Index;
+						let update = serviceInfo.Spec;
+						update.version = serviceInfo.Version.Index;
 						update.Mode.Replicated.Replicas = options.params.scale;
 						service.update(update, (error) => {
 							checkError(error, 551, cb, () => {
@@ -611,7 +610,7 @@ let engine = {
 	deleteService (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
 			checkError(error, 540, cb, () => {
-				let service = deployer.getService(options.params.id || options.params.serviceName);
+				let service = deployer.getService(options.params.id);
 				service.remove((error) => {
 					checkError(error, 553, cb, () => {
 						return cb(null, true);
