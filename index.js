@@ -391,23 +391,6 @@ module.exports = {
     },
 
     /**
-     * Inspects and returns information about a container
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
-    inspectContainer (options, cb) {
-        getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
-                checkIfSupported({strategy: strategy, function: 'inspectContainer'}, cb, () => {
-                    strategy.inspectContainer(options, cb);
-                });
-            });
-        });
-    },
-
-    /**
      * Collects and returns a container logs based on a pre-defined 'tail' value
      *
      * @param {Object} options

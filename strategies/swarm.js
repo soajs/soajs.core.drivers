@@ -672,98 +672,72 @@ let engine = {
 	},
 
 	/**
-	 * Inspects and returns information about a container in a specified node
-	 * Stateless approach: [might not be required for stateless HA]
-	 * 1. pass task name as param, get container id and node id by inspecting task
-	 * 2. Connect to target node and call inspect container on it
-	 *
-	 * @param {Object} options
-	 * @param {Function} cb
-	 * @returns {*}
-	 */
-	inspectContainer (options, cb) {
-		let opts = {
-			collection: dockerColl,
-			conditions: { recordType: 'node', id: options.params.nodeId }
-		};
-		options.model.findEntry(options.soajs, opts, (error, node) => {
-			checkError(error || !node, cb, () => {
-				//TODO: replace ip/port with node id
-				options.deployerConfig.host = node.ip;
-				options.deployerConfig.port = node.dockerPort;
-				options.deployerConfig.flags = { targetNode: true, swarmMember: true };
-
-				lib.getDeployer(options, (error, deployer) => {
-					checkError(error, 540, cb, () => {
-						let container = deployer.getContainer(options.params.containerId);
-						container.inspect(cb);
-					});
-				});
-			});
-		});
-	},
-
-	/**
 	 * Collects and returns a container logs from a specific node
 	 *
 	 * @param {Object} options
 	 * @param {Function} cb
 	 * @returns {*}
 	 */
-	 getContainerLogs (options, res) {
-		 engine.inspectTask(options, (error, task) => {
-			 if (error) {
- 				options.soajs.log.error(error);
- 				return options.res.jsonp(options.soajs.buildResponse({code: 555, msg: error.message}));
- 			}
+	 getContainerLogs (options) {
 
-			 let containerId = task.Status.ContainerStatus.ContainerID;
-			 let opts = {
-				 collection: dockerColl,
-				 conditions: { recordType: 'node', id: task.NodeID }
-			 };
+		 /**
+		 * 1. inspect task provided as input, get container id and node id
+		 * 2. inspect target node and get its ip
+		 * 3. connect to target node and get container logs
+		 */
 
-			 options.model.findEntry(options.soajs, opts, (error, node) => { //TODO: update to support stateless HA
-				 if (error || !node) {
-					 error = ((error) ? error : {message: 'Node record not found'});
-					 options.soajs.log.error(error);
-					 return options.res.jsonp(options.soajs.buildResponse({code: 601, msg: error.message}));
-				 }
+		 let res = options.res;
+		 delete options.res;
+		 lib.getDeployer(options, (error, deployer) => {
+			check(error, 540, () => {
+				//NOTE: engine.inspectTask() does not return the container status
+				let task = deployer.getTask(options.params.taskId);
+				task.inspect((error, taskInfo) => {
+					check(error, 555, () => {
+						let containerId = taskInfo.Status.ContainerStatus.ContainerID;
+						let nodeId = taskInfo.NodeID;
 
-				 options.deployerConfig.host = node.ip;
-				 options.deployerConfig.port = node.dockerPort;
-				 options.deployerConfig.flags = { targetNode: true, swarmMember: true };
-				 lib.getDeployer(options, (error, deployer) => {
-					 checkError(error, 540, cb, () => {
+						options.params.id = nodeId;
+						options.deployerConfig.flags = { targetNode: true, swarmMember: true };
+						lib.getDeployer(options, (error, deployer) => {
+							check(error, 540, () => {
+								let container = deployer.getContainer(containerId);
+								let logOptions = {
+									stdout: true,
+									stderr: true,
+									tail: options.params.tail || 400
+								};
+								container.logs(logOptions, (error, logStream) => {
+									check(error, 537, () => {
+										let data, chunk;
+										logStream.setEncoding('utf8');
+										logStream.on('readable', () => {
+											let handle = this;
+											while((chunk = handle.read()) !== null) {
+												data += chunk.toString('utf8');
+											}
+										});
 
-						 let container = deployer.getContainer(containerId);
-						 let logOptions = {
-							 stdout: true,
-							 stderr: true,
-							 tail: options.params.tail || 400
-						 };
-
-						 container.logs(logOptions, (error, logStream) => {
-							 checkError(error, cb, () => {
-								 let data = '', chunk;
-								 logStream.setEncoding('utf8');
-								 logStream.on('readable', () => {
-									 let handle = this;
-									 while ((chunk = handle.read()) !== null) {
-										 data += chunk.toString('utf8');
-									 }
-								 });
-
-								 logStream.on('end', () => {
-									 logStream.destroy();
-									 return cb(null, {data: data})
-								 });
-							 });
-						 });
-					 });
-				 });
-			 });
+										logStream.on('end', () => {
+											logStream.destroy();
+											return res.jsonp(options.soajs.buildResponse(null, { data }));
+										});
+									});
+								});
+							});
+						});
+					});
+				});
+			});
 		 });
+
+		 function check(error, code, cb) {
+			 if (error) {
+				 return res.jsonp(options.soajs.buildResponse({code: code, msg: errorFile[code]}));
+			 }
+
+			 return cb();
+		 }
 	 },
 
 	/**
