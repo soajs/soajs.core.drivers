@@ -267,11 +267,10 @@ let engine = {
 			checkError(error, 540, cb, () => {
 				let node = deployer.getNode(options.params.id);
 				//need to inspect node in order to get its current version and pass it to update call
-				node.inspect((error, node) => {
+				node.inspect((error, nodeInfo) => {
 					checkError(error, 547, cb, () => {
-						let update = {
-							version: node.Version.Index,
-						};
+						let update = nodeInfo.Spec;
+						update.version = nodeInfo.Version.Index;
 
 						delete options.params.id;
 						Object.keys(options.params).forEach((oneUpdateParam) => {
