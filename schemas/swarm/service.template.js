@@ -15,6 +15,11 @@ module.exports = {
                     "ReadOnly": true,
                     "Source": "/var/run/docker.sock",
                     "Target": "/var/run/docker.sock",
+                },
+                {
+				    "Type": "volume",
+				    "Source": "soajs_log_volume",
+				    "Target": "/var/log/soajs/",
                 }
             ]
         },

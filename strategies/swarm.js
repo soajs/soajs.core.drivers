@@ -405,6 +405,7 @@ let engine = {
 									group: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.service.group'] : null),
 									version: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.service.version'] : null)
 								},
+								labels: oneService.Spec.Labels,
 								ports: []
 							};
 
@@ -437,6 +438,19 @@ let engine = {
 		payload.Mode.Replicated.Replicas = options.params.replicaCount;
 		payload.Networks[0].Target = options.params.network;
 		payload.Labels = options.params.labels;
+
+		if (options.params.exposedPort && options.params.targetPort) {
+			payload.EndpointSpec = {
+				Mode: "vip",
+				Ports: [
+					{
+						Protocol: "tcp",
+						PublishedPort: options.params.exposedPort,
+						TargetPort: options.params.targetPort
+					}
+				]
+			}
+		}
 
 		lib.getDeployer(options, (error, deployer) => {
 			checkError(error, 540, cb, () => {
@@ -533,6 +547,7 @@ let engine = {
 								name: ((serviceInfo.Spec.Labels) ? serviceInfo.Spec.Labels['soajs.service.name'] : null),
 								version: ((serviceInfo.Spec.Labels) ? serviceInfo.Spec.Labels['soajs.service.version'] : null)
 							},
+							labels: serviceInfo.Spec.Labels,
 							ports: []
 						};
 
@@ -881,13 +896,13 @@ let engine = {
 		engine.listServices(options, (error, services) => {
 			checkError(error, 549, cb, () => {
 				async.detect(services, (oneService, callback) => {
-					let match = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.env.code'] === options.params.env &&
-						oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.name'] === options.params.service &&
-						oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.version'] === options.params.version;
+					let match = oneService.labels['soajs.env.code'] === options.params.env &&
+						oneService.labels['soajs.service.name'] === options.params.service &&
+						oneService.labels['soajs.service.version'] === options.params.version;
 					return callback(null, match);
 				}, (error, service) => {
 					checkError(error, 560, cb, () => {
-						return cb(null, ((service && service.Spec && service.Spec.Name) ? service.Spec.Name : null));
+						return cb(null, service.name);
 					});
 				});
 			});
