@@ -431,12 +431,6 @@ let engine = {
 								id: oneService.ID,
 								version: oneService.Version.Index,
 								name: oneService.Spec.Name,
-								service: {
-									env: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.env.code'] : null),
-									name: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.service.name'] : null),
-									group: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.service.group'] : null),
-									version: ((oneService.Spec.Labels) ? oneService.Spec.Labels['soajs.service.version'] : null)
-								},
 								labels: oneService.Spec.Labels,
 								ports: []
 							};
@@ -575,11 +569,6 @@ let engine = {
 							id: serviceInfo.ID,
 							version: serviceInfo.Version.Index,
 							name: serviceInfo.Spec.Name,
-							service: {
-								env: ((serviceInfo.Spec.Labels) ? serviceInfo.Spec.Labels['soajs.env.code'] : null),
-								name: ((serviceInfo.Spec.Labels) ? serviceInfo.Spec.Labels['soajs.service.name'] : null),
-								version: ((serviceInfo.Spec.Labels) ? serviceInfo.Spec.Labels['soajs.service.version'] : null)
-							},
 							labels: serviceInfo.Spec.Labels,
 							ports: []
 						};
