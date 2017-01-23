@@ -493,6 +493,7 @@ let engine = {
 
 	/**
 	 * Redeploy a service
+	 * This update process is simulated by adding/replacing a dummy environment variables that automatically triggers a redeploy command for all service containers
 	 *
 	 * @param {Object} options
 	 * @param {Function} cb
@@ -500,22 +501,16 @@ let engine = {
 	 */
 	 redeployService (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, cb, 540, () => {
+			checkError(error, 540, cb, () => {
 				let service = deployer.getService(options.params.id);
-				service.inspect((error, service) => {
-					checkError(error, cb, 550, () => {
-						let update = service.Spec;
-						update.version = service.Version.Index;
-
-						if (service.Spec.Labels['soajs.service.sync.count']) {
-							update.Labels['soajs.service.sync.count'] += 1;
-						}
-						else {
-							update.Labels['soajs.service.sync.count'] = 1;
-						}
+				service.inspect((error, serviceInfo) => {
+					checkError(error, 550, cb, () => {
+						let update = serviceInfo.Spec;
+						update.version = serviceInfo.Version.Index;
+						update.TaskTemplate.ContainerSpec.Env.push('SOAJS_REPLOY_TRIGGER=true');
 
 						service.update(update, (error) => {
-							checkError(error, cb, 653, cb.bind(null, null, true));
+							checkError(error, 653, cb, cb.bind(null, null, true));
 						});
 					});
 				});
