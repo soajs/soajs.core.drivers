@@ -426,6 +426,8 @@ let engine = {
 	 */
 	deployService (options, cb) {
 		let payload = utils.cloneObj(require(__dirname + '/../schemas/swarm/service.template.js'));
+		options.params.variables.push('SOAJS_DEPLOY_HA=swarm');
+		
 		payload.Name = options.params.name;
 		payload.TaskTemplate.ContainerSpec.Image = options.params.image;
 		payload.TaskTemplate.ContainerSpec.Env = options.params.variables;
