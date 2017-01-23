@@ -425,27 +425,24 @@ let engine = {
 	 */
 	deployService (options, cb) {
 		let payload = utils.cloneObj(require(__dirname + '../schemas/swarm/service.template.js'));
-		payload.Name = options.params.context.dockerParams.env + '-' + options.params.context.dockerParams.name;
-		payload.TaskTemplate.ContainerSpec.Image = options.soajs.inputmaskData.imagePrefix + '/' + ((options.params.context.origin === 'service' || options.params.context.origin === 'controller') ? options.params.config.images.services : options.params.config.images.nginx);
-		payload.TaskTemplate.ContainerSpec.Env = options.params.context.dockerParams.variables;
-		payload.TaskTemplate.ContainerSpec.Dir = options.params.config.imagesDir;
-		payload.TaskTemplate.ContainerSpec.Command = [options.params.context.dockerParams.Cmd[0]];
-		payload.TaskTemplate.ContainerSpec.Args = options.params.context.dockerParams.Cmd.splice(1);
-		payload.TaskTemplate.Resources.Limits.MemoryBytes = options.soajs.inputmaskData.memoryLimit;
-		payload.TaskTemplate.RestartPolicy.Condition = 'any'; //TODO: make dynamic
-		payload.TaskTemplate.RestartPolicy.MaxAttempts = 5; //TODO: make dynamic
-		payload.Mode.Replicated.Replicas = options.soajs.inputmaskData.haCount;
-		payload.Networks[0].Target = 'soajsnet';
-		payload.Labels['org.soajs.env.code'] = options.params.context.dockerParams.env;
-		payload.Labels['org.soajs.service.name'] = options.params.context.dockerParams.name;
-		payload.Labels['org.soajs.service.version'] = options.params.context.dockerParams.version;
-
+		payload.Name = options.params.name;
+		payload.TaskTemplate.ContainerSpec.Image = options.params.image;
+		payload.TaskTemplate.ContainerSpec.Env = options.params.variables;
+		payload.TaskTemplate.ContainerSpec.Dir = options.params.containerDir;
+		payload.TaskTemplate.ContainerSpec.Command = [options.params.cmd[0]];
+		payload.TaskTemplate.ContainerSpec.Args = options.params.cmd.splice(1);
+		payload.TaskTemplate.Resources.Limits.MemoryBytes = options.params.memoryLimit;
+		payload.TaskTemplate.RestartPolicy.Condition = options.params.restartPolicy.condition;
+		payload.TaskTemplate.RestartPolicy.MaxAttempts = options.params.restartPolicy.maxAttempts;
+		payload.Mode.Replicated.Replicas = options.params.replicaCount;
+		payload.Networks[0].Target = options.params.network;
+		payload.Labels = options.params.labels;
 
 		lib.getDeployer(options, (error, deployer) => {
 			checkError(error, 540, cb, () => {
-				deployer.createService(payload, (error, serviceId) => {
+				deployer.createService(payload, (error, service) => {
 					checkError(error, 549, cb, () => {
-						return cb(null, serviceId);
+						return cb(null, service);
 					});
 				});
 			});
