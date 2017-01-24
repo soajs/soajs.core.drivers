@@ -25,7 +25,7 @@ function checkError(error, code, cb, scb) {
 	}
 }
 
-let lib = {
+const lib = {
 	getDeployer (options, cb) {
 		let config = options.deployerConfig, deployer;
 
@@ -184,10 +184,80 @@ let lib = {
 
 	ping (options, cb) {
 		options.deployer.ping(cb);
+	},
+
+	buildNodeRecord (options) {
+		let record = {
+			id: options.node.ID,
+			hostname: options.node.Description.Hostname,
+			ip: options.node.Status.Addr,
+			version: options.node.Version.Index,
+			state: options.node.Status.State,
+			spec: {
+				role: options.node.Spec.Role,
+				availability: options.node.Spec.Availability
+			},
+			resources: {
+				cpus: options.node.Description.Resources.NanoCPUs / 1000000000,
+				memory: options.node.Description.Resources.MemoryBytes
+			}
+		};
+
+		if (record.spec.role === 'manager') {
+			record.managerStatus = {
+				leader: options.node.ManagerStatus.Leader,
+				reachability: options.node.ManagerStatus.Reachability,
+				address: options.node.ManagerStatus.Addr
+			};
+		}
+
+		return record;
+	},
+
+	buildServiceRecord (options) {
+		let record = {
+			id: options.service.ID,
+			version: options.service.Version.Index,
+			name: options.service.Spec.Name,
+			labels: options.service.Spec.Labels,
+			ports: [],
+			tasks: []
+		};
+
+		return record;
+	},
+
+	buildTaskRecord (options) {
+		let record = {
+			id: options.task.ID,
+			version: options.task.Version.Index,
+			name: options.serviceName + '.' + options.task.Slot, //might add extra value later
+			ref: {
+				slot: options.task.Slot,
+				service: {
+					name: options.serviceName,
+					id: options.task.ServiceID
+				},
+				node: {
+					id: options.task.NodeID
+				},
+				container: {
+					id: options.task.Status.ContainerStatus.ContainerID
+				}
+			},
+			status: {
+				ts: options.task.Status.Timestamp, //timestamp of the last status update
+				state: options.task.Status.State, //current state of the task, example: running
+				desiredState: options.task.DesiredState, //desired state of the task, example: running
+				message: options.task.Status.Message //current message of the task, example: started or error,
+			}
+		};
+
+		return record;
 	}
 };
 
-let engine = {
+const engine = {
 
 	/**
 	 * Inspect cluster, returns general cluster info + list of manager nodes
@@ -332,32 +402,7 @@ let engine = {
 				let node = deployer.getNode(options.params.id);
 				node.inspect((error, node) => {
 					checkError(error, 547, cb, () => {
-
-						let record = {
-							id: node.ID,
-							hostname: node.Description.Hostname,
-							ip: node.Status.Addr,
-							version: node.Version.Index,
-							state: node.Status.State,
-							spec: {
-								role: node.Spec.Role,
-								availability: node.Spec.Availability
-							},
-							resources: {
-								cpus: node.Description.Resources.NanoCPUs / 1000000000,
-								memory: node.Description.Resources.MemoryBytes
-							}
-						};
-
-						if (record.spec.role === 'manager') {
-							record.managerStatus = {
-								leader: node.ManagerStatus.Leader,
-								reachability: node.ManagerStatus.Reachability,
-								address: node.ManagerStatus.Addr
-							};
-						}
-
-						return cb(null, record);
+						return cb(null, lib.buildNodeRecord({ node }));
 					});
 				});
 			});
@@ -376,34 +421,8 @@ let engine = {
 			checkError(error, 540, cb, () => {
 				deployer.listNodes((error, nodes) => {
 					checkError(error, 548, cb, () => {
-						//normalize response
-						let record = {};
-						async.map(nodes, (oneNode, callback) => {
-							record = {
-								id: oneNode.ID,
-								hostname: oneNode.Description.Hostname,
-								ip: oneNode.Status.Addr,
-								version: oneNode.Version.Index,
-								state: oneNode.Status.State,
-								spec: {
-									role: oneNode.Spec.Role,
-									availability: oneNode.Spec.Availability
-								},
-								resources: {
-									cpus: oneNode.Description.Resources.NanoCPUs / 1000000000,
-									memory: oneNode.Description.Resources.MemoryBytes
-								}
-							};
-
-							if (record.spec.role === 'manager') {
-								record.managerStatus = {
-									leader: oneNode.ManagerStatus.Leader,
-									reachability: oneNode.ManagerStatus.Reachability,
-									address: oneNode.ManagerStatus.Addr
-								};
-							}
-
-							return callback(null, record);
+						async.map(nodes, (node, callback) => {
+							return callback(null, lib.buildNodeRecord({ node }));
 						}, cb);
 					});
 				});
@@ -423,19 +442,32 @@ let engine = {
 			checkError(error, 540, cb, () => {
 				deployer.listServices({}, (error, services) => {
 					checkError(error, 549, cb, () => {
-
-						//normalize response
-						let record = {};
 						async.map(services, (oneService, callback) => {
-							record = {
-								id: oneService.ID,
-								version: oneService.Version.Index,
-								name: oneService.Spec.Name,
-								labels: oneService.Spec.Labels,
-								ports: []
-							};
+							let record = lib.buildServiceRecord({ service: oneService });
 
-							return callback(null, record);
+							if (options.params.excludeTasks) {
+								return callback(null, record);
+							}
+
+							let params = {
+								filters: { service: [oneService.Spec.Name] }
+							};
+							deployer.listTasks(params, (error, serviceTasks) => {
+								if (error) {
+									return callback(error);
+								}
+
+								async.map(serviceTasks, (oneTask, callback) => {
+									return callback(null, lib.buildTaskRecord({ task: oneTask, serviceName: oneService.Spec.Name }));
+								}, (error, tasks) => {
+									if (error) {
+										return callback(error);
+									}
+
+									record.tasks = tasks;
+									return callback(null, record);
+								});
+							});
 						}, cb);
 					});
 				});
@@ -559,14 +591,7 @@ let engine = {
 				let service = deployer.getService(options.params.id || options.params.serviceName);
 				service.inspect((error, serviceInfo) => {
 					checkError(error, 550, cb, () => {
-
-						let service = {
-							id: serviceInfo.ID,
-							version: serviceInfo.Version.Index,
-							name: serviceInfo.Spec.Name,
-							labels: serviceInfo.Spec.Labels,
-							ports: []
-						};
+						let service = lib.buildServiceRecord({ service: serviceInfo });
 
 						if (options.params.excludeTasks) {
 							return cb(null, { service });
@@ -579,32 +604,7 @@ let engine = {
 							checkError(error, 552, cb, () => {
 
 								async.map(serviceTasks, (oneTask, callback) => {
-									let task = {
-										id: oneTask.ID,
-										version: oneTask.Version.Index,
-										name: service.name + '.' + oneTask.Slot, //might add extra value later
-										ref: {
-											slot: oneTask.Slot,
-											service: {
-												name: service.name,
-												id: oneTask.ServiceID
-											},
-											node: {
-												id: oneTask.NodeID
-											},
-											container: {
-												id: oneTask.Status.ContainerStatus.ContainerID
-											}
-										},
-										status: {
-											ts: oneTask.Status.Timestamp, //timestamp of the last status update
-											state: oneTask.Status.State, //current state of the task, example: running
-											desiredState: oneTask.DesiredState, //desired state of the task, example: running
-											message: oneTask.Status.Message //current message of the task, example: started or error,
-										}
-									};
-
-									return callback(null, task);
+									return callback(null, lib.buildTaskRecord({ task: oneTask, serviceName: options.serviceName }));
 								}, (error, tasks) => {
 									return cb(null, { service, tasks });
 								});
@@ -653,32 +653,7 @@ let engine = {
 						options.params.excludeTasks = true;
 						engine.inspectService(options, (error, service) => {
 							checkError(error, 550, cb, () => {
-								let taskRecord = {
-									id: taskInfo.ID,
-									version: taskInfo.Version.Index,
-									name: service.name + '.' + taskInfo.Slot, //might add extra value later
-									ref: {
-										slot: taskInfo.Slot,
-										service: {
-											name: service.name,
-											id: taskInfo.ServiceID
-										},
-										node: {
-											id: taskInfo.NodeID
-										},
-										container: {
-											id: taskInfo.Status.ContainerStatus.ContainerID
-										}
-									},
-									status: {
-										ts: taskInfo.Status.Timestamp, //timestamp of the last status update
-										state: taskInfo.Status.State, //current state of the task, example: running
-										desiredState: taskInfo.DesiredState, //desired state of the task, example: running
-										message: taskInfo.Status.Message //current message of the task, example: started or error,
-									}
-								};
-
-								return cb(null, taskRecord);
+								return cb(null, lib.buildTaskRecord({ task: taskInfo, serviceName: service.name }));
 							});
 						});
 					});
@@ -757,96 +732,96 @@ let engine = {
 
 	/**
 	 * List available networks, strategy in this case is restricted to swarm
-	 *
+	 * NOTE: function required by installer, not part of current release
 	 * @param {Object} options
 	 * @param {Function} cb
 	 * @returns {*}
 	 */
-	listNetworks (options, cb) {
-		let params = {};
-
-		if (!options.params.all) {
-			params.filters = {
-				type: {
-					custom: true
-				}
-			};
-		}
-
-		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, 540, cb, () => {
-				deployer.listNetworks(params, (error, networks) => {
-					checkError(error, 556, cb, () => {
-						return cb(null, networks);
-					});
-				});
-			});
-		});
-	},
+	// listNetworks (options, cb) {
+	// 	let params = {};
+	//
+	// 	if (!options.params.all) {
+	// 		params.filters = {
+	// 			type: {
+	// 				custom: true
+	// 			}
+	// 		};
+	// 	}
+	//
+	// 	lib.getDeployer(options, (error, deployer) => {
+	// 		checkError(error, 540, cb, () => {
+	// 			deployer.listNetworks(params, (error, networks) => {
+	// 				checkError(error, 556, cb, () => {
+	// 					return cb(null, networks);
+	// 				});
+	// 			});
+	// 		});
+	// 	});
+	// },
 
 	/**
 	 * Inspect network, strategy in this case is restricted to swarm
-	 *
+	 * NOTE: function required by installer, not part of current release
 	 * @param {Object} options
 	 * @param {Function} cb
 	 * @returns {*}
 	 */
-	inspectNetwork (options, cb) {
-		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, 540, cb, () => {
-				let network = deployer.getNetwork(options.params.id);
-				network.inspect((error, network) => {
-					checkError(error, 556, cb, () => {
-						return cb(null, network);
-					});
-				});
-			});
-		});
-	},
+	// inspectNetwork (options, cb) {
+	// 	lib.getDeployer(options, (error, deployer) => {
+	// 		checkError(error, 540, cb, () => {
+	// 			let network = deployer.getNetwork(options.params.id);
+	// 			network.inspect((error, network) => {
+	// 				checkError(error, 556, cb, () => {
+	// 					return cb(null, network);
+	// 				});
+	// 			});
+	// 		});
+	// 	});
+	// },
 
 	/**
 	 * Create new network, strategy in this case is restricted to swarm
-	 *
+	 * NOTE: function required by installer, not part of current release
 	 * @param {Object} options
 	 * @param {Function} cb
 	 * @returns {*}
 	 */
-	createNetwork (options, cb) {
-		let payload = utils.utils.cloneObj(require(__dirname + '../schemas/network.template.js'));
-		payload.Name = options.params.networkName;
-
-		lib.getDeployer(options, (error, deployer) => {
-			checkError(error, 540, cb, () => {
-				deployer.createNetwork(payload, (error, network) => {
-					checkError(error, 557, cb, () => {
-						return cb(null, network);
-					});
-				});
-			});
-		});
-	},
+	// createNetwork (options, cb) {
+	// 	let payload = utils.utils.cloneObj(require(__dirname + '/../schemas/network.template.js'));
+	// 	payload.Name = options.params.networkName;
+	//
+	// 	lib.getDeployer(options, (error, deployer) => {
+	// 		checkError(error, 540, cb, () => {
+	// 			deployer.createNetwork(payload, (error, network) => {
+	// 				checkError(error, 557, cb, () => {
+	// 					return cb(null, network);
+	// 				});
+	// 			});
+	// 		});
+	// 	});
+	// },
 
 	/**
 	 * Delete all deployed services
-	 *
+	 * NOTE: function required by installer, not part of current release
 	 * @param {Object} options
 	 * @param {Function} cb
 	 * @returns {*}
 	 */
-	deleteServices (options, cb) {
-		engine.listServices(options, (error, services) => {
-			checkError(error, 549, cb, () => {
-				async.each(services, (oneService, callback) => {
-					options.params.id = oneService.ID;
-					engine.deleteService(options, callback);
-				}, (error) => {
-					checkError(error, 559, cb, () => {
-						return cb(null, true);
-					});
-				});
-			});
-		});
-	},
+	// deleteServices (options, cb) {
+	// 	engine.listServices(options, (error, services) => {
+	// 		checkError(error, 549, cb, () => {
+	// 			async.each(services, (oneService, callback) => {
+	// 				options.params.id = oneService.ID;
+	// 				engine.deleteService(options, callback);
+	// 			}, (error) => {
+	// 				checkError(error, 559, cb, () => {
+	// 					return cb(null, true);
+	// 				});
+	// 			});
+	// 		});
+	// 	});
+	// },
 
 	/**
 	 * Get the latest version of a deployed service
