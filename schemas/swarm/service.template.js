@@ -33,11 +33,7 @@ module.exports = {
             "MaxAttempts": 5
         }
     },
-    "Mode": {
-        "Replicated": {
-            "Replicas": 0
-        }
-    },
+    "Mode": {},
     "UpdateConfig": {
         "Delay": 500.0,
         "Parallelism": 2,

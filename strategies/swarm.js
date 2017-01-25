@@ -440,7 +440,7 @@ const engine = {
 	listServices (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
 			checkError(error, 540, cb, () => {
-				deployer.listServices({}, (error, services) => {
+				deployer.listServices({}, (error, services) => { //TODO: list services per environment, if not possible at api level do it manually
 					checkError(error, 549, cb, () => {
 						async.map(services, (oneService, callback) => {
 							let record = lib.buildServiceRecord({ service: oneService });
@@ -485,19 +485,23 @@ const engine = {
 	deployService (options, cb) {
 		let payload = utils.cloneObj(require(__dirname + '/../schemas/swarm/service.template.js'));
 		options.params.variables.push('SOAJS_DEPLOY_HA=swarm');
-
+		
 		payload.Name = options.params.name;
 		payload.TaskTemplate.ContainerSpec.Image = options.params.image;
 		payload.TaskTemplate.ContainerSpec.Env = options.params.variables;
-		payload.TaskTemplate.ContainerSpec.Dir = options.params.containerDir;
+		payload.TaskTemplate.ContainerSpec.Dir = ((options.params.containerDir) ? options.params.containerDir : "");
 		payload.TaskTemplate.ContainerSpec.Command = [options.params.cmd[0]];
 		payload.TaskTemplate.ContainerSpec.Args = options.params.cmd.splice(1);
 		payload.TaskTemplate.Resources.Limits.MemoryBytes = options.params.memoryLimit;
 		payload.TaskTemplate.RestartPolicy.Condition = options.params.restartPolicy.condition;
 		payload.TaskTemplate.RestartPolicy.MaxAttempts = options.params.restartPolicy.maxAttempts;
-		payload.Mode.Replicated.Replicas = options.params.replicaCount;
-		payload.Networks[0].Target = options.params.network;
+		payload.Mode[options.params.replication.mode.charAt(0).toUpperCase() + options.params.replication.mode.slice(1)] = {};
+		payload.Networks[0].Target = ((options.params.network) ? options.params.network : "");
 		payload.Labels = options.params.labels;
+
+		if (options.params.replication.mode === 'replicated') {
+			payload.Mode.Replicated.Replicas = options.params.replcation.replicas;
+		}
 
 		if (options.params.exposedPort && options.params.targetPort) {
 			payload.EndpointSpec = {
@@ -510,6 +514,14 @@ const engine = {
 					}
 				]
 			}
+		}
+
+		if (process.env.SOAJS_TEST) {
+			//using lightweight image and commands to optimize travis builds
+			//the purpose of travis builds is to test the dashboard api, not the docker containers
+			payload.TaskTemplate.ContainerSpec.Image = 'alpine:latest';
+			payload.TaskTemplate.ContainerSpec.Command = ['sh'];
+			payload.TaskTemplate.ContainerSpec.Args = ['-c', 'sleep 36000'];
 		}
 
 		lib.getDeployer(options, (error, deployer) => {
@@ -539,7 +551,7 @@ const engine = {
 					checkError(error, 550, cb, () => {
 						let update = serviceInfo.Spec;
 						update.version = serviceInfo.Version.Index;
-						update.TaskTemplate.ContainerSpec.Env.push('SOAJS_REPLOY_TRIGGER=true');
+						update.TaskTemplate.ContainerSpec.Env.push('SOAJS_REDEPLOY_TRIGGER=true');
 
 						service.update(update, (error) => {
 							checkError(error, 653, cb, cb.bind(null, null, true));
@@ -585,10 +597,10 @@ const engine = {
 	 * @param {Function} cb
 	 * @returns {*}
 	 */
-	inspectService (options, cb) {
+	inspectService (options, cb) { //TODO: test again
 		lib.getDeployer(options, (error, deployer) => {
 			checkError(error, 540, cb, () => {
-				let service = deployer.getService(options.params.id || options.params.serviceName);
+				let service = deployer.getService(options.params.id);
 				service.inspect((error, serviceInfo) => {
 					checkError(error, 550, cb, () => {
 						let service = lib.buildServiceRecord({ service: serviceInfo });
@@ -598,13 +610,13 @@ const engine = {
 						}
 
 						let params = {
-							filters: { service: [options.serviceName] }
+							filters: { service: [options.params.id] }
 						};
 						deployer.listTasks(params, (error, serviceTasks) => {
 							checkError(error, 552, cb, () => {
 
 								async.map(serviceTasks, (oneTask, callback) => {
-									return callback(null, lib.buildTaskRecord({ task: oneTask, serviceName: options.serviceName }));
+									return callback(null, lib.buildTaskRecord({ task: oneTask, serviceName: options.params.id }));
 								}, (error, tasks) => {
 									return cb(null, { service, tasks });
 								});
@@ -637,7 +649,7 @@ const engine = {
 	},
 
 	/**
-	 * Inspects and returns information about a specified task/pod
+	 * Inspects and returns information about a specified task
 	 *
 	 * @param {Object} options
 	 * @param {Function} cb

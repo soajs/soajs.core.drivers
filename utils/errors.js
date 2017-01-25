@@ -68,5 +68,9 @@ module.exports = {
 
     653: "Unable to redeploy service",
 
-    654: "Unable to remove node"
+    654: "Unable to remove node",
+
+    655: "Unable to inspect node",
+
+    656: "Unable to inspect the specified pod"
 };

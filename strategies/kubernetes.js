@@ -20,8 +20,8 @@ function checkError(error, code, cb, scb) {
         return scb();
 }
 
-let lib = {
-    getDeployer(options, cb) {
+const lib = {
+    getDeployer(options, cb) { //TODO: revert to certificates approach
         let kubernetes = {};
         let kubeProxyURL = process.env.SOAJS_KUBE_PROXY_URL || '127.0.0.1';
         let kubeProxyPort = process.env.SOAJS_KUBE_PROXY_PORT || 8001;
@@ -35,10 +35,104 @@ let lib = {
         kubernetes.extensions = new K8Api.Extensions(kubeConfig);
 
         return cb(null, kubernetes);
+    },
+
+    ping (options, cb) {
+
+    },
+
+    buildNodeRecord (options) {
+        // let record = {
+        //     id: oneNode.metadata.providerID,
+        //     hostname: oneNode.metadata.name,
+        //     ip: '', //only set the ip address of the node
+        //     version: oneNode.metadata.resourceVersion,
+        //     state: oneNode.status.conditions.status,
+        //     spec: {
+        //         //todo: find out the two specs
+        //         role: 'manager', //TODO: make it dynamic
+        //         availability: ''
+        //     },
+        //     resources: oneNode.status.capacity
+        // };
+
+        //TODO: add manager status if this node is a manager
+        //NOTE: kubernetes calls mnanager nodes 'masters'
+        // if (record.role === 'manager') {
+        // 	record.managerStatus = {
+        // 		leader: node.ManagerStatus.Leader, if yes, set value to true (boolean)
+        // 		reachability: node.ManagerStatus.Reachability, if 'master', set value to 'manager'
+        // 		address: node.ManagerStatus.Addr, ip_address:port
+        // 	};
+        // }
+    },
+
+    buildDeploymentRecord (options) {
+        // let service = {
+        //     id: deployment.metadata.uid,
+        //     version: deployment.metadata.resourceVersion,
+        //     name: deployment.metadata.name,
+        //     labels: [], //TODO: fill labels here
+        //     ports: [],
+        //     tasks: []
+        // };
+    },
+
+    buildPodRecord (options) {
+        // let pod = {
+        //     id: onePod.metadata.uid,
+        //     version: onePod.metadata.resourceVersion,
+        //     name: service.name + '.' + onePod.metadata.name, //might add extra value later
+        //     ref: {
+        //         //todo: slot: onePod.Slot,
+        //         service: {
+        //             name: service.name,
+        //             id: onePod.metadata.uid
+        //         },
+        //         node: {
+        //             id: onePod.nodeName
+        //         },
+        //         container: {
+        //             id: onePod.status.containerStatus[0].containerID
+        //         }
+        //     },
+        //     status: {
+        //         ts: onePod.metadata.creationTimestamp, //timestamp of the pod creation
+        //         state: onePod.status.phase, //current state of the pod, example: running
+        //         message: onePod.status.message //current message of the pod, example: started or error,
+        //     }
+        // };
+    },
+
+    buildEnvList (options) {
+        let envs = [];
+        options.envs.forEach((oneVar) => {
+            envs.push({ name: oneVar.split('=')[0], value: oneVar.split('=')[1] });
+        });
+
+        envs.push({
+            name: 'SOAJS_HA_NAME',
+            valueFrom: {
+                fieldRef: {
+                    fieldPath: 'metadata.name'
+                }
+            }
+        });
+
+        envs.push({
+            name: 'SOAJS_HA_IP',
+            valueFrom: {
+                fieldRef: {
+                    fieldPath: 'status.podIP'
+                }
+            }
+        });
+
+        return envs;
     }
 };
 
-let engine = {
+const engine = {
 
     /**
      * Inspect a node in the cluster
@@ -50,37 +144,11 @@ let engine = {
     inspectNode (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
-                //TODO: implement
-
-
-
-                //TODO: update to match kubernetes api response
-                // let record = {
-                //     id: node.ID,
-                //     hostname: node.Description.Hostname,
-                //     ip: '',
-                //     version: node.Version.Index,
-                //     role: node.Spec.Role,
-                //     state: '', //TODO: add state value
-                //     spec: {
-                //         role: node.Spec.Role,
-                //         availability: node.Spec.Availability
-                //     },
-                //     resources: {
-                //         cpus: node.Description.Resources.NanoCPUs / 1000000000,
-                //         memory: node.Description.Resources.MemoryBytes
-                //     }
-                // };
-
-                // if (record.role === 'manager') {
-                //     record.managerStatus = {
-                //         leader: node.ManagerStatus.Leader,
-                //         reachability: node.ManagerStatus.Reachability,
-                //         address: node.ManagerStatus.Addr
-                //     };
-                // }
-                //
-                // return cb(null, record);
+                deployer.core.namespaces.node.get({name: options.params.id}, (error, node) => {
+                    checkError(error, 655, cb, () => {
+                        return cb(null, lib.buildNodeRecord({ node }));
+                    });
+                });
             });
         });
     },
@@ -97,33 +165,8 @@ let engine = {
             checkError(error, 520, cb, () => {
                 deployer.core.nodes.get({}, (error, nodes) => {
                     checkError(error, 521, cb, () => {
-                        //normalize response
-                        let record = {};
                         async.map(nodes, (oneNode, callback) => {
-                            record = {
-                                id: oneNode.metadata.providerID,
-                                hostname: oneNode.metadata.name,
-                                ip: '', //only set the ip address of the node
-                                version: oneNode.metadata.resourceVersion,
-                                state: oneNode.status.conditions.status,
-                                spec: {
-                                    //todo: find out the two specs
-                                    role: 'manager', //TODO: make it dynamic
-                                    availability: ''
-                                },
-                                resources: oneNode.status.capacity
-                            };
-
-                            //TODO: add manager status if this node is a manager
-                            //NOTE: kubernetes calls mnanager nodes 'masters'
-                            // if (record.role === 'manager') {
-							// 	record.managerStatus = {
-							// 		leader: node.ManagerStatus.Leader, if yes, set value to true (boolean)
-							// 		reachability: node.ManagerStatus.Reachability, if 'master', set value to 'manager'
-							// 		address: node.ManagerStatus.Addr, ip_address:port
-							// 	};
-							// }
-                            return callback(null, record);
+                            return callback(null, lib.buildNodeRecord({ node: oneNode }));
                         }, cb);
                     });
                 });
@@ -180,7 +223,7 @@ let engine = {
      * @param {Function} cb
      * @returns {*}
      */
-    removeNode (options, cb) { //options should include backgroundCB
+    removeNode (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
                 deployer.core.node.delete({name: options.params.name}, (error, res) => {
@@ -229,124 +272,55 @@ let engine = {
      * @returns {*}
      */
     deployService (options, cb) {
-        let kubernetesServiceParams = {};
-        let template = utils.cloneObj(require(__dirname + '../schemas/kubernetes/service.template.js'));
-        let serviceName = options.context.dockerParams.env + '-' + options.context.dockerParams.name;
-        //service params if deploying a service or a controller
-        if (options.context.origin === 'service' || options.context.origin === 'controller') {
-            serviceName += '-v' + options.soajs.inputmaskData.version;
-        }
-        //fill service params
-        //service params if deploying Nginx
-        if (options.context.origin === 'nginx') {
-            kubernetesServiceParams = template.service;
-            kubernetesServiceParams.metadata.name = serviceName + '-service';
-            kubernetesServiceParams.spec.type = "NodePort";
-            kubernetesServiceParams.spec.selector = {
-                "soajs.service.label": serviceName
-            };
-            kubernetesServiceParams.spec.ports.port = 80;
-            kubernetesServiceParams.spec.ports.targetPort = 80;
-            kubernetesServiceParams.spec.ports.nodePort = options.soajs.inputmaskData.exposedPort;
-        }
-        //service params if deploying a container a container
-        else if (options.context.origin === 'controller') {
-            kubernetesServiceParams = template.service;
-            kubernetesServiceParams.metadata.name = serviceName + '-service';
-            kubernetesServiceParams.spec.selector = {
-                "soajs.service.label": "soajs-service"
-            };
-            kubernetesServiceParams.spec.ports.port = 4000;
-            kubernetesServiceParams.spec.ports.targetPort = 4000;
-        }
+        let deployment = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/deployment.template.js'));
+        let service = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/service.template.js'));
+        options.params.variables.push('SOAJS_DEPLOY_HA=kubernetes');
 
-        //fill deployment parameters
-        let deploymentParams = template.deployment;
-        deploymentParams.metadata.name = serviceName;
-        deploymentParams.metadata.labels = {
-            "soajs.service": options.context.dockerParams.name,
-            "soajs.env": options.context.dockerParams.env
-        };
-        deploymentParams.spec.replicas = options.soajs.inputmaskData.haCount;
-        deploymentParams.spec.selector.matchLabels = {
-            "soajs.service.label": serviceName
-        };
-        deploymentParams.spec.template.metadata.name = serviceName;
-        deploymentParams.spec.template.metadata.labels = {
-            "soajs.service.label": serviceName
-        };
-        deploymentParams.spec.spec.containers[0].name = serviceName;
-        deploymentParams.spec.spec.containers[0].image = options.soajs.inputmaskData.imagePrefix + '/' + ((options.context.origin === 'service' || options.context.origin === 'controller') ? options.config.images.services : options.config.images.nginx);
-        deploymentParams.spec.spec.containers[0].workingDir = options.config.imagesDir;
-        deploymentParams.spec.spec.containers[0].command = options.config.imagesDir;
-        deploymentParams.spec.spec.containers[0].args = options.context.dockerParams.Cmd.splice(1);
-        deploymentParams.spec.spec.containers[0].env = buildEnvVariables();
+        service.metadata.name = options.params.name + '-service';
+        service.metadata.labels = options.params.labels;
+        service.spec.selector = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
+        //TODO: service.spec.ports
+
+        deployment.metadata.name = options.params.name;
+        deployment.metadata.labels = options.params.labels;
+        deployment.spec.replicas = options.params.replicaCount;
+        deployment.spec.selector.matchLabels = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
+        deployment.spec.template.metadata.name = options.params.labels['soajs.service.name'];
+        deployment.spec.template.metadata.labels = options.params.labels;
+        //NOTE: only one container is being set per pod
+        deployment.spec.template.spec.containers[0].name = options.params.labels['soajs.service.name'];
+        deployment.spec.template.spec.containers[0].image = options.params.image;
+        deployment.spec.template.spec.containers[0].workingDir = options.params.containerDir;
+        deployment.spec.template.spec.containers[0].command = [options.params.cmd[0]];
+        deployment.spec.template.spec.containers[0].args = options.params.cmd.splice(1);
+        deployment.spec.template.spec.containers[0].env = lib.buildEnvList({ envs: options.params.variables });
+
+        if (options.params.exposedPort && options.params.targetPort) {
+            service.spec.type = 'NodePort';
+            service.spec.ports[0].nodePort = options.params.exposedPort;
+            service.spec.ports[0].port = options.params.targetPort;
+            service.spec.ports[0].targetPort = options.params.targetPort;
+        }
 
         if (process.env.SOAJS_TEST) {
             //using lightweight image and commands to optimize travis builds
             //the purpose of travis builds is to test the dashboard api, not the containers
-            deploymentParams.spec.template.spec.containers[0].image = 'alpine:latest';
-            deploymentParams.spec.template.spec.containers[0].command = ['sh'];
-            deploymentParams.spec.template.spec.containers[0].args = ['-c', 'sleep 36000'];
+            deployment.spec.template.spec.containers[0].image = 'alpine:latest';
+            deployment.spec.template.spec.containers[0].command = ['sh'];
+            deployment.spec.template.spec.containers[0].args = ['-c', 'sleep 36000'];
         }
 
         lib.getDeployer(options, (error, deployer) => {
-            checkError(error, 520, cb, () => {
-                if (Object.keys(kubernetesServiceParams).length > 0) {
-                    options.params = {body: kubernetesServiceParams};
-                    engine.createKubeService(options, (error) => {
-                        checkError(error, 525, cb, () => {
-                            // options.soajs.log.debug('Deployer params: ' + JSON.stringify (deploymentParams));
-                            deployer.extensions.namespaces.deployments.post({body: deploymentParams}, (error, res) => {
-                                checkError(error, 526, cb, () => {
-                                    return cb(null, true);
-                                });
-                            });
+            checkError(error, 540, cb, () => {
+                deployer.core.namespaces.services.post({ body: service }, (error) => {
+                    checkError(error, 525, cb, () => {
+                        deployer.extensions.namespaces.deployments.post({ body: deployment }, (error) => {
+                            checkError(error, 526, cb, cb.bind(null, null, true));
                         });
                     });
-                }
-                else {
-                    // options.soajs.log.debug('Deployer params: ' + JSON.stringify (haDeploymentParams));
-                    deployer.extensions.namespaces.deployments.post({body: deploymentParams}, (error, res) => {
-                        checkError(error, 526, cb, () => {
-                            return cb(null, true);
-                        });
-                    });
-                }
-            });
-        });
-
-        //Build the environment variable
-        function buildEnvVariables () {
-            var envs = [];
-            options.context.dockerParams.variables.forEach(function (oneEnvVar) {
-                envs.push({
-                    name: oneEnvVar.split('=')[0],
-                    value: oneEnvVar.split('=')[1]
                 });
             });
-            envs.push({ "name": "SOAJS_DEPLOY_HA", "value": "true" });
-            envs.push({ "name": "SOAJS_DEPLOY_KUBE", "value": "true" });
-            envs.push({
-                "name": "SOAJS_KUBE_POD_IP",
-                "valueFrom": {
-                    "fieldRef": {
-                        "fieldPath": "status.podIP"
-                    }
-                }
-            });
-            envs.push({
-                "name": "SOAJS_KUBE_POD_NAME",
-                "valueFrom": {
-                    "fieldRef": {
-                        "fieldPath": "metadata.name"
-                    }
-                }
-            });
-
-            return envs;
-        }
-
+        });
     },
 
     /**
@@ -358,14 +332,11 @@ let engine = {
     scaleService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
-                deployer.extensions.namespaces.deployments.get({name: options.params.serviceName}, (error, deployment) => {
+                deployer.extensions.namespaces.deployments.get({name: options.params.id}, (error, deployment) => {
 					checkError(error, 536, cb, () => {
 						deployment.spec.replicas = options.params.scale;
-						deployer.extensions.namespaces.deployments.put({name: options.serviceName, body: deployment}, (error, result) => {
-                            checkError(error, 527, cb, () => {
-                                cb.bind(null, null, result);
-                                return (null, true);
-                            });
+						deployer.extensions.namespaces.deployments.put({name: options.params.id, body: deployment}, (error, result) => {
+                            checkError(error, 527, cb, cb.bind(null, null, true));
                         });
 					});
 				});
@@ -383,22 +354,11 @@ let engine = {
     redeployService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
-                deployer.extensions.namespaces.deployments.get({name: options.params.serviceName}, (error, deployment) => {
+                deployer.extensions.namespaces.deployment.get({name: options.params.id}, (error, deployment) => {
                     checkError(error, 536, cb, () => {
-                        let update = service.spec;
-                        update.version = deployment.metadata.resourceVersion;
-
-                        if (service.spec.labels['soajs.service.sync.count']) {
-                            update.labels['soajs.service.sync.count'] += 1;
-                        }
-                        else {
-                            update.labels['soajs.service.sync.count'] = 1;
-                        }
-                        deployer.extensions.namespaces.deployments.put(update, (error, result) => {
-                            checkError(error, 527, cb, () => {
-                                cb.bind(null, null, result);
-                                return (null, true);
-                            });
+                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_REDEPLOY_TRIGGER', value: 'true' });
+                        deployer.extensions.namespaces.deployments.put({ name: options.params.id, body: deployment }, (error) => {
+                            checkError(error, 527, cb, cb.bind(null, null, true));
                         });
                     });
                 });
@@ -416,90 +376,25 @@ let engine = {
     inspectService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
-                deployer.extensions.namespaces.deployment.get(options.params.serviceName, (error, deployment) => {
+                deployer.extensions.namespaces.deployment.get(options.params.id, (error, deployment) => {
                     checkError(error, 528, cb, () => {
-
-                        let service = {
-                            id: deploymentmetadata.uid,
-                            version: deployment.metadata.resourceVersion,
-                            name: deployment.metadata.name,
-                            service: {
-                                env: ((deployment.metadata.Labels) ? deployment.metadata.Labels['soajs.env.code'] : null),
-                                name: ((deployment.metadata.Labels) ? deployment.metadata.Labels['soajs.service.name'] : null),
-                                version: ((deployment.metadata.Labels) ? deployment.metadata.Labels['soajs.service.version'] : null)
-                            },
-                            ports: []
-                        };
+                        let deploymentRecord = lib.buildDeployerOptions({ deployment });
 
                         if (options.params.excludeTasks) {
-                            return cb(null, {service: service});
+                            return cb(null, { deployment: deploymentRecord });
                         }
 
-                        deployer.core.namespaces.pods.get({qs: {labelSelector: 'soajs.service.label=' + options.params.serviceName}}, (error, podsList) => {
+                        deployer.core.namespaces.pods.get({qs: {labelSelector: 'soajs.service.label=' + options.params.id}}, (error, podList) => {
                             checkError(error, 529, cb, () => {
-                                async.map(servicePods, (onePod, callback) => {
-                                    let pod = {
-                                        id: onePod.metadata.uid,
-                                        version: onePod.metadata.resourceVersion,
-                                        name: service.name + '.' + onePod.metadata.name, //might add extra value later
-                                        ref: {
-                                            //todo: slot: onePod.Slot,
-                                            service: {
-                                                name: service.name,
-                                                id: onePod.metadata.uid
-                                            },
-                                            node: {
-                                                id: onePod.nodeName
-                                            },
-                                            container: {
-                                                id: onePod.status.containerStatus[0].containerID
-                                            }
-                                        },
-                                        status: {
-                                            ts: onePod.metadata.creationTimestamp, //timestamp of the pod creation
-                                            state: onePod.status.phase, //current state of the pod, example: running
-                                            message: onePod.status.message //current message of the pod, example: started or error,
-                                        }
-                                    };
-
-                                    return callback(null, pod);
+                                async.map(podList.items, (onePod, callback) => {
+                                    return callback(null, lib.buildPodRecord({ pod: onePod }));
                                 }, (error, pods) => {
-                                    return cb(null, { service, pods });
+                                    return cb(null, { service: deploymentRecord, tasks: pods });
                                 });
-
-                                return cb(null, {service, pods});
                             });
                         });
                     });
                 });
-            });
-        });
-    },
-
-    /**
-     * Recursively fetches a service's tasks/pods and returns the same output as inspectService() only when the desired number of tasks/pods is available
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
-    getServiceComponents (options, cb) {
-        engine.inspectService(options, (error, info) => {
-            checkError(error, 529, cb, () => {
-                let runningPods = [];
-                info.tasks.forEach((onePod) => {
-                    if (onePod.metadata.labels['soajs.service.label'] === options.params.serviceName && onePod.status.phase === 'Running') {
-                        runningPods.push(onePod);
-                    }
-                });
-
-                if (runningPods.length !== options.params.serviceCount) {
-                    setTimeout(engine.getServiceComponents.bind(null, options, cb), 500);
-                }
-                else {
-                    info.tasks = runningPods;
-                    return cb(null, info);
-                }
             });
         });
     },
@@ -529,7 +424,7 @@ let engine = {
                     key: deployer.extensions.requestOptions.key
                 };
                 options.params = {name: options.serviceName};
-                engine.getDeployment(options, (error, deployment) => {
+                engine.getDeployment(options, (error, deployment) => { //TODO: fix
                     checkError(error, 528, cb, () => {
                         deployment.spec.replicas = 0;
                         options.params = {name: options.serviceName, body: deployment};
@@ -586,7 +481,7 @@ let engine = {
 
             function ensureDeployment(deployer, callback) {
                 options.params = {name: options.serviceName};
-                engine.getDeployment(options, (error, deployment) => {
+                engine.getDeployment(options, (error, deployment) => { //TODO: fix
                     checkError(error, 536, cb, () => {
                         if (deployment.spec.replicas === 0) {
                             return callback(null, true);
@@ -637,6 +532,25 @@ let engine = {
 
         });
     },
+
+    /**
+	 * Gathers and returns information about a specified pod
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+     inspectTask (options, cb) {
+        lib.getDeployer(options, (error, deployer) => {
+            checkError(error, 540, cb, () => {
+                deployer.core.namespaces.pods.get({ name: options.params.taskId }, (error, pod) => {
+                    checkError(error, 656, cb, () => {
+                        return cb(null, lib.buildPodRecord({ pod }));
+                    });
+                });
+            });
+        });
+     },
 
     /**
      * Returns a kubernetes replica set
@@ -730,32 +644,32 @@ let engine = {
     },
 
     /**
-     * Returns a kubernetes deployment
+     * Returns a kubernetes deployment //TODO: delete, use inspectService() instead
      * @param options
      * @param cb
      */
-    getDeployment (options, cb) {
-        lib.getDeployer(options, (error, deployer) => {
-            checkError(error, 520, cb, () => {
-                deployer.extensions.namespaces.deployments.get(options.params, (error, deployment) => {
-                    checkError(error, 536, cb, () => {
-                        let service = {
-                            id: deployment.metadata.uid,
-                            version: deployment.metadata.resourceVersion,
-                            name: deployment.metadata.name,
-                            service: {
-                                env: ((deployment.metadata.Labels) ? deployment.metadata.Labels['soajs.env.code'] : null),
-                                name: ((deployment.metadata.Labels) ? deployment.metadata.Labels['soajs.service.name'] : null),
-                                version: ((deployment.metadata.Labels) ? deployment.metadata.Labels['soajs.service.version'] : null)
-                            },
-                            ports: []
-                        };
-                        return cb(null, service);
-                    });
-                });
-            });
-        });
-    },
+    // getDeployment (options, cb) {
+    //     lib.getDeployer(options, (error, deployer) => {
+    //         checkError(error, 520, cb, () => {
+    //             deployer.extensions.namespaces.deployments.get(options.params, (error, deployment) => {
+    //                 checkError(error, 536, cb, () => {
+    //                     let service = {
+    //                         id: deployment.metadata.uid,
+    //                         version: deployment.metadata.resourceVersion,
+    //                         name: deployment.metadata.name,
+    //                         service: {
+    //                             env: ((deployment.metadata.Labels) ? deployment.metadata.Labels['soajs.env.code'] : null),
+    //                             name: ((deployment.metadata.Labels) ? deployment.metadata.Labels['soajs.service.name'] : null),
+    //                             version: ((deployment.metadata.Labels) ? deployment.metadata.Labels['soajs.service.version'] : null)
+    //                         },
+    //                         ports: []
+    //                     };
+    //                     return cb(null, service);
+    //                 });
+    //             });
+    //         });
+    //     });
+    // },
 
     /**
      * Deletes a kubernetes deployment
@@ -786,15 +700,15 @@ let engine = {
             checkError(error, 520, cb, () => {
 
                 let params = {
-                    name: options.params.taskname, //pod name
+                    name: options.params.taskId, //pod name
                     qs: {
                         tailLines: options.params.tail || 400
                     }
                 };
 
-                deployer.core.namespaces.pods.log(params, (error, res) => {
+                deployer.core.namespaces.pods.log(params, (error, logs) => {
                     checkError(error, 537, cb, () => {
-                        return cb(null, res);
+                        return cb(null, logs);
                     });
                 });
             });

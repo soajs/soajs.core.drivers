@@ -250,24 +250,7 @@ module.exports = {
     },
 
     /**
-     * Recursively fetches a service's tasks/pods and returns the same output as inspectHAService() only when the desired number of tasks/pods is available
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
-    getServiceComponents (options, cb) {
-        getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
-                checkIfSupported({strategy: strategy, function: 'getServiceComponents'}, cb, () => {
-                    strategy.getServiceComponents(options, cb);
-                });
-            });
-        });
-    },
-
-    /**
-     * Returns a kubernetes deployment
+     * Returns a kubernetes deployment //TODO: merge with inspectService
      * @param options
      * @param cb
      */
@@ -282,7 +265,7 @@ module.exports = {
     },
 
     /**
-     * Deletes a kubernetes deployment
+     * Deletes a kubernetes deployment //TODO: merge with delete service
      * @param options
      * @param cb
      */
