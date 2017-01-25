@@ -2,13 +2,12 @@
 
 module.exports = {
     "apiVersion": "extensions/v1beta1",
-    "kind": "Deployment",
+    "kind": "DaemonSet",
     "metadata": {
         "name": "",
         "labels": ""
     },
     "spec": {
-        "replicas": 0,
         "selector": {
             "matchLabels": ""
         },
@@ -18,6 +17,7 @@ module.exports = {
                 "labels": {}
             },
             "spec": {
+                "nodeSelector": "",
                 "containers": [
                     {
                         "name": "",

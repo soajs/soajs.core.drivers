@@ -445,7 +445,7 @@ const engine = {
 						async.map(services, (oneService, callback) => {
 							let record = lib.buildServiceRecord({ service: oneService });
 
-							if (options.params.excludeTasks) {
+							if (options.params && options.params.excludeTasks) {
 								return callback(null, record);
 							}
 
@@ -485,7 +485,7 @@ const engine = {
 	deployService (options, cb) {
 		let payload = utils.cloneObj(require(__dirname + '/../schemas/swarm/service.template.js'));
 		options.params.variables.push('SOAJS_DEPLOY_HA=swarm');
-		
+
 		payload.Name = options.params.name;
 		payload.TaskTemplate.ContainerSpec.Image = options.params.image;
 		payload.TaskTemplate.ContainerSpec.Env = options.params.variables;

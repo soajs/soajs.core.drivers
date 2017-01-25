@@ -272,28 +272,41 @@ const engine = {
      * @returns {*}
      */
     deployService (options, cb) {
-        let deployment = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/deployment.template.js'));
-        let service = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/service.template.js'));
         options.params.variables.push('SOAJS_DEPLOY_HA=kubernetes');
 
+        let service = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/service.template.js'));
         service.metadata.name = options.params.name + '-service';
         service.metadata.labels = options.params.labels;
         service.spec.selector = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
         //TODO: service.spec.ports
 
-        deployment.metadata.name = options.params.name;
-        deployment.metadata.labels = options.params.labels;
-        deployment.spec.replicas = options.params.replicaCount;
-        deployment.spec.selector.matchLabels = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
-        deployment.spec.template.metadata.name = options.params.labels['soajs.service.name'];
-        deployment.spec.template.metadata.labels = options.params.labels;
+        let payload = {};
+        if (options.params.replication.mode === 'replicated') {
+            payload = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/deployment.template.js'));
+            options.params.type = 'deployment';
+        }
+        else if (options.params.replication.mode === 'global') {
+            payload = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/daemonset.template.js'));
+            options.params.type = 'daemonset';
+        }
+
+        payload.metadata.name = options.params.name;
+        payload.metadata.labels = options.params.labels;
+
+        if (options.params.type === 'deployment') {
+            payload.spec.replicas = options.params.replicaCount;
+        }
+
+        payload.spec.selector.matchLabels = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
+        payload.spec.template.metadata.name = options.params.labels['soajs.service.name'];
+        payload.spec.template.metadata.labels = options.params.labels;
         //NOTE: only one container is being set per pod
-        deployment.spec.template.spec.containers[0].name = options.params.labels['soajs.service.name'];
-        deployment.spec.template.spec.containers[0].image = options.params.image;
-        deployment.spec.template.spec.containers[0].workingDir = options.params.containerDir;
-        deployment.spec.template.spec.containers[0].command = [options.params.cmd[0]];
-        deployment.spec.template.spec.containers[0].args = options.params.cmd.splice(1);
-        deployment.spec.template.spec.containers[0].env = lib.buildEnvList({ envs: options.params.variables });
+        payload.spec.template.spec.containers[0].name = options.params.labels['soajs.service.name'];
+        payload.spec.template.spec.containers[0].image = options.params.image;
+        payload.spec.template.spec.containers[0].workingDir = ((options.params.containerDir) ? options.params.containerDir : '');
+        payload.spec.template.spec.containers[0].command = [options.params.cmd[0]];
+        payload.spec.template.spec.containers[0].args = options.params.cmd.splice(1);
+        payload.spec.template.spec.containers[0].env = lib.buildEnvList({ envs: options.params.variables });
 
         if (options.params.exposedPort && options.params.targetPort) {
             service.spec.type = 'NodePort';
@@ -305,16 +318,16 @@ const engine = {
         if (process.env.SOAJS_TEST) {
             //using lightweight image and commands to optimize travis builds
             //the purpose of travis builds is to test the dashboard api, not the containers
-            deployment.spec.template.spec.containers[0].image = 'alpine:latest';
-            deployment.spec.template.spec.containers[0].command = ['sh'];
-            deployment.spec.template.spec.containers[0].args = ['-c', 'sleep 36000'];
+            payload.spec.template.spec.containers[0].image = 'alpine:latest';
+            payload.spec.template.spec.containers[0].command = ['sh'];
+            payload.spec.template.spec.containers[0].args = ['-c', 'sleep 36000'];
         }
 
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 540, cb, () => {
                 deployer.core.namespaces.services.post({ body: service }, (error) => {
                     checkError(error, 525, cb, () => {
-                        deployer.extensions.namespaces.deployments.post({ body: deployment }, (error) => {
+                        deployer.extensions.namespaces[options.params.type].post({ body: payload }, (error) => {
                             checkError(error, 526, cb, cb.bind(null, null, true));
                         });
                     });
