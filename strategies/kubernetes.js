@@ -42,29 +42,57 @@ const lib = {
     },
 
     buildNodeRecord (options) {
-        // let record = {
-        //     id: oneNode.metadata.providerID,
-        //     hostname: oneNode.metadata.name,
-        //     ip: '', //only set the ip address of the node
-        //     version: oneNode.metadata.resourceVersion,
-        //     state: oneNode.status.conditions.status,
-        //     spec: {
-        //         //todo: find out the two specs
-        //         role: 'manager', //TODO: make it dynamic
-        //         availability: ''
-        //     },
-        //     resources: oneNode.status.capacity
-        // };
+        let record = {
+            id: options.node.metadata.name, //setting id = name | kuberenetes api depends on name unlike swarm
+            hostname: options.node.metadata.name,
+            ip: getIP(options.node.status.addresses),
+            version: options.node.metadata.resourceVersion,
+            state: getStatus(options.node.status.conditions),
+            spec: {
+                role: 'manager', //TODO: set to manager by default for now, needs revision
+                availability: getStatus(options.node.status.conditions)
+            },
+            resources: {
+                cpus: options.node.status.capacity.cpu,
+                memory: calcMemory(options.node.status.capacity.memory)
+            }
+        };
 
-        //TODO: add manager status if this node is a manager
-        //NOTE: kubernetes calls mnanager nodes 'masters'
-        // if (record.role === 'manager') {
-        // 	record.managerStatus = {
-        // 		leader: node.ManagerStatus.Leader, if yes, set value to true (boolean)
-        // 		reachability: node.ManagerStatus.Reachability, if 'master', set value to 'manager'
-        // 		address: node.ManagerStatus.Addr, ip_address:port
-        // 	};
-        // }
+        return record;
+
+        function calcMemory (memory) {
+			let value = memory.substring(0, options.node.status.capacity.memory.length - 2);
+			let unit = memory.substring(memory.length - 2);
+
+			if (unit === 'Ki') value += '000';
+			else if (unit === 'Mi') value += '000000';
+
+			return parseInt(value);
+		}
+
+		function getIP (addresses) {
+			let ip = '';
+			for (let i = 0; i < addresses.length; i++) {
+				if (addresses[i].type === 'LegacyHostIP') {
+					ip = addresses[i].address;
+                    break;
+				}
+			}
+
+			return ip;
+		}
+
+        function getStatus (statuses) {
+            let status = 'unreachable'; //TODO: verify value
+            for (let i = 0; i < statuses.length; i++) {
+                if (statuses[i].type === 'Ready') {
+                    status = ((statuses[i].status) ? 'ready' : 'unreachable');
+                    break;
+                }
+            }
+
+            return status;
+        }
     },
 
     buildDeploymentRecord (options) {

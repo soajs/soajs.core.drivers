@@ -513,7 +513,16 @@ const engine = {
 						TargetPort: options.params.targetPort
 					}
 				]
-			}
+			};
+		}
+
+		if (options.params.volume) {
+			payload.TaskTemplate.ContainerSpec.Mounts.push({
+				Type: options.params.volume.type,
+				ReadOnly: options.params.volume.readOnly,
+				Source: options.params.volume.source,
+				Target: options.params.volume.target,
+			});
 		}
 
 		if (process.env.SOAJS_TEST) {
