@@ -33,6 +33,7 @@ function getStrategy(options, cb) {
         if (strategy) return cb(null, strategy);
 
         let path = __dirname + "/strategies/" + options.strategy + ".js";
+
         checkStrategy(path, (error) => {
             if (error) return cb(error);
 
@@ -538,23 +539,6 @@ module.exports = {
             checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'getServiceHost'}, cb, () => {
                     strategy.getServiceHost(options, cb);
-                });
-            });
-        });
-    },
-
-    /**
-     * Get the domain/host names of controllers per environment for all environments
-     * {"dev":{"1":"DOMAIN","2":"DOMAIN"}}
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
-    getControllerEnvHost (options, cb) {
-        getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
-                checkIfSupported({strategy: strategy, function: 'getControllerEnvHost'}, cb, () => {
-                    strategy.getControllerEnvHost(options, cb);
                 });
             });
         });

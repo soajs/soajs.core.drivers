@@ -498,22 +498,10 @@ const engine = {
 		payload.Mode[options.params.replication.mode.charAt(0).toUpperCase() + options.params.replication.mode.slice(1)] = {};
 		payload.Networks[0].Target = ((options.params.network) ? options.params.network : "");
 		payload.Labels = options.params.labels;
+		payload.EndpointSpec = { Mode: 'vip' , ports: [] };
 
 		if (options.params.replication.mode === 'replicated') {
 			payload.Mode.Replicated.Replicas = options.params.replcation.replicas;
-		}
-
-		if (options.params.exposedPort && options.params.targetPort) {
-			payload.EndpointSpec = {
-				Mode: "vip",
-				Ports: [
-					{
-						Protocol: "tcp",
-						PublishedPort: options.params.exposedPort,
-						TargetPort: options.params.targetPort
-					}
-				]
-			};
 		}
 
 		if (options.params.volume) {
@@ -522,6 +510,18 @@ const engine = {
 				ReadOnly: options.params.volume.readOnly,
 				Source: options.params.volume.source,
 				Target: options.params.volume.target,
+			});
+		}
+
+		if (options.ports && options.ports.length > 0) {
+			options.ports.forEach((onePortEntry) => {
+				if (onePortEntry.isPublished) {
+					payload.EndpointSpec.ports.push({
+						Protocol: 'tcp',
+						TargetPort: onePortEntry.target,
+						PublishedPort: onePortEntry.published
+					});
+				}
 			});
 		}
 
@@ -852,21 +852,27 @@ const engine = {
 	 * @returns {*}
 	 */
 	getLatestVersion (options, cb) {
-		engine.listServices(options, (error, services) => {
-			checkError(error, 549, cb, () => {
-				let latestVersion = 0, match;
-				services.forEach(function (oneService) {
-					match = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.env.code'] === options.params.env &&
-						oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.name'] === options.params.service;
+		let latestVersion = 0, v;
+		lib.getDeployer(options, (error, deployer) => {
+			checkError(error, 540, cb, () => {
+				let params = {
+					filters: { label: [ 'soajs.content=true', 'soajs.env.code=' + options.params.env, 'soajs.service.name=' + options.params.serviceName ] }
+				};
+				deployer.listServices(params, (error, services) => {
+					checkError(error, 549, cb, () => {
+						services.forEach((oneService) => {
+							if (oneService.Spec && oneService.Spec.Labels && oneService.Spec.Labels['soajs.service.version']) {
+								v = parseInt(oneService.Spec.Labels['soajs.service.version']);
 
-					if (match) {
-						if (oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.version'] > latestVersion) {
-							latestVersion = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.version'];
-						}
-					}
+								if (v > latestVersion) {
+									latestVersion = v;
+								}
+							}
+						});
+
+						return cb(null, latestVersion);
+					});
 				});
-
-				return cb(null, latestVersion);
 			});
 		});
 	},
@@ -879,39 +885,26 @@ const engine = {
 	 * @returns {*}
 	 */
 	getServiceHost (options, cb) {
-		engine.listServices(options, (error, services) => {
-			checkError(error, 549, cb, () => {
-				async.detect(services, (oneService, callback) => {
-					let match = oneService.labels['soajs.env.code'] === options.params.env &&
-						oneService.labels['soajs.service.name'] === options.params.service &&
-						oneService.labels['soajs.service.version'] === options.params.version;
-					return callback(null, match);
-				}, (error, service) => {
-					checkError(error, 560, cb, () => {
-						return cb(null, service.name);
+		lib.getDeployer(options, (error, deployer) => {
+			checkError(error, 540, cb, () => {
+				let params = {
+					filters: { label: [ 'soajs.content=true', 'soajs.env.code=' + options.params.env, 'soajs.service.name=' + options.params.serviceName ] }
+				};
+
+				if (options.params.version) {
+					params.filters.label.push('soajs.service.version=' + options.params.version);
+				}
+
+				deployer.listServices(params, (error, services) => {
+					checkError(error, 549, cb, () => {
+						if (services.length === 0) {
+							return cb({message: 'Service not found'});
+						}
+
+						//NOTE: only one service with the same name and version can exist in a given environment
+						return cb(null, services[0].Spec.Name);
 					});
 				});
-			});
-		});
-	},
-
-	/**
-	 * Get the domain/host names of controllers per environment for all environments
-	 * {"dev":{"1":"DOMAIN","2":"DOMAIN"}}
-	 * @param {Object} options
-	 * @param {Function} cb
-	 * @returns {*}
-	 */
-	getControllerEnvHost (options, cb) {
-		engine.listServices(options, (error, services) => {
-			checkError(error, cb, () => {
-				let envs = {}, match;
-				services.forEach(function (oneService) {
-					match = oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.env.code'] === options.params.env &&
-						oneService.Spec.TaskTemplate.ContainerSpec.Labels['org.soajs.service.name'] === 'controller';
-				});
-
-				//TODO
 			});
 		});
 	}

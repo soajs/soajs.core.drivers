@@ -297,7 +297,7 @@ const engine = {
     removeNode (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
-                deployer.core.node.delete({name: options.params.name}, (error, res) => {
+                deployer.core.node.delete({name: options.params.id}, (error, res) => {
                     checkError(error, 523, cb, () => {
                         return cb(null, true);
                     });
@@ -315,16 +315,16 @@ const engine = {
      */
     updateNode (options, cb) {
         //Only supports availability for now, role update not included yet
-        let updateValue;
-        if (options.params.Availability === 'active') updateValue = false;
-        else if (options.params.Availability === 'drain') updateValue = true;
+        let unschedulable;
+        if (options.params.availability === 'active') unschedulable = false;
+        else if (options.params.availability === 'drain') unschedulable = true;
 
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
-                deployer.core.node.get({name: options.params.nodeName}, (error, node) => {
-                    checkError(error, cb, () => {
-                        node.spec.unschedulable = updateValue;
-                        deployer.core.nodes.put({name: options.params.nodeName, body: node}, (error, res) => {
+                deployer.core.node.get({name: options.params.id}, (error, node) => {
+                    checkError(error, 655, cb, () => {
+                        node.spec.unschedulable = unschedulable;
+                        deployer.core.nodes.put({name: options.params.id, body: node}, (error, res) => {
                             checkError(error, 524, cb, () => {
                                 return cb(null, true);
                             });
@@ -349,7 +349,27 @@ const engine = {
         service.metadata.name = options.params.name + '-service';
         service.metadata.labels = options.params.labels;
         service.spec.selector = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
-        //TODO: service.spec.ports
+
+        if (options.params.ports && options.params.ports.length > 0) {
+            options.params.ports.forEach((onePortEntry, portIndex) => {
+                let portConfig = {
+                    protocol: 'TCP',
+                    name: 'port-' + portIndex,
+                    port: onePortEntry.target,
+                    targetPort: onePortEntry.target
+                };
+
+                if (onePortEntry.isPublished) {
+                    if (!service.spec.type || service.spec.type !== 'NodePort') {
+                        service.spec.type = 'NodePort';
+                    }
+                    portConfig.NodePort = onePortEntry.published;
+                    portConfig.name = 'published-' + portConfig.name;
+                }
+
+                service.spec.ports.push(portConfig);
+            });
+        }
 
         let payload = {};
         if (options.params.replication.mode === 'replicated') {
@@ -378,13 +398,6 @@ const engine = {
         payload.spec.template.spec.containers[0].command = [options.params.cmd[0]];
         payload.spec.template.spec.containers[0].args = options.params.cmd.splice(1);
         payload.spec.template.spec.containers[0].env = lib.buildEnvList({ envs: options.params.variables });
-
-        if (options.params.exposedPort && options.params.targetPort) {
-            service.spec.type = 'NodePort';
-            service.spec.ports[0].nodePort = options.params.exposedPort;
-            service.spec.ports[0].port = options.params.targetPort;
-            service.spec.ports[0].targetPort = options.params.targetPort;
-        }
 
         //TODO: support voluming
 
@@ -882,7 +895,7 @@ const engine = {
 	 */
 	getLatestVersion (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-            checkError(error, 520, () => {
+            checkError(error, 520, cb, () => {
                 let filter = {
                     labelSelector: 'soajs.env.code=' + options.params.env + ', soajs.env.service.name=' + options.params.serviceName
                 };
@@ -911,7 +924,7 @@ const engine = {
 	 */
 	getServiceHost (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
-            checkError(error, 520, () => {
+            checkError(error, 520, cb, () => {
                 let filter = {
                     labelSelector: 'soajs.env.code=' + options.params.env + ', soajs.service.name=' + options.params.serviceName + ', soajs.service.version=' + options.params.serviceVersion
                 };

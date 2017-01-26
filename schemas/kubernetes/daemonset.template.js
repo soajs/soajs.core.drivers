@@ -22,6 +22,7 @@ module.exports = {
                     {
                         "name": "",
                         "image": "",
+                        "imagePullPolicy": "IfNotPresent",
                         "workingDir": "",
                         "command": [],
                         "args": [],
@@ -29,14 +30,14 @@ module.exports = {
                         "volumeMounts": [
                             {
                                 "mountPath": "/var/log/soajs/",
-                                "name": "soajs_log_volume"
+                                "name": "soajs-log-volume"
                             }
                         ]
                     }
                 ],
                 "volumes": [
                     {
-                        "name": "soajs_log_volume",
+                        "name": "soajs-log-volume",
                         "hostPath": {
                             "path": "/var/log/soajs/"
                         }

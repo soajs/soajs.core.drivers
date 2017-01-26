@@ -11,12 +11,6 @@ module.exports = {
     },
     "spec": {
         "selector": null,
-        "ports": [
-            {
-                "protocol": "TCP",
-                "port": null,
-                "targetPort": null,
-            }
-        ]
+        "ports": []
     }
 };
