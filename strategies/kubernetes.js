@@ -795,8 +795,11 @@ const engine = {
      * @returns {*}
      */
     getContainerLogs (options, cb) {
+
+        let res = options.res;
+        delete options.res;
         lib.getDeployer(options, (error, deployer) => {
-            checkError(error, 520, cb, () => {
+            check(error, 520, () => {
 
                 let params = {
                     name: options.params.taskId, //pod name
@@ -806,12 +809,20 @@ const engine = {
                 };
 
                 deployer.core.namespaces.pods.log(params, (error, logs) => {
-                    checkError(error, 537, cb, () => {
-                        return cb(null, logs);
+                    check(error, 537, () => {
+                        return res.jsonp(options.soajs.buildResponse(null, { data: logs }));
                     });
                 });
             });
         });
+
+        function check(error, code, cb) {
+            if (error) {
+                return res.jsonp(options.soajs.buildResponse({code: code, msg: errorFile[code]}));
+            }
+
+            return cb();
+        }
     },
 
     /** //TODO: review
