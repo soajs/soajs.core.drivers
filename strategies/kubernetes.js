@@ -147,15 +147,6 @@ const lib = {
             }
         });
 
-        envs.push({
-            name: 'SOAJS_HA_IP',
-            valueFrom: {
-                fieldRef: {
-                    fieldPath: 'status.podIP'
-                }
-            }
-        });
-
         return envs;
     }
 };
@@ -201,6 +192,55 @@ const engine = {
             });
         });
     },
+
+    /**
+     * Adds a node to a cluster
+     * todo: should be deprecated
+     * @param {Object} options
+     * @param {Function} cb
+     * @returns {*}
+     */
+     listServices (options, cb) {
+        lib.getDeployer(options, (error, deployer) => {
+            checkError(error, 520, cb, () => {
+                let filter = {
+                    labelSelector: 'soajs.env.code=' + options.params.env
+                };
+
+                deployer.extensions.namespaces.deployments.get({qs: filter}, (error, deploymentList) => {
+                    checkError(error, 536, cb, () => {
+                        async.map(deploymentList.items, (oneDeployment, callback) => {
+                            let record = lib.buildDeploymentRecord({ deployment: oneDeployment });
+
+                            if (options.params && options.params.excludeTasks) {
+                                return callback(null, record);
+                            }
+
+                            filter = {
+                                labelSelector: 'soajs.service.name=' + record.name
+                            };
+                            deployer.core.namespaces.pods.get({qs: filter}, (error, podsList) => {
+                                if (error) {
+                                    return callback(error);
+                                }
+
+                                async.map(podsList.items, (onePod, callback) => {
+                                    return callback(null, lib.buildPodRecord({ pod: onePod }));
+                                }, (error, pods) => {
+                                    if (error) {
+                                        return callback(error);
+                                    }
+
+                                    record.tasks = pods;
+                                    return cb(null, record);
+                                });
+                            });
+                        }, cb);
+                    });
+                });
+            });
+        });
+     },
 
     /**
      * Adds a node to a cluster
@@ -342,6 +382,8 @@ const engine = {
             service.spec.ports[0].port = options.params.targetPort;
             service.spec.ports[0].targetPort = options.params.targetPort;
         }
+
+        //TODO: support voluming
 
         if (process.env.SOAJS_TEST) {
             //using lightweight image and commands to optimize travis builds
