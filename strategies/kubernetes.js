@@ -23,7 +23,7 @@ function checkError(error, code, cb, scb) {
 const lib = {
     getDeployer(options, cb) { //TODO: revert to certificates approach
         let kubernetes = {};
-        let kubeProxyURL = process.env.SOAJS_KUBE_PROXY_URL || '127.0.0.1';
+        let kubeProxyURL = process.env.SOAJS_KUBE_PROXY_URL || 'http://127.0.0.1';
         let kubeProxyPort = process.env.SOAJS_KUBE_PROXY_PORT || 8001;
 
         let kubeConfig = { url: kubeProxyURL + ':' + kubeProxyPort };
@@ -96,40 +96,43 @@ const lib = {
     },
 
     buildDeploymentRecord (options) {
-        // let service = {
-        //     id: deployment.metadata.uid,
-        //     version: deployment.metadata.resourceVersion,
-        //     name: deployment.metadata.name,
-        //     labels: [], //TODO: fill labels here
-        //     ports: [],
-        //     tasks: []
-        // };
+        let record = {
+            id: options.deployment.metadata.name, //setting id = name
+            version: options.deployment.metadata.resourceVersion,
+            name: options.deployment.metadata.name,
+            labels: options.deployment.metadata.labels,
+            ports: [], //TODO
+            tasks: []
+        };
+
+        return record;
     },
 
     buildPodRecord (options) {
-        // let pod = {
-        //     id: onePod.metadata.uid,
-        //     version: onePod.metadata.resourceVersion,
-        //     name: service.name + '.' + onePod.metadata.name, //might add extra value later
-        //     ref: {
-        //         //todo: slot: onePod.Slot,
-        //         service: {
-        //             name: service.name,
-        //             id: onePod.metadata.uid
-        //         },
-        //         node: {
-        //             id: onePod.nodeName
-        //         },
-        //         container: {
-        //             id: onePod.status.containerStatus[0].containerID
-        //         }
-        //     },
-        //     status: {
-        //         ts: onePod.metadata.creationTimestamp, //timestamp of the pod creation
-        //         state: onePod.status.phase, //current state of the pod, example: running
-        //         message: onePod.status.message //current message of the pod, example: started or error,
-        //     }
-        // };
+        let record = {
+            id: options.pod.metadata.name,
+            version: options.pod.metadata.resourceVersion,
+            name: options.pod.metadata.name,
+            ref: {
+                service: {
+                    name: options.pod.metadata.labels['soajs.service.label'],
+                    id: options.pod.metadata.labels['soajs.service.label']
+                },
+                node: {
+                    id: options.pod.spec.nodeName
+                },
+                container: {
+                    id: options.pod.status.containerStatuses[0].containerID.split('//')[1] //only one container runs per pod in the current setup
+                }
+            },
+            status: {
+                ts: options.pod.metadata.creationTimestamp,
+                state: options.pod.status.phase,
+                message: options.pod.status.message
+            }
+        };
+
+        return record;
     },
 
     buildEnvList (options) {
@@ -182,9 +185,9 @@ const engine = {
     listNodes (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
-                deployer.core.nodes.get({}, (error, nodes) => {
+                deployer.core.nodes.get({}, (error, nodeList) => {
                     checkError(error, 521, cb, () => {
-                        async.map(nodes, (oneNode, callback) => {
+                        async.map(nodeList.items, (oneNode, callback) => {
                             return callback(null, lib.buildNodeRecord({ node: oneNode }));
                         }, cb);
                     });
@@ -217,7 +220,7 @@ const engine = {
                             }
 
                             filter = {
-                                labelSelector: 'soajs.service.name=' + record.name
+                                labelSelector: 'soajs.service.label=' + record.name
                             };
                             deployer.core.namespaces.pods.get({qs: filter}, (error, podsList) => {
                                 if (error) {
@@ -232,7 +235,7 @@ const engine = {
                                     }
 
                                     record.tasks = pods;
-                                    return cb(null, record);
+                                    return callback(null, record);
                                 });
                             });
                         }, cb);
