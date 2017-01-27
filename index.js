@@ -519,12 +519,12 @@ module.exports = {
      * @returns {*}
      */
     getLatestVersion (options, cb) {
-        console.log(JSON.stringify((options, null, 2)));
+        console.log(JSON.stringify(options, null, 2));
         getStrategy(options, (error, strategy) => {
             if(error)
-                console.log(JSON.stringify((error, null, 2)));
+                console.log(JSON.stringify(error, null, 2));
             else
-                console.log(JSON.stringify((strategy, null, 2)));
+                console.log(JSON.stringify(strategy, null, 2));
             checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'getLatestVersion'}, cb, () => {
                     strategy.getLatestVersion(options, cb);
