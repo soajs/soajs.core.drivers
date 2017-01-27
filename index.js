@@ -41,7 +41,8 @@ function getStrategy(options, cb) {
                 cache[options.strategy] = require(path);
             }
             catch (e) {
-                console.log("require: " + e)
+                console.log("Error");
+                console.log(e);
                 return cb(e);
             }
 
@@ -519,12 +520,7 @@ module.exports = {
      * @returns {*}
      */
     getLatestVersion (options, cb) {
-        console.log("first: " + JSON.stringify(options, null, 2));
         getStrategy(options, (error, strategy) => {
-            if(error)
-                console.log("secondError: " + JSON.stringify(error, null, 2));
-            else
-                console.log("secondStrategy" + JSON.stringify(strategy, null, 2));
             checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'getLatestVersion'}, cb, () => {
                     strategy.getLatestVersion(options, cb);
