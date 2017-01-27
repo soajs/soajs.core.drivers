@@ -41,6 +41,7 @@ function getStrategy(options, cb) {
                 cache[options.strategy] = require(path);
             }
             catch (e) {
+                console.log("require: " + e)
                 return cb(e);
             }
 
