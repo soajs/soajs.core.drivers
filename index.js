@@ -57,8 +57,7 @@ function getStrategy(options, cb) {
     }
 
     function checkStrategy(path, cb) {
-        //fs.access(path, fs.constants.F_OK | fs.constants.R_OK, cb);
-        fs.exists(path, cb);
+        fs.access(path, fs.constants.F_OK | fs.constants.R_OK, cb);
     }
 }
 
@@ -519,12 +518,12 @@ module.exports = {
      * @returns {*}
      */
     getLatestVersion (options, cb) {
-        console.log(JSON.stringify(options, null, 2));
+        console.log("first: " + JSON.stringify(options, null, 2));
         getStrategy(options, (error, strategy) => {
             if(error)
-                console.log(JSON.stringify(error, null, 2));
+                console.log("secondError: " + JSON.stringify(error, null, 2));
             else
-                console.log(JSON.stringify(strategy, null, 2));
+                console.log("secondStrategy" + JSON.stringify(strategy, null, 2));
             checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'getLatestVersion'}, cb, () => {
                     strategy.getLatestVersion(options, cb);
