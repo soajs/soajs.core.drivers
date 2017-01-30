@@ -917,17 +917,22 @@ const engine = {
 	 * @returns {*}
 	 */
 	getLatestVersion (options, cb) {
+        let latestVersion = 0;
 		lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
                 let filter = {
-                    labelSelector: 'soajs.env.code=' + options.params.env + ', soajs.env.service.name=' + options.params.serviceName
+                    labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env + ', soajs.service.name=' + options.params.serviceName
                 };
-                let latestVersion = 0;
+
                 deployer.extensions.deployments.get({qs: filter}, (error, deploymentList) => {
                     checkError(error, 536, cb, () => {
                         deploymentList.items.forEach((oneDeployment) => {
-                            if (oneDeployment.metadata.labels['soajs.service.version'] > latestVersion) {
-                                latestVersion = oneDeployment.metadata.labels['soajs.service.version'];
+                            if (oneDeployment.metadata && oneDeployment.metadata.labels) {
+                                let v = oneDeployment.metadata.labels['soajs.service.version'];
+
+                                if (v > latestVersion) {
+                                    latestVersion = v;
+                                }
                             }
                         });
 
@@ -940,7 +945,7 @@ const engine = {
 
     /**
 	 * Get the domain/host name of a deployed service (per version)
-	 * Sample response: {"1":"DOMAIN","2":"DOMAIN"}, input: service name, version
+	 * 
 	 * @param {Object} options
 	 * @param {Function} cb
 	 * @returns {*}
@@ -949,28 +954,25 @@ const engine = {
 		lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
                 let filter = {
-                    labelSelector: 'soajs.env.code=' + options.params.env + ', soajs.service.name=' + options.params.serviceName + ', soajs.service.version=' + options.params.serviceVersion
+                    labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env + 'soajs.service.name=' + options.params.serviceName
                 };
 
+                if (options.params.version) {
+                    filter.labelSelector += ', soajs.service.version=' + options.params.version;
+                }
+
                 deployer.core.services.get({qs: filter}, (error, serviceList) => {
-                    checkError(error, 600, cb, () => {
+                    checkError(error, 549, cb, () => {
+                        if (serviceList.items.length === 0) {
+                            return cb({message: 'Service not found'});
+                        }
+
                         //only one service must match the filter, therefore serviceList will contain only one item
-                        return cb(null, serviceList.metadata.name);
+                        return cb(null, serviceList.items[0].metadata.name);
                     });
                 });
             });
         });
-	},
-
-    /**
-	 * Get the domain/host names of controllers per environment for all environments
-	 * {"dev":{"1":"DOMAIN","2":"DOMAIN"}}
-	 * @param {Object} options
-	 * @param {Function} cb
-	 * @returns {*}
-	 */
-	getControllerEnvHost (options, cb) {
-        //TODO
 	}
 };
 
