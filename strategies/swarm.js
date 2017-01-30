@@ -226,6 +226,16 @@ const lib = {
 			tasks: []
 		};
 
+		if (options.service.Endpoint && options.service.Endpoint.Ports && options.service.Endpoint.Ports.length > 0) {
+			options.service.Endpoint.Ports.forEach((onePortConfig) => {
+				record.ports.push({
+					protocol: onePortConfig.Protocol,
+					target: onePortConfig.TargetPort,
+					published: onePortConfig.PublishedPort
+				});
+			});
+		}
+
 		return record;
 	},
 
