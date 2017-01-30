@@ -251,6 +251,23 @@ module.exports = {
     },
 
     /**
+     * Takes environment code and
+     *
+     * @param {Object} options
+     * @param {Function} cb
+     * @returns {*}
+     */
+    findService (options, cb) {
+        getStrategy(options, (error, strategy) => {
+            checkError(error, 518, cb, () => {
+                checkIfSupported({strategy: strategy, function: 'findService'}, cb, () => {
+                    strategy.findService(options, cb);
+                });
+            });
+        });
+    },
+
+    /**
      * Returns a kubernetes deployment //TODO: merge with inspectService
      * @param options
      * @param cb

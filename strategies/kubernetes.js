@@ -101,6 +101,7 @@ const lib = {
             version: options.deployment.metadata.resourceVersion,
             name: options.deployment.metadata.name,
             labels: options.deployment.metadata.labels,
+            env: [], //TODO: add
             ports: [], //TODO
             tasks: []
         };
@@ -496,6 +497,17 @@ const engine = {
                 });
             });
         });
+    },
+
+    /**
+     * Takes environment code and soajs service name and returns corresponding swarm service
+     *
+     * @param {Object} options
+     * @param {Function} cb
+     * @returns {*}
+     */
+    findService (options, cb) {
+        //TODO: implement
     },
 
     /**

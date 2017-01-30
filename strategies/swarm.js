@@ -220,6 +220,7 @@ const lib = {
 			version: options.service.Version.Index,
 			name: options.service.Spec.Name,
 			labels: options.service.Spec.Labels,
+			env: options.service.Spec.TaskTemplate.ContainerSpec.Env,
 			ports: [],
 			tasks: []
 		};
@@ -440,7 +441,12 @@ const engine = {
 	listServices (options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
 			checkError(error, 540, cb, () => {
-				deployer.listServices({}, (error, services) => { //TODO: list services per environment, if not possible at api level do it manually
+				let params = {};
+				if (options.params.env) {
+					params.filters = { label: [ 'soajs.content=true', 'soajs.env.code=' + options.params.env ] };
+				}
+
+				deployer.listServices(params, (error, services) => {
 					checkError(error, 549, cb, () => {
 						async.map(services, (oneService, callback) => {
 							let record = lib.buildServiceRecord({ service: oneService });
@@ -636,6 +642,36 @@ const engine = {
 			});
 		});
 	},
+
+	/**
+	 * Takes environment code and soajs service name and returns corresponding swarm service
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	 findService (options, cb) {
+		 lib.getDeployer(options, (error, deployer) => {
+ 			checkError(error, 540, cb, () => {
+ 				let params = {
+ 					filters: { label: [ 'soajs.content=true', 'soajs.env.code=' + options.params.env, 'soajs.service.name=' + options.params.serviceName ] }
+ 				};
+
+ 				if (options.params.version) {
+ 					params.filters.label.push('soajs.service.version=' + options.params.version);
+ 				}
+
+ 				deployer.listServices(params, (error, services) => {
+ 					checkError(error, 549, cb, () => {
+ 						checkError(error, 550, cb, () => {
+							//NOTE: only one service with the same name and version can exist in a given environment
+							return cb(null, lib.buildServiceRecord({ service: services[0] }));
+						});
+ 					});
+ 				});
+ 			});
+ 		});
+	 },
 
 	/**
 	 * Deletes a deployed service
