@@ -1,5 +1,8 @@
 'use strict';
 
+////////////////////////////////////////
+//TODO: needs revamp!
+////////////////////////////////////////
 module.exports = {
     //generic error for testing purposes
     600: "Generic error",
@@ -74,5 +77,7 @@ module.exports = {
 
     656: "Unable to inspect the specified pod",
 
-    657: "Could not find a Kubernetes deployment for the specified environment"
+    657: "Could not find a Kubernetes deployment for the specified environment",
+
+    658: "Unable to inspect swarm network"
 };

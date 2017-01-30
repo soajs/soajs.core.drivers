@@ -858,6 +858,17 @@ const engine = {
         }
     },
 
+    /**
+    * Perform a SOAJS maintenance operation on a given service
+    *
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
+    maintenance (options, cb) {
+        //TODO: implement
+    },
+
     /** //TODO: review
      * Create a kubernetes service in order to expose port or domain name, strategy in this case is restricted to kubernetes
      * NOTE: can be merged with deployService (recommended)

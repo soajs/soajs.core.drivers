@@ -5,6 +5,7 @@
 const Docker = require('dockerode');
 const async = require('async');
 const Grid = require('gridfs-stream');
+const request = require('request');
 
 const gridfsColl = 'fs.files';
 
@@ -785,6 +786,46 @@ const engine = {
 
 			 return cb();
 		 }
+	 },
+
+	 /**
+ 	 * Perform a SOAJS maintenance operation on a given service
+ 	 *
+ 	 * @param {Object} options
+ 	 * @param {Function} cb
+ 	 * @returns {*}
+ 	 */
+	 maintenance (options, cb) {
+		 lib.getDeployer(options, (error, deployer) => {
+			checkError(error, 540, cb, () => {
+				let params = {
+					filters: { service: [options.params.id] }
+				};
+				deployer.listTasks(params, (error, tasks) => {
+					checkError(error, 552, cb, () => {
+						async.map(tasks, (oneTask, callback) => {
+							async.detect(oneTask.NetworksAttachments, (oneConfig, callback) => {
+								return callback(null, oneConfig.Network && oneConfig.Network.Spec && oneConfig.Network.Spec.Name === options.params.network);
+							}, callback);
+						}, (error, targets) => {
+							async.map(targets, (oneTarget, callback) => {
+								if (!oneTarget.Addresses || oneTarget.Addresses.length === 0) {
+									return callback();
+								}
+								let oneIp = oneTarget.Addresses[0].split('/')[0];
+								let requestOptions = {
+									uri: 'http://' + oneIp + ':' + options.params.maintenancePort + '/' + options.params.operation,
+									json: true
+								};
+								request.get(requestOptions, (error, response, body) => {
+									return callback(error, body);
+								});
+							}, cb);
+						});
+					});
+				});
+			});
+		 });
 	 },
 
 	/**

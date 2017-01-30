@@ -411,6 +411,23 @@ module.exports = {
     },
 
     /**
+    * Perform a SOAJS maintenance operation on a given service
+    *
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
+    maintenance (options, cb) {
+        getStrategy(options, (error, strategy) => {
+            checkError(error, 518, cb, () => {
+                checkIfSupported({strategy: strategy, function: 'maintenance'}, cb, () => {
+                    strategy.maintenance(options, cb);
+                });
+            });
+        });
+    },
+
+    /**
      * List available networks, strategy in this case is restricted to swarm
      *
      * @param {Object} options
