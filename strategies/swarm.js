@@ -442,7 +442,7 @@ const engine = {
 		lib.getDeployer(options, (error, deployer) => {
 			checkError(error, 540, cb, () => {
 				let params = {};
-				if (options.params.env) {
+				if (options.params && options.params.env) {
 					params.filters = { label: [ 'soajs.content=true', 'soajs.env.code=' + options.params.env ] };
 				}
 
