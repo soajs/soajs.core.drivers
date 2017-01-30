@@ -220,7 +220,7 @@ const lib = {
 			version: options.service.Version.Index,
 			name: options.service.Spec.Name,
 			labels: options.service.Spec.Labels,
-			env: options.service.Spec.TaskTemplate.ContainerSpec.Env,
+			env: options.service.Spec.TaskTemplate.ContainerSpec.Env || [],
 			ports: [],
 			tasks: []
 		};
