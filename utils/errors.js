@@ -72,5 +72,7 @@ module.exports = {
 
     655: "Unable to inspect node",
 
-    656: "Unable to inspect the specified pod"
+    656: "Unable to inspect the specified pod",
+
+    657: "Could not find a Kubernetes deployment for the specified environment"
 };

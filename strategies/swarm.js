@@ -663,7 +663,7 @@ const engine = {
 
  				deployer.listServices(params, (error, services) => {
  					checkError(error, 549, cb, () => {
- 						checkError(error, 550, cb, () => {
+ 						checkError(services.length === 0, 550, cb, () => {
 							//NOTE: only one service with the same name and version can exist in a given environment
 							return cb(null, lib.buildServiceRecord({ service: services[0] }));
 						});

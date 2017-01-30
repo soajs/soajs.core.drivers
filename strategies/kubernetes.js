@@ -207,9 +207,12 @@ const engine = {
      listServices (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
-                let filter = {
-                    labelSelector: 'soajs.env.code=' + options.params.env
-                };
+                let filter = {};
+                if (options.params && options.params.env) {
+                    filter = {
+                        labelSelector: 'soajs.env.code=' + options.params.env
+                    };
+                }
 
                 deployer.extensions.namespaces.deployments.get({qs: filter}, (error, deploymentList) => {
                     checkError(error, 536, cb, () => {
@@ -506,8 +509,26 @@ const engine = {
      * @param {Function} cb
      * @returns {*}
      */
-    findService (options, cb) {
-        //TODO: implement
+    findService (options, cb) { //TODO: test
+        lib.getDeployer(options, (error, deployer) => {
+            checkError(error, 520, cb, () => {
+                let filter = {
+                    labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env + 'soajs.service.name=' + options.params.serviceName
+                };
+
+                if (options.params.version) {
+                    filter.labelSelector += ', soajs.service.version=' + options.params.version;
+                }
+
+                deployer.extensions.namespaces.deployments.get({qs: filter}, (error, deploymentList) => {
+                    checkError(error, 549, cb, () => {
+                        checkError(deploymentList.items.length === 0, 657, cb, () => {
+                            return cb(null, lib.buildDeploymentRecord ({ deployment: deploymentList.items[0] }));
+                        });
+                    });
+                });
+            });
+        });
     },
 
     /**
@@ -945,7 +966,7 @@ const engine = {
 
     /**
 	 * Get the domain/host name of a deployed service (per version)
-	 * 
+	 *
 	 * @param {Object} options
 	 * @param {Function} cb
 	 * @returns {*}
