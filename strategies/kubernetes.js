@@ -866,7 +866,60 @@ const engine = {
     * @returns {*}
     */
     maintenance (options, cb) {
-        //TODO: implement
+        lib.getDeployer(options, (error, deployer) => {
+            checkError(error, 520, cb, () => {
+                let filter = {
+                    labelSelector: 'soajs.service.label=' + options.params.id //kubernetes references content by name not id, therefore id field is set to content name
+                };
+                deployer.core.namespaces.pods.get({qs: filter}, (error, podsList) => {
+                    checkError(error, 659, cb, () => {
+                        async.map(podsList.items, (onePod, callback) => {
+                            let podInfo = {
+                                id: onePod.metadata.name,
+                                ipAddress: ((onePod.status && onePod.status.podIP) ? onePod.status.podIP : null)
+                            };
+                            return callback(null, podInfo);
+                        }, (error, targets) => {
+                            async.map(targets, (oneTarget, callback) => {
+                                if (!oneTarget.ipAddress) {
+                                    return callback(null, {
+                                        result: false,
+                                        ts: new Date().getTime(),
+                                        error: {
+                                            msg: 'Unable to get the ip address of the pod'
+                                        }
+                                    });
+                                }
+
+                                let requestOptions = {
+                                    uri: 'http://' + oneTarget.ipAddress + ':' + options.params.maintenancePort + '/' + options.params.operation,
+                                    json: true
+                                };
+                                request.get(requestOptions, (error, response, body) => {
+                                    let operationResponse = {
+                                        id: oneTarget.id,
+                                        response: {}
+                                    };
+
+                                    if (error) {
+                                        operationResponse.response = {
+                                            result: false,
+                                            ts: new Date().getTime(),
+                                            error: error
+                                        };
+                                    }
+                                    else {
+                                        operationResponse.response = body;
+                                    }
+
+                                    return callback(null, operationResponse);
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        });
     },
 
     /** //TODO: review

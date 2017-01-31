@@ -79,5 +79,7 @@ module.exports = {
 
     657: "Could not find a Kubernetes deployment for the specified environment",
 
-    658: "Unable to inspect swarm network"
+    658: "Unable to inspect swarm network",
+
+    659: "Unable to list kubernetes deployment pods"
 };

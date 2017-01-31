@@ -826,7 +826,13 @@ const engine = {
 						}, (error, targets) => {
 							async.map(targets, (oneTarget, callback) => {
 								if (!oneTarget.networkInfo.Addresses || oneTarget.networkInfo.Addresses.length === 0) {
-									return callback();
+									return callback(null, {
+										result: false,
+										ts: new Date().getTime(),
+										error: {
+											msg: 'Unable to get the ip address of the container'
+										}
+									});
 								}
 								let oneIp = oneTarget.networkInfo.Addresses[0].split('/')[0];
 								let requestOptions = {
