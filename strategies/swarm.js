@@ -834,11 +834,11 @@ const engine = {
 									json: true
 								};
 								request.get(requestOptions, (error, response, body) => {
-									let response = {
+									let operationResponse = {
 										id: oneTarget.id,
 										response: ((error) ? error : body)
 									};
-									return callback(null, response);
+									return callback(null, operationResponse);
 								});
 							}, cb);
 						});
