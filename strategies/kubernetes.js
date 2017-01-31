@@ -25,7 +25,7 @@ const lib = {
         let ports = options.soajs.registry.services.config.ports;
         let controllerProxyHost = process.env.SOAJS_ENV.toLowerCase() + '-controller';
         let kubernetes = {};
-        let kubeProxyURL = 'http://' + controllerProxyHost + ':' + ports.maintenanceInc + '/proxySocket';
+        let kubeProxyURL = 'http://' + controllerProxyHost + ':' + (ports.controller + ports.maintenanceInc) + '/proxySocket';
         let kubeConfig = { url: kubeProxyURL };
 
         kubeConfig.version = 'v1';
