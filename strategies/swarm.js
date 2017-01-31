@@ -30,10 +30,14 @@ const lib = {
 	getDeployer (options, cb) {
 		let config = options.deployerConfig, deployer;
 
-		//local & remote deployments can use unix socket if function does not require connection to worker nodes
-		//dashboard containers are guaranteed to be deployed on manager nodes
 		if (!config.flags || (config.flags && !config.flags.targetNode)) {
-			deployer = new Docker({socketPath: config.socketPath});
+			let ports = options.soajs.registry.services.config.ports;
+			deployer = new Docker({
+				host: process.env.SOAJS_ENV.toLowerCase() + '-controller',
+				port: ports.controller + ports.maintenanceInc,
+				version: 'proxySocket'
+			});
+
 			lib.ping({ deployer }, (error) => {
 				checkError(error, 600, cb, () => { //TODO: fix params
 					return cb(null, deployer);
@@ -45,27 +49,17 @@ const lib = {
 		if (config.flags && config.flags.targetNode) {
 			getTargetNode(options, (error, target) => {
 				checkError(error, 600, cb, () => {
-					if (target.isCurrent) {
-						deployer = new Docker({socketPath: config.socketPath});
-						lib.ping({ deployer }, (error) => {
-							checkError(error, 600, cb, () => { //TODO: fix params
-								return cb(null, deployer);
-							});
-						});
-					}
-					else {
-						//target object in this case contains ip/port of target node
-						findCerts(options, (error, certs) => {
-							checkError(error, 600, cb, () => {
-								deployer = new Docker(buildDockerConfig(target.host, target.port, certs));
-								lib.ping({ deployer }, (error) => {
-									checkError(error, 600, cb, () => { //TODO: fix
-										return cb(null, deployer);
-									});
+					//target object in this case contains ip/port of target node
+					findCerts(options, (error, certs) => {
+						checkError(error, 600, cb, () => {
+							deployer = new Docker(buildDockerConfig(target.host, target.port, certs));
+							lib.ping({ deployer }, (error) => {
+								checkError(error, 600, cb, () => { //TODO: fix
+									return cb(null, deployer);
 								});
 							});
 						});
-					}
+					});
 				});
 			});
 		}
@@ -73,9 +67,8 @@ const lib = {
 		function getTargetNode(options, cb) {
 			/**
 			* This function is triggered whenever a connection to a specific node is required. Three options are available:
-			* 1. The current dashboard container is deployed on the target node, use unix socket (very frequent in local deployment mode)
-			* 2. The target node is a member of the cluster, query the swarm to get its address and return it (example: get logs of a container deployed on cluster member x)
-			* 3. The target node is not a member of the cluster, such as when adding a new node to the cluster
+			* 1. The target node is a member of the cluster, query the swarm to get its address and return it (example: get logs of a container deployed on cluster member x)
+			* 2. The target node is not a member of the cluster, such as when adding a new node to the cluster
 			*/
 			if (config.flags.swarmMember) {
 				let customOptions = utils.cloneObj(options);
@@ -85,28 +78,17 @@ const lib = {
 				engine.inspectNode(customOptions, (error, node) => {
 					checkError(error, 600, cb, () => { //TODO: wrong error code, update
 
-						//get info about the swarm and the current manager node running the command
-						engine.inspectCluster(customOptions, (error, clusterInfo) => {
-							checkError(error, 600, cb, () => { //TODO: wrong error code, update
-
-								//option number one
-								if (clusterInfo.info.Swarm.NodeID === node.id) {
-									return cb(null, { isCurrent: true });
-								}
-
-								//option number two
-								if (node.role === 'manager') {
-									return cb(null, {host: node.managerStatus.address.split(':')[0], port: '2376'}); //TODO: get port from env record, deployer object
-								}
-								else {
-									return cb(null, {host: node.ip, port: '2376'}); //TODO: get port from env record, deployer object
-								}
-							});
-						});
+						//option number one
+						if (node.role === 'manager') {
+							return cb(null, {host: node.managerStatus.address.split(':')[0], port: '2376'}); //TODO: get port from env record, deployer object
+						}
+						else {
+							return cb(null, {host: node.ip, port: '2376'}); //TODO: get port from env record, deployer object
+						}
 					});
 				});
 			}
-			//option number three
+			//option number two
 			else {
 				//swarmMember = false flag means the target node is a new node that should be added to the cluster, invoked by addNode()
 				//we only need to return the host/port provided by the user, the ping function will later test if a connection can be established

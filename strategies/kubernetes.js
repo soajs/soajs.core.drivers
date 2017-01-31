@@ -21,12 +21,12 @@ function checkError(error, code, cb, scb) {
 }
 
 const lib = {
-    getDeployer(options, cb) { //TODO: revert to certificates approach
+    getDeployer(options, cb) {
+        let ports = options.soajs.registry.services.config.ports;
+        let controllerProxyHost = process.env.SOAJS_ENV.toLowerCase() + '-controller';
         let kubernetes = {};
-        let kubeProxyURL = process.env.SOAJS_KUBE_PROXY_URL || 'http://127.0.0.1';
-        let kubeProxyPort = process.env.SOAJS_KUBE_PROXY_PORT || 8001;
-
-        let kubeConfig = { url: kubeProxyURL + ':' + kubeProxyPort };
+        let kubeProxyURL = 'http://' + controllerProxyHost + ':' + ports.maintenanceInc + '/proxySocket';
+        let kubeConfig = { url: kubeProxyURL };
 
         kubeConfig.version = 'v1';
         kubernetes.core = new K8Api.Core(kubeConfig);
