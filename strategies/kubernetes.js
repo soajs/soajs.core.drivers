@@ -22,7 +22,7 @@ function checkError(error, code, cb, scb) {
 
 const lib = {
     getDeployer(options, cb) {
-        let ports = options.soajs.registry.services.config.ports;
+        let ports = options.soajs.registry.serviceConfig.ports;
         let controllerProxyHost = process.env.SOAJS_ENV.toLowerCase() + '-controller';
         let kubernetes = {};
         let kubeProxyURL = 'http://' + controllerProxyHost + ':' + (ports.controller + ports.maintenanceInc) + '/proxySocket';

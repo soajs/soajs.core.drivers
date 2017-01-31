@@ -31,7 +31,7 @@ const lib = {
 		let config = options.deployerConfig, deployer;
 
 		if (!config.flags || (config.flags && !config.flags.targetNode)) {
-			let ports = options.soajs.registry.services.config.ports;
+			let ports = options.soajs.registry.serviceConfig.ports;
 			deployer = new Docker({
 				host: process.env.SOAJS_ENV.toLowerCase() + '-controller',
 				port: ports.controller + ports.maintenanceInc,
