@@ -81,5 +81,6 @@ module.exports = {
 
     658: "Unable to inspect swarm network",
 
-    659: "Unable to list kubernetes deployment pods"
+    659: "Unable to list kubernetes deployment pods",
+    660: "Unable to delete kubernetes pods"
 };
