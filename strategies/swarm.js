@@ -816,19 +816,29 @@ const engine = {
 						async.map(tasks, (oneTask, callback) => {
 							async.detect(oneTask.NetworksAttachments, (oneConfig, callback) => {
 								return callback(null, oneConfig.Network && oneConfig.Network.Spec && oneConfig.Network.Spec.Name === options.params.network);
-							}, callback);
+							}, (error, networkInfo) => {
+								let taskInfo = {
+									id: oneTask.ID,
+									networkInfo: networkInfo
+								};
+								return callback(null, taskInfo);
+							});
 						}, (error, targets) => {
 							async.map(targets, (oneTarget, callback) => {
-								if (!oneTarget.Addresses || oneTarget.Addresses.length === 0) {
+								if (!oneTarget.networkInfo.Addresses || oneTarget.networkInfo.Addresses.length === 0) {
 									return callback();
 								}
-								let oneIp = oneTarget.Addresses[0].split('/')[0];
+								let oneIp = oneTarget.networkInfo.Addresses[0].split('/')[0];
 								let requestOptions = {
 									uri: 'http://' + oneIp + ':' + options.params.maintenancePort + '/' + options.params.operation,
 									json: true
 								};
 								request.get(requestOptions, (error, response, body) => {
-									return callback(error, body);
+									let response = {
+										id: oneTarget.id,
+										response: ((error) ? error : body)
+									};
+									return callback(null, response);
 								});
 							}, cb);
 						});
