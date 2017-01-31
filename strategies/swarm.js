@@ -836,8 +836,19 @@ const engine = {
 								request.get(requestOptions, (error, response, body) => {
 									let operationResponse = {
 										id: oneTarget.id,
-										response: ((error) ? error : body)
+										response: {}
 									};
+
+									if (error) {
+										operationResponse.response = {
+											result: false,
+											ts: new Date().getTime(),
+											error: error
+										};
+									}
+									else {
+										operationResponse.response = body;
+									}
 									return callback(null, operationResponse);
 								});
 							}, cb);
