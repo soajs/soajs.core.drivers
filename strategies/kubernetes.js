@@ -1058,7 +1058,7 @@ const engine = {
 		lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
                 let filter = {
-                    labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env + 'soajs.service.name=' + options.params.serviceName
+                    labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env + ', soajs.service.name=' + options.params.serviceName
                 };
 
                 if (options.params.version) {
@@ -1066,9 +1066,6 @@ const engine = {
                 }
 
                 deployer.core.services.get({qs: filter}, (error, serviceList) => {
-                    console.log (' > getServiceHost(), get services: ');
-                    console.log (error);
-                    console.log (JSON.stringify (servicesList, null, 2));
                     checkError(error, 549, cb, () => {
                         if (serviceList.items.length === 0) {
                             return cb({message: 'Service not found'});
