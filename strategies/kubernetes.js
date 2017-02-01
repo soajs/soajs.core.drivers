@@ -526,7 +526,7 @@ const engine = {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
                 let filter = {
-                    labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env + 'soajs.service.name=' + options.params.serviceName
+                    labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env + ', soajs.service.name=' + options.params.serviceName
                 };
 
                 if (options.params.version) {
@@ -557,10 +557,10 @@ const engine = {
             checkError(error, 527, cb, () => {
                 lib.getDeployer(options, (error, deployer) => {
                     checkError(error, 520, cb, () => {
-                        deployer.extensions.namespaces.deployments.delete({name: options.param.id, qs: { gracePeriodSeconds: 0 }}, (error) => {
+                        deployer.extensions.namespaces.deployments.delete({name: options.param.serviceId, qs: { gracePeriodSeconds: 0 }}, (error) => {
                             checkError(error, 534, cb, () => {
                                 let filter = {
-                                    labelSelector: 'soajs.service.label=' + options.params.id //kubernetes references content by name not id, therefore id field is set to content name
+                                    labelSelector: 'soajs.service.label=' + options.params.serviceId //kubernetes references content by name not id, therefore id field is set to content name
                                 };
                                 deployer.core.namespaces.pods.delete({qs: filter}, (error) => {
                                     checkError(error, 660, cb, cb.bind(null, null, true));
