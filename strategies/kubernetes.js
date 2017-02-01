@@ -560,13 +560,26 @@ const engine = {
             checkError(error, 527, cb, () => {
                 lib.getDeployer(options, (error, deployer) => {
                     checkError(error, 520, cb, () => {
-                        deployer.extensions.namespaces.deployments.delete({name: options.params.serviceId, qs: { gracePeriodSeconds: 0 }}, (error) => {
+                        deployer.extensions.namespaces.deployments.delete({name: options.params.id, qs: { gracePeriodSeconds: 0 }}, (error) => {
                             checkError(error, 534, cb, () => {
                                 let filter = {
-                                    labelSelector: 'soajs.service.label=' + options.params.serviceId //kubernetes references content by name not id, therefore id field is set to content name
+                                    labelSelector: 'soajs.service.label=' + options.params.id //kubernetes references content by name not id, therefore id field is set to content name
                                 };
-                                deployer.core.namespaces.pods.delete({qs: filter}, (error) => {
-                                    checkError(error, 660, cb, cb.bind(null, null, true));
+                                deployer.core.namespaces.services.get({qs: filter}, (error, servicesList) => { //only one service for a given service can exist
+                                    checkError(error, 533, cb, () => {
+                                        if (servicesList && servicesList.items.length > 0) {
+                                            async.each(servicesList.items, (oneService, callback) => {
+                                                deployer.core.namespaces.services.delete({name: oneService.metadata.name}, callback);
+                                            }, (error) => {
+                                                checkError(error, 534, cb, () => {
+                                                    cleanup(deployer, filter);
+                                                })
+                                            });
+                                        }
+                                        else {
+                                            cleanup(deployer, filter);
+                                        }
+                                    });
                                 });
                             });
                         });
@@ -574,6 +587,16 @@ const engine = {
                 });
             });
         });
+
+        function cleanup(deployer, filter) {
+            deployer.extensions.namespaces.replicasets.delete({qs: filter}, (error) => {
+                checkError(error, 532, cb, () => {
+                    deployer.core.namespaces.pods.delete({qs: filter}, (error) => {
+                        checkError(error, 660, cb, cb.bind(null, null, true));
+                    });
+                });
+            });
+        }
         // lib.getDeployer(options, (error, deployer) => {
         //     checkError(error, 520, cb, () => {
         //         var body = {
