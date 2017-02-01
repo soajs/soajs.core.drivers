@@ -506,7 +506,7 @@ const engine = {
 		payload.EndpointSpec = { Mode: 'vip' , ports: [] };
 
 		if (options.params.replication.mode === 'replicated') {
-			payload.Mode.Replicated.Replicas = options.params.replcation.replicas;
+			payload.Mode.Replicated.Replicas = options.params.replication.replicas;
 		}
 
 		if (options.params.volume) {

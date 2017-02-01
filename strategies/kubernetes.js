@@ -122,8 +122,11 @@ const lib = {
                 node: {
                     id: options.pod.spec.nodeName
                 },
-                container: {
-                    id: options.pod.status.containerStatuses[0].containerID.split('//')[1] //only one container runs per pod in the current setup
+                container: { //only one container runs per pod in the current setup
+                    id: ((options.pod.status &&
+                        options.pod.status.containerStatuses &&
+                        options.pod.status.containerStatuses[0] &&
+                        options.pod.status.containerStatuses[0].containerID) ? options.pod.status.containerStatuses[0].containerID.split('//')[1] : null)
                 }
             },
             status: {
@@ -557,7 +560,7 @@ const engine = {
             checkError(error, 527, cb, () => {
                 lib.getDeployer(options, (error, deployer) => {
                     checkError(error, 520, cb, () => {
-                        deployer.extensions.namespaces.deployments.delete({name: options.param.serviceId, qs: { gracePeriodSeconds: 0 }}, (error) => {
+                        deployer.extensions.namespaces.deployments.delete({name: options.params.serviceId, qs: { gracePeriodSeconds: 0 }}, (error) => {
                             checkError(error, 534, cb, () => {
                                 let filter = {
                                     labelSelector: 'soajs.service.label=' + options.params.serviceId //kubernetes references content by name not id, therefore id field is set to content name
