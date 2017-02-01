@@ -128,7 +128,7 @@ const lib = {
             },
             status: {
                 ts: options.pod.metadata.creationTimestamp,
-                state: options.pod.status.phase,
+                state: options.pod.status.phase.charAt(0).toLowerCase() + options.pod.status.phase.split(1),
                 message: options.pod.status.message
             }
         };
@@ -403,7 +403,20 @@ const engine = {
         payload.spec.template.spec.containers[0].args = options.params.cmd.splice(1);
         payload.spec.template.spec.containers[0].env = lib.buildEnvList({ envs: options.params.variables });
 
-        //TODO: support voluming
+        //NOTE: only one volume is supported for now
+        if (options.params.volume) {
+            payload.spec.volumes.push({
+                name: options.params.volume.name,
+                hostPath: {
+                    path: options.params.volume.source
+                }
+            });
+
+            payload.spec.template.spec.containers[0].volumeMounts.push({
+                mountPath: options.params.volume.target,
+                name: options.params.volume.name
+            });
+        }
 
         if (process.env.SOAJS_TEST) {
             //using lightweight image and commands to optimize travis builds
