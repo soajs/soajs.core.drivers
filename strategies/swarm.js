@@ -33,7 +33,7 @@ const lib = {
 		if (!config.flags || (config.flags && !config.flags.targetNode)) {
 			let ports = options.soajs.registry.serviceConfig.ports;
 			deployer = new Docker({
-				host: process.env.SOAJS_ENV.toLowerCase() + '-controller',
+				host: ((process.env.SOAJS_ENV) ? process.env.SOAJS_ENV.toLowerCase() : 'dev') + '-controller',
 				port: ports.controller + ports.maintenanceInc,
 				version: 'proxySocket'
 			});

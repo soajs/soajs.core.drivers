@@ -23,7 +23,7 @@ function checkError(error, code, cb, scb) {
 const lib = {
     getDeployer(options, cb) {
         let ports = options.soajs.registry.serviceConfig.ports;
-        let controllerProxyHost = process.env.SOAJS_ENV.toLowerCase() + '-controller';
+        let controllerProxyHost = ((process.env.SOAJS_ENV) ? process.env.SOAJS_ENV.toLowerCase() : 'dev') + '-controller';
         let kubernetes = {};
         let kubeProxyURL = 'http://' + controllerProxyHost + ':' + (ports.controller + ports.maintenanceInc) + '/proxySocket';
         let kubeConfig = { url: kubeProxyURL };
@@ -1066,6 +1066,9 @@ const engine = {
                 }
 
                 deployer.core.services.get({qs: filter}, (error, serviceList) => {
+                    console.log (' > getServiceHost(), get services: ');
+                    console.log (error);
+                    console.log (JSON.stringify (servicesList, null, 2));
                     checkError(error, 549, cb, () => {
                         if (serviceList.items.length === 0) {
                             return cb({message: 'Service not found'});
