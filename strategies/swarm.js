@@ -75,7 +75,6 @@ const lib = {
 			* 2. The target node is not a member of the cluster, such as when adding a new node to the cluster
 			*/
 			if (config.flags.swarmMember) {
-
 				if (options.driver.split('.')[1] === 'local') { //local deployment means the cluster has one manager node only
 					return redirectToProxy();
 				}

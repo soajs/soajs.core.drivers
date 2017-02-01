@@ -128,7 +128,7 @@ const lib = {
             },
             status: {
                 ts: options.pod.metadata.creationTimestamp,
-                state: options.pod.status.phase.charAt(0).toLowerCase() + options.pod.status.phase.split(1),
+                state: options.pod.status.phase.charAt(0).toLowerCase() + options.pod.status.phase.slice(1),
                 message: options.pod.status.message
             }
         };
