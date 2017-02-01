@@ -31,18 +31,7 @@ const lib = {
 		let config = options.deployerConfig, deployer;
 
 		if (!config.flags || (config.flags && !config.flags.targetNode)) {
-			let ports = options.soajs.registry.serviceConfig.ports;
-			deployer = new Docker({
-				host: ((process.env.SOAJS_ENV) ? process.env.SOAJS_ENV.toLowerCase() : 'dev') + '-controller',
-				port: ports.controller + ports.maintenanceInc,
-				version: 'proxySocket'
-			});
-
-			lib.ping({ deployer }, (error) => {
-				checkError(error, 600, cb, () => { //TODO: fix params
-					return cb(null, deployer);
-				});
-			});
+			redirectToProxy();
 		}
 
 		//remote deployments should use certificates if function requires connecting to a worker node
@@ -64,6 +53,21 @@ const lib = {
 			});
 		}
 
+		function redirectToProxy() {
+			let ports = options.soajs.registry.serviceConfig.ports;
+			deployer = new Docker({
+				host: ((process.env.SOAJS_ENV) ? process.env.SOAJS_ENV.toLowerCase() : 'dev') + '-controller',
+				port: ports.controller + ports.maintenanceInc,
+				version: 'proxySocket'
+			});
+
+			lib.ping({ deployer }, (error) => {
+				checkError(error, 600, cb, () => { //TODO: fix params
+					return cb(null, deployer);
+				});
+			});
+		}
+
 		function getTargetNode(options, cb) {
 			/**
 			* This function is triggered whenever a connection to a specific node is required. Three options are available:
@@ -71,15 +75,18 @@ const lib = {
 			* 2. The target node is not a member of the cluster, such as when adding a new node to the cluster
 			*/
 			if (config.flags.swarmMember) {
+
+				if (options.driver.split('.')[1] === 'local') { //local deployment means the cluster has one manager node only
+					return redirectToProxy();
+				}
+
 				let customOptions = utils.cloneObj(options);
 				delete customOptions.deployerConfig.flags.targetNode;
 
 				//node is already part of the swarm, inspect it to obtain its address
 				engine.inspectNode(customOptions, (error, node) => {
 					checkError(error, 600, cb, () => { //TODO: wrong error code, update
-
-						//option number one
-						if (node.role === 'manager') {
+						if (node.role === 'manager') { //option number one
 							return cb(null, {host: node.managerStatus.address.split(':')[0], port: '2376'}); //TODO: get port from env record, deployer object
 						}
 						else {
@@ -88,8 +95,7 @@ const lib = {
 					});
 				});
 			}
-			//option number two
-			else {
+			else { //option number two
 				//swarmMember = false flag means the target node is a new node that should be added to the cluster, invoked by addNode()
 				//we only need to return the host/port provided by the user, the ping function will later test if a connection can be established
 				return cb(null, {host: options.params.host, port: options.params.port});
