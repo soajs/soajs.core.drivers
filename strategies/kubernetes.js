@@ -108,7 +108,22 @@ const lib = {
 
         function getEnvVariables(podSpec) {
             //current deployments include only one container per pod, variables from the first container are enough
-            return podSpec.containers[0].env;
+            let envs = [];
+
+            podSpec.containers[0].env.forEach((oneEnv) => {
+                if (oneEnv.value) {
+                    envs.push(oneEnv.name + '=' + oneEnv.value)
+                }
+                else {
+                    //automatically generated values are delected here, actual values are not included
+                    if (oneEnv.valueFrom && oneEnv.valueFrom.fieldRef && oneEnv.valueFrom.fieldRef.fieldPath) {
+                        envs.push(oneEnv.name + '=' + oneEnv.valueFrom.fieldRef.fieldPath);
+                    }
+                    else {
+                        envs.push(oneEnv.name + '=' + JSON.stringify (oneEnv.valueFrom, null, 0));
+                    }
+                }
+            });
         }
 
         function getPorts (service) {
