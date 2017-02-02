@@ -172,6 +172,8 @@ const lib = {
                 message: options.pod.status.message
             }
         };
+
+        return record;
     },
 
     buildEnvList (options) {
