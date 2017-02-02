@@ -10,7 +10,7 @@ module.exports = {
     //common errors
     518: "The chosen strategy does not exist",
     519: "The chosen driver does not support the selected function",
-    661: "Unable to find service",
+
 
     //kubernetes errors
     520: "Unable to retrieve the kubernetes deployer",
@@ -83,5 +83,9 @@ module.exports = {
     658: "Unable to inspect swarm network",
 
     659: "Unable to list kubernetes deployment pods",
-    660: "Unable to delete kubernetes pods"
+    660: "Unable to delete kubernetes pods",
+
+    661: "Unable to find service",
+
+    662: "Unable to deploy service"
 };

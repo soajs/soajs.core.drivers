@@ -233,7 +233,7 @@ const engine = {
                 let filter = {};
                 if (options.params && options.params.env) {
                     filter = {
-                        labelSelector: 'soajs.env.code=${options.params.env}'
+                        labelSelector: 'soajs.env.code=' + options.params.env
                     };
                 }
 
@@ -241,7 +241,7 @@ const engine = {
                     checkError(error, 536, cb, () => {
                         async.map(deploymentList.items, (oneDeployment, callback) => {
                             filter = {
-                                labelSelector: 'soajs.env.code=${options.params.env}, soajs.service.label=${oneDeployment.metadata.name}'
+                                labelSelector: 'soajs.env.code=' + options.params.env + ', soajs.service.label= ' + oneDeployment.metadata.name
                             };
                             deployer.core.namespaces.services.get({qs: filter}, (error, serviceList) => {
                                 if (error) {
@@ -255,7 +255,7 @@ const engine = {
                                 }
 
                                 filter = {
-                                    labelSelector: 'soajs.service.label=${record.name}'
+                                    labelSelector: 'soajs.service.label=' + record.name
                                 };
                                 deployer.core.namespaces.pods.get({qs: filter}, (error, podsList) => {
                                     if (error) {
@@ -507,14 +507,15 @@ const engine = {
                         deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_REDEPLOY_TRIGGER', value: 'true' });
 
                         if (options.params.ui) { //in case of rebuilding nginx, pass custom ui environment variables
-							deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_REPO=${options.params.ui.repo}');
-							deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_OWNER=${options.params.ui.owner}');
-							deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_BRANCH=${options.params.ui.branch}');
-							deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_PROVIDER=${options.params.ui.provider}');
-							deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_DOMAIN=${options.params.ui.domain}');
+							deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_REPO=' + options.params.ui.repo);
+							deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_OWNER=' + options.params.ui.owner);
+							deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_BRANCH=' + options.params.ui.branch);
+                            deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_COMMIT=' + options.params.ui.commit);
+							deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_PROVIDER=' + options.params.ui.provider);
+							deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_DOMAIN=' + options.params.ui.domain);
 
 							if (options.params.ui.token) {
-								deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_TOKEN=${options.params.ui.token}');
+								deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_TOKEN=' + options.params.ui.token);
 							}
 						}
 
@@ -545,7 +546,7 @@ const engine = {
                             return cb(null, { deployment: deploymentRecord });
                         }
 
-                        deployer.core.namespaces.pods.get({qs: {labelSelector: 'soajs.service.label=${options.params.id}'}}, (error, podList) => {
+                        deployer.core.namespaces.pods.get({qs: {labelSelector: 'soajs.service.label=' + options.params.id}}, (error, podList) => {
                             checkError(error, 529, cb, () => {
                                 async.map(podList.items, (onePod, callback) => {
                                     return callback(null, lib.buildPodRecord({ pod: onePod }));
@@ -571,11 +572,11 @@ const engine = {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
                 let filter = {
-                    labelSelector: 'soajs.content=true, soajs.env.code=${options.params.env}, soajs.service.name=${options.params.serviceName}'
+                    labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env + ', soajs.service.name=' + options.params.serviceName
                 };
 
                 if (options.params.version) {
-                    filter.labelSelector += ', soajs.service.version=${options.params.version}';
+                    filter.labelSelector += ', soajs.service.version=' + options.params.version;
                 }
 
                 deployer.extensions.namespaces.deployments.get({qs: filter}, (error, deploymentList) => {
@@ -609,7 +610,7 @@ const engine = {
                         deployer.extensions.namespaces.deployments.delete({name: options.params.id, qs: { gracePeriodSeconds: 0 }}, (error) => {
                             checkError(error, 534, cb, () => {
                                 let filter = {
-                                    labelSelector: 'soajs.service.label=${options.params.id}' //kubernetes references content by name not id, therefore id field is set to content name
+                                    labelSelector: 'soajs.service.label=' + options.params.id //kubernetes references content by name not id, therefore id field is set to content name
                                 };
                                 deployer.core.namespaces.services.get({qs: filter}, (error, servicesList) => { //only one service for a given service can exist
                                     checkError(error, 533, cb, () => {
@@ -796,7 +797,7 @@ const engine = {
     getReplicaSet(options, cb) {
         options.requestOptions = engine.injectCerts(options);
         options.requestOptions.qs = {
-            labelSelector: 'soajs.service.label=${options.serviceName}'
+            labelSelector: 'soajs.service.label=' + options.serviceName
         };
 
         request.get(options.requestOptions, (error, response, body) => {
@@ -973,7 +974,7 @@ const engine = {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
                 let filter = {
-                    labelSelector: 'soajs.service.label=${options.params.id}' //kubernetes references content by name not id, therefore id field is set to content name
+                    labelSelector: 'soajs.service.label=' + options.params.id //kubernetes references content by name not id, therefore id field is set to content name
                 };
                 deployer.core.namespaces.pods.get({qs: filter}, (error, podsList) => {
                     checkError(error, 659, cb, () => {
@@ -996,7 +997,7 @@ const engine = {
                                 }
 
                                 let requestOptions = {
-                                    uri: 'http://${oneTarget.ipAddress}:${options.params.maintenancePort}/${options.params.operation}',
+                                    uri: 'http://' + oneTarget.ipAddress + ':' + options.params.maintenancePort + '/' + options.params.operation,
                                     json: true
                                 };
                                 request.get(requestOptions, (error, response, body) => {
@@ -1110,7 +1111,7 @@ const engine = {
 		lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
                 let filter = {
-                    labelSelector: 'soajs.content=true, soajs.env.code=${options.params.env}, soajs.service.name=${options.params.serviceName}'
+                    labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env + ', soajs.service.name=' + options.params.serviceName
                 };
 
                 deployer.extensions.deployments.get({qs: filter}, (error, deploymentList) => {
@@ -1143,11 +1144,11 @@ const engine = {
 		lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
                 let filter = {
-                    labelSelector: 'soajs.content=true, soajs.env.code=${options.params.env}, soajs.service.name=${options.params.serviceName}'
+                    labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env + ', soajs.service.name=' + options.params.serviceName
                 };
 
                 if (options.params.version) {
-                    filter.labelSelector += ', soajs.service.version=${options.params.version}';
+                    filter.labelSelector += ', soajs.service.version=' + options.params.version;
                 }
 
                 deployer.core.services.get({qs: filter}, (error, serviceList) => {
