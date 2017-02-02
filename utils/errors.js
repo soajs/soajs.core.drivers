@@ -10,6 +10,7 @@ module.exports = {
     //common errors
     518: "The chosen strategy does not exist",
     519: "The chosen driver does not support the selected function",
+    661: "Unable to find service",
 
     //kubernetes errors
     520: "Unable to retrieve the kubernetes deployer",

@@ -1000,7 +1000,12 @@ const engine = {
 				deployer.listServices(params, (error, services) => {
 					checkError(error, 549, cb, () => {
 						if (services.length === 0) {
-							return cb({message: 'Service not found'});
+							return cb({
+                                source: 'driver',
+                                value: "error",
+                                code: 661,
+                                msg: errorFile[661]
+                            });
 						}
 
 						//NOTE: only one service with the same name and version can exist in a given environment
