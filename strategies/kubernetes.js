@@ -45,7 +45,7 @@ const lib = {
             version: options.node.metadata.resourceVersion,
             state: getStatus(options.node.status.conditions),
             spec: {
-                role: 'manager', //TODO: set to manager by default for now, needs revision
+                role: 'manager', //NOTE: set to manager by default for now
                 availability: getStatus(options.node.status.conditions)
             },
             resources: {
@@ -102,24 +102,30 @@ const lib = {
             tasks: []
         };
 
+        return record;
+
         function getEnvVariables(podSpec) {
             //current deployments include only one container per pod, variables from the first container are enough
             let envs = [];
 
-            podSpec.containers[0].env.forEach((oneEnv) => {
-                if (oneEnv.value) {
-                    envs.push(oneEnv.name + '=' + oneEnv.value)
-                }
-                else {
-                    //automatically generated values are delected here, actual values are not included
-                    if (oneEnv.valueFrom && oneEnv.valueFrom.fieldRef && oneEnv.valueFrom.fieldRef.fieldPath) {
-                        envs.push(oneEnv.name + '=' + oneEnv.valueFrom.fieldRef.fieldPath);
+            if (podSpec && podSpec.containers && podSpec.containers.length > 0 && podSpec.containers[0].env) {
+                podSpec.containers[0].env.forEach((oneEnv) => {
+                    if (oneEnv.value) {
+                        envs.push(oneEnv.name + '=' + oneEnv.value)
                     }
                     else {
-                        envs.push(oneEnv.name + '=' + JSON.stringify (oneEnv.valueFrom, null, 0));
+                        //automatically generated values are delected here, actual values are not included
+                        if (oneEnv.valueFrom && oneEnv.valueFrom.fieldRef && oneEnv.valueFrom.fieldRef.fieldPath) {
+                            envs.push(oneEnv.name + '=' + oneEnv.valueFrom.fieldRef.fieldPath);
+                        }
+                        else {
+                            envs.push(oneEnv.name + '=' + JSON.stringify (oneEnv.valueFrom, null, 0));
+                        }
                     }
-                }
-            });
+                });
+            }
+
+            return envs;
         }
 
         function getPorts (service) {
@@ -166,8 +172,6 @@ const lib = {
                 message: options.pod.status.message
             }
         };
-
-        return record;
     },
 
     buildEnvList (options) {
