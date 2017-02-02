@@ -866,101 +866,8 @@ const engine = {
 	 },
 
 	/**
-	 * List available networks, strategy in this case is restricted to swarm
-	 * NOTE: function required by installer, not part of current release
-	 * @param {Object} options
-	 * @param {Function} cb
-	 * @returns {*}
-	 */
-	// listNetworks (options, cb) {
-	// 	let params = {};
-	//
-	// 	if (!options.params.all) {
-	// 		params.filters = {
-	// 			type: {
-	// 				custom: true
-	// 			}
-	// 		};
-	// 	}
-	//
-	// 	lib.getDeployer(options, (error, deployer) => {
-	// 		checkError(error, 540, cb, () => {
-	// 			deployer.listNetworks(params, (error, networks) => {
-	// 				checkError(error, 556, cb, () => {
-	// 					return cb(null, networks);
-	// 				});
-	// 			});
-	// 		});
-	// 	});
-	// },
-
-	/**
-	 * Inspect network, strategy in this case is restricted to swarm
-	 * NOTE: function required by installer, not part of current release
-	 * @param {Object} options
-	 * @param {Function} cb
-	 * @returns {*}
-	 */
-	// inspectNetwork (options, cb) {
-	// 	lib.getDeployer(options, (error, deployer) => {
-	// 		checkError(error, 540, cb, () => {
-	// 			let network = deployer.getNetwork(options.params.id);
-	// 			network.inspect((error, network) => {
-	// 				checkError(error, 556, cb, () => {
-	// 					return cb(null, network);
-	// 				});
-	// 			});
-	// 		});
-	// 	});
-	// },
-
-	/**
-	 * Create new network, strategy in this case is restricted to swarm
-	 * NOTE: function required by installer, not part of current release
-	 * @param {Object} options
-	 * @param {Function} cb
-	 * @returns {*}
-	 */
-	// createNetwork (options, cb) {
-	// 	let payload = utils.utils.cloneObj(require(__dirname + '/../schemas/network.template.js'));
-	// 	payload.Name = options.params.networkName;
-	//
-	// 	lib.getDeployer(options, (error, deployer) => {
-	// 		checkError(error, 540, cb, () => {
-	// 			deployer.createNetwork(payload, (error, network) => {
-	// 				checkError(error, 557, cb, () => {
-	// 					return cb(null, network);
-	// 				});
-	// 			});
-	// 		});
-	// 	});
-	// },
-
-	/**
-	 * Delete all deployed services
-	 * NOTE: function required by installer, not part of current release
-	 * @param {Object} options
-	 * @param {Function} cb
-	 * @returns {*}
-	 */
-	// deleteServices (options, cb) {
-	// 	engine.listServices(options, (error, services) => {
-	// 		checkError(error, 549, cb, () => {
-	// 			async.each(services, (oneService, callback) => {
-	// 				options.params.id = oneService.ID;
-	// 				engine.deleteService(options, callback);
-	// 			}, (error) => {
-	// 				checkError(error, 559, cb, () => {
-	// 					return cb(null, true);
-	// 				});
-	// 			});
-	// 		});
-	// 	});
-	// },
-
-	/**
 	 * Get the latest version of a deployed service
-	 * Returns integer: service version
+	 * 
 	 * @param {Object} options
 	 * @param {Function} cb
 	 * @returns {*}
@@ -993,7 +900,7 @@ const engine = {
 
 	/**
 	 * Get the domain/host name of a deployed service (per version)
-	 * Sample response: {"1":"DOMAIN","2":"DOMAIN"}, input: service name, version
+	 *
 	 * @param {Object} options
 	 * @param {Function} cb
 	 * @returns {*}
