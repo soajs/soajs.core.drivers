@@ -518,8 +518,8 @@ const engine = {
 			});
 		}
 
-		if (options.ports && options.ports.length > 0) {
-			options.ports.forEach((onePortEntry) => {
+		if (options.params.ports && options.params.ports.length > 0) {
+			options.params.ports.forEach((onePortEntry) => {
 				if (onePortEntry.isPublished) {
 					payload.EndpointSpec.ports.push({
 						Protocol: 'tcp',
