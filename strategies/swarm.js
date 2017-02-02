@@ -567,6 +567,18 @@ const engine = {
 						update.version = serviceInfo.Version.Index;
 						update.TaskTemplate.ContainerSpec.Env.push('SOAJS_REDEPLOY_TRIGGER=true');
 
+						if (options.params.ui) { //in case of rebuilding nginx, pass custom ui environment variables
+							update.TaskTemplate.ContainerSpec.Env.push('SOAJS_GIT_REPO=${options.params.ui.repo}');
+							update.TaskTemplate.ContainerSpec.Env.push('SOAJS_GIT_OWNER=${options.params.ui.owner}');
+							update.TaskTemplate.ContainerSpec.Env.push('SOAJS_GIT_BRANCH=${options.params.ui.branch}');
+							update.TaskTemplate.ContainerSpec.Env.push('SOAJS_GIT_PROVIDER=${options.params.ui.provider}');
+							update.TaskTemplate.ContainerSpec.Env.push('SOAJS_GIT_DOMAIN=${options.params.ui.domain}');
+
+							if (options.params.ui.token) {
+								update.TaskTemplate.ContainerSpec.Env.push('SOAJS_GIT_TOKEN=${options.params.ui.token}');
+							}
+						}
+
 						service.update(update, (error) => {
 							checkError(error, 653, cb, cb.bind(null, null, true));
 						});
