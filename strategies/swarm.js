@@ -1,4 +1,4 @@
-/*jshint esversion: 6 */
+/* jshint esversion: 6 */
 
 "use strict";
 
@@ -867,7 +867,7 @@ const engine = {
 
 	/**
 	 * Get the latest version of a deployed service
-	 * 
+	 *
 	 * @param {Object} options
 	 * @param {Function} cb
 	 * @returns {*}
