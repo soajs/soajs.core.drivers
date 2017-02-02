@@ -101,10 +101,30 @@ const lib = {
             version: options.deployment.metadata.resourceVersion,
             name: options.deployment.metadata.name,
             labels: options.deployment.metadata.labels,
-            env: [], //TODO: add
-            ports: [], //TODO
+            env: getEnvVariables(options.deployment.spec.template.spec),
+            ports: getPorts(options.service),
             tasks: []
         };
+
+        function getEnvVariables(podSpec) {
+            //current deployments include only one container per pod, variables from the first container are enough
+            return podSpec.containers[0].env;
+        }
+
+        function getPorts (service) {
+            if (!service) return [];
+
+            let deploymentPorts = [];
+            service.spec.ports.forEach((onePortConfig) => {
+                deploymentPorts.push({
+                    protocol: onePortConfig.protocol,
+                    target: onePortConfig.targetPort || onePortConfig.port,
+                    published: onePortConfig.nodePort || null
+                });
+            });
+
+            return deploymentPorts;
+        }
 
         return record;
     },
@@ -213,36 +233,45 @@ const engine = {
                 let filter = {};
                 if (options.params && options.params.env) {
                     filter = {
-                        labelSelector: 'soajs.env.code=' + options.params.env
+                        labelSelector: 'soajs.env.code=${options.params.env}'
                     };
                 }
 
                 deployer.extensions.namespaces.deployments.get({qs: filter}, (error, deploymentList) => {
                     checkError(error, 536, cb, () => {
                         async.map(deploymentList.items, (oneDeployment, callback) => {
-                            let record = lib.buildDeploymentRecord({ deployment: oneDeployment });
-
-                            if (options.params && options.params.excludeTasks) {
-                                return callback(null, record);
-                            }
-
                             filter = {
-                                labelSelector: 'soajs.service.label=' + record.name
+                                labelSelector: 'soajs.env.code=${options.params.env}, soajs.service.label=${oneDeployment.metadata.name}'
                             };
-                            deployer.core.namespaces.pods.get({qs: filter}, (error, podsList) => {
+                            deployer.core.namespaces.services.get({qs: filter}, (error, serviceList) => {
                                 if (error) {
                                     return callback(error);
                                 }
 
-                                async.map(podsList.items, (onePod, callback) => {
-                                    return callback(null, lib.buildPodRecord({ pod: onePod }));
-                                }, (error, pods) => {
+                                let record = lib.buildDeploymentRecord({ deployment: oneDeployment , service: serviceList.items[0] });
+
+                                if (options.params && options.params.excludeTasks) {
+                                    return callback(null, record);
+                                }
+
+                                filter = {
+                                    labelSelector: 'soajs.service.label=${record.name}'
+                                };
+                                deployer.core.namespaces.pods.get({qs: filter}, (error, podsList) => {
                                     if (error) {
                                         return callback(error);
                                     }
 
-                                    record.tasks = pods;
-                                    return callback(null, record);
+                                    async.map(podsList.items, (onePod, callback) => {
+                                        return callback(null, lib.buildPodRecord({ pod: onePod }));
+                                    }, (error, pods) => {
+                                        if (error) {
+                                            return callback(error);
+                                        }
+
+                                        record.tasks = pods;
+                                        return callback(null, record);
+                                    });
                                 });
                             });
                         }, cb);
@@ -529,17 +558,21 @@ const engine = {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
                 let filter = {
-                    labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env + ', soajs.service.name=' + options.params.serviceName
+                    labelSelector: 'soajs.content=true, soajs.env.code=${options.params.env}, soajs.service.name=${options.params.serviceName}'
                 };
 
                 if (options.params.version) {
-                    filter.labelSelector += ', soajs.service.version=' + options.params.version;
+                    filter.labelSelector += ', soajs.service.version=${options.params.version}';
                 }
 
                 deployer.extensions.namespaces.deployments.get({qs: filter}, (error, deploymentList) => {
                     checkError(error, 549, cb, () => {
                         checkError(deploymentList.items.length === 0, 657, cb, () => {
-                            return cb(null, lib.buildDeploymentRecord ({ deployment: deploymentList.items[0] }));
+                            deployer.core.namespaces.services.get({qs: filter}, (error, serviceList) => {
+                                checkError(error, 533, cb, () => {
+                                    return cb(null, lib.buildDeploymentRecord ({ deployment: deploymentList.items[0], service: serviceList.items[0] }));
+                                });
+                            });
                         });
                     });
                 });
