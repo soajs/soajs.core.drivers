@@ -54,23 +54,9 @@ const lib = {
 		}
 
 		function redirectToProxy() {
-			console.log("1");
-			console.log(JSON.stringify(options, null, 2));
 			let ports = options.soajs.registry.serviceConfig.ports;
-			let env = process.env.SOAJS_ENV;
-			if(options.params && options.params.toEnv){
-				env = options.params.toEnv;
-			}
-			
 			deployer = new Docker({
-				host: ((env) ? env.toLowerCase() : 'dev') + '-controller',
-				// host: ((process.env.SOAJS_ENV) ? process.env.SOAJS_ENV.toLowerCase() : 'dev') + '-controller',
-				port: ports.controller + ports.maintenanceInc,
-				version: 'proxySocket'
-			});
-			console.log("2");
-			console.log({
-				host: ((env) ? env.toLowerCase() : 'dev') + '-controller',
+				host: ((process.env.SOAJS_ENV) ? process.env.SOAJS_ENV.toLowerCase() : 'dev') + '-controller',
 				port: ports.controller + ports.maintenanceInc,
 				version: 'proxySocket'
 			});
@@ -827,9 +813,6 @@ const engine = {
 				};
 				deployer.listTasks(params, (error, tasks) => {
 					checkError(error, 552, cb, () => {
-						console.log("3---------------------------");
-						console.log(JSON.stringify(tasks, null, 2));
-						console.log("---------------------------");
 						async.map(tasks, (oneTask, callback) => {
 							async.detect(oneTask.NetworksAttachments, (oneConfig, callback) => {
 								return callback(null, oneConfig.Network && oneConfig.Network.Spec && oneConfig.Network.Spec.Name === options.params.network);
@@ -841,8 +824,6 @@ const engine = {
 								return callback(null, taskInfo);
 							});
 						}, (error, targets) => {
-							console.log("4---------------------------");
-							console.log(JSON.stringify(targets, null, 2));
 							async.map(targets, (oneTarget, callback) => {
 								if (!oneTarget.networkInfo.Addresses || oneTarget.networkInfo.Addresses.length === 0) {
 									return callback(null, {
@@ -858,7 +839,6 @@ const engine = {
 									uri: 'http://' + oneIp + ':' + options.params.maintenancePort + '/' + options.params.operation,
 									json: true
 								};
-								console.log(JSON.stringify(requestOptions, null, 2));
 								request.get(requestOptions, (error, response, body) => {
 									let operationResponse = {
 										id: oneTarget.id,
