@@ -504,6 +504,17 @@ const engine = {
 		payload.Labels = options.params.labels;
 		payload.EndpointSpec = { Mode: 'vip' , ports: [] };
 
+		//NOTE: bind docker unix socket only for controller deployments, required tp proxy requests
+        //NOTE: static values are set, no need to make it dynamic for now
+		if (options.params.labels['soajs.service.name'] === 'controller') {
+			payload.TaskTemplate.ContainerSpec.Mounts.push({
+				"Type": "bind",
+				"ReadOnly": true,
+				"Source": "/var/run/docker.sock",
+				"Target": "/var/run/docker.sock",
+			});
+		}
+
 		if (options.params.replication.mode === 'replicated') {
 			payload.Mode.Replicated.Replicas = options.params.replication.replicas;
 		}
@@ -805,7 +816,7 @@ const engine = {
  	 * @returns {*}
  	 */
 	 maintenance (options, cb) {
-	 	
+
 		 lib.getDeployer(options, (error, deployer) => {
 			checkError(error, 540, cb, () => {
 				let params = {
