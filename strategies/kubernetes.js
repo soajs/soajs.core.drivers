@@ -544,15 +544,16 @@ const engine = {
                         deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_REDEPLOY_TRIGGER', value: 'true' });
 
                         if (options.params.ui) { //in case of rebuilding nginx, pass custom ui environment variables
-							deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_REPO=' + options.params.ui.repo);
-							deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_OWNER=' + options.params.ui.owner);
-							deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_BRANCH=' + options.params.ui.branch);
-                            deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_COMMIT=' + options.params.ui.commit);
-							deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_PROVIDER=' + options.params.ui.provider);
-							deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_DOMAIN=' + options.params.ui.domain);
+                            deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_REPO', value: options.params.ui.repo });
+                            deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_OWNER', value: options.params.ui.owner });
+                            deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_BRANCH', value: options.params.ui.branch });
+                            deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_COMMIT', value: options.params.ui.commit });
+                            deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_COMMIT', value: options.params.ui.commit });
+							deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_PROVIDER', value: options.params.ui.provider });
+							deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_DOMAIN', value: options.params.ui.domain });
 
 							if (options.params.ui.token) {
-								deployment.spec.template.spec.containers[0].env.push('SOAJS_GIT_TOKEN=' + options.params.ui.token);
+								deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_TOKEN', value: options.params.ui.token });
 							}
 						}
 
