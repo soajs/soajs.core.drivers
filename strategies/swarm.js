@@ -55,7 +55,7 @@ const lib = {
 
 		function redirectToProxy() {
 			let ports = options.soajs.registry.serviceConfig.ports;
-			let env = options.toEnv || process.env.SOAJS_ENV;
+			let env = options.params.toEnv || process.env.SOAJS_ENV;
 			
 			deployer = new Docker({
 				host: ((env) ? env.toLowerCase() : 'dev') + '-controller',
