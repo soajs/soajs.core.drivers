@@ -54,6 +54,7 @@ const lib = {
 		}
 
 		function redirectToProxy() {
+			util.log(options);
 			let ports = options.soajs.registry.serviceConfig.ports;
 			let env = options.params.toEnv || process.env.SOAJS_ENV;
 			
@@ -63,7 +64,11 @@ const lib = {
 				port: ports.controller + ports.maintenanceInc,
 				version: 'proxySocket'
 			});
-
+			utils.log({
+				host: ((env) ? env.toLowerCase() : 'dev') + '-controller',
+				port: ports.controller + ports.maintenanceInc,
+				version: 'proxySocket'
+			});
 			lib.ping({ deployer }, (error) => {
 				checkError(error, 600, cb, () => { //TODO: fix params
 					return cb(null, deployer);
@@ -843,6 +848,7 @@ const engine = {
 									uri: 'http://' + oneIp + ':' + options.params.maintenancePort + '/' + options.params.operation,
 									json: true
 								};
+								util.log(requestOptions);
 								request.get(requestOptions, (error, response, body) => {
 									let operationResponse = {
 										id: oneTarget.id,
