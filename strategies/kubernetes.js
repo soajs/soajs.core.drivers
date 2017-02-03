@@ -724,9 +724,30 @@ const engine = {
                     }
                 };
 
-                deployer.core.namespaces.pods.log(params, (error, logs) => {
-                    check(error, 537, () => {
-                        return res.jsonp(options.soajs.buildResponse(null, { data: logs }));
+                deployer.core.namespaces.pods.get({name: options.params.taskId}, (error, pod) => {
+                    check(error, 656, () => {
+                        //NOTE: controllers have two containers per pod, kubectl and controller service
+                        //NOTE: filter out the kubectl container and only get logs of controller
+                        if (pod.spec && pod.spec.containers && pod.spec.containers.length > 0) {
+                            let controllerContainer = {};
+                            for (let i = 0; i < pod.spec.containers.length; i++) {
+                                if (pod.spec.containers[i].name.indexOf('controller') !== -1) {
+                                    controllerContainer = pod.spec.containers[i];
+                                    break;
+                                }
+                            }
+
+                            if (controllerContainer) {
+                                params.qs.container = controllerContainer.name;
+                            }
+
+
+                            deployer.core.namespaces.pods.log(params, (error, logs) => {
+                                check(error, 537, () => {
+                                    return res.jsonp(options.soajs.buildResponse(null, { data: logs }));
+                                });
+                            });
+                        }
                     });
                 });
             });
