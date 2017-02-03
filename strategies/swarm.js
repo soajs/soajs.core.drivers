@@ -54,7 +54,7 @@ const lib = {
 		}
 
 		function redirectToProxy() {
-			util.log(options);
+			utils.log(options);
 			let ports = options.soajs.registry.serviceConfig.ports;
 			let env = options.params.toEnv || process.env.SOAJS_ENV;
 			
