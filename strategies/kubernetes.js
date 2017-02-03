@@ -420,7 +420,7 @@ const engine = {
                         service.spec.type = 'NodePort';
                     }
                     portConfig.NodePort = onePortEntry.published;
-                    portConfig.name = 'published-' + portConfig.name;
+                    portConfig.name = onePortEntry.name || 'published-' + portConfig.name;
                 }
 
                 service.spec.ports.push(portConfig);
