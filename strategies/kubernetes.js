@@ -399,7 +399,10 @@ const engine = {
         options.params.variables.push('SOAJS_DEPLOY_HA=kubernetes');
 
         let service = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/service.template.js'));
-        service.metadata.name = options.params.name + '-service';
+        service.metadata.name = options.params.name;
+        if (options.params.labels['soajs.service.name'] !== 'controller') {
+            service.metadata.name += '-service';
+        }
         service.metadata.labels = options.params.labels;
         service.spec.selector = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
 
@@ -451,6 +454,23 @@ const engine = {
         payload.spec.template.spec.containers[0].command = [options.params.cmd[0]];
         payload.spec.template.spec.containers[0].args = options.params.cmd.splice(1);
         payload.spec.template.spec.containers[0].env = lib.buildEnvList({ envs: options.params.variables });
+
+        //NOTE: add kubectl container only for controller deployments, required tp proxy requests
+        //NOTE: static values are set for kubectl container, no need to make it dynamic for now
+        if (options.params.labels['soajs.service.name'] === 'controller') {
+            payload.spec.template.spec.containers.push({
+                "name": "kubectl-proxy",
+                "image": "lachlanevenson/k8s-kubectl",
+                "imagePullPolicy": "IfNotPresent",
+                "args": ["proxy", "-p", "8001"],
+                "ports": [
+                    {
+
+                        "containerPort": 8001
+                    }
+                ]
+            });
+        }
 
         //NOTE: only one volume is supported for now
         if (options.params.volume) {
