@@ -839,6 +839,7 @@ const engine = {
 									uri: 'http://' + oneIp + ':' + options.params.maintenancePort + '/' + options.params.operation,
 									json: true
 								};
+								console.log(JSON.stringify(requestOptions, null, 2));
 								request.get(requestOptions, (error, response, body) => {
 									let operationResponse = {
 										id: oneTarget.id,
