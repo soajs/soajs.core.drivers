@@ -57,7 +57,10 @@ const lib = {
 			console.log("1");
 			console.log(JSON.stringify(options, null, 2));
 			let ports = options.soajs.registry.serviceConfig.ports;
-			let env = options.params.toEnv || process.env.SOAJS_ENV;
+			let env = process.env.SOAJS_ENV;
+			if(options.params && options.params.toEnv){
+				env = options.params.toEnv;
+			}
 			
 			deployer = new Docker({
 				host: ((env) ? env.toLowerCase() : 'dev') + '-controller',
