@@ -419,7 +419,7 @@ const engine = {
                     if (!service.spec.type || service.spec.type !== 'NodePort') {
                         service.spec.type = 'NodePort';
                     }
-                    portConfig.NodePort = onePortEntry.published;
+                    portConfig.nodePort = onePortEntry.published;
                     portConfig.name = onePortEntry.name || 'published-' + portConfig.name;
                 }
 
