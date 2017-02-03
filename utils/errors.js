@@ -87,5 +87,7 @@ module.exports = {
 
     661: "Unable to find service",
 
-    662: "Unable to deploy service"
+    662: "Unable to deploy service",
+
+    663: "Unable to list kubernetes daemon sets"
 };

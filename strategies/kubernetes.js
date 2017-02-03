@@ -256,42 +256,48 @@ const engine = {
 
                 deployer.extensions.namespaces.deployments.get({qs: filter}, (error, deploymentList) => {
                     checkError(error, 536, cb, () => {
-                        async.map(deploymentList.items, (oneDeployment, callback) => {
-                            filter = {
-                                labelSelector: 'soajs.env.code=' + options.params.env + ', soajs.service.label= ' + oneDeployment.metadata.name
-                            };
-                            deployer.core.namespaces.services.get({qs: filter}, (error, serviceList) => {
-                                if (error) {
-                                    return callback(error);
-                                }
+                        deployer.extensions.namespaces.daemonsets.get({qs: filter}, (error, daemonsetList) => {
+                            checkError(error, 663, cb, () => {
+                                let deployments = deploymentList.items.concat(daemonsetList.items);
 
-                                let record = lib.buildDeploymentRecord({ deployment: oneDeployment , service: serviceList.items[0] });
-
-                                if (options.params && options.params.excludeTasks) {
-                                    return callback(null, record);
-                                }
-
-                                filter = {
-                                    labelSelector: 'soajs.service.label=' + record.name
-                                };
-                                deployer.core.namespaces.pods.get({qs: filter}, (error, podsList) => {
-                                    if (error) {
-                                        return callback(error);
-                                    }
-
-                                    async.map(podsList.items, (onePod, callback) => {
-                                        return callback(null, lib.buildPodRecord({ pod: onePod }));
-                                    }, (error, pods) => {
+                                async.map(deployments, (oneDeployment, callback) => {
+                                    filter = {
+                                        labelSelector: 'soajs.env.code=' + options.params.env + ', soajs.service.label= ' + oneDeployment.metadata.name
+                                    };
+                                    deployer.core.namespaces.services.get({qs: filter}, (error, serviceList) => {
                                         if (error) {
                                             return callback(error);
                                         }
 
-                                        record.tasks = pods;
-                                        return callback(null, record);
+                                        let record = lib.buildDeploymentRecord({ deployment: oneDeployment , service: serviceList.items[0] });
+
+                                        if (options.params && options.params.excludeTasks) {
+                                            return callback(null, record);
+                                        }
+
+                                        filter = {
+                                            labelSelector: 'soajs.service.label=' + record.name
+                                        };
+                                        deployer.core.namespaces.pods.get({qs: filter}, (error, podsList) => {
+                                            if (error) {
+                                                return callback(error);
+                                            }
+
+                                            async.map(podsList.items, (onePod, callback) => {
+                                                return callback(null, lib.buildPodRecord({ pod: onePod }));
+                                            }, (error, pods) => {
+                                                if (error) {
+                                                    return callback(error);
+                                                }
+
+                                                record.tasks = pods;
+                                                return callback(null, record);
+                                            });
+                                        });
                                     });
-                                });
+                                }, cb);
                             });
-                        }, cb);
+                        });
                     });
                 });
             });

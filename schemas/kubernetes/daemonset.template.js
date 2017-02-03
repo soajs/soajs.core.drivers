@@ -17,7 +17,6 @@ module.exports = {
                 "labels": {}
             },
             "spec": {
-                "nodeSelector": "",
                 "containers": [
                     {
                         "name": "",
