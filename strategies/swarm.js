@@ -60,7 +60,6 @@ const lib = {
 				port: ports.controller + ports.maintenanceInc,
 				version: 'proxySocket'
 			});
-
 			lib.ping({ deployer }, (error) => {
 				checkError(error, 600, cb, () => { //TODO: fix params
 					return cb(null, deployer);
@@ -806,6 +805,7 @@ const engine = {
  	 * @returns {*}
  	 */
 	 maintenance (options, cb) {
+	 	
 		 lib.getDeployer(options, (error, deployer) => {
 			checkError(error, 540, cb, () => {
 				let params = {
