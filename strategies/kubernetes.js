@@ -796,7 +796,7 @@ const engine = {
 
                                     return callback(null, operationResponse);
                                 });
-                            });
+                            }, cb);
                         });
                     });
                 });
