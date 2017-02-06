@@ -263,7 +263,9 @@ const engine = {
                     checkError(error, 536, cb, () => {
                         deployer.extensions.namespaces.daemonsets.get({qs: filter}, (error, daemonsetList) => {
                             checkError(error, 663, cb, () => {
-                                let deployments = deploymentList.items.concat(daemonsetList.items);
+                                let deployments = [];
+                                if (deploymentList && deploymentList.items) deployments = deployments.concat(deploymentList.items);
+                                if (daemonsetList && daemonsetList.items) deployments = deployments.concat(daemonsetList.items);
 
                                 async.map(deployments, (oneDeployment, callback) => {
                                     filter = {
@@ -415,7 +417,7 @@ const engine = {
             service.metadata.name += '-service';
         }
         service.metadata.labels = options.params.labels;
-        service.spec.selector = { 'soajs.service.label': cleanLabel(options.params.labels['soajs.service.label']) };
+        service.spec.selector = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
 
         if (options.params.ports && options.params.ports.length > 0) {
             options.params.ports.forEach((onePortEntry, portIndex) => {
@@ -450,6 +452,7 @@ const engine = {
 
         payload.metadata.name = cleanLabel(options.params.name);
         payload.metadata.labels = options.params.labels;
+        payload.metadata.labels['soajs.service.label'] = cleanLabel(payload.metadata.labels['soajs.service.label']);
 
         if (options.params.type === 'deployment') {
             payload.spec.replicas = options.params.replicaCount;
