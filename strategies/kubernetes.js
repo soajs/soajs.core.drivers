@@ -13,12 +13,13 @@ const errorFile = require('../utils/errors.js');
 function checkError(error, code, cb, scb) {
     if(error) {
         util.log(error);
-        
+
         return cb({
-            "error": error,
-            "code": code,
-            "msg": errorFile[code]
-        });
+			source: 'driver',
+			value: error,
+			code: code,
+			msg: errorFile[code]
+		});
     }
     else
         return scb();
