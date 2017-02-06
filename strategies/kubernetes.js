@@ -415,7 +415,7 @@ const engine = {
             service.metadata.name += '-service';
         }
         service.metadata.labels = options.params.labels;
-        service.spec.selector = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
+        service.spec.selector = { 'soajs.service.label': cleanLabel(options.params.labels['soajs.service.label']) };
 
         if (options.params.ports && options.params.ports.length > 0) {
             options.params.ports.forEach((onePortEntry, portIndex) => {
@@ -455,7 +455,7 @@ const engine = {
             payload.spec.replicas = options.params.replicaCount;
         }
 
-        payload.spec.selector.matchLabels = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
+        payload.spec.selector.matchLabels = { 'soajs.service.label': cleanLabel(options.params.labels['soajs.service.label']) };
         payload.spec.template.metadata.name = cleanLabel(options.params.labels['soajs.service.name']);
         payload.spec.template.metadata.labels = options.params.labels;
         //NOTE: only one container is being set per pod
