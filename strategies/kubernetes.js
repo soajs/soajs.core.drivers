@@ -448,7 +448,7 @@ const engine = {
             options.params.type = 'daemonset';
         }
 
-        payload.metadata.name = options.params.name;
+        payload.metadata.name = cleanLabel(options.params.name);
         payload.metadata.labels = options.params.labels;
 
         if (options.params.type === 'deployment') {
