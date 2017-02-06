@@ -5,17 +5,21 @@
 const K8Api = require('kubernetes-client');
 const async = require('async');
 const request = require('request');
+const util = require('util'); //NOTE: util is a native package in node, no need to include it in package.json
 
 const utils = require('../utils/utils.js');
 const errorFile = require('../utils/errors.js');
 
 function checkError(error, code, cb, scb) {
-    if(error)
+    if(error) {
+        util.log(error);
+        
         return cb({
             "error": error,
             "code": code,
             "msg": errorFile[code]
         });
+    }
     else
         return scb();
 }

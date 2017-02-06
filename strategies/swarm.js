@@ -6,6 +6,7 @@ const Docker = require('dockerode');
 const async = require('async');
 const Grid = require('gridfs-stream');
 const request = require('request');
+const util = require('util'); //NOTE: util is a native package in node, no need to include it in package.json
 
 const gridfsColl = 'fs.files';
 
@@ -14,6 +15,8 @@ const errorFile = require('../utils/errors.js');
 
 function checkError(error, code, cb, scb) {
 	if(error) {
+		util.log(error);
+
 		return cb({
 			source: 'driver',
 			value: error,
