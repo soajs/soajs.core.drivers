@@ -376,8 +376,6 @@ const engine = {
 						Object.keys(options.params).forEach((oneUpdateParam) => {
 							update[oneUpdateParam.charAt(0).toUpperCase() + oneUpdateParam.slice(1)] = options.params[oneUpdateParam];
 						});
-						console.log("=======")
-                        console.log(node)
 						node.update(update, (error) => {
 							checkError(error, 546, cb, () => {
 								return cb(null, true);
