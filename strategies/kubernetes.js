@@ -456,10 +456,10 @@ const engine = {
         }
 
         payload.spec.selector.matchLabels = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
-        payload.spec.template.metadata.name = options.params.labels['soajs.service.name'];
+        payload.spec.template.metadata.name = options.params.labels['soajs.service.name'].toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-');
         payload.spec.template.metadata.labels = options.params.labels;
         //NOTE: only one container is being set per pod
-        payload.spec.template.spec.containers[0].name = options.params.labels['soajs.service.name'];
+        payload.spec.template.spec.containers[0].name = options.params.labels['soajs.service.name'].toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-');
         payload.spec.template.spec.containers[0].image = options.params.image;
         payload.spec.template.spec.containers[0].workingDir = ((options.params.containerDir) ? options.params.containerDir : '');
         payload.spec.template.spec.containers[0].command = [options.params.cmd[0]];
