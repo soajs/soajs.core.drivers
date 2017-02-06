@@ -684,7 +684,7 @@ const engine = {
 
  				deployer.listServices(params, (error, services) => {
  					checkError(error, 549, cb, () => {
- 						checkError(services.length === 0, 550, cb, () => {
+ 						checkError(services.length === 0, 661, cb, () => {
 							//NOTE: only one service with the same name and version can exist in a given environment
 							return cb(null, lib.buildServiceRecord({ service: services[0] }));
 						});
@@ -891,19 +891,21 @@ const engine = {
 					filters: { label: [ 'soajs.content=true', 'soajs.env.code=' + options.params.env, 'soajs.service.name=' + options.params.serviceName ] }
 				};
 				deployer.listServices(params, (error, services) => {
-					checkError(error, 549, cb, () => {
-						services.forEach((oneService) => {
-							if (oneService.Spec && oneService.Spec.Labels && oneService.Spec.Labels['soajs.service.version']) {
-								v = parseInt(oneService.Spec.Labels['soajs.service.version']);
+                    checkError(error, 549, cb, () => {
+                    	checkError(services.length == 0, 661, cb, () => {
+                        services.forEach((oneService) => {
+                            if (oneService.Spec && oneService.Spec.Labels && oneService.Spec.Labels['soajs.service.version']) {
+                                v = parseInt(oneService.Spec.Labels['soajs.service.version']);
 
-								if (v > latestVersion) {
-									latestVersion = v;
-								}
-							}
-						});
+                                if (v > latestVersion) {
+                                    latestVersion = v;
+                                }
+                            }
+                        });
 
-						return cb(null, latestVersion);
-					});
+                        return cb(null, latestVersion);
+                    });
+                });
 				});
 			});
 		});
