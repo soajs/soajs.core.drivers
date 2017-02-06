@@ -410,7 +410,7 @@ const engine = {
         options.params.variables.push('SOAJS_DEPLOY_HA=kubernetes');
 
         let service = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/service.template.js'));
-        service.metadata.name = options.params.name;
+        service.metadata.name = cleanLabel(options.params.name);
         if (options.params.labels['soajs.service.name'] !== 'controller') {
             service.metadata.name += '-service';
         }
