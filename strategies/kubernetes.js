@@ -441,11 +441,11 @@ const engine = {
         }
 
         let payload = {};
-        if (options.params.replication.mode === 'replicated') {
+        if (options.params.replication.mode === 'deployment') {
             payload = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/deployment.template.js'));
             options.params.type = 'deployment';
         }
-        else if (options.params.replication.mode === 'global') {
+        else if (options.params.replication.mode === 'daemonset') {
             payload = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/daemonset.template.js'));
             options.params.type = 'daemonset';
         }
@@ -658,42 +658,49 @@ const engine = {
      * @returns {*}
      */
     deleteService (options, cb) {
-        if (options.params.mode === 'daemonset') {
-            return engine.deleteDaemonSet(options, cb);
+        let contentType = options.params.mode;
+
+        if (contentType === 'deployment') {
+            options.params.scale = 0;
+            engine.scaleService(options, (error) => {
+                checkError(error, 527, cb, () => {
+                    deleteContent();
+                });
+            });
+        }
+        else {
+            deleteContent();
         }
 
-        options.params.scale = 0;
-        engine.scaleService(options, (error) => {
-            checkError(error, 527, cb, () => {
-                lib.getDeployer(options, (error, deployer) => {
-                    checkError(error, 520, cb, () => {
-                        deployer.extensions.namespaces.deployments.delete({name: options.params.id, qs: { gracePeriodSeconds: 0 }}, (error) => {
-                            checkError(error, 534, cb, () => {
-                                let filter = {
-                                    labelSelector: 'soajs.service.label=' + options.params.id //kubernetes references content by name not id, therefore id field is set to content name
-                                };
-                                deployer.core.namespaces.services.get({qs: filter}, (error, servicesList) => { //only one service for a given service can exist
-                                    checkError(error, 533, cb, () => {
-                                        if (servicesList && servicesList.items.length > 0) {
-                                            async.each(servicesList.items, (oneService, callback) => {
-                                                deployer.core.namespaces.services.delete({name: oneService.metadata.name}, callback);
-                                            }, (error) => {
-                                                checkError(error, 534, cb, () => {
-                                                    cleanup(deployer, filter);
-                                                })
+        function deleteContent() {
+            lib.getDeployer(options, (error, deployer) => {
+                checkError(error, 520, cb, () => {
+                    deployer.extensions.namespaces[contentType].delete({name: options.params.id, qs: { gracePeriodSeconds: 0 }}, (error) => {
+                        checkError(error, 534, cb, () => {
+                            let filter = {
+                                labelSelector: 'soajs.service.label=' + options.params.id //kubernetes references content by name not id, therefore id field is set to content name
+                            };
+                            deployer.core.namespaces.services.get({qs: filter}, (error, servicesList) => { //only one service for a given service can exist
+                                checkError(error, 533, cb, () => {
+                                    if (servicesList && servicesList.items.length > 0) {
+                                        async.each(servicesList.items, (oneService, callback) => {
+                                            deployer.core.namespaces.services.delete({name: oneService.metadata.name}, callback);
+                                        }, (error) => {
+                                            checkError(error, 534, cb, () => {
+                                                cleanup(deployer, filter);
                                             });
-                                        }
-                                        else {
-                                            cleanup(deployer, filter);
-                                        }
-                                    });
+                                        });
+                                    }
+                                    else {
+                                        cleanup(deployer, filter);
+                                    }
                                 });
                             });
                         });
                     });
                 });
             });
-        });
+        }
 
         function cleanup(deployer, filter) {
             deployer.extensions.namespaces.replicasets.delete({qs: filter}, (error) => {
@@ -704,23 +711,6 @@ const engine = {
                 });
             });
         }
-    },
-
-    /**
-	 * Deletes a kubernetes daemon set
-	 *
-	 * @param {Object} options
-	 * @param {Function} cb
-	 * @returns {*}
-	 */
-    deleteDaemonSet (options, cb) {
-        lib.getDeployer(options, (error, deployer) => {
-            checkError(error, 540, cb, () => {
-                deployer.extensions.namespaces.daemonsets.delete({name: options.params.id}, (error) => {
-                    checkError(error, 664, cb, cb.bind(null, null, true));
-                });
-            });
-        });
     },
 
     /**
