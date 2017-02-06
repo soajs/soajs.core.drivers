@@ -555,9 +555,10 @@ const engine = {
      * @returns {*}
      */
     redeployService (options, cb) {
+        let contentType = options.params.mode;
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
-                deployer.extensions.namespaces.deployment.get({name: options.params.id}, (error, deployment) => {
+                deployer.extensions.namespaces[contentType].get({name: options.params.id}, (error, deployment) => {
                     checkError(error, 536, cb, () => {
                         deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_REDEPLOY_TRIGGER', value: 'true' });
 
@@ -575,7 +576,7 @@ const engine = {
 							}
 						}
 
-                        deployer.extensions.namespaces.deployments.put({ name: options.params.id, body: deployment }, (error) => {
+                        deployer.extensions.namespaces[contentType].put({ name: options.params.id, body: deployment }, (error) => {
                             checkError(error, 527, cb, cb.bind(null, null, true));
                         });
                     });
