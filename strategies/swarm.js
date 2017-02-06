@@ -376,6 +376,8 @@ const engine = {
 						Object.keys(options.params).forEach((oneUpdateParam) => {
 							update[oneUpdateParam.charAt(0).toUpperCase() + oneUpdateParam.slice(1)] = options.params[oneUpdateParam];
 						});
+						console.log("=======")
+                        console.log(node)
 						node.update(update, (error) => {
 							checkError(error, 546, cb, () => {
 								return cb(null, true);
@@ -748,7 +750,6 @@ const engine = {
 	 * @returns {*}
 	 */
 	 getContainerLogs (options) {
-
 		 /**
 		 * 1. inspect task provided as input, get container id and node id
 		 * 2. inspect target node and get its ip
@@ -816,7 +817,6 @@ const engine = {
  	 * @returns {*}
  	 */
 	 maintenance (options, cb) {
-
 		 lib.getDeployer(options, (error, deployer) => {
 			checkError(error, 540, cb, () => {
 				let params = {

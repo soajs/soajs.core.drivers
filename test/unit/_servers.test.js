@@ -6,7 +6,7 @@ var shell = require('shelljs');
 
 describe("Beginning test", function() {
 
-    it("Remove existing docker images", function(done){
+    it("Remove existing docker services", function(done){
         shell.exec("docker service rm $(docker service ls -q)");
         done();
     });

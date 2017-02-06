@@ -4,26 +4,101 @@ var assert = require('assert');
 var helper = require("../helper.js");
 var drivers = helper.requireModule('./index.js');
 
-describe("testing docker swarm driver functionality", function() {
-    //Used when data from one testCase is needed in another test case
-    var interData = {};
+//Used when data from one testCase is needed in another test case
+var interData = {};
+var options = {};
+options.deployerConfig = {};
 
-    var options = {};
-    options.strategy = "swarm";
-    options.deployerConfig = {};
-
-    options.soajs = {
-        registry: {
-            serviceConfig: {
-                ports: {
-                    controller: 4000,
-                    maintenanceInc: 1000
-                }
+options.soajs = {
+    registry: {
+        serviceConfig: {
+            ports: {
+                controller: 4000,
+                maintenanceInc: 1000
             }
         }
-    };
-    //Testing the different scenarios of deploying a service
-    describe("testing deploy service", function() {
+    }
+};
+describe("testing docker swarm driver functionality", function() {
+    options.strategy = "swarm";
+
+    //Testing the different methods of node and cluster management
+    describe("testing cluster/node management", function() {
+        //Success inspecting a cluster
+        it("Success - inspecting a cluster", function(done) {
+            drivers.inspectCluster(options, function(error, cluster){
+                assert.ok(cluster);
+                done();
+            });
+        });
+
+        //Success in listing the cluster nodes
+        it("Success - listing nodes", function(done) {
+            drivers.listNodes(options, function(error, nodes){
+                assert.ok(nodes);
+                interData.nodeId = nodes[0].id;
+                done();
+            });
+        });
+
+        //Failure in inspecting node
+        it("Failure - inspecting node", function(done) {
+            options.params = {
+                "id": "nothing"
+            };
+
+            drivers.inspectNode(options, function(error, nodes){
+                assert.equal(error.code, 547);
+                assert.equal(error.msg, "Unable to inspect the node");
+                assert.ok(error);
+                done();
+            });
+        });
+
+        //Success in inspecting node
+        it("Success - inspecting node", function(done) {
+            options.params = {
+                "id": interData.nodeId
+            };
+
+            drivers.inspectNode(options, function(error, node){
+                assert.ok(node);
+                done();
+            });
+        });
+
+        //Failure in updating node
+        it("Failure - updating node", function(done) {
+            options.params = {
+                "id": "nothing",
+                "update": "Nothing"
+            };
+
+            drivers.updateNode(options, function(error, nodes){
+                assert.equal(error.code, 547);
+                assert.equal(error.msg, "Unable to inspect the node");
+                assert.ok(error);
+                done();
+            });
+        });
+
+        //Success in updating node
+        it("Success - updating node", function(done) {
+            options.params = {
+                "id": interData.nodeId,
+                "availability": "active"
+            };
+
+            drivers.updateNode(options, function(error, node){
+                assert.ok(node);
+                done();
+            });
+        });
+
+    });
+
+    //Testing the different methods of service management
+    describe("testing service management", function() {
 
         //Successfully deploying a service global mode
         it("Success - service deployment global mode", function(done){
@@ -128,7 +203,7 @@ describe("testing docker swarm driver functionality", function() {
             };
 
             drivers.deployService(options, function(error, service){
-                interData.id = service.id;
+                interData.replicaId = service.id;
                 assert.ok(service);
                 setTimeout(function () {
                     done();
@@ -183,8 +258,116 @@ describe("testing docker swarm driver functionality", function() {
             };
             drivers.deployService(options, function(error, service){
                 assert.equal(error.code, 662);
-                assert.equal(error.msg, "Unable to deploy service")
+                assert.equal(error.msg, "Unable to deploy service");
                 assert.ok(error);
+                done();
+            });
+        });
+
+        //Failure in scaling a deployed service
+        it("Fail - Scale service", function(done){
+            options.params = {
+                "id": "nothing",
+                "replica": "nothing"
+            };
+
+            drivers.scaleService(options, function(error, service){
+                assert.equal(error.code, 550);
+                assert.equal(error.msg, "Unable to inspect the docker swarm service");
+                assert.ok(error);
+                done();
+            });
+        });
+
+        //Success in scaling a deployed service
+        it("Success - Scale service", function(done){
+            options.params = {
+                "id": interData.replicaId,
+                "scale": 4
+            };
+
+            drivers.scaleService(options, function(error, service){
+                assert.ok(service);
+                setTimeout(function () {
+                    done();
+                }, 2000);
+            });
+        });
+
+        //Failure in redeploying a deployed service
+        it("Fail - redeploy service", function(done){
+            options.params = {
+                "id": "nothing"
+            };
+
+            drivers.redeployService(options, function(error, service){
+                assert.equal(error.code, 550);
+                assert.equal(error.msg, "Unable to inspect the docker swarm service");
+                assert.ok(error);
+                done();
+            });
+        });
+
+        //Success in redeploying a deployed service without UI
+        it("Success - redeploy service without UI", function(done){
+            options.params = {
+                "id": interData.id
+            };
+
+            drivers.redeployService(options, function(error, service){
+                assert.ok(service);
+                setTimeout(function () {
+                    done();
+                }, 2000);
+            });
+        });
+
+        //Success in redeploying a deployed service with UI
+        it("Success - redeploy service with UI", function(done){
+            options.params = {
+                "id": interData.id
+            };
+
+            options.params.ui ={
+                "repo": "repo",
+                "owner": "owner",
+                "branch": "branch",
+                "commit": "commit",
+                "provider": "provider",
+                "domain": "domain"
+            }
+
+            drivers.redeployService(options, function(error, service){
+                assert.ok(service);
+                setTimeout(function () {
+                    done();
+                }, 2000);
+            });
+        });
+
+        //Failure in deleting a deployed service
+        it("Fail - delete service", function(done){
+            options.params = {
+                "id": "nothing",
+                "replica": "nothing"
+            };
+
+            drivers.deleteService(options, function(error, service){
+                assert.equal(error.code, 553);
+                assert.equal(error.msg, "Unable to delete the docker swarm service");
+                assert.ok(error);
+                done();
+            });
+        });
+
+        //Success in deleting a deployed service
+        it("Success - delete service", function(done){
+            options.params = {
+                "id": interData.id
+            };
+
+            drivers.deleteService(options, function(error, service){
+                assert.ok(service);
                 done();
             });
         });
@@ -192,7 +375,7 @@ describe("testing docker swarm driver functionality", function() {
 
     //Test the different scenarios of finding/listing/inspection docker swarm services
     describe("Docker swarm service finding/listing/inspection", function(){
-        //Finding a service that exists
+        //Finding a service that does exist
         it("Success - finding service", function(done){
             options.params = {
                 "env": "dashboard",
@@ -219,7 +402,7 @@ describe("testing docker swarm driver functionality", function() {
             });
         });
 
-        //Listing services of an environment that exists
+        //Listing services of an environment that does exist
         it("Success - listing services", function(done){
             options.params = {
                 "env": "dashboard"
@@ -246,7 +429,7 @@ describe("testing docker swarm driver functionality", function() {
         //Inspecting a service that does exist
         it("Success - inspecting service", function(done){
             options.params = {
-                "id": interData.id
+                "id": interData.replicaId
             };
             drivers.inspectService(options, function(error, service){
                 assert.ok(service);
@@ -281,12 +464,40 @@ describe("testing docker swarm driver functionality", function() {
                 done();
             });
         });
+
+        //Getting the service host of a service that does exists
+        it("Success - Getting the service host of a service", function(done){
+            options.params = {
+                "env": "dashboard",
+                "serviceName": "TestDeployment"
+            };
+
+            drivers.getServiceHost(options, function(error, serviceHost){
+                assert.ok(serviceHost);
+                done();
+            });
+        });
+
+        //Getting the service host of a service that does not exists
+        it("Fail - Getting the service host of a service", function(done){
+            options.params = {
+                "env": "nothing",
+                "serviceName": "nothing"
+            };
+
+            drivers.getLatestVersion(options, function(error, serviceHost){
+                assert.ok(error)
+                assert.equal(error.code, '661');
+                assert.equal(error.msg, "Unable to find service");
+                done();
+            });
+        });
     });
 });
 
 
 describe("Invalid strategy selection", function(){
-    //provided a strategy that doesn't exist
+    //provided a strategy that does not exist
     it("Fail - Invalid strategy", function(done){
         var options = {};
         options.strategy = "nothing";
