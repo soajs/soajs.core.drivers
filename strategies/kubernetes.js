@@ -651,13 +651,17 @@ const engine = {
     },
 
     /**
-     * Deletes a deployed service
+     * Deletes a deployed service, kubernetes deployment or daemonset
      *
      * @param {Object} options
      * @param {Function} cb
      * @returns {*}
      */
     deleteService (options, cb) {
+        if (options.params.mode === 'daemonset') {
+            return engine.deleteDaemonSet(options, cb);
+        }
+
         options.params.scale = 0;
         engine.scaleService(options, (error) => {
             checkError(error, 527, cb, () => {
@@ -700,6 +704,23 @@ const engine = {
                 });
             });
         }
+    },
+
+    /**
+	 * Deletes a kubernetes daemon set
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+    deleteDaemonSet (options, cb) {
+        lib.getDeployer(options, (error, deployer) => {
+            checkError(error, 540, cb, () => {
+                deployer.extensions.namespaces.daemonsets.delete({name: options.params.id}, (error) => {
+                    checkError(error, 664, cb, cb.bind(null, null, true));
+                });
+            });
+        });
     },
 
     /**
