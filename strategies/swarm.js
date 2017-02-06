@@ -232,7 +232,7 @@ const lib = {
 		let record = {
 			id: options.task.ID,
 			version: options.task.Version.Index,
-			name: options.serviceName + '.' + options.task.Slot, //might add extra value later
+			name: options.serviceName + ((options.task.Slot) ? '.' + options.task.Slot : ''), //might add extra value later
 			ref: {
 				slot: options.task.Slot,
 				service: {
