@@ -4,26 +4,28 @@ var assert = require('assert');
 var helper = require("../helper.js");
 var drivers = helper.requireModule('./index.js');
 
-//Used when data from one testCase is needed in another test case
-var interData = {};
-var options = {};
-options.deployerConfig = {};
 
-options.soajs = {
-    registry: {
-        serviceConfig: {
-            ports: {
-                controller: 4000,
-                maintenanceInc: 1000
+describe("testing docker swarm driver functionality", function() {
+    //Used when data from one testCase is needed in another test case
+    var interData = {};
+    var options = {};
+    options.deployerConfig = {};
+
+    options.soajs = {
+        registry: {
+            serviceConfig: {
+                ports: {
+                    controller: 4000,
+                    maintenanceInc: 1000
+                }
             }
         }
-    }
-};
-describe("testing docker swarm driver functionality", function() {
+    };
+
     options.strategy = "swarm";
 
     //Testing the different methods of node and cluster management
-    describe("testing cluster/node management", function() {
+    describe("Testing docker swarm cluster/node management", function() {
         //Success inspecting a cluster
         it("Success - inspecting a cluster", function(done) {
             drivers.inspectCluster(options, function(error, cluster){
@@ -98,7 +100,7 @@ describe("testing docker swarm driver functionality", function() {
     });
 
     //Testing the different methods of service management
-    describe("testing service management", function() {
+    describe("Testing docker swarm service management", function() {
 
         //Successfully deploying a service global mode
         it("Success - service deployment global mode", function(done){
@@ -160,21 +162,35 @@ describe("testing docker swarm driver functionality", function() {
 
             options.params = {
                 "env": "dashboard",
-                "name": "TestDeployment",
-                "image": "alpine",
+                "name": "dashboard_soajs_prx",
+                "image": "nicolaskhoury/soajs",
                 "variables": [
-                    "Dummy_Variable=variable",
+                    'NODE_ENV=production',
+                    'SOAJS_ENV=dashboard',
+
+                    'SOAJS_DEPLOY_HA=swarm',
+                    'SOAJS_HA_NAME={{.Task.Name}}',
+
+                    'SOAJS_PROFILE=/opt/soajs/FILES/profiles/profile.js',
+                    'SOAJS_SRV_AUTOREGISTERHOST=true',
+
+                    'SOAJS_GIT_OWNER=soajs',
+                    'SOAJS_GIT_REPO=soajs.prx',
+                    'SOAJS_GIT_BRANCH=develop'
                 ],
                 "labels": {
                     "soajs.content": "true",
                     "soajs.env.code": "dashboard",
-                    "soajs.service.name": "TestDeployment",
-                    "soajs.service.version": "2",
+                    "soajs.service.type": "service",
+                    "soajs.service.name": "proxy",
+                    "soajs.service.group": "SOAJS-Core-Services",
+                    "soajs.service.version": "1",
+                    "soajs.service.label": "dashboard_soajs_prx"
                 },
                 "cmd": [
-                    "sh",
+                    "bash",
                     "-c",
-                    "sleep 36000"
+                    './soajsDeployer.sh -T service -X deploy -L'
                 ],
                 "memoryLimit": 200000000,
                 "replication": {
@@ -182,23 +198,13 @@ describe("testing docker swarm driver functionality", function() {
                     "replicas": 2
                 },
                 "version": "",
-                "containerDir": "/opt/",
+                "containerDir": '/opt/soajs/FILES/deployer/',
                 "restartPolicy": {
                     "condition": "any",
                     "maxAttempts": 5
                 },
                 "network": "soajsnet",
                 "ports": [
-                    {
-                        "name": "service-port",
-                        "isPublished": false,
-                        "target": 4001
-                    },
-                    {
-                        "name": "maintenance-port",
-                        "isPublished": false,
-                        "target": 5001
-                    }
                 ]
             };
 
@@ -207,7 +213,7 @@ describe("testing docker swarm driver functionality", function() {
                 assert.ok(service);
                 setTimeout(function () {
                     done();
-                }, 2000);
+                }, 10000);
             });
         });
 
@@ -215,45 +221,49 @@ describe("testing docker swarm driver functionality", function() {
         it("Fail - service deployment", function(done){
             options.params = {
                 "env": "dashboard",
-                "name": "TestDeployment",
-                "image": "alpine",
+                "name": "dashboard_soajs_prx",
+                "image": "nicolaskhoury/soajs",
                 "variables": [
-                    "Dummy_Variable=variable",
+                    'NODE_ENV=production',
+                    'SOAJS_ENV=dashboard',
+
+                    'SOAJS_DEPLOY_HA=swarm',
+                    'SOAJS_HA_NAME={{.Task.Name}}',
+
+                    'SOAJS_PROFILE=/opt/soajs/FILES/profiles/profile.js',
+                    'SOAJS_SRV_AUTOREGISTERHOST=true',
+
+                    'SOAJS_GIT_OWNER=soajs',
+                    'SOAJS_GIT_REPO=soajs.prx',
+                    'SOAJS_GIT_BRANCH=develop'
                 ],
                 "labels": {
                     "soajs.content": "true",
                     "soajs.env.code": "dashboard",
-                    "soajs.service.name": "TestDeployment",
-                    "soajs.service.version": "2",
+                    "soajs.service.type": "service",
+                    "soajs.service.name": "proxy",
+                    "soajs.service.group": "SOAJS-Core-Services",
+                    "soajs.service.version": "1",
+                    "soajs.service.label": "dashboard_soajs_prx"
                 },
                 "cmd": [
-                    "sh",
+                    "bash",
                     "-c",
-                    "sleep 36000"
+                    './soajsDeployer.sh -T service -X deploy -L'
                 ],
                 "memoryLimit": 200000000,
                 "replication": {
                     "mode": "replicated",
-                    "replicas": 1
+                    "replicas": 2
                 },
                 "version": "",
-                "containerDir": "/opt/",
+                "containerDir": '/opt/soajs/FILES/deployer/',
                 "restartPolicy": {
                     "condition": "any",
                     "maxAttempts": 5
                 },
                 "network": "soajsnet",
                 "ports": [
-                    {
-                        "name": "service-port",
-                        "isPublished": false,
-                        "target": 4001
-                    },
-                    {
-                        "name": "maintenance-port",
-                        "isPublished": false,
-                        "target": 5001
-                    }
                 ]
             };
             drivers.deployService(options, function(error, service){
@@ -374,12 +384,12 @@ describe("testing docker swarm driver functionality", function() {
     });
 
     //Test the different scenarios of finding/listing/inspection docker swarm services
-    describe("Docker swarm service finding/listing/inspection", function(){
+    describe("testing docker swarm service finding/listing/inspection", function(){
         //Finding a service that does exist
         it("Success - finding service", function(done){
             options.params = {
                 "env": "dashboard",
-                "serviceName": "TestDeployment"
+                "serviceName": "proxy"
             };
 
             drivers.findService(options, function(error, service){
@@ -432,6 +442,7 @@ describe("testing docker swarm driver functionality", function() {
                 "id": interData.replicaId
             };
             drivers.inspectService(options, function(error, service){
+                interData.taskId = service.tasks[0].id;
                 assert.ok(service);
                 done();
             });
@@ -441,7 +452,7 @@ describe("testing docker swarm driver functionality", function() {
         it("Success - Getting the latest version of a service", function(done){
             options.params = {
                 "env": "dashboard",
-                "serviceName": "TestDeployment"
+                "serviceName": "proxy"
             };
 
             drivers.getLatestVersion(options, function(error, serviceVersion){
@@ -469,7 +480,7 @@ describe("testing docker swarm driver functionality", function() {
         it("Success - Getting the service host of a service", function(done){
             options.params = {
                 "env": "dashboard",
-                "serviceName": "TestDeployment"
+                "serviceName": "proxy"
             };
 
             drivers.getServiceHost(options, function(error, serviceHost){
@@ -489,6 +500,86 @@ describe("testing docker swarm driver functionality", function() {
                 assert.ok(error)
                 assert.equal(error.code, '661');
                 assert.equal(error.msg, "Unable to find service");
+                done();
+            });
+        });
+    });
+
+    //Test the different methods of docker swarm tasks/containers
+    describe("Testing tocker swarm task operations", function(){
+        //Inspecting a task that does not exist
+        it("Fail - inspecting task", function(done){
+            options.params = {
+                "taskId": "nothing"
+            };
+            drivers.inspectTask(options, function(error, task){
+                assert.equal(error.code, "555");
+                assert.equal(error.msg, "Unable to inspect the docker swarm task");
+                assert.ok(error);
+                done();
+            });
+        });
+
+        //Inspecting a task that does exist
+        it("Success - inspecting service", function(done){
+            options.params = {
+                "taskId": interData.taskId
+            };
+            drivers.inspectTask(options, function(error, task){
+                assert.ok(task);
+                done();
+            });
+        });
+
+        //Performing a maintenance operation of a container that does not exist
+        it.skip("Fail - maintenance operation", function(done){
+            options.params = {
+                "id": "nothing"
+            };
+
+            drivers.maintenance(options, function(error, response){
+               assert.ok(error);
+               assert.equal(error.code, "552");
+               assert.equal(error.msg, "Unable to list the docker swarm service tasks");
+               done();
+            });
+        });
+
+        //Performing a maintenance operation of a container that does exist
+        it("Success - maintenance operation", function(done){
+            options.params = {
+                "id": interData.replicaId,
+                "maintenancePort": 5009,
+                "operation": "reloadRegistry"
+            };
+
+            drivers.maintenance(options, function(error, response){
+                assert.ok(response)
+                done();
+            });
+        });
+
+        //getting the logs of a containter that does not exist
+        it("Fail - get container logs", function(done){
+            options.params = {
+                "taskId": "nothing"
+            };
+            drivers.getContainerLogs(options, function(error, logs){
+                assert.equal(error.code, "555");
+                assert.equal(error.msg, "Unable to inspect the docker swarm task");
+                assert.ok(error);
+                done();
+            });
+        });
+
+        //Getting the logs of a container that does exist
+        it("Success - get container logs", function(done){
+            options.params = {
+                "taskId": interData.taskId
+            };
+            options.driver = "swarm.local";
+            drivers.getContainerLogs(options, function(error, logs){
+                assert.ok(logs);
                 done();
             });
         });

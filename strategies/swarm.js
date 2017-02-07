@@ -747,7 +747,7 @@ const engine = {
 	 * @param {Function} cb
 	 * @returns {*}
 	 */
-	 getContainerLogs (options) {
+	 getContainerLogs (options, cb) {
 		 /**
 		 * 1. inspect task provided as input, get container id and node id
 		 * 2. inspect target node and get its ip
@@ -764,7 +764,6 @@ const engine = {
 					check(error, 555, () => {
 						let containerId = taskInfo.Status.ContainerStatus.ContainerID;
 						let nodeId = taskInfo.NodeID;
-
 						options.params.id = nodeId;
 						options.deployerConfig.flags = { targetNode: true, swarmMember: true };
 						lib.getDeployer(options, (error, deployer) => {
@@ -787,6 +786,10 @@ const engine = {
 
 										logStream.on('end', () => {
 											logStream.destroy();
+											//this if statement is used for test cases.
+											//originally, the data is returned as a response due to the limitations of angular
+											if(cb)
+												return cb(null,data);
 											return res.jsonp(options.soajs.buildResponse(null, { data }));
 										});
 									});
@@ -798,12 +801,14 @@ const engine = {
 			});
 		 });
 
-		 function check(error, code, cb) {
-			 if (error) {
+		 function check(error, code, cb1) {
+			 if (error && !cb) {
 				 return res.jsonp(options.soajs.buildResponse({code: code, msg: errorFile[code]}));
 			 }
-
-			 return cb();
+			 else if (error && cb) {
+			 	return cb({code: code, msg: errorFile[code]});
+			 }
+			 return cb1();
 		 }
 	 },
 
@@ -821,6 +826,10 @@ const engine = {
 					filters: { service: [options.params.id] }
 				};
 				deployer.listTasks(params, (error, tasks) => {
+					console.log("============")
+					console.log(error)
+					console.log(tasks)
+					console.log("=============")
 					checkError(error, 552, cb, () => {
 						async.map(tasks, (oneTask, callback) => {
 							async.detect(oneTask.NetworksAttachments, (oneConfig, callback) => {
@@ -834,7 +843,7 @@ const engine = {
 							});
 						}, (error, targets) => {
 							async.map(targets, (oneTarget, callback) => {
-								if (!oneTarget.networkInfo.Addresses || oneTarget.networkInfo.Addresses.length === 0) {
+								if (!oneTarget.networkInfo || !oneTarget.networkInfo.Addresses || oneTarget.networkInfo.Addresses.length === 0) {
 									return callback(null, {
 										result: false,
 										ts: new Date().getTime(),
