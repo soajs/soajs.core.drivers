@@ -5,17 +5,22 @@
 const K8Api = require('kubernetes-client');
 const async = require('async');
 const request = require('request');
+const util = require('util'); //NOTE: util is a native package in node, no need to include it in package.json
 
 const utils = require('../utils/utils.js');
 const errorFile = require('../utils/errors.js');
 
 function checkError(error, code, cb, scb) {
-    if(error)
+    if(error) {
+        util.log(error);
+
         return cb({
-            "error": error,
-            "code": code,
-            "msg": errorFile[code]
-        });
+			source: 'driver',
+			value: error,
+			code: code,
+			msg: errorFile[code]
+		});
+    }
     else
         return scb();
 }
@@ -258,7 +263,9 @@ const engine = {
                     checkError(error, 536, cb, () => {
                         deployer.extensions.namespaces.daemonsets.get({qs: filter}, (error, daemonsetList) => {
                             checkError(error, 663, cb, () => {
-                                let deployments = deploymentList.items.concat(daemonsetList.items);
+                                let deployments = [];
+                                if (deploymentList && deploymentList.items) deployments = deployments.concat(deploymentList.items);
+                                if (daemonsetList && daemonsetList.items) deployments = deployments.concat(daemonsetList.items);
 
                                 async.map(deployments, (oneDeployment, callback) => {
                                     filter = {
@@ -405,7 +412,7 @@ const engine = {
         options.params.variables.push('SOAJS_DEPLOY_HA=kubernetes');
 
         let service = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/service.template.js'));
-        service.metadata.name = options.params.name;
+        service.metadata.name = cleanLabel(options.params.name);
         if (options.params.labels['soajs.service.name'] !== 'controller') {
             service.metadata.name += '-service';
         }
@@ -434,27 +441,28 @@ const engine = {
         }
 
         let payload = {};
-        if (options.params.replication.mode === 'replicated') {
+        if (options.params.replication.mode === 'deployment') {
             payload = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/deployment.template.js'));
             options.params.type = 'deployment';
         }
-        else if (options.params.replication.mode === 'global') {
+        else if (options.params.replication.mode === 'daemonset') {
             payload = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/daemonset.template.js'));
             options.params.type = 'daemonset';
         }
 
-        payload.metadata.name = options.params.name;
+        payload.metadata.name = cleanLabel(options.params.name);
         payload.metadata.labels = options.params.labels;
+        payload.metadata.labels['soajs.service.label'] = cleanLabel(payload.metadata.labels['soajs.service.label']);
 
         if (options.params.type === 'deployment') {
             payload.spec.replicas = options.params.replicaCount;
         }
 
-        payload.spec.selector.matchLabels = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
-        payload.spec.template.metadata.name = options.params.labels['soajs.service.name'];
+        payload.spec.selector.matchLabels = { 'soajs.service.label': cleanLabel(options.params.labels['soajs.service.label']) };
+        payload.spec.template.metadata.name = cleanLabel(options.params.labels['soajs.service.name']);
         payload.spec.template.metadata.labels = options.params.labels;
         //NOTE: only one container is being set per pod
-        payload.spec.template.spec.containers[0].name = options.params.labels['soajs.service.name'];
+        payload.spec.template.spec.containers[0].name = cleanLabel(options.params.labels['soajs.service.name']);
         payload.spec.template.spec.containers[0].image = options.params.image;
         payload.spec.template.spec.containers[0].workingDir = ((options.params.containerDir) ? options.params.containerDir : '');
         payload.spec.template.spec.containers[0].command = [options.params.cmd[0]];
@@ -512,6 +520,10 @@ const engine = {
                 });
             });
         });
+
+        function cleanLabel(label) {
+            return label.toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-');
+        }
     },
 
     /**
@@ -639,45 +651,56 @@ const engine = {
     },
 
     /**
-     * Deletes a deployed service
+     * Deletes a deployed service, kubernetes deployment or daemonset
      *
      * @param {Object} options
      * @param {Function} cb
      * @returns {*}
      */
     deleteService (options, cb) {
-        options.params.scale = 0;
-        engine.scaleService(options, (error) => {
-            checkError(error, 527, cb, () => {
-                lib.getDeployer(options, (error, deployer) => {
-                    checkError(error, 520, cb, () => {
-                        deployer.extensions.namespaces.deployments.delete({name: options.params.id, qs: { gracePeriodSeconds: 0 }}, (error) => {
-                            checkError(error, 534, cb, () => {
-                                let filter = {
-                                    labelSelector: 'soajs.service.label=' + options.params.id //kubernetes references content by name not id, therefore id field is set to content name
-                                };
-                                deployer.core.namespaces.services.get({qs: filter}, (error, servicesList) => { //only one service for a given service can exist
-                                    checkError(error, 533, cb, () => {
-                                        if (servicesList && servicesList.items.length > 0) {
-                                            async.each(servicesList.items, (oneService, callback) => {
-                                                deployer.core.namespaces.services.delete({name: oneService.metadata.name}, callback);
-                                            }, (error) => {
-                                                checkError(error, 534, cb, () => {
-                                                    cleanup(deployer, filter);
-                                                })
+        let contentType = options.params.mode;
+
+        if (contentType === 'deployment') {
+            options.params.scale = 0;
+            engine.scaleService(options, (error) => {
+                checkError(error, 527, cb, () => {
+                    deleteContent();
+                });
+            });
+        }
+        else {
+            deleteContent();
+        }
+
+        function deleteContent() {
+            lib.getDeployer(options, (error, deployer) => {
+                checkError(error, 520, cb, () => {
+                    deployer.extensions.namespaces[contentType].delete({name: options.params.id, qs: { gracePeriodSeconds: 0 }}, (error) => {
+                        checkError(error, 534, cb, () => {
+                            let filter = {
+                                labelSelector: 'soajs.service.label=' + options.params.id //kubernetes references content by name not id, therefore id field is set to content name
+                            };
+                            deployer.core.namespaces.services.get({qs: filter}, (error, servicesList) => { //only one service for a given service can exist
+                                checkError(error, 533, cb, () => {
+                                    if (servicesList && servicesList.items.length > 0) {
+                                        async.each(servicesList.items, (oneService, callback) => {
+                                            deployer.core.namespaces.services.delete({name: oneService.metadata.name}, callback);
+                                        }, (error) => {
+                                            checkError(error, 534, cb, () => {
+                                                cleanup(deployer, filter);
                                             });
-                                        }
-                                        else {
-                                            cleanup(deployer, filter);
-                                        }
-                                    });
+                                        });
+                                    }
+                                    else {
+                                        cleanup(deployer, filter);
+                                    }
                                 });
                             });
                         });
                     });
                 });
             });
-        });
+        }
 
         function cleanup(deployer, filter) {
             deployer.extensions.namespaces.replicasets.delete({qs: filter}, (error) => {
