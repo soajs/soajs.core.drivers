@@ -147,19 +147,19 @@ module.exports = function (grunt) {
 		},
 
 		mochaTest: {
-			unit: {
+			unitDocker: {
 				options: {
 					reporter: 'spec',
 					timeout: 90000
 				},
-				src: ['test/unit/_servers.test.js']
+				src: ['test/unit/_serversDocker.test.js']
 			},
-			integration: {
+			unitKubernetes: {
 				options: {
 					reporter: 'spec',
 					timeout: 90000
 				},
-				src: ['test/integration/*.js']
+				src: ['test/integration/_serversKubernetes.test.js']
 			}
 		},
 
@@ -186,7 +186,7 @@ module.exports = function (grunt) {
 	grunt.registerTask("unit", ['env:mochaTest', 'instrument', 'mochaTest:unit']);
 	//grunt.registerTask("test", ['unit','integration']);
 	grunt.registerTask("test", ['clean', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration']);
-	grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration', 'storeCoverage', 'makeReport', 'coveralls']);
+	grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:unitDocker', 'mochaTest:unitKubernetes', 'storeCoverage', 'makeReport', 'coveralls']);
 	//grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration', 'storeCoverage', 'makeReport']);
 
 };

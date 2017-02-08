@@ -167,7 +167,7 @@ describe("testing docker swarm driver functionality", function() {
                 "variables": [
                     'NODE_ENV=production',
                     'SOAJS_ENV=dashboard',
-
+                    'SOAJS_SOLO=true',
                     'SOAJS_DEPLOY_HA=swarm',
                     'SOAJS_HA_NAME={{.Task.Name}}',
 
@@ -532,7 +532,7 @@ describe("testing docker swarm driver functionality", function() {
         });
 
         //Performing a maintenance operation of a container that does not exist
-        it.skip("Fail - maintenance operation", function(done){
+        it("Fail - maintenance operation", function(done){
             options.params = {
                 "id": "nothing"
             };

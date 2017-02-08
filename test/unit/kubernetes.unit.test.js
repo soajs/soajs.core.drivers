@@ -99,7 +99,7 @@ describe("Testing kubernetes driver functionality", function() {
         it("Success - service deployment global mode", function(done){
 
             options.params = {
-                "env": "dashboard",
+                "env": "dev",
                 "name": "testdeploymentglobalmode",
                 "image": "alpine",
                 "variables": [
@@ -107,7 +107,7 @@ describe("Testing kubernetes driver functionality", function() {
                 ],
                 "labels": {
                     "soajs.content": "true",
-                    "soajs.env.code": "dashboard",
+                    "soajs.env.code": "dev",
                     "soajs.service.name": "testdeploymentglobalmode",
                     "soajs.service.version": "2",
                     "soajs.service.label": "testdeploymentglobalmode"
@@ -143,10 +143,79 @@ describe("Testing kubernetes driver functionality", function() {
             };
 
             drivers.deployService(options, function(error, service){
-                interData.id = service.id;
                 assert.ok(service);
                 setTimeout(function () {
-                    done();
+                    options.params = {
+                        "env": "dev",
+                    };
+
+                    drivers.listServices(options, function(error, service){
+                        interData.globalId = service[0].id
+                        done();
+                    });
+                }, 2000);
+            });
+        });
+
+        //Successfully deploying a service global mode
+        it("Success - service deployment replicated mode (needed for tests below)", function(done){
+
+            options.params = {
+                "env": "dev2",
+                "name": "servicetobemanipulated",
+                "image": "alpine",
+                "variables": [
+                    "Dummy_Variable=variable",
+                ],
+                "labels": {
+                    "soajs.content": "true",
+                    "soajs.env.code": "dev2",
+                    "soajs.service.name": "servicetobemanipulated",
+                    "soajs.service.version": "2",
+                    "soajs.service.label": "servicetobemanipulated"
+                },
+                "cmd": [
+                    "sh",
+                    "-c",
+                    "ping www.google.com"
+                ],
+                "memoryLimit": 200000000,
+                "replication": {
+                    "mode": "deployment",
+                    "replicas": 1
+                },
+                "version": "",
+                "containerDir": "/opt/",
+                "restartPolicy": {
+                    "condition": "any",
+                    "maxAttempts": 5
+                },
+                "network": "soajsnet",
+                "ports": [
+                    {
+                        "name": "service-port",
+                        "isPublished": false,
+                        "target": 4004
+                    },
+                    {
+                        "name": "maintenance-port",
+                        "isPublished": false,
+                        "target": 5004
+                    }
+                ]
+            };
+
+            drivers.deployService(options, function(error, service){
+                assert.ok(service);
+                setTimeout(function () {
+                    options.params = {
+                        "env": "dev2",
+                    };
+
+                    drivers.listServices(options, function(error, service){
+                        interData.id = service[0].id
+                        done();
+                    });
                 }, 2000);
             });
         });
@@ -156,13 +225,13 @@ describe("Testing kubernetes driver functionality", function() {
 
             options.params = {
                 "env": "dashboard",
-                "name": "dashboard_soajs_prx",
+                "name": "proxy",
                 "image": "mikehajj/soajs",
                 "variables": [
                     'NODE_ENV=production',
                     'SOAJS_ENV=dashboard',
 
-                    'SOAJS_DEPLOY_HA=swarm',
+                    'SOAJS_DEPLOY_HA=kubernetes',
                     'SOAJS_HA_NAME={{.Task.Name}}',
 
                     'SOAJS_PROFILE=/opt/soajs/FILES/profiles/profile.js',
@@ -179,7 +248,7 @@ describe("Testing kubernetes driver functionality", function() {
                     "soajs.service.name": "proxy",
                     "soajs.service.group": "SOAJS-Core-Services",
                     "soajs.service.version": "1",
-                    "soajs.service.label": "dashboard_soajs_prx"
+                    "soajs.service.label": "proxy"
                 },
                 "cmd": [
                     "bash",
@@ -188,7 +257,7 @@ describe("Testing kubernetes driver functionality", function() {
                 ],
                 "memoryLimit": 200000000,
                 "replication": {
-                    "mode": "replicated",
+                    "mode": "deployment",
                     "replicas": 2
                 },
                 "version": "",
@@ -199,29 +268,45 @@ describe("Testing kubernetes driver functionality", function() {
                 },
                 "network": "soajsnet",
                 "ports": [
+                    {
+                        "name": "service-port",
+                        "isPublished": false,
+                        "target": 4009
+                    },
+                    {
+                        "name": "maintenance-port",
+                        "isPublished": false,
+                        "target": 5009
+                    }
                 ]
             };
 
             drivers.deployService(options, function(error, service){
-                interData.replicaId = service.id;
                 assert.ok(service);
                 setTimeout(function () {
-                    done();
+                    options.params = {
+                        "env": "dashboard",
+                    };
+
+                    drivers.listServices(options, function(error, service){
+                        interData.replicaId = service[0].id
+                        done();
+                    });
                 }, 10000);
             });
         });
 
         //Failure to deploy service (Deployment exists already)
-        it("Fail - service deployment", function(done){
+        it("Fail - service deployment (Deployment exists already)", function(done){
             options.params = {
                 "env": "dashboard",
-                "name": "dashboard_soajs_prx",
-                "image": "nicolaskhoury/soajs",
+                "name": "proxy",
+                "image": "mikehajj/soajs",
                 "variables": [
                     'NODE_ENV=production',
                     'SOAJS_ENV=dashboard',
 
-                    'SOAJS_DEPLOY_HA=swarm',
+                    'SOAJS_DEPLOY_HA=kubernetes',
                     'SOAJS_HA_NAME={{.Task.Name}}',
 
                     'SOAJS_PROFILE=/opt/soajs/FILES/profiles/profile.js',
@@ -238,7 +323,7 @@ describe("Testing kubernetes driver functionality", function() {
                     "soajs.service.name": "proxy",
                     "soajs.service.group": "SOAJS-Core-Services",
                     "soajs.service.version": "1",
-                    "soajs.service.label": "dashboard_soajs_prx"
+                    "soajs.service.label": "proxy"
                 },
                 "cmd": [
                     "bash",
@@ -247,7 +332,7 @@ describe("Testing kubernetes driver functionality", function() {
                 ],
                 "memoryLimit": 200000000,
                 "replication": {
-                    "mode": "replicated",
+                    "mode": "deployment",
                     "replicas": 2
                 },
                 "version": "",
@@ -258,6 +343,16 @@ describe("Testing kubernetes driver functionality", function() {
                 },
                 "network": "soajsnet",
                 "ports": [
+                    {
+                        "name": "service-port",
+                        "isPublished": false,
+                        "target": 4003
+                    },
+                    {
+                        "name": "maintenance-port",
+                        "isPublished": false,
+                        "target": 5003
+                    }
                 ]
             };
             drivers.deployService(options, function(error, service){
@@ -353,7 +448,8 @@ describe("Testing kubernetes driver functionality", function() {
         it("Fail - delete service", function(done){
             options.params = {
                 "id": "nothing",
-                "replica": "nothing"
+                "replica": "nothing",
+                "mode": "daemonset",
             };
 
             drivers.deleteService(options, function(error, service){
@@ -364,10 +460,24 @@ describe("Testing kubernetes driver functionality", function() {
             });
         });
 
-        //Success in deleting a deployed service
-        it("Success - delete service", function(done){
+        //Success in deleting a deployed replicated service
+        it("Success - delete replicated service", function(done){
             options.params = {
+                "mode": "deployment",
                 "id": interData.id
+            };
+
+            drivers.deleteService(options, function(error, service){
+                assert.ok(service);
+                done();
+            });
+        });
+
+        //Success in deleting a deployed global service
+        it("Success - delete global service", function(done){
+            options.params = {
+                "mode": "daemonset",
+                "id": interData.globalId
             };
 
             drivers.deleteService(options, function(error, service){
@@ -396,12 +506,13 @@ describe("Testing kubernetes driver functionality", function() {
         it("Fail - finding service", function(done){
             options.params = {
                 "env": "nothing",
-                "serviceName": "nothing"
+                "serviceName": "nothing",
+                "version": "nothing"
             };
 
             drivers.findService(options, function(error, service){
-                assert.equal(error.code, '549');
-                assert.equal(error.msg, 'Unable to list the services');
+                assert.equal(error.code, '657');
+                assert.equal(error.msg, 'Could not find a Kubernetes deployment for the specified environment');
                 done();
             });
         });
@@ -464,8 +575,8 @@ describe("Testing kubernetes driver functionality", function() {
 
             drivers.getLatestVersion(options, function(error, serviceVersion){
                 assert.ok(error)
-                assert.equal(error.code, '536');
-                assert.equal(error.msg, "Unable to retrieve the kubernetes service deployment");
+                assert.equal(error.code, '657');
+                assert.equal(error.msg, "Could not find a Kubernetes deployment for the specified environment");
                 done();
             });
         });
@@ -492,8 +603,8 @@ describe("Testing kubernetes driver functionality", function() {
 
             drivers.getLatestVersion(options, function(error, serviceHost){
                 assert.ok(error)
-                assert.equal(error.code, '536');
-                assert.equal(error.msg, "Unable to retrieve the kubernetes service deployment");
+                assert.equal(error.code, '657');
+                assert.equal(error.msg, "Could not find a Kubernetes deployment for the specified environment");
                 done();
             });
         });
@@ -526,15 +637,15 @@ describe("Testing kubernetes driver functionality", function() {
         });
 
         //Performing a maintenance operation of a container that does not exist
-        it.skip("Fail - maintenance operation", function(done){
+        it("Fail - maintenance operation", function(done){
             options.params = {
                 "id": "nothing"
             };
 
             drivers.maintenance(options, function(error, response){
                 assert.ok(error);
-                assert.equal(error.code, "659");
-                assert.equal(error.msg, "Unable to list kubernetes deployment pods");
+                assert.equal(error.code, "657");
+                assert.equal(error.msg, "Could not find a Kubernetes deployment for the specified environment");
                 done();
             });
         });
@@ -548,7 +659,7 @@ describe("Testing kubernetes driver functionality", function() {
             };
 
             drivers.maintenance(options, function(error, response){
-                assert.ok(response)
+                assert.ok(response);
                 done();
             });
         });
@@ -567,11 +678,11 @@ describe("Testing kubernetes driver functionality", function() {
         });
 
         //Getting the logs of a container that does exist
-        it.skip("Success - get container logs", function(done){
+        it("Success - get container logs", function(done){
             options.params = {
                 "taskId": interData.taskId
             };
-            options.driver = "swarm.local";
+            options.driver = "kubernetes.local";
             drivers.getContainerLogs(options, function(error, logs){
                 assert.ok(logs);
                 done();
