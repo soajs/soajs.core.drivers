@@ -253,9 +253,14 @@ const engine = {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
                 let filter = {};
-                if (options.params && options.params.env) {
+                if (options.params && options.params.env && !options.params.custom) {
                     filter = {
-                        labelSelector: 'soajs.env.code=' + options.params.env
+                        labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env
+                    };
+                }
+                else if (options.params && options.params.custom) {
+                    filter = {
+                        labelSelector: 'soajs.content != true'
                     };
                 }
 
@@ -269,7 +274,7 @@ const engine = {
 
                                 async.map(deployments, (oneDeployment, callback) => {
                                     filter = {
-                                        labelSelector: 'soajs.env.code=' + options.params.env + ', soajs.service.label= ' + oneDeployment.metadata.name
+                                        labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env + ', soajs.service.label= ' + oneDeployment.metadata.name
                                     };
                                     deployer.core.namespaces.services.get({qs: filter}, (error, serviceList) => {
                                         if (error) {
@@ -283,7 +288,7 @@ const engine = {
                                         }
 
                                         filter = {
-                                            labelSelector: 'soajs.service.label=' + record.name
+                                            labelSelector: 'soajs.content=true, soajs.service.label=' + record.name
                                         };
                                         deployer.core.namespaces.pods.get({qs: filter}, (error, podsList) => {
                                             if (error) {
@@ -310,48 +315,6 @@ const engine = {
             });
         });
      },
-
-    /**
-     * Adds a node to a cluster
-     * todo: should be deprecated
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
-    addNode (options, cb) {
-        lib.getDeployer(options, (error, deployer) => {
-            checkError(error, 520, cb, () => {
-                engine.listNodes(options, (error, nodeList) => {
-                    checkError(error, 521, cb, () => {
-                        async.detect(nodeList.items, (oneNode, callback) => {
-                            for (var i = 0; i < oneNode.status.addresses.length; i++) {
-                                if (oneNode.status.addresses[i].type === 'LegacyHostIP') {
-                                    return callback(oneNode.status.addresses[i].address === options.soajs.inputmaskData.host);
-                                }
-                            }
-
-                            return callback(false);
-                        }, (targetNodeRecord) => {
-                            if (!targetNodeRecord) {
-                                return cb({
-                                    "error": "error",
-                                    "code": 522,
-                                    "msg": errorFile[522]
-                                });
-                            }
-
-                            var nodeInfo = {
-                                role: targetNodeRecord.role,
-                                name: targetNodeRecord.name
-                            };
-
-                            return cb(null, targetNodeRecord, nodeInfo);
-                        });
-                    });
-                });
-            });
-        });
-    },
 
     /**
      * Removes a node from a cluster

@@ -442,43 +442,61 @@ const engine = {
 		lib.getDeployer(options, (error, deployer) => {
 			checkError(error, 540, cb, () => {
 				let params = {};
-				if (options.params && options.params.env) {
+				if (options.params && options.params.env && !options.params.custom) {
 					params.filters = { label: [ 'soajs.content=true', 'soajs.env.code=' + options.params.env ] };
 				}
 
 				deployer.listServices(params, (error, services) => {
 					checkError(error, 549, cb, () => {
-						async.map(services, (oneService, callback) => {
-							let record = lib.buildServiceRecord({ service: oneService });
-
-							if (options.params && options.params.excludeTasks) {
-								return callback(null, record);
-							}
-
-							let params = {
-								filters: { service: [oneService.Spec.Name] }
-							};
-							deployer.listTasks(params, (error, serviceTasks) => {
-								if (error) {
-									return callback(error);
-								}
-
-								async.map(serviceTasks, (oneTask, callback) => {
-									return callback(null, lib.buildTaskRecord({ task: oneTask, serviceName: oneService.Spec.Name }));
-								}, (error, tasks) => {
-									if (error) {
-										return callback(error);
-									}
-
-									record.tasks = tasks;
-									return callback(null, record);
-								});
+						/*
+						  NOTE: swarm api does not support filtering based on the inequality of specific labels
+						 		for example: soajs.content != true can't be used to get all non-soajs services
+								filtering of custom services is done manually for now until support is added
+						*/
+						if (options.params && options.params.custom) {
+							async.filter(services, (oneService, callback) => {
+								return callback(null, (!oneService.Spec || !oneService.Spec.Labels || !oneService.Spec.Labels['soajs.content']));
+							}, (error, services) => {
+								processServicesData(deployer, services, cb);
 							});
-						}, cb);
+						}
+						else {
+							processServicesData(deployer, services, cb);
+						}
 					});
 				});
 			});
 		});
+
+		function processServicesData(deployer, services, cb) {
+			async.map(services, (oneService, callback) => {
+				let record = lib.buildServiceRecord({ service: oneService });
+
+				if (options.params && options.params.excludeTasks) {
+					return callback(null, record);
+				}
+
+				let params = {
+					filters: { service: [oneService.Spec.Name] }
+				};
+				deployer.listTasks(params, (error, serviceTasks) => {
+					if (error) {
+						return callback(error);
+					}
+
+					async.map(serviceTasks, (oneTask, callback) => {
+						return callback(null, lib.buildTaskRecord({ task: oneTask, serviceName: oneService.Spec.Name }));
+					}, (error, tasks) => {
+						if (error) {
+							return callback(error);
+						}
+
+						record.tasks = tasks;
+						return callback(null, record);
+					});
+				});
+			}, cb);
+		}
 	},
 
 	/**
