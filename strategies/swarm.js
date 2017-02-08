@@ -596,6 +596,11 @@ const engine = {
 					checkError(error, 550, cb, () => {
 						let update = serviceInfo.Spec;
 						update.version = serviceInfo.Version.Index;
+
+						if (!update.TaskTemplate) update.TaskTemplate = {};
+						if (!update.TaskTemplate.ContainerSpec) update.TaskTemplate.ContainerSpec = {};
+						if (!update.TaskTemplate.ContainerSpec.Env) update.TaskTemplate.ContainerSpec.Env = [];
+
 						update.TaskTemplate.ContainerSpec.Env.push('SOAJS_REDEPLOY_TRIGGER=true');
 						if (options.params.ui) { //in case of rebuilding nginx, pass custom ui environment variables
 							update.TaskTemplate.ContainerSpec.Env.push('SOAJS_GIT_REPO=' + options.params.ui.repo);
