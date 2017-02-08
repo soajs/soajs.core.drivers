@@ -159,7 +159,7 @@ module.exports = function (grunt) {
 					reporter: 'spec',
 					timeout: 90000
 				},
-				src: ['test/integration/_serversKubernetes.test.js']
+				src: ['test/unit/_serversKubernetes.test.js']
 			}
 		},
 

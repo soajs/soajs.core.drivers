@@ -396,7 +396,8 @@ describe("Testing kubernetes driver functionality", function() {
         //Failure in redeploying a deployed service
         it("Fail - redeploy service", function(done){
             options.params = {
-                "id": "nothing"
+                "id": "nothing",
+                "mode": "deployment"
             };
 
             drivers.redeployService(options, function(error, service){
@@ -410,7 +411,8 @@ describe("Testing kubernetes driver functionality", function() {
         //Success in redeploying a deployed service without UI
         it("Success - redeploy service without UI", function(done){
             options.params = {
-                "id": interData.id
+                "id": interData.id,
+                "mode": "deployment"
             };
 
             drivers.redeployService(options, function(error, service){
@@ -424,7 +426,8 @@ describe("Testing kubernetes driver functionality", function() {
         //Success in redeploying a deployed service with UI
         it("Success - redeploy service with UI", function(done){
             options.params = {
-                "id": interData.id
+                "id": interData.id,
+                "mode": "deployment"
             };
 
             options.params.ui ={
