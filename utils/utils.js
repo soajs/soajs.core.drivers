@@ -2,6 +2,7 @@
 const util = require('util'); //NOTE: util is a native package in node, no need to include it in package.json
 const errorFile = require('../utils/errors.js');
 
+const gridfsColl = 'fs.files';
 
 const Docker = require('dockerode');
 const Grid = require('gridfs-stream');

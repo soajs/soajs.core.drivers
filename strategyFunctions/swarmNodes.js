@@ -9,7 +9,7 @@ const async = require('async');
 const request = require('request');
 const gridfsColl = 'fs.files';
 
-module.exports = {
+var engine = {
     /**
      * Inspect cluster, returns general cluster info + list of manager nodes
      *
@@ -181,3 +181,5 @@ module.exports = {
         });
     }
 };
+
+module.exports = engine;
