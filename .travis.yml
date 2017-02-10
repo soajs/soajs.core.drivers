@@ -20,7 +20,6 @@ addons:
 before_script:
   - npm install -g grunt-cli
   - docker pull alpine:latest
-  - docker pull soajsorg/soajs
 
 script:
   - grunt coverage

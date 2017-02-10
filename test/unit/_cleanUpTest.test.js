@@ -5,10 +5,7 @@ describe("Clean up kubneretes and docker deployments", function () {
     //Remove existing docker services
     it("Cleanup docker services", function (done) {
         shell.exec("docker service rm $(docker service ls -q)");
-        setTimeout(function(){
-        	
-            done();
-        }, 1000)
+        done();
     });
 
     //Remove existing kubernetes deployments
