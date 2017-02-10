@@ -1,0 +1,26 @@
+sudo: required
+
+language: node_js
+
+node_js: 6.9.5
+
+services:
+  - docker
+
+branches:
+  only:
+    - staging
+    - master
+
+addons:
+  hosts:
+    - localhost
+    - dev-controller
+
+before_script:
+  - npm install -g grunt-cli
+  - docker pull alpine:latest
+  - docker pull soajsorg/soajs
+
+script:
+  - grunt coverage
