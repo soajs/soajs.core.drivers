@@ -26,12 +26,6 @@ describe("testing docker swarm driver functionality", function() {
 
     //Testing the different methods of node and cluster management
     describe("Testing docker swarm cluster/node management", function() {
-	    beforeEach(function(done){
-		    setTimeout(function(){
-			    done();
-		    }, 2000);
-	    });
-	    
     	//Success inspecting a cluster
         it("Success - inspecting a cluster", function(done) {
             drivers.inspectCluster(options, function(error, cluster){
@@ -107,12 +101,6 @@ describe("testing docker swarm driver functionality", function() {
 
     //Testing the different methods of service management
     describe("Testing docker swarm service management", function() {
-	    beforeEach(function(done){
-		    setTimeout(function(){
-			    done();
-		    }, 2000);
-	    });
-	    
         //Successfully deploying a service global mode
         it("Success - service deployment global mode", function(done){
 
@@ -396,12 +384,6 @@ describe("testing docker swarm driver functionality", function() {
 
     //Test the different scenarios of finding/listing/inspection docker swarm services
     describe("testing docker swarm service finding/listing/inspection", function(){
-	    beforeEach(function(done){
-		    setTimeout(function(){
-			    done();
-		    }, 2000);
-	    });
-	    
     	//Finding a service that does exist
         it("Success - finding service", function(done){
             options.params = {
@@ -524,12 +506,6 @@ describe("testing docker swarm driver functionality", function() {
 
     //Test the different methods of docker swarm tasks/containers
     describe("Testing docker swarm task operations", function(){
-    	beforeEach(function(done){
-			setTimeout(function(){
-		        done();
-			}, 2000);
-	    });
-    	
         //Inspecting a task that does not exist
         it("Fail - inspecting task", function(done){
             options.params = {
