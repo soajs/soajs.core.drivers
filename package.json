@@ -19,9 +19,27 @@
   },
   "dependencies": {
     "async": "^2.1.4",
-    "dockerode": "^2.3.1",
-    "gridfs-stream" : "*",
+    "dockerode": "aff04/dockerode.git",
+    "gridfs-stream": "*",
     "kubernetes-client": "^3.0.0",
-    "request": "*"
+    "request": "*",
+    "jshint": "2.9.4",
+    "lodash": "4.17.4",
+    "mocha": "3.2.0",
+    "shelljs": "0.7.5"
+  },
+  "devDependencies": {
+    "bcrypt": "1.0.2",
+    "express": "4.14.1",
+    "grunt": "^1.0.1",
+    "grunt-contrib-jshint": "1.1.0",
+    "grunt-jsdoc": "2.1.0",
+    "grunt-contrib-clean": "1.0.0",
+    "grunt-contrib-copy": "*",
+    "grunt-mocha-test": "0.13.2",
+    "grunt-env": "0.4.4",
+    "grunt-istanbul": "0.7.2",
+    "grunt-coveralls": "1.0.1",
+    "http-proxy": "1.16.2"
   }
 }

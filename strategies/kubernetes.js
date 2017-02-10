@@ -212,7 +212,7 @@ const engine = {
     inspectNode (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
-                deployer.core.namespaces.node.get({name: options.params.id}, (error, node) => {
+                deployer.core.node.get({name: options.params.id}, (error, node) => {
                     checkError(error, 655, cb, () => {
                         return cb(null, lib.buildNodeRecord({ node }));
                     });
@@ -379,6 +379,7 @@ const engine = {
         if (options.params.labels['soajs.service.name'] !== 'controller') {
             service.metadata.name += '-service';
         }
+
         service.metadata.labels = options.params.labels;
         service.spec.selector = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
 
@@ -402,7 +403,6 @@ const engine = {
                 service.spec.ports.push(portConfig);
             });
         }
-
         let payload = {};
         if (options.params.replication.mode === 'deployment') {
             payload = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/deployment.template.js'));
@@ -563,8 +563,8 @@ const engine = {
         lib.getDeployer(options, (error, deployer) => {
             checkError(error, 520, cb, () => {
                 deployer.extensions.namespaces.deployment.get(options.params.id, (error, deployment) => {
-                    checkError(error, 528, cb, () => {
-                        let deploymentRecord = lib.buildDeployerOptions({ deployment });
+                    checkError(error, 536, cb, () => {
+                        let deploymentRecord = lib.buildDeploymentRecord({ deployment });
 
                         if (options.params.excludeTasks) {
                             return cb(null, { deployment: deploymentRecord });
@@ -627,7 +627,6 @@ const engine = {
      */
     deleteService (options, cb) {
         let contentType = options.params.mode;
-
         if (contentType === 'deployment') {
             options.params.scale = 0;
             engine.scaleService(options, (error) => {
@@ -741,6 +740,8 @@ const engine = {
 
                             deployer.core.namespaces.pods.log(params, (error, logs) => {
                                 check(error, 537, () => {
+                                    if(cb)
+                                        return cb(null,logs);
                                     return res.jsonp(options.soajs.buildResponse(null, { data: logs }));
                                 });
                             });
@@ -750,12 +751,14 @@ const engine = {
             });
         });
 
-        function check(error, code, cb) {
-            if (error) {
+        function check(error, code, cb1) {
+            if (error && !cb) {
                 return res.jsonp(options.soajs.buildResponse({code: code, msg: errorFile[code]}));
             }
-
-            return cb();
+            else if (error && cb) {
+                return cb({code: code, msg: errorFile[code]});
+            }
+            return cb1();
         }
     },
 
@@ -774,6 +777,7 @@ const engine = {
                 };
                 deployer.core.namespaces.pods.get({qs: filter}, (error, podsList) => {
                     checkError(error, 659, cb, () => {
+                        checkError(podsList.items.length == 0, 657, cb, () => {
                         async.map(podsList.items, (onePod, callback) => {
                             let podInfo = {
                                 id: onePod.metadata.name,
@@ -818,6 +822,7 @@ const engine = {
                             }, cb);
                         });
                     });
+                    });
                 });
             });
         });
@@ -840,7 +845,8 @@ const engine = {
 
                 deployer.extensions.deployments.get({qs: filter}, (error, deploymentList) => {
                     checkError(error, 536, cb, () => {
-                        deploymentList.items.forEach((oneDeployment) => {
+                        checkError(deploymentList.items.length == 0, 657, cb, () => {
+                            deploymentList.items.forEach((oneDeployment) => {
                             if (oneDeployment.metadata && oneDeployment.metadata.labels) {
                                 let v = oneDeployment.metadata.labels['soajs.service.version'];
 
@@ -849,7 +855,7 @@ const engine = {
                                 }
                             }
                         });
-
+                    });
                         return cb(null, latestVersion);
                     });
                 });

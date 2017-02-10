@@ -710,7 +710,7 @@ const engine = {
 
  				deployer.listServices(params, (error, services) => {
  					checkError(error, 549, cb, () => {
- 						checkError(services.length === 0, 550, cb, () => {
+ 						checkError(services.length === 0, 661, cb, () => {
 							//NOTE: only one service with the same name and version can exist in a given environment
 							return cb(null, lib.buildServiceRecord({ service: services[0] }));
 						});
@@ -773,8 +773,7 @@ const engine = {
 	 * @param {Function} cb
 	 * @returns {*}
 	 */
-	 getContainerLogs (options) {
-
+	 getContainerLogs (options, cb) {
 		 /**
 		 * 1. inspect task provided as input, get container id and node id
 		 * 2. inspect target node and get its ip
@@ -791,7 +790,6 @@ const engine = {
 					check(error, 555, () => {
 						let containerId = taskInfo.Status.ContainerStatus.ContainerID;
 						let nodeId = taskInfo.NodeID;
-
 						options.params.id = nodeId;
 						options.deployerConfig.flags = { targetNode: true, swarmMember: true };
 						lib.getDeployer(options, (error, deployer) => {
@@ -814,6 +812,10 @@ const engine = {
 
 										logStream.on('end', () => {
 											logStream.destroy();
+											//this if statement is used for test cases.
+											//originally, the data is returned as a response due to the limitations of angular
+											if(cb)
+												return cb(null,data);
 											return res.jsonp(options.soajs.buildResponse(null, { data }));
 										});
 									});
@@ -825,12 +827,14 @@ const engine = {
 			});
 		 });
 
-		 function check(error, code, cb) {
-			 if (error) {
+		 function check(error, code, cb1) {
+			 if (error && !cb) {
 				 return res.jsonp(options.soajs.buildResponse({code: code, msg: errorFile[code]}));
 			 }
-
-			 return cb();
+			 else if (error && cb) {
+			 	return cb({code: code, msg: errorFile[code]});
+			 }
+			 return cb1();
 		 }
 	 },
 
@@ -842,13 +846,16 @@ const engine = {
  	 * @returns {*}
  	 */
 	 maintenance (options, cb) {
-
 		 lib.getDeployer(options, (error, deployer) => {
 			checkError(error, 540, cb, () => {
 				let params = {
 					filters: { service: [options.params.id] }
 				};
 				deployer.listTasks(params, (error, tasks) => {
+					console.log("============")
+					console.log(error)
+					console.log(tasks)
+					console.log("=============")
 					checkError(error, 552, cb, () => {
 						async.map(tasks, (oneTask, callback) => {
 							async.detect(oneTask.NetworksAttachments, (oneConfig, callback) => {
@@ -862,7 +869,7 @@ const engine = {
 							});
 						}, (error, targets) => {
 							async.map(targets, (oneTarget, callback) => {
-								if (!oneTarget.networkInfo.Addresses || oneTarget.networkInfo.Addresses.length === 0) {
+								if (!oneTarget.networkInfo || !oneTarget.networkInfo.Addresses || oneTarget.networkInfo.Addresses.length === 0) {
 									return callback(null, {
 										result: false,
 										ts: new Date().getTime(),
@@ -917,19 +924,21 @@ const engine = {
 					filters: { label: [ 'soajs.content=true', 'soajs.env.code=' + options.params.env, 'soajs.service.name=' + options.params.serviceName ] }
 				};
 				deployer.listServices(params, (error, services) => {
-					checkError(error, 549, cb, () => {
-						services.forEach((oneService) => {
-							if (oneService.Spec && oneService.Spec.Labels && oneService.Spec.Labels['soajs.service.version']) {
-								v = parseInt(oneService.Spec.Labels['soajs.service.version']);
+                    checkError(error, 549, cb, () => {
+                    	checkError(services.length == 0, 661, cb, () => {
+                        services.forEach((oneService) => {
+                            if (oneService.Spec && oneService.Spec.Labels && oneService.Spec.Labels['soajs.service.version']) {
+                                v = parseInt(oneService.Spec.Labels['soajs.service.version']);
 
-								if (v > latestVersion) {
-									latestVersion = v;
-								}
-							}
-						});
+                                if (v > latestVersion) {
+                                    latestVersion = v;
+                                }
+                            }
+                        });
 
-						return cb(null, latestVersion);
-					});
+                        return cb(null, latestVersion);
+                    });
+                });
 				});
 			});
 		});
