@@ -51,7 +51,13 @@ describe("", function () {
 			    });
 		    });
 	    });
-    	
+	
+	    beforeEach(function(done){
+		    setTimeout(function(){
+			    done();
+		    }, 700);
+	    });
+	    
         //Remove existing docker services
         it("Remove existing docker services", function (done) {
             shell.exec("docker service rm $(docker service ls -q)");
