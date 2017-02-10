@@ -3,7 +3,7 @@ var fs = require('fs');
 var assert = require('assert');
 var helper = require("../helper.js");
 var drivers = helper.requireModule('./index.js');
-
+var imagePrefix = process.env.SOAJS_IMAGE_PREFIX;
 
 describe("Testing kubernetes driver functionality", function() {
     //Used when data from one testCase is needed in another test case
@@ -226,7 +226,7 @@ describe("Testing kubernetes driver functionality", function() {
             options.params = {
                 "env": "dashboard",
                 "name": "proxy",
-                "image": "mikehajj/soajs",
+                "image": imagePrefix + "/soajs",
                 "variables": [
                     'NODE_ENV=production',
                     'SOAJS_ENV=dashboard',
@@ -301,7 +301,7 @@ describe("Testing kubernetes driver functionality", function() {
             options.params = {
                 "env": "dashboard",
                 "name": "proxy",
-                "image": "mikehajj/soajs",
+                "image": imagePrefix + "/soajs",
                 "variables": [
                     'NODE_ENV=production',
                     'SOAJS_ENV=dashboard',

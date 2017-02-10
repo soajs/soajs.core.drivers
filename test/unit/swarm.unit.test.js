@@ -3,7 +3,7 @@ var fs = require('fs');
 var assert = require('assert');
 var helper = require("../helper.js");
 var drivers = helper.requireModule('./index.js');
-
+var imagePrefix = process.env.SOAJS_IMAGE_PREFIX;
 
 describe("testing docker swarm driver functionality", function() {
     //Used when data from one testCase is needed in another test case
@@ -163,7 +163,7 @@ describe("testing docker swarm driver functionality", function() {
             options.params = {
                 "env": "dashboard",
                 "name": "dashboard_soajs_prx",
-                "image": "nicolaskhoury/soajs",
+                "image": imagePrefix + "/soajs",
                 "variables": [
                     'NODE_ENV=production',
                     'SOAJS_ENV=dashboard',
@@ -222,7 +222,7 @@ describe("testing docker swarm driver functionality", function() {
             options.params = {
                 "env": "dashboard",
                 "name": "dashboard_soajs_prx",
-                "image": "nicolaskhoury/soajs",
+                "image": imagePrefix + "/soajs",
                 "variables": [
                     'NODE_ENV=production',
                     'SOAJS_ENV=dashboard',
@@ -506,7 +506,7 @@ describe("testing docker swarm driver functionality", function() {
     });
 
     //Test the different methods of docker swarm tasks/containers
-    describe("Testing tocker swarm task operations", function(){
+    describe("Testing docker swarm task operations", function(){
         //Inspecting a task that does not exist
         it("Fail - inspecting task", function(done){
             options.params = {
@@ -578,6 +578,8 @@ describe("testing docker swarm driver functionality", function() {
                 "taskId": interData.taskId
             };
             options.driver = "swarm.local";
+            
+            console.log(options);
             drivers.getContainerLogs(options, function(error, logs){
                 assert.ok(logs);
                 done();

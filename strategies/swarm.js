@@ -852,10 +852,6 @@ const engine = {
 					filters: { service: [options.params.id] }
 				};
 				deployer.listTasks(params, (error, tasks) => {
-					console.log("============")
-					console.log(error)
-					console.log(tasks)
-					console.log("=============")
 					checkError(error, 552, cb, () => {
 						async.map(tasks, (oneTask, callback) => {
 							async.detect(oneTask.NetworksAttachments, (oneConfig, callback) => {

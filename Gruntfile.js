@@ -101,14 +101,16 @@ module.exports = function (grunt) {
 				// SOAJS_TEST: true,
 				SOAJS_ENV: "dev",
 				APP_DIR_FOR_CODE_COVERAGE: '../test/coverage/instrument/',
-				SOAJS_DAEMON_GRP_CONF: 'group1'
+				SOAJS_DAEMON_GRP_CONF: 'group1',
+				SOAJS_IMAGE_PREFIX : "soajsorg"
 				//SOAJS_SRVIP: '127.0.0.1'
 			},
 			coverage: {
 				// SOAJS_TEST: true,
 				SOAJS_ENV: "dev",
 				APP_DIR_FOR_CODE_COVERAGE: '../test/coverage/instrument/',
-				SOAJS_DAEMON_GRP_CONF: 'group1'
+				SOAJS_DAEMON_GRP_CONF: 'group1',
+				SOAJS_IMAGE_PREFIX : "soajsorg"
 				//SOAJS_SRVIP: '127.0.0.1'
 			}
 		},
