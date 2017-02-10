@@ -1,5 +1,4 @@
 "use strict";
-var assert = require('assert');
 var shell = require('shelljs');
 
 var controller = null;
