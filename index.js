@@ -5,17 +5,7 @@
 let fs = require('fs');
 let cache = {};
 let errorFile = require('./utils/errors.js');
-
-function checkError(error, code, cb, scb) {
-    if(error)
-        return cb({
-            "error": error,
-            "code": code,
-            "msg": errorFile[code]
-        });
-    else
-        return scb();
-}
+const utils = require('./utils/utils.js');
 
 function checkIfSupported(options, cb, fcb) {
     let isSupported = ((options.strategy[options.function] && typeof (options.strategy[options.function]) === 'function') ? true : false);
@@ -74,7 +64,7 @@ module.exports = {
      */
     inspectCluster (options, cb) {
         getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
+            utils.checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'inspectCluster'}, cb, () => {
                     strategy.inspectCluster(options, cb);
                 });
@@ -91,7 +81,7 @@ module.exports = {
      */
     addNode (options, cb) {
         getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
+            utils.checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'addNode'}, cb, () => {
                     strategy.addNode(options, cb);
                 });
@@ -108,7 +98,7 @@ module.exports = {
      */
     removeNode (options, cb) { //options should include backgroundCB
         getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
+            utils.checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'removeNode'}, cb, () => {
                     strategy.removeNode(options, cb);
                 });
@@ -125,7 +115,7 @@ module.exports = {
      */
     updateNode (options, cb) {
         getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
+            utils.checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'updateNode'}, cb, () => {
                     strategy.updateNode(options, cb);
                 });
@@ -142,7 +132,7 @@ module.exports = {
      */
     inspectNode (options, cb) {
         getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
+            utils.checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'inspectNode'}, cb, () => {
                     strategy.inspectNode(options, cb);
                 });
@@ -159,7 +149,7 @@ module.exports = {
      */
     listNodes (options, cb) {
         getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
+            utils.checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'listNodes'}, cb, () => {
                     strategy.listNodes(options, cb);
                 });
@@ -176,7 +166,7 @@ module.exports = {
      */
     listServices (options, cb) {
         getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
+            utils.checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'listServices'}, cb, () => {
                     strategy.listServices(options, cb);
                 });
@@ -193,7 +183,7 @@ module.exports = {
      */
     deployService (options, cb) {
         getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
+            utils.checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'deployService'}, cb, () => {
                     strategy.deployService(options, cb);
                 });
@@ -210,7 +200,7 @@ module.exports = {
      */
     redeployService (options, cb) {
         getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
+            utils.checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'redeployService'}, cb, () => {
                     strategy.redeployService(options, cb);
                 });
@@ -227,7 +217,7 @@ module.exports = {
      */
     scaleService (options, cb) {
         getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
+            utils.checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'scaleService'}, cb, () => {
                     strategy.scaleService(options, cb);
                 });
@@ -244,7 +234,7 @@ module.exports = {
      */
     inspectService (options, cb) {
         getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
+            utils.checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'inspectService'}, cb, () => {
                     strategy.inspectService(options, cb);
                 });
@@ -261,7 +251,7 @@ module.exports = {
      */
     findService (options, cb) {
         getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
+            utils.checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'findService'}, cb, () => {
                     strategy.findService(options, cb);
                 });
@@ -278,7 +268,7 @@ module.exports = {
      */
     inspectTask (options, cb) {
         getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
+            utils.checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'inspectTask'}, cb, () => {
                     strategy.inspectTask(options, cb);
                 });
@@ -295,7 +285,7 @@ module.exports = {
      */
     deleteService (options, cb) {
         getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
+            utils.checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'deleteService'}, cb, () => {
                     strategy.deleteService(options, cb);
                 });
@@ -312,7 +302,7 @@ module.exports = {
      */
     getContainerLogs (options, cb) {
         getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
+            utils.checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'getContainerLogs'}, cb, () => {
                     strategy.getContainerLogs(options, cb);
                 });
@@ -329,7 +319,7 @@ module.exports = {
     */
     maintenance (options, cb) {
         getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
+            utils.checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'maintenance'}, cb, () => {
                     strategy.maintenance(options, cb);
                 });
@@ -346,7 +336,7 @@ module.exports = {
      */
     getLatestVersion (options, cb) {
         getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
+            utils.checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'getLatestVersion'}, cb, () => {
                     strategy.getLatestVersion(options, cb);
                 });
@@ -363,7 +353,7 @@ module.exports = {
      */
     getServiceHost (options, cb) {
         getStrategy(options, (error, strategy) => {
-            checkError(error, 518, cb, () => {
+            utils.checkError(error, 518, cb, () => {
                 checkIfSupported({strategy: strategy, function: 'getServiceHost'}, cb, () => {
                     strategy.getServiceHost(options, cb);
                 });

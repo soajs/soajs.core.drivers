@@ -578,8 +578,6 @@ describe("testing docker swarm driver functionality", function() {
                 "taskId": interData.taskId
             };
             options.driver = "swarm.local";
-            
-            console.log(options);
             drivers.getContainerLogs(options, function(error, logs){
                 assert.ok(logs);
                 done();
