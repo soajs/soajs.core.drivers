@@ -579,6 +579,7 @@ describe("testing docker swarm driver functionality", function() {
             };
             options.driver = "swarm.local";
             drivers.getContainerLogs(options, function(error, logs){
+            	assert.ifError(error);
                 assert.ok(logs);
                 done();
             });
