@@ -206,7 +206,7 @@ describe("testing docker swarm driver functionality", function() {
                 "memoryLimit": 200000000,
                 "replication": {
                     "mode": "replicated",
-                    "replicas": 2
+                    "replicas": 1
                 },
                 "version": "",
                 "containerDir": '/opt/soajs/FILES/deployer/',
@@ -304,7 +304,7 @@ describe("testing docker swarm driver functionality", function() {
         it("Success - Scale service", function(done){
             options.params = {
                 "id": interData.replicaId,
-                "scale": 4
+                "scale": 2
             };
 
             drivers.scaleService(options, function(error, service){
