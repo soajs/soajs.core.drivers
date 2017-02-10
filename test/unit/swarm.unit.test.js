@@ -29,7 +29,7 @@ describe("testing docker swarm driver functionality", function() {
 	    beforeEach(function(done){
 		    setTimeout(function(){
 			    done();
-		    }, 700);
+		    }, 2000);
 	    });
 	    
     	//Success inspecting a cluster
@@ -110,7 +110,7 @@ describe("testing docker swarm driver functionality", function() {
 	    beforeEach(function(done){
 		    setTimeout(function(){
 			    done();
-		    }, 700);
+		    }, 2000);
 	    });
 	    
         //Successfully deploying a service global mode
@@ -399,7 +399,7 @@ describe("testing docker swarm driver functionality", function() {
 	    beforeEach(function(done){
 		    setTimeout(function(){
 			    done();
-		    }, 700);
+		    }, 2000);
 	    });
 	    
     	//Finding a service that does exist
@@ -527,7 +527,7 @@ describe("testing docker swarm driver functionality", function() {
     	beforeEach(function(done){
 			setTimeout(function(){
 		        done();
-			}, 700);
+			}, 2000);
 	    });
     	
         //Inspecting a task that does not exist
