@@ -132,7 +132,9 @@ var engine = {
             payload = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/daemonset.template.js'));
             options.params.type = 'daemonset';
         }
-
+        console.log("========")
+        console.log(JSON.stringify(payload))
+        console.log("========")
         payload.metadata.name = cleanLabel(options.params.name);
         payload.metadata.labels = options.params.labels;
         payload.metadata.labels['soajs.service.label'] = cleanLabel(payload.metadata.labels['soajs.service.label']);
