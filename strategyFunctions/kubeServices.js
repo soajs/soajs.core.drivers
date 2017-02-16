@@ -51,7 +51,12 @@ var engine = {
                                             return callback(error);
                                         }
 
-                                        let record = lib.buildDeploymentRecord({ deployment: oneDeployment , service: serviceList.items[0] });
+                                        let service = {};
+                                        if (serviceList && serviceList.items && Array.isArray(serviceList.items) && serviceList.items.length > 0) {
+                                            service = serviceList.items[0];
+                                        }
+
+                                        let record = lib.buildDeploymentRecord({ deployment: oneDeployment , service });
 
                                         if (options.params && options.params.excludeTasks) {
                                             return callback(null, record);
@@ -130,11 +135,19 @@ var engine = {
         }
         let payload = {};
         if (options.params.replication.mode === 'deployment') {
-            payload = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/deployment.template.js'));
+            let deploymentSchemaPath = __dirname + '/../schemas/kubernetes/deployment.template.js';
+            if (require.resolve(deploymentSchemaPath)) {
+                delete require.cache[require.resolve(deploymentSchemaPath)];
+            }
+            payload = utils.cloneObj(require(deploymentSchemaPath));
             options.params.type = 'deployment';
         }
         else if (options.params.replication.mode === 'daemonset') {
-            payload = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/daemonset.template.js'));
+            let daemonsetSchemaPath = _dirname + '/../schemas/kubernetes/daemonset.template.js';
+            if (require.resolve(daemonsetSchemaPath)) {
+                delete require.cache[require.resolve(daemonsetSchemaPath)];
+            }
+            payload = utils.cloneObj(require(daemonsetSchemaPath));
             options.params.type = 'daemonset';
         }
 
@@ -406,7 +419,7 @@ var engine = {
                             };
                             deployer.core.namespaces.services.get({qs: filter}, (error, servicesList) => { //only one service for a given service can exist
                                 utils.checkError(error, 533, cb, () => {
-                                    if (servicesList && servicesList.items.length > 0) {
+                                    if (servicesList && servicesList.hasOwnProperty('items') && servicesList.items.length > 0) {
                                         async.each(servicesList.items, (oneService, callback) => {
                                             deployer.core.namespaces.services.delete({name: oneService.metadata.name}, callback);
                                         }, (error) => {

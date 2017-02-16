@@ -397,7 +397,7 @@ var utils = {
             }
 
             function getPorts (service) {
-                if (!service) return [];
+                if (!service || !service.hasOwnProperty('spec') || !service.spec.hasOwnProperty('ports')) return [];
 
                 let deploymentPorts = [];
                 service.spec.ports.forEach((onePortConfig) => {

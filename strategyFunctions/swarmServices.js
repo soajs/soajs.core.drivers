@@ -88,7 +88,12 @@ var engine = {
      * @returns {*}
      */
     deployService (options, cb) {
-        let payload = utils.cloneObj(require(__dirname + '/../schemas/swarm/service.template.js'));
+        let serviceSchemaPath = __dirname + '/../schemas/swarm/service.template.js';
+        if (require.resolve(serviceSchemaPath)) {
+            delete require.cache[require.resolve(serviceSchemaPath)];
+        }
+
+        let payload = utils.cloneObj(require(serviceSchemaPath));
         options.params.variables.push('SOAJS_DEPLOY_HA=swarm');
         options.params.variables.push('SOAJS_HA_NAME={{.Task.Name}}');
 
