@@ -222,16 +222,18 @@ var engine = {
                     payload.spec.template.spec.containers[0].readinessProbe.httpGet.path = '/';
                     payload.spec.template.spec.containers[0].readinessProbe.httpGet.port = 'http';
                 }
-
-                payload.spec.template.spec.containers[0].readinessProbe.initialDelaySeconds = options.params.readinessProbe.initialDelaySeconds;
-                payload.spec.template.spec.containers[0].readinessProbe.timeoutSeconds = options.params.readinessProbe.timeoutSeconds;
-                payload.spec.template.spec.containers[0].readinessProbe.periodSeconds = options.params.readinessProbe.periodSeconds;
-                payload.spec.template.spec.containers[0].readinessProbe.successThreshold = options.params.readinessProbe.successThreshold;
-                payload.spec.template.spec.containers[0].readinessProbe.failureThreshold = options.params.readinessProbe.failureThreshold;
             }
             else {
-                //TODO: add support for /cloud/services/custom/deploy
+                //NOTE: in case of deploying a custom service, the values will be supplied by the user
+                payload.spec.template.spec.containers[0].readinessProbe.httpGet.path = options.params.readinessProbe.path || '/';
+                payload.spec.template.spec.containers[0].readinessProbe.httpGet.port = options.params.readinessProbe.port;
             }
+
+            payload.spec.template.spec.containers[0].readinessProbe.initialDelaySeconds = options.params.readinessProbe.initialDelaySeconds;
+            payload.spec.template.spec.containers[0].readinessProbe.timeoutSeconds = options.params.readinessProbe.timeoutSeconds;
+            payload.spec.template.spec.containers[0].readinessProbe.periodSeconds = options.params.readinessProbe.periodSeconds;
+            payload.spec.template.spec.containers[0].readinessProbe.successThreshold = options.params.readinessProbe.successThreshold;
+            payload.spec.template.spec.containers[0].readinessProbe.failureThreshold = options.params.readinessProbe.failureThreshold;
         }
 
         if (process.env.SOAJS_TEST) {
