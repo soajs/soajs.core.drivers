@@ -26,6 +26,7 @@ module.exports = {
                         "workingDir": "",
                         "command": [],
                         "args": [],
+                        "ports": [],
                         "env": [],
                         "volumeMounts": [
                             {

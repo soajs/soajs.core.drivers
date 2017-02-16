@@ -1,3 +1,5 @@
+/* jshint esversion: 6 */
+
 'use strict';
 
 const utils = require('../utils/utils.js');
@@ -103,11 +105,12 @@ var engine = {
         service.metadata.labels = options.params.labels;
         service.spec.selector = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
 
+        let ports = [];
         if (options.params.ports && options.params.ports.length > 0) {
             options.params.ports.forEach((onePortEntry, portIndex) => {
                 let portConfig = {
                     protocol: 'TCP',
-                    name: onePortEntry.name || 'port-' + portIndex,
+                    name: onePortEntry.name || 'port' + portIndex,
                     port: onePortEntry.target,
                     targetPort: onePortEntry.target
                 };
@@ -117,11 +120,13 @@ var engine = {
                         service.spec.type = 'NodePort';
                     }
                     portConfig.nodePort = onePortEntry.published;
-                    portConfig.name = onePortEntry.name || 'published-' + portConfig.name;
+                    portConfig.name = onePortEntry.name || 'published' + portConfig.name;
                 }
 
-                service.spec.ports.push(portConfig);
+                ports.push(portConfig);
             });
+
+            service.spec.ports = ports;
         }
         let payload = {};
         if (options.params.replication.mode === 'deployment') {
@@ -132,11 +137,6 @@ var engine = {
             payload = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/daemonset.template.js'));
             options.params.type = 'daemonset';
         }
-
-        console.log("+++++++++++PAYLOAD++++")
-        console.log(JSON.stringify(payload,null,2))
-        console.log("+++++++++++OPTIONS++++")
-        console.log(JSON.stringify(options,null,2))
 
         payload.metadata.name = cleanLabel(options.params.name);
         payload.metadata.labels = options.params.labels;
@@ -174,6 +174,15 @@ var engine = {
             });
         }
 
+        if (ports && ports.length > 0) {
+            ports.forEach((onePort) => {
+                payload.spec.template.spec.containers[0].ports.push({
+                    name: onePort.name,
+                    containerPort: onePort.port
+                });
+            });
+        }
+
         //NOTE: only one volume is supported for now
         if (options.params.volume) {
             payload.spec.volumes.push({
@@ -187,6 +196,29 @@ var engine = {
                 mountPath: options.params.volume.target,
                 name: options.params.volume.name
             });
+        }
+
+        if (options.params.readinessProbe) {
+            if (options.params.labels && options.params.labels.hasOwnProperty('soajs.service.type')) {
+                payload.spec.template.spec.containers[0].readinessProbe = { httpGet: {} };
+                if (options.params.labels['soajs.service.type'] === 'service' || options.params.labels['soajs.service.type'] === 'daemon') {
+                    payload.spec.template.spec.containers[0].readinessProbe.httpGet.path = '/heartbeat';
+                    payload.spec.template.spec.containers[0].readinessProbe.httpGet.port = 'maintenance';
+                }
+                else if (options.params.labels['soajs.service.type'] === 'nginx') {
+                    payload.spec.template.spec.containers[0].readinessProbe.httpGet.path = '/';
+                    payload.spec.template.spec.containers[0].readinessProbe.httpGet.port = 'http';
+                }
+
+                payload.spec.template.spec.containers[0].readinessProbe.initialDelaySeconds = options.params.readinessProbe.initialDelaySeconds;
+                payload.spec.template.spec.containers[0].readinessProbe.timeoutSeconds = options.params.readinessProbe.timeoutSeconds;
+                payload.spec.template.spec.containers[0].readinessProbe.periodSeconds = options.params.readinessProbe.periodSeconds;
+                payload.spec.template.spec.containers[0].readinessProbe.successThreshold = options.params.readinessProbe.successThreshold;
+                payload.spec.template.spec.containers[0].readinessProbe.failureThreshold = options.params.readinessProbe.failureThreshold;
+            }
+            else {
+                //TODO: add support for /cloud/services/custom/deploy
+            }
         }
 
         if (process.env.SOAJS_TEST) {

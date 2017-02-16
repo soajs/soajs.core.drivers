@@ -1,3 +1,5 @@
+/* jshint esversion: 6 */
+
 'use strict';
 
 const utils = require('../utils/utils.js');
