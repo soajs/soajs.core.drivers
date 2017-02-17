@@ -655,12 +655,18 @@ var engine = {
 
                 deployer.core.services.get({qs: filter}, (error, serviceList) => {
                     utils.checkError(error, 549, cb, () => {
-                        if (serviceList.items.length === 0) {
+                        if (!serviceList || !serviceList.items || serviceList.items.length === 0) {
                             return cb({message: 'Service not found'});
                         }
 
+                        if (!serviceList.items[0].metadata || !serviceList.items[0].metadata.name) {
+                            return cb({message: 'Unable to get service host'});
+                        }
+
+                        let namespace = (serviceList.items[0].metadata.namespace) ? serviceList.items[0].metadata.namespace : 'default';
+
                         //only one service must match the filter, therefore serviceList will contain only one item
-                        return cb(null, serviceList.items[0].metadata.name);
+                        return cb(null, serviceList.items[0].metadata.name + '.' + namespace);
                     });
                 });
             });
