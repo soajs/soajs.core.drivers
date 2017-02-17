@@ -293,8 +293,8 @@ var utils = {
             let ports = options.soajs.registry.serviceConfig.ports;
             let controllerProxyHost = ((process.env.SOAJS_ENV) ? process.env.SOAJS_ENV.toLowerCase() : 'dev') + '-controller';
 
-            let namespace = options.deployerConfig.namespaces.default;
-            if (options.deployerConfig.namespaces.perService) namespace += '-' + controllerProxyHost;
+            let namespace = options.deployerConfig.namespace.default;
+            if (options.deployerConfig.namespace.perService) namespace += '-' + controllerProxyHost;
             controllerProxyHost += '.' + namespace;
 
             let kubernetes = {};
