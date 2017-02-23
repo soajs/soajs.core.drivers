@@ -372,6 +372,7 @@ var utils = {
                 labels: options.deployment.metadata.labels,
                 env: getEnvVariables(options.deployment.spec.template.spec),
                 ports: getPorts(options.service),
+                namespace: options.deployment.metadata.namespace,
                 tasks: []
             };
 

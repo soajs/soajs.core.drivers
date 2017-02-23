@@ -13,8 +13,7 @@ const gridfsColl = 'fs.files';
 
 var engine = {
     /**
-     * Adds a node to a cluster
-     * todo: should be deprecated
+     * List services of all namespaces
      * @param {Object} options
      * @param {Function} cb
      *
@@ -33,10 +32,11 @@ var engine = {
                         labelSelector: 'soajs.content != true'
                     };
                 }
-
-                deployer.extensions.namespaces.deployments.get({qs: filter}, (error, deploymentList) => {
+                //get deployments from all namespaces
+                deployer.extensions.deployments.get({qs: filter}, (error, deploymentList) => {
                     utils.checkError(error, 536, cb, () => {
-                        deployer.extensions.namespaces.daemonsets.get({qs: filter}, (error, daemonsetList) => {
+                        //get daemonset from all namespaces
+                        deployer.extensions.daemonsets.get({qs: filter}, (error, daemonsetList) => {
                             utils.checkError(error, 663, cb, () => {
                                 let deployments = [];
                                 if (deploymentList && deploymentList.items) deployments = deployments.concat(deploymentList.items);
@@ -46,7 +46,8 @@ var engine = {
                                     filter = {
                                         labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env + ', soajs.service.label= ' + oneDeployment.metadata.name
                                     };
-                                    deployer.core.namespaces.services.get({qs: filter}, (error, serviceList) => {
+                                    //get services from all namespaces
+                                    deployer.core.services.get({qs: filter}, (error, serviceList) => {
                                         if (error) {
                                             return callback(error);
                                         }
@@ -65,7 +66,8 @@ var engine = {
                                         filter = {
                                             labelSelector: 'soajs.content=true, soajs.service.label=' + record.name
                                         };
-                                        deployer.core.namespaces.pods.get({qs: filter}, (error, podsList) => {
+                                        //get pods from all namespaces
+                                        deployer.core.pods.get({qs: filter}, (error, podsList) => {
                                             if (error) {
                                                 return callback(error);
                                             }
@@ -92,7 +94,7 @@ var engine = {
     },
 
     /**
-     * Creates a new deployment for a SOAJS service
+     * Creates a new deployment for a SOAJS service inside a namespace
      *
      * @param {Object} options
      * @param {Function} cb
@@ -246,9 +248,9 @@ var engine = {
 
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
-                deployer.core.namespaces.services.post({ body: service }, (error) => {
+                deployer.core.namespaces(options.params.namespace).services.post({ body: service }, (error) => {
                     utils.checkError(error, 525, cb, () => {
-                        deployer.extensions.namespaces[options.params.type].post({ body: payload }, (error) => {
+                        deployer.extensions.namespaces(options.params.namespace)[options.params.type].post({ body: payload }, (error) => {
                             utils.checkError(error, 526, cb, cb.bind(null, null, true));
                         });
                     });
@@ -262,7 +264,7 @@ var engine = {
     },
 
     /**
-     * Scales a deployed services up/down depending on current replica count and new one
+     * Scales a deployed service in a specific namespace up/down depending on current replica count and new one
      * @param {Object} options
      * @param {Function} cb
      *
@@ -270,10 +272,10 @@ var engine = {
     scaleService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
-                deployer.extensions.namespaces.deployments.get({name: options.params.id}, (error, deployment) => {
+                deployer.extensions.namespaces(options.params.namespace).deployments.get({name: options.params.id}, (error, deployment) => {
                     utils.checkError(error, 536, cb, () => {
                         deployment.spec.replicas = options.params.scale;
-                        deployer.extensions.namespaces.deployments.put({name: options.params.id, body: deployment}, (error, result) => {
+                        deployer.extensions.namespaces(options.params.namespace).deployments.put({name: options.params.id, body: deployment}, (error, result) => {
                             utils.checkError(error, 527, cb, cb.bind(null, null, true));
                         });
                     });
@@ -283,7 +285,7 @@ var engine = {
     },
 
     /**
-     * Redeploy a service
+     * Redeploy a service in a namespace
      *
      * @param {Object} options
      * @param {Function} cb
@@ -293,7 +295,7 @@ var engine = {
         let contentType = options.params.mode;
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
-                deployer.extensions.namespaces[contentType].get({name: options.params.id}, (error, deployment) => {
+                deployer.extensions.namespaces(options.params.namespace)[contentType].get({name: options.params.id}, (error, deployment) => {
                     utils.checkError(error, 536, cb, () => {
                         let check = (deployment.spec && deployment.spec.template && deployment.spec.template.spec && deployment.spec.template.spec.containers && deployment.spec.template.spec.containers[0]);
                         utils.checkError(!check, 653, cb, () => {
@@ -314,7 +316,7 @@ var engine = {
                                 }
                             }
 
-                            deployer.extensions.namespaces[contentType].put({ name: options.params.id, body: deployment }, (error) => {
+                            deployer.extensions.namespaces(options.params.namespace)[contentType].put({ name: options.params.id, body: deployment }, (error) => {
                                 utils.checkError(error, 653, cb, cb.bind(null, null, true));
                             });
                         });
@@ -325,7 +327,7 @@ var engine = {
     },
 
     /**
-     * Gathers and returns information about specified service and a list of its tasks/pods
+     * Gathers and returns information about specified service in a namespace and a list of its tasks/pods
      *
      * @param {Object} options
      * @param {Function} cb
@@ -334,7 +336,7 @@ var engine = {
     inspectService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
-                deployer.extensions.namespaces.deployment.get(options.params.id, (error, deployment) => {
+                deployer.extensions.namespaces(options.params.namespace).deployment.get(options.params.id, (error, deployment) => {
                     utils.checkError(error, 536, cb, () => {
                         let deploymentRecord = lib.buildDeploymentRecord({ deployment });
 
@@ -342,7 +344,7 @@ var engine = {
                             return cb(null, { deployment: deploymentRecord });
                         }
 
-                        deployer.core.namespaces.pods.get({qs: {labelSelector: 'soajs.service.label=' + options.params.id}}, (error, podList) => {
+                        deployer.core.namespaces(options.params.namespace).pods.get({qs: {labelSelector: 'soajs.service.label=' + options.params.id}}, (error, podList) => {
                             utils.checkError(error, 529, cb, () => {
                                 async.map(podList.items, (onePod, callback) => {
                                     return callback(null, lib.buildPodRecord({ pod: onePod }));
@@ -358,7 +360,7 @@ var engine = {
     },
 
     /**
-     * Takes environment code and soajs service name and returns corresponding swarm service
+     * Takes environment code and soajs service name and returns corresponding swarm service in a namespace
      *
      * @param {Object} options
      * @param {Function} cb
@@ -375,7 +377,7 @@ var engine = {
                     filter.labelSelector += ', soajs.service.version=' + options.params.version;
                 }
 
-                deployer.extensions.namespaces.deployments.get({qs: filter}, (error, deploymentList) => {
+                deployer.extensions.namespaces(options.params.namespace).deployments.get({qs: filter}, (error, deploymentList) => {
                     utils.checkError(error, 549, cb, () => {
                         utils.checkError(deploymentList.items.length === 0, 657, cb, () => {
                             deployer.core.namespaces.services.get({qs: filter}, (error, serviceList) => {
@@ -391,7 +393,7 @@ var engine = {
     },
 
     /**
-     * Deletes a deployed service, kubernetes deployment or daemonset
+     * Deletes a deployed service, kubernetes deployment, or daemonset in a namespace
      *
      * @param {Object} options
      * @param {Function} cb
@@ -414,16 +416,16 @@ var engine = {
         function deleteContent() {
             lib.getDeployer(options, (error, deployer) => {
                 utils.checkError(error, 520, cb, () => {
-                    deployer.extensions.namespaces[contentType].delete({name: options.params.id, qs: { gracePeriodSeconds: 0 }}, (error) => {
+                    deployer.extensions.namespaces(options.params.namespace)[contentType].delete({name: options.params.id, qs: { gracePeriodSeconds: 0 }}, (error) => {
                         utils.checkError(error, 534, cb, () => {
                             let filter = {
                                 labelSelector: 'soajs.service.label=' + options.params.id //kubernetes references content by name not id, therefore id field is set to content name
                             };
-                            deployer.core.namespaces.services.get({qs: filter}, (error, servicesList) => { //only one service for a given service can exist
+                            deployer.core.namespaces(options.params.namespace).services.get({qs: filter}, (error, servicesList) => { //only one service for a given service can exist
                                 utils.checkError(error, 533, cb, () => {
                                     if (servicesList && servicesList.hasOwnProperty('items') && servicesList.items.length > 0) {
                                         async.each(servicesList.items, (oneService, callback) => {
-                                            deployer.core.namespaces.services.delete({name: oneService.metadata.name}, callback);
+                                            deployer.core.namespaces(options.params.namespace).services.delete({name: oneService.metadata.name}, callback);
                                         }, (error) => {
                                             utils.checkError(error, 534, cb, () => {
                                                 cleanup(deployer, filter);
@@ -453,7 +455,7 @@ var engine = {
     },
 
     /**
-     * Gathers and returns information about a specified pod
+     * Gathers and returns information about a specified pod in a namespace
      *
      * @param {Object} options
      * @param {Function} cb
@@ -462,7 +464,7 @@ var engine = {
     inspectTask (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
-                deployer.core.namespaces.pods.get({ name: options.params.taskId }, (error, pod) => {
+                deployer.core.namespaces(options.params.namespace).pods.get({ name: options.params.taskId }, (error, pod) => {
                     utils.checkError(error, 656, cb, () => {
                         return cb(null, lib.buildPodRecord({ pod }));
                     });
@@ -492,7 +494,7 @@ var engine = {
                     }
                 };
 
-                deployer.core.namespaces.pods.get({name: options.params.taskId}, (error, pod) => {
+                deployer.core.namespaces(options.params.namespace).pods.get({name: options.params.taskId}, (error, pod) => {
                     check(error, 656, () => {
                         //NOTE: controllers have two containers per pod, kubectl and controller service
                         //NOTE: filter out the kubectl container and only get logs of controller
@@ -535,7 +537,7 @@ var engine = {
     },
 
     /**
-     * Perform a SOAJS maintenance operation on a given service
+     * Perform a SOAJS maintenance operation on a given service in a namespace
      *
      * @param {Object} options
      * @param {Function} cb
@@ -547,7 +549,7 @@ var engine = {
                 let filter = {
                     labelSelector: 'soajs.service.label=' + options.params.id //kubernetes references content by name not id, therefore id field is set to content name
                 };
-                deployer.core.namespaces.pods.get({qs: filter}, (error, podsList) => {
+                deployer.core.namespaces(options.params.namespace).pods.get({qs: filter}, (error, podsList) => {
                     utils.checkError(error, 659, cb, () => {
                         utils.checkError(podsList.items.length == 0, 657, cb, () => {
                             async.map(podsList.items, (onePod, callback) => {
