@@ -73,7 +73,7 @@ var engine = {
     deleteNameSpace (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             var filter = {
-                labelSelector: 'soajs.content=true, soajs.service.label=' + record.name
+                labelSelector: 'name=' + options.namespace
             };
 
             deployer.core.namespaces.delete({qs: filter}, function (error, namespacesList) {
