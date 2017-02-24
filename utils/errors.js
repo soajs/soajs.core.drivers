@@ -12,7 +12,7 @@ module.exports = {
     519: "The chosen driver does not support the selected function",
 
 
-    //kubernetes errors
+
     520: "Unable to retrieve the kubernetes deployer",
     521: "Unable to list the Kubernetes cluster nodes",
     522: "Unable to add the node to the Kubernetes cluster",
@@ -38,7 +38,7 @@ module.exports = {
 
     539: "Unable to delete the kubernetes pod",
 
-    //docker swarm errors
+
     540: "Unable to retrieve the docker swarm deployer",
     541: "Unable to inspect the docker swarm",
     542: "Unable to retrieve the docker swarm information",
@@ -90,6 +90,9 @@ module.exports = {
     662: "Unable to deploy service",
 
     663: "Unable to list kubernetes daemon sets",
+    664: "Unable to delete kubernetes daemon set",
 
-    664: "Unable to delete kubernetes daemon set"
+    670: "Error while retrieving the namespaces",
+    671: "Error while deleting the namespace"
+
 };

@@ -12,6 +12,78 @@ const request = require('request');
 const gridfsColl = 'fs.files';
 
 var engine = {
+
+    /**
+     * Creates a new namespace
+     * @param options
+     * @param cb
+     */
+    createNameSpace (options, cb){
+        lib.getDeployer(options, (error, deployer) => {
+            deployer.core.namespaces.get({}, function (error, namespacesList) {
+                utils.checkError(error, 670, cb, () => {
+
+                    async.detect(namespacesList.items, function (oneNamespace, callback) {
+                        return callback(null, oneNamespace.metadata.name === options.namespace);
+                    }, function (error, foundNamespace) {
+                        if (foundNamespace) {
+                            utilLog.log('Namespace: ' + foundNamespace.metadata.name + ' already exists');
+                            return cb(null, true);
+                        }
+
+                        utilLog.log('Creating a new namespace: ' + options.namespace + ' ...');
+                        var namespace = {
+                            kind: 'Namespace',
+                            apiVersion: 'v1',
+                            metadata: {
+                                name: options.namespace,
+                                labels: {
+                                    'soajs.content': 'true',
+                                    'name': options.namespace
+                                }
+                            }
+                        };
+                        deployer.core.namespace.post({body: namespace}, cb);
+                    });
+                });
+            });
+        });
+    },
+
+    /**
+     * Returns a list of namespaces in the kubernetes cluster
+     * @param options
+     * @param cb
+     */
+    listNameSpaces (options, cb) {
+        lib.getDeployer(options, (error, deployer) => {
+            deployer.core.namespaces.get({}, function (error, namespacesList) {
+                utils.checkError(error, 670, cb, () => {
+                    return cb(null, namespacesList.items);
+                });
+            });
+        });
+    },
+
+    /**
+     * Deletes a namespace
+     * @param options
+     * @param cb
+     */
+    deleteNameSpace (options, cb) {
+        lib.getDeployer(options, (error, deployer) => {
+            var filter = {
+                labelSelector: 'soajs.content=true, soajs.service.label=' + record.name
+            };
+
+            deployer.core.namespaces.delete({qs: filter}, function (error, namespacesList) {
+                utils.checkError(error, 671, cb, () => {
+                    return cb(null, namespacesList.items);
+                });
+            });
+        });
+    },
+
     /**
      * List services of all namespaces
      * @param {Object} options

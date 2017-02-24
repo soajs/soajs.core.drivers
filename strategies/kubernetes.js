@@ -23,6 +23,18 @@ const engine = {
         kubeNodes.updateNode(options, cb);
     },
 
+    'createNameSpace' : function(options, cb) {
+        kubeServices.createNameSpace(options, cb);
+    },
+
+    'listNameSpaces' : function(options, cb){
+        kubeServices.listNameSpaces(options, cb);
+    },
+
+    'deleteNameSpace' : function(options, cb){
+        kubeServices.deleteNameSpace(options, cb);
+    },
+
     'listServices': function(options, cb){
         kubeServices.listServices(options, cb);
     },
