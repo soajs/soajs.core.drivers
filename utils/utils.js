@@ -289,6 +289,17 @@ var utils = {
     },
 
     'kubeLib': {
+        buildNameSpace(options){
+            let namespace = options.deployerConfig.default;
+
+            if(options.deployerConfig.perService){
+                let serviceName = (options.params.serviceName || options.params.name)
+                namespace += "-" + options.params.env + "-" + serviceName;
+            }
+
+            return namespace;
+        },
+
         getDeployer(options, cb) {
             let ports = options.soajs.registry.serviceConfig.ports;
             let controllerProxyHost = ((process.env.SOAJS_ENV) ? process.env.SOAJS_ENV.toLowerCase() : 'dev') + '-controller';
