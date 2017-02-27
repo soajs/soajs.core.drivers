@@ -293,7 +293,7 @@ var utils = {
             let namespace = options.deployerConfig.default;
 
             if(options.deployerConfig.perService){
-                let serviceName = (options.params.serviceName || options.params.name)
+                let serviceName = options.params.serviceName || options.params.name;
                 namespace += "-" + options.params.env + "-" + serviceName;
             }
 

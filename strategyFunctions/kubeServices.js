@@ -317,7 +317,13 @@ var engine = {
             payload.spec.template.spec.containers[0].command = ['sh'];
             payload.spec.template.spec.containers[0].args = ['-c', 'sleep 36000'];
         }
-        let namespace = lib.buildNameSpace(options);
+        let namespace = null;
+
+        if(options.params.namespace){
+            namespace = options.params.namespace;
+        } else{
+
+        }
 
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
