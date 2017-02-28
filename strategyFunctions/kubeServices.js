@@ -9,6 +9,7 @@ const errorFile = require('../utils/errors.js');
 
 const async = require('async');
 const request = require('request');
+var utilLog = require('util');
 const gridfsColl = 'fs.files';
 
 var engine = {
