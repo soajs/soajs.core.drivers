@@ -30,16 +30,16 @@ var engine = {
                             utilLog.log('Namespace: ' + foundNamespace.metadata.name + ' already exists');
                             return cb(null, true);
                         }
-
+                        let namespace = lib.buildNameSpace(options);
                         utilLog.log('Creating a new namespace: ' + options.namespace + ' ...');
                         var namespace = {
                             kind: 'Namespace',
                             apiVersion: 'v1',
                             metadata: {
-                                name: options.namespace,
+                                name: namespace,
                                 labels: {
                                     'soajs.content': 'true',
-                                    'name': options.namespace
+                                    'name': namespace
                                 }
                             }
                         };
@@ -322,7 +322,7 @@ var engine = {
         if(options.params.namespace){
             namespace = options.params.namespace;
         } else{
-
+            namespace = lib.buildNameSpace(options);
         }
 
         lib.getDeployer(options, (error, deployer) => {
