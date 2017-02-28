@@ -93,6 +93,7 @@ module.exports = {
     664: "Unable to delete kubernetes daemon set",
 
     670: "Error while retrieving the namespaces",
-    671: "Error while deleting the namespace"
+    671: "Error while deleting the namespace",
+    672: "Namespace already exists"
 
 };

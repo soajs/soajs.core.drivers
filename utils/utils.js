@@ -290,9 +290,9 @@ var utils = {
 
     'kubeLib': {
         buildNameSpace(options){
-            let namespace = options.deployerConfig.default;
+            let namespace = options.deployerConfig.namespace.default;
 
-            if(options.deployerConfig.perService){
+            if(options.deployerConfig.namespace.perService){
                 let serviceName = options.params.serviceName || options.params.name;
                 namespace += "-" + options.params.env + "-" + serviceName;
             }
@@ -319,6 +319,18 @@ var utils = {
             kubernetes.extensions = new K8Api.Extensions(kubeConfig);
 
             return cb(null, kubernetes);
+        },
+
+        buildNameSpaceRecord (options) {
+            let record = {
+                "id": options.metadata.name,
+                "name": options.metadata.name,
+                "version": options.metadata.resourceVersion,
+                "status": options.status,
+                "labels": options.metadata.labels
+            }
+
+            return record;
         },
 
         buildNodeRecord (options) {

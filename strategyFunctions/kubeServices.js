@@ -27,24 +27,21 @@ var engine = {
                     async.detect(namespacesList.items, function (oneNamespace, callback) {
                         return callback(null, oneNamespace.metadata.name === namespaceName);
                     }, function (error, foundNamespace) {
-                        if (foundNamespace) {
-                            utilLog.log('Namespace: ' + foundNamespace.metadata.name + ' already exists');
-                            return cb(null, true);
-                        }
-
-                        utilLog.log('Creating a new namespace: ' + options.namespace + ' ...');
-                        var namespace = {
-                            kind: 'Namespace',
-                            apiVersion: 'v1',
-                            metadata: {
-                                name: namespaceName,
-                                labels: {
-                                    'soajs.content': 'true',
-                                    'name': namespaceName
+                        utils.checkError(foundNamespace, 672, cb, () => {
+                            utilLog.log('Creating a new namespace: ' + namespaceName + ' ...');
+                            var namespace = {
+                                kind: 'Namespace',
+                                apiVersion: 'v1',
+                                metadata: {
+                                    name: namespaceName,
+                                    labels: {
+                                        'soajs.content': 'true',
+                                        'name': namespaceName
+                                    }
                                 }
-                            }
-                        };
-                        deployer.core.namespace.post({body: namespace}, cb);
+                            };
+                            deployer.core.namespace.post({body: namespace}, cb);
+                        });
                     });
                 });
             });
@@ -60,7 +57,11 @@ var engine = {
         lib.getDeployer(options, (error, deployer) => {
             deployer.core.namespaces.get({}, function (error, namespacesList) {
                 utils.checkError(error, 670, cb, () => {
-                    return cb(null, namespacesList.items);
+                    async.map(namespacesList.items, function (oneNamespace, callback) {
+                        return callback(null, lib.buildNameSpaceRecord(oneNamespace));
+                    }, function (error, namespaces) {
+                        return cb(null, namespaces);
+                    });
                 });
             });
         });
