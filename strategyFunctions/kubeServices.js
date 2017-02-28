@@ -22,24 +22,24 @@ var engine = {
         lib.getDeployer(options, (error, deployer) => {
             deployer.core.namespaces.get({}, function (error, namespacesList) {
                 utils.checkError(error, 670, cb, () => {
-
+                    let namespaceName = lib.buildNameSpace(options);
                     async.detect(namespacesList.items, function (oneNamespace, callback) {
-                        return callback(null, oneNamespace.metadata.name === options.namespace);
+                        return callback(null, oneNamespace.metadata.name === namespaceName);
                     }, function (error, foundNamespace) {
                         if (foundNamespace) {
                             utilLog.log('Namespace: ' + foundNamespace.metadata.name + ' already exists');
                             return cb(null, true);
                         }
-                        let namespace = lib.buildNameSpace(options);
+
                         utilLog.log('Creating a new namespace: ' + options.namespace + ' ...');
                         var namespace = {
                             kind: 'Namespace',
                             apiVersion: 'v1',
                             metadata: {
-                                name: namespace,
+                                name: namespaceName,
                                 labels: {
                                     'soajs.content': 'true',
-                                    'name': namespace
+                                    'name': namespaceName
                                 }
                             }
                         };
@@ -72,8 +72,9 @@ var engine = {
      */
     deleteNameSpace (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
+            let namespaceName = lib.buildNameSpace(options);
             var filter = {
-                labelSelector: 'name=' + options.namespace
+                labelSelector: 'name=' + namespace
             };
 
             deployer.core.namespaces.delete({qs: filter}, function (error, namespacesList) {
