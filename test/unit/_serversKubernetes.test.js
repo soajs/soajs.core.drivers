@@ -8,7 +8,7 @@ describe("", function () {
 
         //Remove existing kubernetes deployments
         it("Remove existing kubernetes deployments", function (done) {
-            shell.exec("kubectl delete daemonsets --all --now && kubectl delete deployments --all --now && kubectl delete services --all --now && kubectl delete rs --all --now && kubectl delete pods --all --now");
+            shell.exec("kubectl delete namespaces --all");
             process.env.SOAJS_DEPLOY_HA = "kubernetes";
             done();
         });

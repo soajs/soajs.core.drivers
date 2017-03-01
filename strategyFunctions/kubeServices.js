@@ -21,26 +21,28 @@ var engine = {
      */
     createNameSpace (options, cb){
         lib.getDeployer(options, (error, deployer) => {
-            deployer.core.namespaces.get({}, function (error, namespacesList) {
-                utils.checkError(error, 670, cb, () => {
-                    let namespaceName = lib.buildNameSpace(options);
-                    async.detect(namespacesList.items, function (oneNamespace, callback) {
-                        return callback(null, oneNamespace.metadata.name === namespaceName);
-                    }, function (error, foundNamespace) {
-                        utils.checkError(foundNamespace, 672, cb, () => {
-                            utilLog.log('Creating a new namespace: ' + namespaceName + ' ...');
-                            var namespace = {
-                                kind: 'Namespace',
-                                apiVersion: 'v1',
-                                metadata: {
-                                    name: namespaceName,
-                                    labels: {
-                                        'soajs.content': 'true',
-                                        'name': namespaceName
+            utils.checkError(error, 520, cb, () => {
+                deployer.core.namespaces.get({}, function (error, namespacesList) {
+                    utils.checkError(error, 670, cb, () => {
+                        let namespaceName = lib.buildNameSpace(options);
+                        async.detect(namespacesList.items, function (oneNamespace, callback) {
+                            return callback(null, oneNamespace.metadata.name === namespaceName);
+                        }, function (error, foundNamespace) {
+                            utils.checkError(foundNamespace, 672, cb, () => {
+                                utilLog.log('Creating a new namespace: ' + namespaceName + ' ...');
+                                var namespace = {
+                                    kind: 'Namespace',
+                                    apiVersion: 'v1',
+                                    metadata: {
+                                        name: namespaceName,
+                                        labels: {
+                                            'soajs.content': 'true',
+                                            'name': namespaceName
+                                        }
                                     }
-                                }
-                            };
-                            deployer.core.namespace.post({body: namespace}, cb);
+                                };
+                                deployer.core.namespace.post({body: namespace}, cb);
+                            });
                         });
                     });
                 });
@@ -55,12 +57,14 @@ var engine = {
      */
     listNameSpaces (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
-            deployer.core.namespaces.get({}, function (error, namespacesList) {
-                utils.checkError(error, 670, cb, () => {
-                    async.map(namespacesList.items, function (oneNamespace, callback) {
-                        return callback(null, lib.buildNameSpaceRecord(oneNamespace));
-                    }, function (error, namespaces) {
-                        return cb(null, namespaces);
+            utils.checkError(error, 520, cb, () => {
+                deployer.core.namespaces.get({}, function (error, namespacesList) {
+                    utils.checkError(error, 670, cb, () => {
+                        async.map(namespacesList.items, function (oneNamespace, callback) {
+                            return callback(null, lib.buildNameSpaceRecord(oneNamespace));
+                        }, function (error, namespaces) {
+                            return cb(null, namespaces);
+                        });
                     });
                 });
             });
@@ -74,14 +78,13 @@ var engine = {
      */
     deleteNameSpace (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
-            let namespaceName = lib.buildNameSpace(options);
-            var filter = {
-                labelSelector: 'name=' + namespace
-            };
+            utils.checkError(error, 520, cb, () => {
+                let namespaceName = lib.buildNameSpace(options);
 
-            deployer.core.namespaces.delete({qs: filter}, function (error, namespacesList) {
-                utils.checkError(error, 671, cb, () => {
-                    return cb(null, namespacesList.items);
+                deployer.core.namespaces.delete({name: namespaceName}, function (error, namespacesList) {
+                    utils.checkError(error, 671, cb, () => {
+                        return cb(null, namespacesList.items);
+                    });
                 });
             });
         });
