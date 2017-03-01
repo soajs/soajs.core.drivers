@@ -1,5 +1,4 @@
 /* jshint esversion: 6 */
-
 'use strict';
 
 const utils = require('../utils/utils.js');
@@ -223,7 +222,7 @@ var engine = {
             options.params.type = 'deployment';
         }
         else if (options.params.replication.mode === 'daemonset') {
-            let daemonsetSchemaPath = _dirname + '/../schemas/kubernetes/daemonset.template.js';
+            let daemonsetSchemaPath = __dirname + '/../schemas/kubernetes/daemonset.template.js';
             if (require.resolve(daemonsetSchemaPath)) {
                 delete require.cache[require.resolve(daemonsetSchemaPath)];
             }
@@ -268,6 +267,7 @@ var engine = {
         }
 
         if (ports && ports.length > 0) {
+            payload.spec.template.spec.containers[0].ports = [];
             ports.forEach((onePort) => {
                 payload.spec.template.spec.containers[0].ports.push({
                     name: onePort.name,
@@ -292,8 +292,8 @@ var engine = {
         }
 
         if (options.params.readinessProbe) {
+            payload.spec.template.spec.containers[0].readinessProbe = { httpGet: {} };
             if (options.params.labels && options.params.labels.hasOwnProperty('soajs.service.type')) {
-                payload.spec.template.spec.containers[0].readinessProbe = { httpGet: {} };
                 if (options.params.labels['soajs.service.type'] === 'service' || options.params.labels['soajs.service.type'] === 'daemon') {
                     payload.spec.template.spec.containers[0].readinessProbe.httpGet.path = '/heartbeat';
                     payload.spec.template.spec.containers[0].readinessProbe.httpGet.port = 'maintenance';
@@ -747,7 +747,7 @@ var engine = {
                     filter.labelSelector += ', soajs.service.version=' + options.params.version;
                 }
                 let namespace = lib.buildNameSpace(options);
-                deployer.core.services(namespace).get({qs: filter}, (error, serviceList) => {
+                deployer.core.namespaces(namespace).services.get({qs: filter}, (error, serviceList) => {
                     utils.checkError(error, 549, cb, () => {
                         if (!serviceList || !serviceList.items || serviceList.items.length === 0) {
                             return cb({message: 'Service not found'});
@@ -757,10 +757,10 @@ var engine = {
                             return cb({message: 'Unable to get service host'});
                         }
 
-                        let namespace = (serviceList.items[0].metadata.namespace) ? serviceList.items[0].metadata.namespace : 'default';
+                        let namespaceName = (serviceList.items[0].metadata.namespace) ? serviceList.items[0].metadata.namespace : 'default';
 
                         //only one service must match the filter, therefore serviceList will contain only one item
-                        return cb(null, serviceList.items[0].metadata.name + '.' + namespace);
+                        return cb(null, serviceList.items[0].metadata.name + '.' + namespaceName);
                     });
                 });
             });

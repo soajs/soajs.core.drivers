@@ -8,7 +8,7 @@ describe("", function () {
 
     describe("Docker", function () {
 	
-	    before('Activate swarm mode for local docker engine and create overlay network', function (done) {
+	    /*before('Activate swarm mode for local docker engine and create overlay network', function (done) {
 		    var params = {
 			    method: 'POST',
 			    uri: 'http://unix:/var/run/docker.sock:/swarm/init',
@@ -50,7 +50,7 @@ describe("", function () {
 				    done();
 			    });
 		    });
-	    });
+	    });*/
 	
 	    beforeEach(function(done){
 		    setTimeout(function(){

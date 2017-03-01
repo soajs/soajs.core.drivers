@@ -9,8 +9,8 @@ describe("Clean up kubneretes and docker deployments", function () {
     });
 
     //Remove existing kubernetes deployments
-    it.skip("Cleanup kubernetes deployments", function (done) {
-        shell.exec("kubectl delete daemonsets --all --now && kubectl delete deployments --all --now && kubectl delete services --all --now && kubectl delete rs --all --now && kubectl delete pods --all --now");
+    it("Cleanup kubernetes deployments", function (done) {
+        shell.exec("kubectl delete namespaces --all");
         done();
     });
 });
