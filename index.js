@@ -12,6 +12,7 @@ function checkIfSupported(options, cb, fcb) {
 
     if (isSupported) return fcb();
     else return cb({
+        "source": "driver",
         "error": "error",
         "code": 519,
         "msg": errorFile[519]
