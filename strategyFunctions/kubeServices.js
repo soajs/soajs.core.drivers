@@ -328,6 +328,7 @@ var engine = {
         if(options.params.namespace){
             namespace = options.params.namespace;
         } else{
+            options.params.serviceCreation = true;
             namespace = lib.buildNameSpace(options);
         }
 
