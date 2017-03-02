@@ -331,13 +331,17 @@ var engine = {
             options.params.serviceCreation = true;
             namespace = lib.buildNameSpace(options);
         }
+        //namespace to be checked by initNamespace function
+        options.checkNamespace = namespace;
 
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
-                deployer.core.namespaces(namespace).services.post({ body: service }, (error) => {
-                    utils.checkError(error, 525, cb, () => {
-                        deployer.extensions.namespaces(namespace)[options.params.type].post({ body: payload }, (error) => {
-                            utils.checkError(error, 526, cb, cb.bind(null, null, true));
+                initNamespace(deployer, options, function(error){
+                    deployer.core.namespaces(namespace).services.post({ body: service }, (error) => {
+                        utils.checkError(error, 525, cb, () => {
+                            deployer.extensions.namespaces(namespace)[options.params.type].post({ body: payload }, (error) => {
+                                utils.checkError(error, 526, cb, cb.bind(null, null, true));
+                            });
                         });
                     });
                 });
@@ -346,6 +350,35 @@ var engine = {
 
         function cleanLabel(label) {
             return label.toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-');
+        };
+
+        function initNamespace(deployer, options, cb) {
+            //options.namespace
+            //1. check if namespace already exists. if it does, return true
+            //2. if namespace does not exist create it and return true
+            deployer.core.namespaces.get({}, function (error, namespacesList) {
+                if (error) return cb(error);
+
+                async.detect(namespacesList.items, function (oneNamespace, callback) {
+                    return callback(null, oneNamespace.metadata.name === options.checkNamespace);
+                }, function (error, foundNamespace) {
+                    if (foundNamespace) {
+                        return cb(null, true);
+                    }
+
+                    var namespace = {
+                        kind: 'Namespace',
+                        apiVersion: 'v1',
+                        metadata: {
+                            name: options.checkNamespace,
+                            labels: {
+                                'soajs.content': 'true'
+                            }
+                        }
+                    };
+                    deployer.core.namespace.post({body: namespace}, cb);
+                });
+            });
         }
     },
 
