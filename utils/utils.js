@@ -293,12 +293,12 @@ var utils = {
             let namespace = options.deployerConfig.namespace.default;
 
             if(options.deployerConfig.namespace.perService){
-                let serviceName = options.params.serviceName || options.params.name || options.params.id || options.params.taskId;
                 //In case of service creation, the service name already contains the env code embedded to it
-                if(options.params.serviceCreation)
-                    namespace += "-" + serviceName;
-                else
-                    namespace += "-" + options.params.env + "-" + serviceName;
+                if(options.params.id)
+                    namespace += "-" + options.params.id ;
+
+                else if(options.params.serviceName)
+                    namespace += "-" + options.params.env + "-" + options.params.serviceName;
             }
 
             return namespace;
