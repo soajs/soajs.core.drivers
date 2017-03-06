@@ -9,7 +9,7 @@ describe("Clean up kubneretes and docker deployments", function () {
     });
 
     //Remove existing kubernetes deployments
-    it("Cleanup kubernetes deployments", function (done) {
+    it.skip("Cleanup kubernetes deployments", function (done) {
         shell.exec("kubectl delete namespaces --all");
         done();
     });
