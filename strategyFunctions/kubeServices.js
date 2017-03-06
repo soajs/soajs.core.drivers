@@ -235,7 +235,7 @@ var engine = {
         payload.metadata.labels['soajs.service.label'] = cleanLabel(payload.metadata.labels['soajs.service.label']);
 
         if (options.params.type === 'deployment') {
-            payload.spec.replicas = options.params.replicaCount;
+            payload.spec.replicas = options.params.replication.replicas;
         }
 
         payload.spec.selector.matchLabels = { 'soajs.service.label': cleanLabel(options.params.labels['soajs.service.label']) };
