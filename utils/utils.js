@@ -449,14 +449,24 @@ var utils = {
         },
 
         buildPodRecord (options) {
+            let serviceName = '';
+            if (!options.pod || !options.pod.metadata || !options.pod.metadata.labels || !options.pod.metadata.labels['soajs.service.label']) {
+                if (options.deployment && options.deployment.metadata && options.deployment.metadata.name) {
+                    serviceName = options.deployment.metadata.name;
+                }
+            }
+            else {
+                serviceName = options.pod.metadata.labels['soajs.service.label'];
+            }
+
             let record = {
                 id: options.pod.metadata.name,
                 version: options.pod.metadata.resourceVersion,
                 name: options.pod.metadata.name,
                 ref: {
                     service: {
-                        name: options.pod.metadata.labels['soajs.service.label'],
-                        id: options.pod.metadata.labels['soajs.service.label']
+                        name: serviceName,
+                        id: serviceName
                     },
                     node: {
                         id: options.pod.spec.nodeName
@@ -497,12 +507,14 @@ var utils = {
         },
 
         buildLabelSelector (options) {
-            let labelSelector = '', labels = Object.keys(options.matchLabels);
+            let labelSelector = '';
 
-            if (!options || !options.matchLabels || labels.length === 0) return labelSelector;
+            if (!options || !options.matchLabels || Object.keys(options.matchLabels).length === 0) return labelSelector;
+
+            let labels = Object.keys(options.matchLabels);
 
             for (let i = 0; i < labels.length; i++) {
-                if (labelSelector.length > 0) labelSelector += ',';
+                if (labelSelector.length > 0) labelSelector += ', ';
                 labelSelector += labels[i] + '=' + options.matchLabels[labels[i]];
             }
 

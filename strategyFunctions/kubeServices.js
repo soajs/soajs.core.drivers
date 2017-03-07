@@ -120,13 +120,13 @@ var engine = {
                                 if (daemonsetList && daemonsetList.items) deployments = deployments.concat(daemonsetList.items);
 
                                 async.map(deployments, (oneDeployment, callback) => {
-                                    filter = {};
+                                    let filter = {};
                                     if (options.params && options.params.env && !options.params.custom) {
                                         filter.labelSelector = 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.label= ' + oneDeployment.metadata.name;
                                     }
                                     else if (options.params && options.params.custom) {
                                         if (oneDeployment.spec && oneDeployment.spec.selector && oneDeployment.spec.selector.matchLabels) {
-                                            filter.labelSelector = lib.buildLabelSelector(oneDeployment.spec.selector.matchLabels);
+                                            filter.labelSelector = lib.buildLabelSelector(oneDeployment.spec.selector);
                                         }
                                     }
                                     //get services from all namespaces
@@ -153,7 +153,12 @@ var engine = {
                                             }
 
                                             async.map(podsList.items, (onePod, callback) => {
-                                                return callback(null, lib.buildPodRecord({ pod: onePod }));
+                                                if (options.params && !options.params.custom) {
+                                                    return callback(null, lib.buildPodRecord({ pod: onePod }));
+                                                }
+                                                else { //custom services do not include soajs labels that identify deployment name
+                                                    return callback(null, lib.buildPodRecord({ pod: onePod, deployment: oneDeployment }));
+                                                }
                                             }, (error, pods) => {
                                                 if (error) {
                                                     return callback(error);
