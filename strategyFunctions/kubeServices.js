@@ -120,9 +120,15 @@ var engine = {
                                 if (daemonsetList && daemonsetList.items) deployments = deployments.concat(daemonsetList.items);
 
                                 async.map(deployments, (oneDeployment, callback) => {
-                                    filter = {
-                                        labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.label= ' + oneDeployment.metadata.name
-                                    };
+                                    filter = {};
+                                    if (options.params && options.params.env && !options.params.custom) {
+                                        filter.labelSelector = 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.label= ' + oneDeployment.metadata.name;
+                                    }
+                                    else if (options.params && options.params.custom) {
+                                        if (oneDeployment.spec && oneDeployment.spec.selector && oneDeployment.spec.selector.matchLabels) {
+                                            filter.labelSelector = utils.buildLabelSelector(oneDeployment.spec.selector.matchLabels);
+                                        }
+                                    }
                                     //get services from all namespaces
                                     deployer.core.services.get({qs: filter}, (error, serviceList) => {
                                         if (error) {
@@ -140,9 +146,6 @@ var engine = {
                                             return callback(null, record);
                                         }
 
-                                        filter = {
-                                            labelSelector: 'soajs.content=true, soajs.service.label=' + record.name
-                                        };
                                         //get pods from all namespaces
                                         deployer.core.pods.get({qs: filter}, (error, podsList) => {
                                             if (error) {

@@ -1,3 +1,4 @@
+/* jshint esversion: 6 */
 "use strict";
 const util = require('util'); //NOTE: util is a native package in node, no need to include it in package.json
 const errorFile = require('../utils/errors.js');
@@ -493,6 +494,19 @@ var utils = {
             });
 
             return envs;
+        },
+
+        buildLabelSelector (options) {
+            let labelSelector = '', labels = Object.keys(options.matchLabels);
+
+            if (!options || !options.matchLabels || labels.length === 0) return labelSelector;
+
+            for (let i = 0; i < labels.length; i++) {
+                if (labelSelector.length > 0) labelSelector += ',';
+                labelSelector += labels[i] + '=' + options.matchLabels[labels[i]];
+            }
+
+            return labelSelector;
         }
     }
 };
