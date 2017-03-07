@@ -126,7 +126,7 @@ var engine = {
                                     }
                                     else if (options.params && options.params.custom) {
                                         if (oneDeployment.spec && oneDeployment.spec.selector && oneDeployment.spec.selector.matchLabels) {
-                                            filter.labelSelector = utils.buildLabelSelector(oneDeployment.spec.selector.matchLabels);
+                                            filter.labelSelector = lib.buildLabelSelector(oneDeployment.spec.selector.matchLabels);
                                         }
                                     }
                                     //get services from all namespaces
