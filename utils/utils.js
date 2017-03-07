@@ -306,16 +306,23 @@ var utils = {
         },
 
         getDeployer(options, cb) {
-            let ports = options.soajs.registry.serviceConfig.ports;
-            let controllerProxyHost = ((process.env.SOAJS_ENV) ? process.env.SOAJS_ENV.toLowerCase() : 'dev') + '-controller';
-
-            let namespace = options.deployerConfig.namespace.default;
-            if (options.deployerConfig.namespace.perService) namespace += '-' + controllerProxyHost;
-            controllerProxyHost += '.' + namespace;
+            let kubeHost = 'kubernetes.default'; //NOTE: hard-coded for now
+            let kubeURL = 'https://' + kubeHost;
 
             let kubernetes = {};
-            let kubeProxyURL = 'http://' + controllerProxyHost + ':' + (ports.controller + ports.maintenanceInc) + '/proxySocket';
-            let kubeConfig = { url: kubeProxyURL };
+            let kubeConfig = {
+                url: kubeURL,
+                auth: {
+                    bearer: ''
+                },
+                request: {
+                    strictSSL: false
+                }
+            };
+
+            if (options && options.deployerConfig && options.deployerConfig.auth && options.deployerConfig.auth.token) {
+                kubeConfig.auth.bearer = options.deployerConfig.auth.token;
+            }
 
             kubeConfig.version = 'v1';
             kubernetes.core = new K8Api.Core(kubeConfig);
