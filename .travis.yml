@@ -20,9 +20,9 @@ addons:
 before_script:
   - npm install -g grunt-cli
   - docker pull alpine:latest
-  - apt-get update && apt-get install -y apt-transport-https curl
-  - echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
-  - apt-get update && apt-get install -y kubelet kubeadm kubectl kubernetes-cni
+  - sudo apt-get update && apt-get install -y apt-transport-https curl
+  - sudo echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
+  - sudo apt-get update && apt-get install -y kubelet kubeadm kubectl kubernetes-cni
   - curl -o flannel.yml https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
   - kubeadm init --pod-network-cidr 10.244.0.0/16
   - kubectl taint nodes --all dedicated-
