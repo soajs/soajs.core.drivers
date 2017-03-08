@@ -309,6 +309,11 @@ var utils = {
         getDeployer(options, cb) {
             let kubeURL = config.kubernetes.apiHost;
 
+            if (process.env.SOAJS_TEST_MINIKUBE) {
+                //NOTE: unit testing requires the external port of the machine
+                kubeURL += ':8443';
+            }
+
             let kubernetes = {};
             let kubeConfig = {
                 url: kubeURL,

@@ -1,5 +1,6 @@
 "use strict";
 var fs = require('fs');
+var shell = require('shelljs');
 var assert = require('assert');
 var helper = require("../helper.js");
 var drivers = helper.requireModule('./index.js');
@@ -23,6 +24,16 @@ describe("Testing kubernetes driver functionality", function() {
     };
 
     options.strategy = "kubernetes";
+
+    before("get auth token and set it in deployerConfig", function (done) {
+        //NOTE: assuming only one secret is available
+        shell.exec("kubectl describe secret | grep token: | cut -f 3", function (code, stdout, stderr) {
+            assert.ifError(stderr);
+            options.deployerConfig.auth = { token: stdout.trim() };
+
+            done();
+        });
+    });
 
     //Testing the different namespace methods
     describe("Testing kubernetes namespace management", function() {

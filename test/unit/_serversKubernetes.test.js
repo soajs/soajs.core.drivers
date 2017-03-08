@@ -10,7 +10,9 @@ describe("", function () {
         it("Remove existing kubernetes deployments", function (done) {
             shell.exec("kubectl delete namespaces --all");
             process.env.SOAJS_DEPLOY_HA = "kubernetes";
-            done();
+
+            console.log("Waiting 5 seconds for previous namespaces to terminate ...");
+            setTimeout(done, 5000);
         });
 
         //Start the controller service
