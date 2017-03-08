@@ -3,7 +3,6 @@
 'use strict';
 
 const utils = require('./utils.js');
-const engine = require('../strategyFunctions/swarmServices.js');
 
 const Grid = require('gridfs-stream');
 const async = require('async');
@@ -67,7 +66,7 @@ const lib = {
                 delete customOptions.deployerConfig.flags.targetNode;
 
                 //node is already part of the swarm, inspect it to obtain its address
-                engine.inspectNode(customOptions, (error, node) => {
+                inspectNode(customOptions, (error, node) => {
                     utils.checkError(error, 600, cb, () => { //TODO: wrong error code, update
                         if (node.role === 'manager') { //option number one
                             return cb(null, {host: node.managerStatus.address.split(':')[0], port: '2376'}); //TODO: get port from env record, deployer object
@@ -83,6 +82,19 @@ const lib = {
                 //we only need to return the host/port provided by the user, the ping function will later test if a connection can be established
                 return cb(null, {host: options.params.host, port: options.params.port});
             }
+        }
+
+        function inspectNode(options, cb) {
+            lib.getDeployer(options, (error, deployer) => {
+                utils.checkError(error, 540, cb, () => {
+                    let node = deployer.getNode(options.params.id);
+                    node.inspect((error, node) => {
+                        utils.checkError(error, 547, cb, () => {
+                            return cb(null, lib.buildNodeRecord({ node }));
+                        });
+                    });
+                });
+            });
         }
 
         function findCerts(options, cb) {
