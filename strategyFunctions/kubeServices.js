@@ -2,7 +2,7 @@
 'use strict';
 
 const utils = require('../utils/utils.js');
-const lib = utils.kubeLib;
+const lib = require('../utils/kubernetes.js');
 
 const errorFile = require('../utils/errors.js');
 
@@ -358,7 +358,7 @@ var engine = {
 
         function cleanLabel(label) {
             return label.toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-');
-        };
+        }
 
         function initNamespace(deployer, options, cb) {
             //options.namespace
