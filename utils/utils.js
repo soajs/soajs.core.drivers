@@ -2,6 +2,7 @@
 "use strict";
 const util = require('util'); //NOTE: util is a native package in node, no need to include it in package.json
 const errorFile = require('../utils/errors.js');
+const config = require('../config.js');
 
 const gridfsColl = 'fs.files';
 
@@ -306,8 +307,7 @@ var utils = {
         },
 
         getDeployer(options, cb) {
-            let kubeHost = 'kubernetes.default'; //NOTE: hard-coded for now
-            let kubeURL = 'https://' + kubeHost;
+            let kubeURL = config.kubernetes.apiHost;
 
             let kubernetes = {};
             let kubeConfig = {
