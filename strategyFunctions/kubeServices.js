@@ -791,14 +791,17 @@ var engine = {
     getServiceHost (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
+                let namespace = lib.buildNameSpace(options);
+
                 let filter = {
                     labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.name=' + options.params.serviceName
                 };
 
                 if (options.params.version) {
                     filter.labelSelector += ', soajs.service.version=' + options.params.version;
+                    namespace += '-v' + options.params.version;
                 }
-                let namespace = lib.buildNameSpace(options);
+
                 deployer.core.namespaces(namespace).services.get({qs: filter}, (error, serviceList) => {
                     utils.checkError(error, 549, cb, () => {
                         if (!serviceList || !serviceList.items || serviceList.items.length === 0) {
