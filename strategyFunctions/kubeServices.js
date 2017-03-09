@@ -765,8 +765,9 @@ var engine = {
                                     }
                                 }
                             });
+
+                            return cb(null, latestVersion);
                         });
-                        return cb(null, latestVersion);
                     });
                 });
             });
