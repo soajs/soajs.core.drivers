@@ -15,15 +15,6 @@ describe("", function () {
             setTimeout(done, 5000);
         });
 
-        //Start the controller service
-        it("Start kubernetes Controller", function (done) {
-            process.env.SOAJS_SOLO = true;
-            controller = require(__dirname + "/../proxySocket.js");
-            setTimeout(function () {
-                done();
-            }, 2000);
-        });
-
         //Perform the kubernetes test cases
         it("Test kubernetes", function (done) {
             require("./kubernetes.unit.test.js");
