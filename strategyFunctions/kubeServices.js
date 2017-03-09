@@ -510,13 +510,20 @@ var engine = {
                     namespace += '-v' + options.params.version;
                 }
 
-
                 deployer.extensions.namespaces(namespace).deployments.get({qs: filter}, (error, deploymentList) => {
                     utils.checkError(error, 549, cb, () => {
-                        utils.checkError(!deploymentList || !deploymentList.items || deploymentList.items.length === 0, 657, cb, () => {
-                            deployer.core.namespaces(namespace).services.get({qs: filter}, (error, serviceList) => {
-                                utils.checkError(error, 533, cb, () => {
-                                    return cb(null, lib.buildDeploymentRecord ({ deployment: deploymentList.items[0], service: serviceList.items[0] }));
+                        deployer.extensions.namespaces(namespace).daemonsets.get({qs: filter}, (error, daemonsetList) => {
+                            utils.checkError(error, 663, cb, () => {
+                                let deployments = [];
+                                if (deploymentList && deploymentList.items && deploymentList.items.length > 0) deployments = deployments.concat(deploymentList.items);
+                                if (daemonsetList && daemonsetList.items && daemonsetList.items.length > 0) deployments = deployments.concat(daemonsetList.items);
+
+                                utils.checkError(deployments.length === 0, 657, cb, () => {
+                                    deployer.core.namespaces(namespace).services.get({qs: filter}, (error, serviceList) => {
+                                        utils.checkError(error, 533, cb, () => {
+                                            return cb(null, lib.buildDeploymentRecord ({ deployment: deployments[0], service: serviceList.items[0] }));
+                                        });
+                                    });
                                 });
                             });
                         });
