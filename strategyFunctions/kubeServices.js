@@ -499,14 +499,18 @@ var engine = {
     findService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
+                let namespace = lib.buildNameSpace(options);
+
                 let filter = {
                     labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.name=' + options.params.serviceName
                 };
 
                 if (options.params.version) {
                     filter.labelSelector += ', soajs.service.version=' + options.params.version;
+                    namespace += '-v' + options.params.version;
                 }
-                let namespace = lib.buildNameSpace(options);
+
+
                 deployer.extensions.namespaces(namespace).deployments.get({qs: filter}, (error, deploymentList) => {
                     utils.checkError(error, 549, cb, () => {
                         utils.checkError(!deploymentList || !deploymentList.items || deploymentList.items.length === 0, 657, cb, () => {
