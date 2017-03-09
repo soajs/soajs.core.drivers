@@ -7,7 +7,7 @@ var controller = null;
 describe("", function () {
 
     describe("Docker", function () {
-	
+
 	    before('Activate swarm mode for local docker engine and create overlay network', function (done) {
 		    var params = {
 			    method: 'POST',
@@ -22,10 +22,10 @@ describe("", function () {
 				    "ForceNewCluster": true
 			    }
 		    };
-		
+
 		    request(params, function (error, response, nodeId) {
 			    assert.ifError(error);
-			
+
 			    params = {
 				    method: 'POST',
 				    uri: 'http://unix:/var/run/docker.sock:/networks/create',
@@ -44,20 +44,20 @@ describe("", function () {
 					    }
 				    }
 			    };
-			
+
 			    request(params, function (error, response, body) {
 				    assert.ifError(error);
 				    done();
 			    });
 		    });
 	    });
-	
+
 	    beforeEach(function(done){
 		    setTimeout(function(){
 			    done();
 		    }, 700);
 	    });
-	    
+
         //Remove existing docker services
         it("Remove existing docker services", function (done) {
             shell.exec("docker service rm $(docker service ls -q)");

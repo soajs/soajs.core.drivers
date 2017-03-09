@@ -2,7 +2,7 @@
 'use strict';
 
 const utils = require('../utils/utils.js');
-const lib = utils.kubeLib;
+const lib = require('../utils/kubernetes.js');
 
 const errorFile = require('../utils/errors.js');
 
@@ -358,7 +358,7 @@ var engine = {
 
         function cleanLabel(label) {
             return label.toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-');
-        };
+        }
 
         function initNamespace(deployer, options, cb) {
             //options.namespace
@@ -496,7 +496,7 @@ var engine = {
      * @param {Function} cb
      *
      */
-    findService (options, cb) { //TODO: test
+    findService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
                 let filter = {
@@ -509,7 +509,7 @@ var engine = {
                 let namespace = lib.buildNameSpace(options);
                 deployer.extensions.namespaces(namespace).deployments.get({qs: filter}, (error, deploymentList) => {
                     utils.checkError(error, 549, cb, () => {
-                        utils.checkError(deploymentList.items.length === 0, 657, cb, () => {
+                        utils.checkError(!deploymentList || !deploymentList.items || deploymentList.items.length === 0, 657, cb, () => {
                             deployer.core.namespaces(namespace).services.get({qs: filter}, (error, serviceList) => {
                                 utils.checkError(error, 533, cb, () => {
                                     return cb(null, lib.buildDeploymentRecord ({ deployment: deploymentList.items[0], service: serviceList.items[0] }));
@@ -554,7 +554,7 @@ var engine = {
                             };
                             deployer.core.namespaces(namespace).services.get({qs: filter}, (error, servicesList) => { //only one service for a given service can exist
                                 utils.checkError(error, 533, cb, () => {
-                                    if (servicesList && servicesList.hasOwnProperty('items') && servicesList.items.length > 0) {
+                                    if (servicesList && servicesList.items && servicesList.items.length > 0) {
                                         async.each(servicesList.items, (oneService, callback) => {
                                             deployer.core.namespaces(namespace).services.delete({name: oneService.metadata.name}, callback);
                                         }, (error) => {
@@ -660,9 +660,11 @@ var engine = {
 
         function check(error, code, cb1) {
             if (error && !cb) {
+                console.log (error);
                 return res.jsonp(options.soajs.buildResponse({code: code, msg: errorFile[code]}));
             }
             else if (error && cb) {
+                console.log (error);
                 return cb({code: code, msg: errorFile[code]});
             }
             return cb1();
@@ -685,7 +687,7 @@ var engine = {
                 let namespace = lib.buildNameSpace(options);
                 deployer.core.namespaces(namespace).pods.get({qs: filter}, (error, podsList) => {
                     utils.checkError(error, 659, cb, () => {
-                        utils.checkError(podsList.items.length == 0, 657, cb, () => {
+                        utils.checkError(!podsList || !podsList.items || podsList.items.length === 0, 657, cb, () => {
                             async.map(podsList.items, (onePod, callback) => {
                                 let podInfo = {
                                     id: onePod.metadata.name,
@@ -753,7 +755,7 @@ var engine = {
                 let namespace = lib.buildNameSpace(options);
                 deployer.extensions.namespaces(namespace).deployments.get({qs: filter}, (error, deploymentList) => {
                     utils.checkError(error, 536, cb, () => {
-                        utils.checkError(deploymentList.items.length == 0, 657, cb, () => {
+                        utils.checkError(!deploymentList || !deploymentList.items || deploymentList.items.length === 0, 657, cb, () => {
                             deploymentList.items.forEach((oneDeployment) => {
                                 if (oneDeployment.metadata && oneDeployment.metadata.labels) {
                                     let v = oneDeployment.metadata.labels['soajs.service.version'];
@@ -763,8 +765,9 @@ var engine = {
                                     }
                                 }
                             });
+
+                            return cb(null, latestVersion);
                         });
-                        return cb(null, latestVersion);
                     });
                 });
             });

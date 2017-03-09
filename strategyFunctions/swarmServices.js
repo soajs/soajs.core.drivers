@@ -3,7 +3,7 @@
 'use strict';
 
 const utils = require('../utils/utils.js');
-const lib = utils.swarmLib;
+const lib = require('../utils/swarm.js');
 
 const errorFile = require('../utils/errors.js');
 

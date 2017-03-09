@@ -1,7 +1,8 @@
+/* jshint esversion: 6 */
 'use strict';
 
 const utils = require('../utils/utils.js');
-const lib = utils.kubeLib;
+const lib = require('../utils/kubernetes.js');
 
 const errorFile = require('../utils/errors.js');
 

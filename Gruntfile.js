@@ -199,4 +199,3 @@ module.exports = function (grunt) {
 	//grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration', 'storeCoverage', 'makeReport']);
 
 };
-
