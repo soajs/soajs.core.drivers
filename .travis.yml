@@ -15,7 +15,6 @@ branches:
 addons:
   hosts:
     - localhost
-    - kubernetes.default
 
 before_script:
   - npm install -g grunt-cli
