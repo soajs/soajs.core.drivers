@@ -752,21 +752,28 @@ var engine = {
                 let filter = {
                     labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.name=' + options.params.serviceName
                 };
-                let namespace = lib.buildNameSpace(options);
-                deployer.extensions.namespaces(namespace).deployments.get({qs: filter}, (error, deploymentList) => {
+                // let namespace = lib.buildNameSpace(options);
+                let namespaceRegExp = new RegExp(options.deployerConfig.namespace.default + '-.*');
+                deployer.extensions.deployments.get({qs: filter}, (error, deploymentList) => {
                     utils.checkError(error, 536, cb, () => {
                         utils.checkError(!deploymentList || !deploymentList.items || deploymentList.items.length === 0, 657, cb, () => {
-                            deploymentList.items.forEach((oneDeployment) => {
-                                if (oneDeployment.metadata && oneDeployment.metadata.labels) {
-                                    let v = oneDeployment.metadata.labels['soajs.service.version'];
+                            //NOTE: this function cannot include a namespace while accessing the kubernetes api
+                            //NOTE: namespace contains version but since this function's role is to get the version, adding the version to the namespace is impossible
+                            async.filter(deploymentList.items, (oneDeployment, callback) => {
+                                return callback(null, (oneDeployment.metadata.namespace.match(namespaceRegExp)));
+                            }, function (error, namespaceDeployments) {
+                                namespaceDeployments.forEach((oneDeployment) => {
+                                    if (oneDeployment.metadata && oneDeployment.metadata.labels) {
+                                        let v = oneDeployment.metadata.labels['soajs.service.version'];
 
-                                    if (v > latestVersion) {
-                                        latestVersion = v;
+                                        if (v > latestVersion) {
+                                            latestVersion = v;
+                                        }
                                     }
-                                }
-                            });
+                                });
 
-                            return cb(null, latestVersion);
+                                return cb(null, latestVersion);
+                            });
                         });
                     });
                 });
