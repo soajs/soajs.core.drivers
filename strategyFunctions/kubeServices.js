@@ -554,7 +554,7 @@ var engine = {
                             };
                             deployer.core.namespaces(namespace).services.get({qs: filter}, (error, servicesList) => { //only one service for a given service can exist
                                 utils.checkError(error, 533, cb, () => {
-                                    if (servicesList && servicesList.hasOwnProperty('items') && servicesList.items.length > 0) {
+                                    if (servicesList && servicesList.items && servicesList.items.length > 0) {
                                         async.each(servicesList.items, (oneService, callback) => {
                                             deployer.core.namespaces(namespace).services.delete({name: oneService.metadata.name}, callback);
                                         }, (error) => {
