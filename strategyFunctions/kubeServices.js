@@ -257,23 +257,6 @@ var engine = {
         payload.spec.template.spec.containers[0].args = options.params.cmd.splice(1);
         payload.spec.template.spec.containers[0].env = lib.buildEnvList({ envs: options.params.variables });
 
-        //NOTE: add kubectl container only for controller deployments, required tp proxy requests
-        //NOTE: static values are set for kubectl container, no need to make it dynamic for now
-        if (options.params.labels['soajs.service.name'] === 'controller') {
-            payload.spec.template.spec.containers.push({
-                "name": "kubectl-proxy",
-                "image": "lachlanevenson/k8s-kubectl",
-                "imagePullPolicy": "IfNotPresent",
-                "args": ["proxy", "-p", "8001"],
-                "ports": [
-                    {
-
-                        "containerPort": 8001
-                    }
-                ]
-            });
-        }
-
         if (ports && ports.length > 0) {
             payload.spec.template.spec.containers[0].ports = [];
             ports.forEach((onePort) => {
@@ -324,13 +307,6 @@ var engine = {
             payload.spec.template.spec.containers[0].readinessProbe.failureThreshold = options.params.readinessProbe.failureThreshold;
         }
 
-        if (process.env.SOAJS_TEST) {
-            //using lightweight image and commands to optimize travis builds
-            //the purpose of travis builds is to test the dashboard api, not the containers
-            payload.spec.template.spec.containers[0].image = 'alpine:latest';
-            payload.spec.template.spec.containers[0].command = ['sh'];
-            payload.spec.template.spec.containers[0].args = ['-c', 'sleep 36000'];
-        }
         let namespace = null;
 
         if(options.params.namespace){
