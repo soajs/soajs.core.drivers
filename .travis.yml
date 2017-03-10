@@ -16,6 +16,7 @@ addons:
   hosts:
     - localhost
     - dev-controller
+    - kubernetes.default
 
 before_script:
   - npm install -g grunt-cli
