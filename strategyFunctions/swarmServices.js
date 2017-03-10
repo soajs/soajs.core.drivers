@@ -120,6 +120,9 @@ var engine = {
                 "Source": "/var/run/docker.sock",
                 "Target": "/var/run/docker.sock",
             });
+            payload.TaskTemplate.Placement = {
+                Constraints: [ 'node.role == manager' ]
+            };
         }
 
         if (options.params.replication.mode === 'replicated') {
