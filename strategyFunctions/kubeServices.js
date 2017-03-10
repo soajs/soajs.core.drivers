@@ -189,10 +189,7 @@ var engine = {
         options.params.variables.push('SOAJS_DEPLOY_HA=kubernetes');
 
         let service = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/service.template.js'));
-        service.metadata.name = cleanLabel(options.params.name);
-        if (options.params.labels['soajs.service.name'] !== 'controller') {
-            service.metadata.name += '-service';
-        }
+        service.metadata.name = cleanLabel(options.params.name) + '-service';
 
         service.metadata.labels = options.params.labels;
         service.spec.selector = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
@@ -615,8 +612,6 @@ var engine = {
                 let namespace = lib.buildNameSpace(options);
                 deployer.core.namespaces(namespace).pods.get({name: options.params.taskId}, (error, pod) => {
                     check(error, 656, () => {
-                        //NOTE: controllers have two containers per pod, kubectl and controller service
-                        //NOTE: filter out the kubectl container and only get logs of controller
                         if (pod.spec && pod.spec.containers && pod.spec.containers.length > 0) {
                             let controllerContainer = {};
                             for (let i = 0; i < pod.spec.containers.length; i++) {
