@@ -23,11 +23,6 @@ const kubeLib = {
     getDeployer(options, cb) {
         let kubeURL = config.kubernetes.apiHost;
 
-        if (process.env.SOAJS_TEST_KUBE_PORT) {
-            //NOTE: unit testing requires the external port of the machine
-            kubeURL += ':' + process.env.SOAJS_TEST_KUBE_PORT;
-        }
-
         let kubernetes = {};
         let kubeConfig = {
             url: kubeURL,
@@ -41,6 +36,12 @@ const kubeLib = {
 
         if (options && options.deployerConfig && options.deployerConfig.auth && options.deployerConfig.auth.token) {
             kubeConfig.auth.bearer = options.deployerConfig.auth.token;
+        }
+
+        if (process.env.SOAJS_TEST_KUBE_PORT) {
+            //NOTE: unit testing on travis requires a different setup
+            kubeConfig.url = 'http://localhost:' + process.env.SOAJS_TEST_KUBE_PORT;
+            delete kubeConfig.auth;
         }
 
         kubeConfig.version = 'v1';
