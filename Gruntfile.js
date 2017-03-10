@@ -102,14 +102,14 @@ module.exports = function (grunt) {
 				APP_DIR_FOR_CODE_COVERAGE: '../test/coverage/instrument/',
 				SOAJS_DAEMON_GRP_CONF: 'group1',
 				SOAJS_IMAGE_PREFIX : "soajsorg",
-				SOAJS_TEST_KUBE_PORT: '8443'
+				SOAJS_TEST_KUBE_PORT: '8080'
 			},
 			coverage: {
 				SOAJS_ENV: "dev",
 				APP_DIR_FOR_CODE_COVERAGE: '../test/coverage/instrument/',
 				SOAJS_DAEMON_GRP_CONF: 'group1',
 				SOAJS_IMAGE_PREFIX : "soajsorg",
-				SOAJS_TEST_KUBE_PORT: '8443'
+				SOAJS_TEST_KUBE_PORT: '8080'
 			}
 		},
 
