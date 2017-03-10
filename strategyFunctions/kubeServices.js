@@ -480,7 +480,9 @@ var engine = {
 
                 if (options.params.version) {
                     filter.labelSelector += ', soajs.service.version=' + options.params.version;
-                    namespace += '-v' + options.params.version;
+                    if (options.deployerConfig.namespace.perService) {
+                        namespace += '-v' + options.params.version;
+                    }
                 }
 
                 deployer.extensions.namespaces(namespace).deployments.get({qs: filter}, (error, deploymentList) => {
@@ -795,7 +797,9 @@ var engine = {
 
                 if (options.params.version) {
                     filter.labelSelector += ', soajs.service.version=' + options.params.version;
-                    namespace += '-v' + options.params.version;
+                    if (options.deployerConfig.namespace.perService) {
+                        namespace += '-v' + options.params.version;
+                    }
                 }
 
                 deployer.core.namespaces(namespace).services.get({qs: filter}, (error, serviceList) => {
