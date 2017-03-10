@@ -608,7 +608,6 @@ var engine = {
             check(error, 520, () => {
 
                 let params = {
-                    name: options.params.taskId, //pod name
                     qs: {
                         tailLines: options.params.tail || 400
                     }
@@ -632,7 +631,7 @@ var engine = {
                             }
 
 
-                            deployer.core.namespaces(namespace).pods.log(params, (error, logs) => {
+                            deployer.core.namespaces(namespace).pods(options.params.taskId).log.get(params, (error, logs) => {
                                 check(error, 537, () => {
                                     if(cb)
                                         return cb(null,logs);
