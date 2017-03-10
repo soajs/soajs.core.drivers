@@ -23,9 +23,9 @@ const kubeLib = {
     getDeployer(options, cb) {
         let kubeURL = config.kubernetes.apiHost;
 
-        if (process.env.SOAJS_TEST_MINIKUBE_PORT) {
+        if (process.env.SOAJS_TEST_KUBE_PORT) {
             //NOTE: unit testing requires the external port of the machine
-            kubeURL += ':' + process.env.SOAJS_TEST_MINIKUBE_PORT;
+            kubeURL += ':' + process.env.SOAJS_TEST_KUBE_PORT;
         }
 
         let kubernetes = {};

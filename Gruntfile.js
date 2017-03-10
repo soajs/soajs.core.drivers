@@ -98,20 +98,18 @@ module.exports = function (grunt) {
 
 		env: {
 			mochaTest: {
-				// SOAJS_TEST: true,
 				SOAJS_ENV: "dev",
 				APP_DIR_FOR_CODE_COVERAGE: '../test/coverage/instrument/',
 				SOAJS_DAEMON_GRP_CONF: 'group1',
-				SOAJS_IMAGE_PREFIX : "soajsorg"
-				//SOAJS_SRVIP: '127.0.0.1'
+				SOAJS_IMAGE_PREFIX : "soajsorg",
+				SOAJS_TEST_KUBE_PORT: '8443'
 			},
 			coverage: {
-				// SOAJS_TEST: true,
 				SOAJS_ENV: "dev",
 				APP_DIR_FOR_CODE_COVERAGE: '../test/coverage/instrument/',
 				SOAJS_DAEMON_GRP_CONF: 'group1',
-				SOAJS_IMAGE_PREFIX : "soajsorg"
-				//SOAJS_SRVIP: '127.0.0.1'
+				SOAJS_IMAGE_PREFIX : "soajsorg",
+				SOAJS_TEST_KUBE_PORT: '8443'
 			}
 		},
 
@@ -195,7 +193,7 @@ module.exports = function (grunt) {
 	grunt.registerTask("unit", ['env:mochaTest', 'instrument', 'mochaTest:unit']);
 	//grunt.registerTask("test", ['unit','integration']);
 	grunt.registerTask("test", ['clean', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration']);
-	grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:unitDocker', 'mochaTest:cleanUp', 'storeCoverage', 'makeReport', 'coveralls']);
+	grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:unitDocker', 'mochaTest:unitKubernetes', 'mochaTest:cleanUp', 'storeCoverage', 'makeReport', 'coveralls']);
 	//grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration', 'storeCoverage', 'makeReport']);
 
 };
