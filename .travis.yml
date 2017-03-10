@@ -30,7 +30,7 @@ before_script:
   - kubectl config set-cluster travis --server=http://localhost:8080
   - kubectl config set-context travis --cluster=travis
   - kubectl config use-context travis
-  - while [ $(./kubectl get nodes | grep 127.0.0.1 | grep Ready | wc -l) -eq 0 ]; do sleep 1; done
+  - while [ $(kubectl get nodes | grep 127.0.0.1 | grep Ready | wc -l) -eq 0 ]; do sleep 1; done
 
 script:
   - grunt coverage
