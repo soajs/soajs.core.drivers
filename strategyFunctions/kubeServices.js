@@ -205,10 +205,17 @@ var engine = {
                 };
 
                 if (onePortEntry.isPublished) {
-                    if (!service.spec.type || service.spec.type !== 'NodePort') {
-                        service.spec.type = 'NodePort';
-                    }
-                    portConfig.nodePort = onePortEntry.published;
+                	if(options.deployerConfig.nginxDeployType === 'loadBalancer'){
+			            service.spec.type = 'LoadBalancer';
+		                delete portConfig.nodePort;
+	                }
+	                else{
+		                if (!service.spec.type || service.spec.type !== 'NodePort') {
+			                service.spec.type = 'NodePort';
+		                }
+		                portConfig.nodePort = onePortEntry.published;
+	                }
+                    
                     portConfig.name = onePortEntry.name || 'published' + portConfig.name;
                 }
 
