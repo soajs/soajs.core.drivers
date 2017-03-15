@@ -205,7 +205,7 @@ var engine = {
                 };
 
                 if (onePortEntry.isPublished) {
-                	if(options.deployerConfig.nginxDeployType === 'loadBalancer'){
+                	if(options.deployerConfig.nginxDeployType === 'LoadBalancer'){
 			            service.spec.type = 'LoadBalancer';
 		                delete portConfig.nodePort;
 	                }
