@@ -254,6 +254,14 @@ var engine = {
         payload.spec.template.spec.containers[0].args = options.params.cmd.splice(1);
         payload.spec.template.spec.containers[0].env = lib.buildEnvList({ envs: options.params.variables });
 
+        if (options.params.memoryLimit) {
+            payload.spec.template.space.containers[0].resources = {
+                limits: {
+                    memory: options.params.memoryLimit
+                }
+            };
+        }
+
         if (ports && ports.length > 0) {
             payload.spec.template.spec.containers[0].ports = [];
             ports.forEach((onePort) => {
