@@ -255,7 +255,7 @@ var engine = {
         payload.spec.template.spec.containers[0].env = lib.buildEnvList({ envs: options.params.variables });
 
         if (options.params.memoryLimit) {
-            payload.spec.template.space.containers[0].resources = {
+            payload.spec.template.spec.containers[0].resources = {
                 limits: {
                     memory: options.params.memoryLimit
                 }
