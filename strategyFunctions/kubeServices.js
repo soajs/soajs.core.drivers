@@ -215,7 +215,7 @@ var engine = {
 		                }
 		                portConfig.nodePort = onePortEntry.published;
 	                }
-                    
+
                     portConfig.name = onePortEntry.name || 'published' + portConfig.name;
                 }
 
@@ -317,6 +317,24 @@ var engine = {
             payload.spec.template.spec.containers[0].readinessProbe.periodSeconds = options.params.readinessProbe.periodSeconds;
             payload.spec.template.spec.containers[0].readinessProbe.successThreshold = options.params.readinessProbe.successThreshold;
             payload.spec.template.spec.containers[0].readinessProbe.failureThreshold = options.params.readinessProbe.failureThreshold;
+        }
+
+        //Check if SSL is enabled and if the user specified a secret name
+        if (options.params.labels['soajs.service.type'] === 'nginx') {
+            if (options.params.ssl && options.params.ssl.enabled && options.params.ssl.secret) {
+                payload.spec.volumes.push({
+                    name: 'ssl',
+                    secret: {
+                        secretName: options.params.ssl.secret
+                    }
+                });
+
+                payload.spec.template.spec.containers[0].volumeMounts.push({
+                    name: 'ssl',
+                    mountPath: '/etc/ssl',
+                    readOnly: true
+                });
+            }
         }
 
         let namespace = null;
