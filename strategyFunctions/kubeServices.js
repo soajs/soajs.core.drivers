@@ -450,6 +450,39 @@ var engine = {
                                     deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_TOKEN', value: options.params.ui.token });
                                 }
                             }
+
+                            if (options.params.ssl) {
+                                //Check if SSL is enabled and if the user specified a secret name
+                                if (options.params.ssl.enabled) {
+                                    if (deployment.spec.template.spec.containers[0].args.indexOf('-s') === -1) {
+                                        deployment.spec.template.spec.containers[0].args.push('-s');
+                                    }
+                                }
+
+                                if (options.params.ssl.secret) {
+                                    let optionIndex = deployment.spec.template.spec.containers[0].args.indexOf('-S');
+                                    if (optionIndex === -1) {
+                                        deployment.spec.template.spec.containers[0].args.push('-S');
+                                        deployment.spec.template.spec.containers[0].args.push(options.params.ssl.secret);
+                                    }
+                                    else {
+                                        deployment.spec.template.spec.containers[0].args.splice(optionIndex + 1, 1, options.params.ssl.secret);
+                                    }
+
+                                    deployment.spec.volumes.push({
+                                        name: 'ssl',
+                                        secret: {
+                                            secretName: options.params.ssl.secret
+                                        }
+                                    });
+
+                                    deployment.spec.template.spec.containers[0].volumeMounts.push({
+                                        name: 'ssl',
+                                        mountPath: '/etc/ssl',
+                                        readOnly: true
+                                    });
+                                }
+                            }
                             let namespace = lib.buildNameSpace(options);
                             deployer.extensions.namespaces(namespace)[contentType].put({ name: options.params.id, body: deployment }, (error) => {
                                 utils.checkError(error, 653, cb, cb.bind(null, null, true));
