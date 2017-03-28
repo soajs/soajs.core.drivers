@@ -454,33 +454,39 @@ var engine = {
                             if (options.params.ssl) {
                                 //Check if SSL is enabled and if the user specified a secret name
                                 if (options.params.ssl.enabled) {
+                                    nginxParams.variables.push({ name: 'SOAJS_NX_API_HTTPS', value: '1' });
+                                    nginxParams.variables.push({ name: 'SOAJS_NX_API_HTTP_REDIRECT', value: '1' });
+                                    nginxParams.variables.push({ name: 'SOAJS_NX_SITE_HTTPS', value: '1' });
+                                    nginxParams.variables.push({ name: 'SOAJS_NX_SITE_HTTP_REDIRECT', value: '1' });
+
                                     if (deployment.spec.template.spec.containers[0].args.indexOf('-s') === -1) {
                                         deployment.spec.template.spec.containers[0].args.push('-s');
                                     }
-                                }
 
-                                if (options.params.ssl.secret) {
-                                    let optionIndex = deployment.spec.template.spec.containers[0].args.indexOf('-S');
-                                    if (optionIndex === -1) {
-                                        deployment.spec.template.spec.containers[0].args.push('-S');
-                                        deployment.spec.template.spec.containers[0].args.push(options.params.ssl.secret);
-                                    }
-                                    else {
-                                        deployment.spec.template.spec.containers[0].args.splice(optionIndex + 1, 1, options.params.ssl.secret);
-                                    }
-
-                                    deployment.spec.volumes.push({
-                                        name: 'ssl',
-                                        secret: {
-                                            secretName: options.params.ssl.secret
+                                    if (options.params.ssl.secret) {
+                                        let optionIndex = deployment.spec.template.spec.containers[0].args.indexOf('-S');
+                                        if (optionIndex === -1) {
+                                            deployment.spec.template.spec.containers[0].args.push('-S');
+                                            deployment.spec.template.spec.containers[0].args.push(options.params.ssl.secret);
                                         }
-                                    });
+                                        else {
+                                            deployment.spec.template.spec.containers[0].args.splice(optionIndex + 1, 1, options.params.ssl.secret);
+                                        }
 
-                                    deployment.spec.template.spec.containers[0].volumeMounts.push({
-                                        name: 'ssl',
-                                        mountPath: '/etc/ssl',
-                                        readOnly: true
-                                    });
+                                        //TODO: check if volumes already exist before pushing them
+                                        deployment.spec.volumes.push({
+                                            name: 'ssl',
+                                            secret: {
+                                                secretName: options.params.ssl.secret
+                                            }
+                                        });
+
+                                        deployment.spec.template.spec.containers[0].volumeMounts.push({
+                                            name: 'ssl',
+                                            mountPath: '/etc/ssl',
+                                            readOnly: true
+                                        });
+                                    }
                                 }
                             }
                             let namespace = lib.buildNameSpace(options);
