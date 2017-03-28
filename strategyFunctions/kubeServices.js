@@ -467,15 +467,6 @@ var engine = {
                                     }
 
                                     if (options.params.ssl.secret) {
-                                        let optionIndex = deployment.spec.template.spec.containers[0].args.indexOf('-S');
-                                        if (optionIndex === -1) {
-                                            deployment.spec.template.spec.containers[0].args.push('-S');
-                                            deployment.spec.template.spec.containers[0].args.push(options.params.ssl.secret);
-                                        }
-                                        else {
-                                            deployment.spec.template.spec.containers[0].args.splice(optionIndex + 1, 1, options.params.ssl.secret);
-                                        }
-
                                         //TODO: check if volumes already exist before pushing them
                                         deployment.spec.volumes.push({
                                             name: 'ssl',
