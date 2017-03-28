@@ -459,6 +459,9 @@ var engine = {
                                     nginxParams.variables.push({ name: 'SOAJS_NX_SITE_HTTPS', value: '1' });
                                     nginxParams.variables.push({ name: 'SOAJS_NX_SITE_HTTP_REDIRECT', value: '1' });
 
+                                    nginxParams.variables.push({ name: 'SOAJS_NX_CUSTOM_SSL', value: '1' });
+                                    nginxParams.variables.push({ name: 'SOAJS_NX_SSL_CERTS_LOCATION', value: '/etc/ssl' });
+
                                     if (deployment.spec.template.spec.containers[0].args.indexOf('-s') === -1) {
                                         deployment.spec.template.spec.containers[0].args.push('-s');
                                     }
