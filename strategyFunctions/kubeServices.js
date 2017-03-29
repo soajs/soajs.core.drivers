@@ -322,7 +322,7 @@ var engine = {
         //Check if SSL is enabled and if the user specified a secret name
         if (options.params.labels['soajs.service.type'] === 'nginx') {
             if (options.params.ssl && options.params.ssl.enabled && options.params.ssl.secret) {
-                payload.spec.volumes.push({
+                payload.spec.template.spec.volumes.push({
                     name: 'ssl',
                     secret: {
                         secretName: options.params.ssl.secret
