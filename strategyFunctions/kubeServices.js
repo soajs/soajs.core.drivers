@@ -331,7 +331,7 @@ var engine = {
 
                 payload.spec.template.spec.containers[0].volumeMounts.push({
                     name: 'ssl',
-                    mountPath: '/etc/ssl',
+                    mountPath: '/etc/soajs/ssl',
                     readOnly: true
                 });
             }
