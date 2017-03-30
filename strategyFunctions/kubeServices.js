@@ -466,7 +466,7 @@ var engine = {
                                     if (options.params.ssl.kubeSecret) {
                                         deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_CUSTOM_SSL', value: '1' });
                                         deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SSL_CERTS_LOCATION', value: '/etc/soajs/ssl' });
-                                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SSL_SECRET', value: options.params.ssl.secret });
+                                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SSL_SECRET', value: options.params.ssl.kubeSecret });
 
                                         deployment.spec.template.spec.volumes.push({
                                             name: 'ssl',
