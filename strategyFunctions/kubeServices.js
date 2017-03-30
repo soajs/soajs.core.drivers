@@ -451,6 +451,7 @@ var engine = {
                                 }
                             }
 
+                            console.log (JSON.stringify (options.params, null, 2));
                             if (options.params.ssl) {
                                 //Check if SSL is enabled and if the user specified a secret name
                                 if (options.params.ssl.enabled) {
@@ -463,7 +464,7 @@ var engine = {
                                         deployment.spec.template.spec.containers[0].args.push('-s');
                                     }
 
-                                    if (options.params.ssl.secret) {
+                                    if (options.params.ssl.kubeSecret) {
                                         deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_CUSTOM_SSL', value: '1' });
                                         deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SSL_CERTS_LOCATION', value: '/etc/soajs/ssl' });
                                         deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SSL_SECRET', value: options.params.ssl.secret });
@@ -471,7 +472,7 @@ var engine = {
                                         deployment.spec.template.spec.volumes.push({
                                             name: 'ssl',
                                             secret: {
-                                                secretName: options.params.ssl.secret
+                                                secretName: options.params.ssl.kubeSecret
                                             }
                                         });
 
