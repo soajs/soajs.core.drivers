@@ -459,15 +459,15 @@ var engine = {
                                     nginxParams.variables.push({ name: 'SOAJS_NX_SITE_HTTPS', value: '1' });
                                     nginxParams.variables.push({ name: 'SOAJS_NX_SITE_HTTP_REDIRECT', value: '1' });
 
-                                    nginxParams.variables.push({ name: 'SOAJS_NX_CUSTOM_SSL', value: '1' });
-                                    nginxParams.variables.push({ name: 'SOAJS_NX_SSL_CERTS_LOCATION', value: '/etc/ssl' });
-
                                     if (deployment.spec.template.spec.containers[0].args.indexOf('-s') === -1) {
                                         deployment.spec.template.spec.containers[0].args.push('-s');
                                     }
 
                                     if (options.params.ssl.secret) {
-                                        //TODO: check if volumes already exist before pushing them
+                                        nginxParams.variables.push({ name: 'SOAJS_NX_CUSTOM_SSL', value: '1' });
+                                        nginxParams.variables.push({ name: 'SOAJS_NX_SSL_CERTS_LOCATION', value: '/etc/soajs/ssl' });
+                                        nginxParams.variables.push({ name: 'SOAJS_NX_SSL_SECRET', value: options.params.ssl.secret });
+
                                         deployment.spec.volumes.push({
                                             name: 'ssl',
                                             secret: {
