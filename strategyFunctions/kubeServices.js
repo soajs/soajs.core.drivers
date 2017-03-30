@@ -454,21 +454,21 @@ var engine = {
                             if (options.params.ssl) {
                                 //Check if SSL is enabled and if the user specified a secret name
                                 if (options.params.ssl.enabled) {
-                                    nginxParams.variables.push({ name: 'SOAJS_NX_API_HTTPS', value: '1' });
-                                    nginxParams.variables.push({ name: 'SOAJS_NX_API_HTTP_REDIRECT', value: '1' });
-                                    nginxParams.variables.push({ name: 'SOAJS_NX_SITE_HTTPS', value: '1' });
-                                    nginxParams.variables.push({ name: 'SOAJS_NX_SITE_HTTP_REDIRECT', value: '1' });
+                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_API_HTTPS', value: '1' });
+                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_API_HTTP_REDIRECT', value: '1' });
+                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SITE_HTTPS', value: '1' });
+                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SITE_HTTP_REDIRECT', value: '1' });
 
                                     if (deployment.spec.template.spec.containers[0].args.indexOf('-s') === -1) {
                                         deployment.spec.template.spec.containers[0].args.push('-s');
                                     }
 
                                     if (options.params.ssl.secret) {
-                                        nginxParams.variables.push({ name: 'SOAJS_NX_CUSTOM_SSL', value: '1' });
-                                        nginxParams.variables.push({ name: 'SOAJS_NX_SSL_CERTS_LOCATION', value: '/etc/soajs/ssl' });
-                                        nginxParams.variables.push({ name: 'SOAJS_NX_SSL_SECRET', value: options.params.ssl.secret });
+                                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_CUSTOM_SSL', value: '1' });
+                                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SSL_CERTS_LOCATION', value: '/etc/soajs/ssl' });
+                                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SSL_SECRET', value: options.params.ssl.secret });
 
-                                        deployment.spec.volumes.push({
+                                        deployment.spec.template.spec.volumes.push({
                                             name: 'ssl',
                                             secret: {
                                                 secretName: options.params.ssl.secret
@@ -477,9 +477,46 @@ var engine = {
 
                                         deployment.spec.template.spec.containers[0].volumeMounts.push({
                                             name: 'ssl',
-                                            mountPath: '/etc/ssl',
+                                            mountPath: '/etc/soajs/ssl',
                                             readOnly: true
                                         });
+                                    }
+                                    else {
+                                        let customSSLVars = [ 'SOAJS_NX_CUSTOM_SSL', 'SOAJS_NX_SSL_CERTS_LOCATION', 'SOAJS_NX_SSL_SECRET' ];
+                                        for (let i = deployment.spec.template.spec.containers[0].env.length - 1; i <= 0; i--) {
+                                            let oneVar = deployment.spec.template.spec.containers[0].env[i];
+                                            if (customSSLVars.indexOf(oneVar.name) !== -1) {
+                                                deployment.spec.template.spec.containers[0].env.splice(i, 1);
+                                            }
+                                        }
+
+                                        if (deployment.spec.template.spec.volumes) {
+                                            for (let i = 0; i < deployment.spec.template.spec.volumes.length; i++) {
+                                                if (deployment.spec.template.spec.volumes[i].name === 'ssl') {
+                                                    deployment.spec.template.spec.volumes.splice(i, 1);
+                                                    break;
+                                                }
+                                            }
+                                        }
+
+                                        if (deployment.spec.template.spec.containers[0].volumeMounts) {
+                                            for (let i = 0; i < deployment.spec.template.spec.containers[0].volumeMounts.length; i++) {
+                                                if (deployment.spec.template.spec.containers[0].volumeMounts[i].name === 'ssl') {
+                                                    deployment.spec.template.spec.containers[0].volumeMounts.splice(i, 1);
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else {
+                                let sslEnvVars = [ 'SOAJS_NX_API_HTTPS', 'SOAJS_NX_API_HTTP_REDIRECT', 'SOAJS_NX_SITE_HTTPS', 'SOAJS_NX_SITE_HTTP_REDIRECT' ];
+
+                                for (let i = deployment.spec.template.spec.containers[0].env.length - 1; i <= 0; i--) {
+                                    let oneVar = deployment.spec.template.spec.containers[0].env[i];
+                                    if (sslEnvVars.indexOf(oneVar.name) !== -1) {
+                                        deployment.spec.template.spec.containers[0].env.splice(i, 1);
                                     }
                                 }
                             }
