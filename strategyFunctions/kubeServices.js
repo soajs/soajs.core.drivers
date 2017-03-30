@@ -483,7 +483,7 @@ var engine = {
                                     }
                                     else {
                                         let customSSLVars = [ 'SOAJS_NX_CUSTOM_SSL', 'SOAJS_NX_SSL_CERTS_LOCATION', 'SOAJS_NX_SSL_SECRET' ];
-                                        for (let i = deployment.spec.template.spec.containers[0].env.length - 1; i <= 0; i--) {
+                                        for (let i = deployment.spec.template.spec.containers[0].env.length - 1; i >= 0; i--) {
                                             let oneVar = deployment.spec.template.spec.containers[0].env[i];
                                             if (customSSLVars.indexOf(oneVar.name) !== -1) {
                                                 deployment.spec.template.spec.containers[0].env.splice(i, 1);
@@ -513,7 +513,7 @@ var engine = {
                             else {
                                 let sslEnvVars = [ 'SOAJS_NX_API_HTTPS', 'SOAJS_NX_API_HTTP_REDIRECT', 'SOAJS_NX_SITE_HTTPS', 'SOAJS_NX_SITE_HTTP_REDIRECT' ];
 
-                                for (let i = deployment.spec.template.spec.containers[0].env.length - 1; i <= 0; i--) {
+                                for (let i = deployment.spec.template.spec.containers[0].env.length - 1; i >= 0; i--) {
                                     let oneVar = deployment.spec.template.spec.containers[0].env[i];
                                     if (sslEnvVars.indexOf(oneVar.name) !== -1) {
                                         deployment.spec.template.spec.containers[0].env.splice(i, 1);
