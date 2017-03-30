@@ -451,7 +451,6 @@ var engine = {
                                 }
                             }
 
-                            console.log (JSON.stringify (options.params, null, 2));
                             if (options.params.ssl) {
                                 //Check if SSL is enabled and if the user specified a secret name
                                 if (options.params.ssl.enabled) {
@@ -519,6 +518,10 @@ var engine = {
                                     if (sslEnvVars.indexOf(oneVar.name) !== -1) {
                                         deployment.spec.template.spec.containers[0].env.splice(i, 1);
                                     }
+                                }
+
+                                if (deployment.spec.template.spec.containers[0].args.indexOf('-s') !== -1) {
+                                    deployment.spec.template.spec.containers[0].args.splice(deployment.spec.template.spec.containers[0].args.indexOf('-s'), 1);
                                 }
                             }
                             let namespace = lib.buildNameSpace(options);
