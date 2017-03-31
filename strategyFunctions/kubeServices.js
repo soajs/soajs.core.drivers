@@ -922,7 +922,8 @@ var engine = {
                         let namespaceName = (serviceList.items[0].metadata.namespace) ? serviceList.items[0].metadata.namespace : 'default';
 
                         //only one service must match the filter, therefore serviceList will contain only one item
-                        return cb(null, serviceList.items[0].metadata.name + '.' + namespaceName);
+                        // return cb(null, serviceList.items[0].metadata.name + '.' + namespaceName);
+                        return cb(null, serviceList.items[0].spec.clusterIP);
                     });
                 });
             });
