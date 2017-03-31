@@ -207,10 +207,10 @@ var engine = {
                         if (options.params.ssl) {
                             //Check if SSL is enabled and if the user specified a secret name
                             if (options.params.ssl.enabled) {
-                                update.TaskTemplate.ContainerSpec.Env.push({ name: 'SOAJS_NX_API_HTTPS', value: '1' });
-                                update.TaskTemplate.ContainerSpec.Env.push({ name: 'SOAJS_NX_API_HTTP_REDIRECT', value: '1' });
-                                update.TaskTemplate.ContainerSpec.Env.push({ name: 'SOAJS_NX_SITE_HTTPS', value: '1' });
-                                update.TaskTemplate.ContainerSpec.Env.push({ name: 'SOAJS_NX_SITE_HTTP_REDIRECT', value: '1' });
+                                update.TaskTemplate.ContainerSpec.Env.push('SOAJS_NX_API_HTTPS=1');
+                                update.TaskTemplate.ContainerSpec.Env.push('SOAJS_NX_API_HTTP_REDIRECT=1');
+                                update.TaskTemplate.ContainerSpec.Env.push('SOAJS_NX_SITE_HTTPS=1');
+                                update.TaskTemplate.ContainerSpec.Env.push('SOAJS_NX_SITE_HTTP_REDIRECT=1');
 
                                 if (update.TaskTemplate.ContainerSpec.Command.indexOf('-s') === -1) {
                                     update.TaskTemplate.ContainerSpec.Command.push('-s');
