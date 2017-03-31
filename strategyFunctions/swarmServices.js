@@ -587,7 +587,12 @@ var engine = {
                         }
 
                         //NOTE: only one service with the same name and version can exist in a given environment
-                        return cb(null, services[0].Spec.Name);
+                        // return cb(null, services[0].Spec.Name);
+                        let vip = null;
+                        if (services[0].Endpoint && services[0].Endpoint.VirtualIPs && services[0].Endpoint.VirtualIPs[0]) {
+                            vip = services[0].Endpoint.VirtualIPs[0].Addr;
+                        }
+                        return cb(null, vip);
                     });
                 });
             });
