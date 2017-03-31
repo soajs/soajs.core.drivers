@@ -591,6 +591,9 @@ var engine = {
                         let vip = null;
                         if (services[0].Endpoint && services[0].Endpoint.VirtualIPs && services[0].Endpoint.VirtualIPs[0]) {
                             vip = services[0].Endpoint.VirtualIPs[0].Addr;
+                            if (vip.indexOf('/') !== -1) {
+                                vip = services[0].Endpoint.VirtualIPs[0].Addr.split('/')[0];
+                            }
                         }
                         return cb(null, vip);
                     });
