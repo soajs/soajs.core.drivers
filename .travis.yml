@@ -1,4 +1,4 @@
-ksudo: required
+sudo: required
 
 language: node_js
 
