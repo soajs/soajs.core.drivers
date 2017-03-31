@@ -204,6 +204,34 @@ var engine = {
                             }
                         }
 
+                        if (options.params.ssl) {
+                            //Check if SSL is enabled and if the user specified a secret name
+                            if (options.params.ssl.enabled) {
+                                update.TaskTemplate.ContainerSpec.Env.push({ name: 'SOAJS_NX_API_HTTPS', value: '1' });
+                                update.TaskTemplate.ContainerSpec.Env.push({ name: 'SOAJS_NX_API_HTTP_REDIRECT', value: '1' });
+                                update.TaskTemplate.ContainerSpec.Env.push({ name: 'SOAJS_NX_SITE_HTTPS', value: '1' });
+                                update.TaskTemplate.ContainerSpec.Env.push({ name: 'SOAJS_NX_SITE_HTTP_REDIRECT', value: '1' });
+
+                                if (update.TaskTemplate.ContainerSpec.Command.indexOf('-s') === -1) {
+                                    update.TaskTemplate.ContainerSpec.Command.push('-s');
+                                }
+                            }
+                        }
+                        else {
+                            let sslEnvVars = [ 'SOAJS_NX_API_HTTPS=1', 'SOAJS_NX_API_HTTP_REDIRECT=1', 'SOAJS_NX_SITE_HTTPS=1', 'SOAJS_NX_SITE_HTTP_REDIRECT=1' ];
+
+                            for (let i = update.TaskTemplate.ContainerSpec.Env.length - 1; i >= 0; i--) {
+                                let oneVar = update.TaskTemplate.ContainerSpec.Env[i];
+                                if (sslEnvVars.indexOf(oneVar) !== -1) {
+                                    update.TaskTemplate.ContainerSpec.Env.splice(i, 1);
+                                }
+                            }
+
+                            if (update.TaskTemplate.ContainerSpec.Command.indexOf('-s') !== -1) {
+                                update.TaskTemplate.ContainerSpec.Command.splice(update.TaskTemplate.ContainerSpec.Command.indexOf('-s'), 1);
+                            }
+                        }
+
                         service.update(update, (error) => {
                             utils.checkError(error, 653, cb, cb.bind(null, null, true));
                         });
