@@ -129,13 +129,20 @@ var engine = {
             payload.Mode.Replicated.Replicas = options.params.replication.replicas;
         }
 
-        if (options.params.volume) {
-            payload.TaskTemplate.ContainerSpec.Mounts.push({
-                Type: options.params.volume.type,
-                ReadOnly: options.params.volume.readOnly,
-                Source: options.params.volume.source,
-                Target: options.params.volume.target,
-            });
+        if (options.params.type === 'custom') {
+            if (options.params.volume) {
+                payload.TaskTemplate.ContainerSpec.Mounts.push({
+                    Type: options.params.volume.type,
+                    ReadOnly: options.params.volume.readOnly,
+                    Source: options.params.volume.source,
+                    Target: options.params.volume.target,
+                });
+            }
+        }
+        else {
+            if (options.params.voluming && options.params.voluming.volumes && options.params.voluming.volumes.length > 0) {
+                payload.TaskTemplate.ContainerSpec.Mounts = payload.TaskTemplate.ContainerSpec.Mounts.concat(options.params.voluming.volumes);
+            }
         }
 
         if (options.params.ports && options.params.ports.length > 0) {
