@@ -297,8 +297,8 @@ var engine = {
         }
         else {
             if (options.params.voluming && options.params.voluming.volumes && options.params.voluming.volumeMounts) {
-                payload.spec.template.spec.volumes = options.params.voluming.volumes;
-                payload.spec.template.spec.containers[0].volumeMounts = options.params.voluming.volumeMounts;
+                payload.spec.template.spec.volumes = payload.spec.template.spec.volumes.concat(options.params.voluming.volumes);
+                payload.spec.template.spec.containers[0].volumeMounts = payload.spec.template.spec.containers[0].volumeMounts.concat(options.params.voluming.volumeMounts);
             }
         }
 
