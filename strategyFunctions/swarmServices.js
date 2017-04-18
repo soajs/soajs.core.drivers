@@ -219,8 +219,8 @@ var engine = {
                                 update.TaskTemplate.ContainerSpec.Env.push('SOAJS_NX_SITE_HTTPS=1');
                                 update.TaskTemplate.ContainerSpec.Env.push('SOAJS_NX_SITE_HTTP_REDIRECT=1');
 
-                                if (update.TaskTemplate.ContainerSpec.Command.indexOf('-s') === -1) {
-                                    update.TaskTemplate.ContainerSpec.Command.push('-s');
+                                if (update.TaskTemplate.ContainerSpec.Args[1].indexOf('-s') === -1) {
+                                    update.TaskTemplate.ContainerSpec.Args[1] += ' -s';
                                 }
                             }
                         }
@@ -234,8 +234,11 @@ var engine = {
                                 }
                             }
 
-                            if (update.TaskTemplate.ContainerSpec.Command.indexOf('-s') !== -1) {
-                                update.TaskTemplate.ContainerSpec.Command.splice(update.TaskTemplate.ContainerSpec.Command.indexOf('-s'), 1);
+                            let sslOptionIndex = update.TaskTemplate.ContainerSpec.Args[1].indexOf('-s');
+                            if (sslOptionIndex !== -1) {
+                                // remove -s and following whitespace
+                                update.TaskTemplate.ContainerSpec.Args[1] =
+                                update.TaskTemplate.ContainerSpec.Args[1].slice(0, sslOptionIndex) + update.TaskTemplate.ContainerSpec.Args[1].slice(sslOptionIndex + 3);
                             }
                         }
 

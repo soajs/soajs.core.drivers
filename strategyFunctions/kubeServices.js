@@ -467,8 +467,8 @@ var engine = {
                                     deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SITE_HTTPS', value: '1' });
                                     deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SITE_HTTP_REDIRECT', value: '1' });
 
-                                    if (deployment.spec.template.spec.containers[0].args.indexOf('-s') === -1) {
-                                        deployment.spec.template.spec.containers[0].args.push('-s');
+                                    if (deployment.spec.template.spec.containers[0].args[2].indexOf('-s') === -1) {
+                                        deployment.spec.template.spec.containers[0].args[2] += ' -s';
                                     }
 
                                     if (options.params.ssl.kubeSecret) {
@@ -528,9 +528,13 @@ var engine = {
                                     }
                                 }
 
-                                if (deployment.spec.template.spec.containers[0].args.indexOf('-s') !== -1) {
-                                    deployment.spec.template.spec.containers[0].args.splice(deployment.spec.template.spec.containers[0].args.indexOf('-s'), 1);
+                                let sslOptionIndex = deployment.spec.template.spec.containers[0].args[2].indexOf('-s');
+                                if (sslOptionIndex !== -1) {
+                                    // remove -s and following whitespace
+                                    deployment.spec.template.spec.containers[0].args[2] =
+                                    deployment.spec.template.spec.containers[0].args[2].slice(0, sslOptionIndex) + deployment.spec.template.spec.containers[0].args[2].slice(sslOptionIndex + 3);
                                 }
+
                             }
                             let namespace = lib.buildNameSpace(options);
                             deployer.extensions.namespaces(namespace)[contentType].put({ name: options.params.id, body: deployment }, (error) => {
