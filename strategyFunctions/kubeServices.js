@@ -279,19 +279,27 @@ var engine = {
             });
         }
 
-        //NOTE: only one volume is supported for now
-        if (options.params.volume) {
-            payload.spec.volumes.push({
-                name: options.params.volume.name,
-                hostPath: {
-                    path: options.params.volume.source
-                }
-            });
+        //NOTE: for custom deployments, only one volume is supported for now
+        if (options.params.type === 'custom') {
+            if (options.params.volume) {
+                payload.spec.template.spec.volumes.push({
+                    name: options.params.volume.name,
+                    hostPath: {
+                        path: options.params.volume.source
+                    }
+                });
 
-            payload.spec.template.spec.containers[0].volumeMounts.push({
-                mountPath: options.params.volume.target,
-                name: options.params.volume.name
-            });
+                payload.spec.template.spec.containers[0].volumeMounts.push({
+                    mountPath: options.params.volume.target,
+                    name: options.params.volume.name
+                });
+            }
+        }
+        else {
+            if (options.params.voluming && options.params.voluming.volumes && options.params.voluming.volumeMounts) {
+                payload.spec.template.spec.volumes = options.params.voluming.volumes;
+                payload.spec.template.spec.containers[0].volumeMounts = options.params.voluming.volumeMounts;
+            }
         }
 
         if (options.params.readinessProbe) {
