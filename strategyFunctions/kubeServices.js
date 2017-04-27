@@ -467,13 +467,22 @@ var engine = {
                                     deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SITE_HTTPS', value: '1' });
                                     deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SITE_HTTP_REDIRECT', value: '1' });
 
-                                    if (deployment.spec.template.spec.containers[0].args[2].indexOf('-s') === -1) {
-                                        deployment.spec.template.spec.containers[0].args[2] += ' -s';
-                                    }
-
                                     if (options.params.ssl.kubeSecret) {
+                                        let sslVolumeLocation = '';
+                                        for (let i = 0; i < deployment.spec.template.spec.containers[0].env.length; i++) {
+                                            let oneVar = deployment.spec.template.spec.containers[0].env[i];
+                                            if (oneVar.name === 'SOAJS_NX_SSL_CERTS_LOCATION') {
+                                                sslVolumeLocation = oneVar.value;
+                                                break;
+                                            }
+                                        }
+
+                                        if (!sslVolumeLocation) {
+                                            sslVolumeLocation = '/etc/soajs/ssl';
+                                            deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SSL_CERTS_LOCATION', value: sslVolumeLocation });
+                                        }
+
                                         deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_CUSTOM_SSL', value: '1' });
-                                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SSL_CERTS_LOCATION', value: '/etc/soajs/ssl' });
                                         deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SSL_SECRET', value: options.params.ssl.kubeSecret });
 
                                         deployment.spec.template.spec.volumes.push({
@@ -485,7 +494,7 @@ var engine = {
 
                                         deployment.spec.template.spec.containers[0].volumeMounts.push({
                                             name: 'ssl',
-                                            mountPath: '/etc/soajs/ssl',
+                                            mountPath: sslVolumeLocation,
                                             readOnly: true
                                         });
                                     }
@@ -527,14 +536,6 @@ var engine = {
                                         deployment.spec.template.spec.containers[0].env.splice(i, 1);
                                     }
                                 }
-
-                                let sslOptionIndex = deployment.spec.template.spec.containers[0].args[2].indexOf('-s');
-                                if (sslOptionIndex !== -1) {
-                                    // remove -s and following whitespace
-                                    deployment.spec.template.spec.containers[0].args[2] =
-                                    deployment.spec.template.spec.containers[0].args[2].slice(0, sslOptionIndex) + deployment.spec.template.spec.containers[0].args[2].slice(sslOptionIndex + 3);
-                                }
-
                             }
                             let namespace = lib.buildNameSpace(options);
                             deployer.extensions.namespaces(namespace)[contentType].put({ name: options.params.id, body: deployment }, (error) => {
