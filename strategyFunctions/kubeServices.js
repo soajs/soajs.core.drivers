@@ -450,12 +450,21 @@ var engine = {
                                 deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_OWNER', value: options.params.ui.owner });
                                 deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_BRANCH', value: options.params.ui.branch });
                                 deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_COMMIT', value: options.params.ui.commit });
-                                deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_COMMIT', value: options.params.ui.commit });
                                 deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_PROVIDER', value: options.params.ui.provider });
                                 deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_DOMAIN', value: options.params.ui.domain });
 
                                 if (options.params.ui.token) {
                                     deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_TOKEN', value: options.params.ui.token });
+                                }
+                            }
+                            else {
+                                //if user does not want custom UI, remove existing UI env variables if any
+                                let uiVars = [ 'SOAJS_GIT_REPO', 'SOAJS_GIT_OWNER', 'SOAJS_GIT_BRANCH', 'SOAJS_GIT_COMMIT', 'SOAJS_GIT_PROVIDER', 'SOAJS_GIT_DOMAIN', 'SOAJS_GIT_TOKEN' ];
+                                for (let i = deployment.spec.template.spec.containers[0].env.length - 1; i >= 0; i--) {
+                                    let oneVar = deployment.spec.template.spec.containers[0].env[i];
+                                    if (uiVars.indexOf(oneVar.name) !== -1) {
+                                        deployment.spec.template.spec.containers[0].env.splice(i, 1);
+                                    }
                                 }
                             }
 
