@@ -516,6 +516,7 @@ var engine = {
                                             }
                                         }
 
+                                        //NOTE: no need to traverse the array in reverse since we are only splicing one element and breaking
                                         if (deployment.spec.template.spec.volumes) {
                                             for (let i = 0; i < deployment.spec.template.spec.volumes.length; i++) {
                                                 if (deployment.spec.template.spec.volumes[i].name === 'ssl') {
@@ -525,6 +526,7 @@ var engine = {
                                             }
                                         }
 
+                                        //NOTE: no need to traverse the array in reverse since we are only splicing one element and breaking
                                         if (deployment.spec.template.spec.containers[0].volumeMounts) {
                                             for (let i = 0; i < deployment.spec.template.spec.containers[0].volumeMounts.length; i++) {
                                                 if (deployment.spec.template.spec.containers[0].volumeMounts[i].name === 'ssl') {
