@@ -210,6 +210,16 @@ var engine = {
                                 update.TaskTemplate.ContainerSpec.Env.push('SOAJS_GIT_TOKEN=' + options.params.ui.token);
                             }
                         }
+                        else {
+                            //if user does not want custom UI, remove existing UI env variables if any
+                            let uiVars = [ 'SOAJS_GIT_REPO', 'SOAJS_GIT_OWNER', 'SOAJS_GIT_BRANCH', 'SOAJS_GIT_COMMIT', 'SOAJS_GIT_PROVIDER', 'SOAJS_GIT_DOMAIN', 'SOAJS_GIT_TOKEN' ];
+                            for (let i = update.TaskTemplate.ContainerSpec.Env.length - 1; i >= 0; i--) {
+                                let oneVar = update.TaskTemplate.ContainerSpec.Env[i].split('=')[0];
+                                if (uiVars.indexOf(oneVar) !== -1) {
+                                    update.TaskTemplate.ContainerSpec.Env.splice(i, 1);
+                                }
+                            }
+                        }
 
                         if (options.params.ssl) {
                             //Check if SSL is enabled and if the user specified a secret name
@@ -218,10 +228,6 @@ var engine = {
                                 update.TaskTemplate.ContainerSpec.Env.push('SOAJS_NX_API_HTTP_REDIRECT=1');
                                 update.TaskTemplate.ContainerSpec.Env.push('SOAJS_NX_SITE_HTTPS=1');
                                 update.TaskTemplate.ContainerSpec.Env.push('SOAJS_NX_SITE_HTTP_REDIRECT=1');
-
-                                if (update.TaskTemplate.ContainerSpec.Args[1].indexOf('-s') === -1) {
-                                    update.TaskTemplate.ContainerSpec.Args[1] += ' -s';
-                                }
                             }
                         }
                         else {
@@ -232,13 +238,6 @@ var engine = {
                                 if (sslEnvVars.indexOf(oneVar) !== -1) {
                                     update.TaskTemplate.ContainerSpec.Env.splice(i, 1);
                                 }
-                            }
-
-                            let sslOptionIndex = update.TaskTemplate.ContainerSpec.Args[1].indexOf('-s');
-                            if (sslOptionIndex !== -1) {
-                                // remove -s and following whitespace
-                                update.TaskTemplate.ContainerSpec.Args[1] =
-                                update.TaskTemplate.ContainerSpec.Args[1].slice(0, sslOptionIndex) + update.TaskTemplate.ContainerSpec.Args[1].slice(sslOptionIndex + 3);
                             }
                         }
 
