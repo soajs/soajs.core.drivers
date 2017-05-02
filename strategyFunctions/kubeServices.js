@@ -445,109 +445,112 @@ var engine = {
                             if (!deployment.spec.template.spec.containers[0].env) deployment.spec.template.spec.containers[0].env = [];
                             deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_REDEPLOY_TRIGGER', value: 'true' });
 
-                            if (options.params.ui) { //in case of rebuilding nginx, pass custom ui environment variables
-                                deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_REPO', value: options.params.ui.repo });
-                                deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_OWNER', value: options.params.ui.owner });
-                                deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_BRANCH', value: options.params.ui.branch });
-                                deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_COMMIT', value: options.params.ui.commit });
-                                deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_PROVIDER', value: options.params.ui.provider });
-                                deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_DOMAIN', value: options.params.ui.domain });
+                            if (deployment.spec.template.metadata && deployment.spec.template.metadata.labels && deployment.spec.template.metadata.labels['soajs.service.type'] === 'nginx') {
+                                if (options.params.ui) { //in case of rebuilding nginx, pass custom ui environment variables
+                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_REPO', value: options.params.ui.repo });
+                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_OWNER', value: options.params.ui.owner });
+                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_BRANCH', value: options.params.ui.branch });
+                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_COMMIT', value: options.params.ui.commit });
+                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_PROVIDER', value: options.params.ui.provider });
+                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_DOMAIN', value: options.params.ui.domain });
 
-                                if (options.params.ui.token) {
-                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_TOKEN', value: options.params.ui.token });
-                                }
-                            }
-                            else {
-                                //if user does not want custom UI, remove existing UI env variables if any
-                                let uiVars = [ 'SOAJS_GIT_REPO', 'SOAJS_GIT_OWNER', 'SOAJS_GIT_BRANCH', 'SOAJS_GIT_COMMIT', 'SOAJS_GIT_PROVIDER', 'SOAJS_GIT_DOMAIN', 'SOAJS_GIT_TOKEN' ];
-                                for (let i = deployment.spec.template.spec.containers[0].env.length - 1; i >= 0; i--) {
-                                    let oneVar = deployment.spec.template.spec.containers[0].env[i];
-                                    if (uiVars.indexOf(oneVar.name) !== -1) {
-                                        deployment.spec.template.spec.containers[0].env.splice(i, 1);
+                                    if (options.params.ui.token) {
+                                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_TOKEN', value: options.params.ui.token });
                                     }
                                 }
-                            }
-
-                            if (options.params.ssl) {
-                                //Check if SSL is enabled and if the user specified a secret name
-                                if (options.params.ssl.enabled) {
-                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_API_HTTPS', value: '1' });
-                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_API_HTTP_REDIRECT', value: '1' });
-                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SITE_HTTPS', value: '1' });
-                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SITE_HTTP_REDIRECT', value: '1' });
-
-                                    if (options.params.ssl.kubeSecret) {
-                                        let sslVolumeLocation = '';
-                                        for (let i = 0; i < deployment.spec.template.spec.containers[0].env.length; i++) {
-                                            let oneVar = deployment.spec.template.spec.containers[0].env[i];
-                                            if (oneVar.name === 'SOAJS_NX_SSL_CERTS_LOCATION') {
-                                                sslVolumeLocation = oneVar.value;
-                                                break;
-                                            }
+                                else {
+                                    //if user does not want custom UI, remove existing UI env variables if any
+                                    let uiVars = [ 'SOAJS_GIT_REPO', 'SOAJS_GIT_OWNER', 'SOAJS_GIT_BRANCH', 'SOAJS_GIT_COMMIT', 'SOAJS_GIT_PROVIDER', 'SOAJS_GIT_DOMAIN', 'SOAJS_GIT_TOKEN' ];
+                                    for (let i = deployment.spec.template.spec.containers[0].env.length - 1; i >= 0; i--) {
+                                        let oneVar = deployment.spec.template.spec.containers[0].env[i];
+                                        if (uiVars.indexOf(oneVar.name) !== -1) {
+                                            deployment.spec.template.spec.containers[0].env.splice(i, 1);
                                         }
-
-                                        if (!sslVolumeLocation) {
-                                            sslVolumeLocation = '/etc/soajs/ssl';
-                                            deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SSL_CERTS_LOCATION', value: sslVolumeLocation });
-                                        }
-
-                                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_CUSTOM_SSL', value: '1' });
-                                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SSL_SECRET', value: options.params.ssl.kubeSecret });
-
-                                        deployment.spec.template.spec.volumes.push({
-                                            name: 'ssl',
-                                            secret: {
-                                                secretName: options.params.ssl.kubeSecret
-                                            }
-                                        });
-
-                                        deployment.spec.template.spec.containers[0].volumeMounts.push({
-                                            name: 'ssl',
-                                            mountPath: sslVolumeLocation,
-                                            readOnly: true
-                                        });
                                     }
-                                    else {
-                                        let customSSLVars = [ 'SOAJS_NX_CUSTOM_SSL', 'SOAJS_NX_SSL_CERTS_LOCATION', 'SOAJS_NX_SSL_SECRET' ];
-                                        for (let i = deployment.spec.template.spec.containers[0].env.length - 1; i >= 0; i--) {
-                                            let oneVar = deployment.spec.template.spec.containers[0].env[i];
-                                            if (customSSLVars.indexOf(oneVar.name) !== -1) {
-                                                deployment.spec.template.spec.containers[0].env.splice(i, 1);
-                                            }
-                                        }
+                                }
 
-                                        //NOTE: no need to traverse the array in reverse since we are only splicing one element and breaking
-                                        if (deployment.spec.template.spec.volumes) {
-                                            for (let i = 0; i < deployment.spec.template.spec.volumes.length; i++) {
-                                                if (deployment.spec.template.spec.volumes[i].name === 'ssl') {
-                                                    deployment.spec.template.spec.volumes.splice(i, 1);
+                                if (options.params.ssl) {
+                                    //Check if SSL is enabled and if the user specified a secret name
+                                    if (options.params.ssl.enabled) {
+                                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_API_HTTPS', value: '1' });
+                                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_API_HTTP_REDIRECT', value: '1' });
+                                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SITE_HTTPS', value: '1' });
+                                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SITE_HTTP_REDIRECT', value: '1' });
+
+                                        if (options.params.ssl.kubeSecret) {
+                                            let sslVolumeLocation = '';
+                                            for (let i = 0; i < deployment.spec.template.spec.containers[0].env.length; i++) {
+                                                let oneVar = deployment.spec.template.spec.containers[0].env[i];
+                                                if (oneVar.name === 'SOAJS_NX_SSL_CERTS_LOCATION') {
+                                                    sslVolumeLocation = oneVar.value;
                                                     break;
                                                 }
                                             }
-                                        }
 
-                                        //NOTE: no need to traverse the array in reverse since we are only splicing one element and breaking
-                                        if (deployment.spec.template.spec.containers[0].volumeMounts) {
-                                            for (let i = 0; i < deployment.spec.template.spec.containers[0].volumeMounts.length; i++) {
-                                                if (deployment.spec.template.spec.containers[0].volumeMounts[i].name === 'ssl') {
-                                                    deployment.spec.template.spec.containers[0].volumeMounts.splice(i, 1);
-                                                    break;
+                                            if (!sslVolumeLocation) {
+                                                sslVolumeLocation = '/etc/soajs/ssl';
+                                                deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SSL_CERTS_LOCATION', value: sslVolumeLocation });
+                                            }
+
+                                            deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_CUSTOM_SSL', value: '1' });
+                                            deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SSL_SECRET', value: options.params.ssl.kubeSecret });
+
+                                            deployment.spec.template.spec.volumes.push({
+                                                name: 'ssl',
+                                                secret: {
+                                                    secretName: options.params.ssl.kubeSecret
+                                                }
+                                            });
+
+                                            deployment.spec.template.spec.containers[0].volumeMounts.push({
+                                                name: 'ssl',
+                                                mountPath: sslVolumeLocation,
+                                                readOnly: true
+                                            });
+                                        }
+                                        else {
+                                            let customSSLVars = [ 'SOAJS_NX_CUSTOM_SSL', 'SOAJS_NX_SSL_CERTS_LOCATION', 'SOAJS_NX_SSL_SECRET' ];
+                                            for (let i = deployment.spec.template.spec.containers[0].env.length - 1; i >= 0; i--) {
+                                                let oneVar = deployment.spec.template.spec.containers[0].env[i];
+                                                if (customSSLVars.indexOf(oneVar.name) !== -1) {
+                                                    deployment.spec.template.spec.containers[0].env.splice(i, 1);
+                                                }
+                                            }
+
+                                            //NOTE: no need to traverse the array in reverse since we are only splicing one element and breaking
+                                            if (deployment.spec.template.spec.volumes) {
+                                                for (let i = 0; i < deployment.spec.template.spec.volumes.length; i++) {
+                                                    if (deployment.spec.template.spec.volumes[i].name === 'ssl') {
+                                                        deployment.spec.template.spec.volumes.splice(i, 1);
+                                                        break;
+                                                    }
+                                                }
+                                            }
+
+                                            //NOTE: no need to traverse the array in reverse since we are only splicing one element and breaking
+                                            if (deployment.spec.template.spec.containers[0].volumeMounts) {
+                                                for (let i = 0; i < deployment.spec.template.spec.containers[0].volumeMounts.length; i++) {
+                                                    if (deployment.spec.template.spec.containers[0].volumeMounts[i].name === 'ssl') {
+                                                        deployment.spec.template.spec.containers[0].volumeMounts.splice(i, 1);
+                                                        break;
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
-                            }
-                            else {
-                                let sslEnvVars = [ 'SOAJS_NX_API_HTTPS', 'SOAJS_NX_API_HTTP_REDIRECT', 'SOAJS_NX_SITE_HTTPS', 'SOAJS_NX_SITE_HTTP_REDIRECT' ];
+                                else {
+                                    let sslEnvVars = [ 'SOAJS_NX_API_HTTPS', 'SOAJS_NX_API_HTTP_REDIRECT', 'SOAJS_NX_SITE_HTTPS', 'SOAJS_NX_SITE_HTTP_REDIRECT' ];
 
-                                for (let i = deployment.spec.template.spec.containers[0].env.length - 1; i >= 0; i--) {
-                                    let oneVar = deployment.spec.template.spec.containers[0].env[i];
-                                    if (sslEnvVars.indexOf(oneVar.name) !== -1) {
-                                        deployment.spec.template.spec.containers[0].env.splice(i, 1);
+                                    for (let i = deployment.spec.template.spec.containers[0].env.length - 1; i >= 0; i--) {
+                                        let oneVar = deployment.spec.template.spec.containers[0].env[i];
+                                        if (sslEnvVars.indexOf(oneVar.name) !== -1) {
+                                            deployment.spec.template.spec.containers[0].env.splice(i, 1);
+                                        }
                                     }
                                 }
                             }
+
                             let namespace = lib.buildNameSpace(options);
                             deployer.extensions.namespaces(namespace)[contentType].put({ name: options.params.id, body: deployment }, (error) => {
                                 utils.checkError(error, 653, cb, cb.bind(null, null, true));
