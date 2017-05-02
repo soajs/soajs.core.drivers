@@ -257,7 +257,10 @@ var engine = {
         payload.spec.template.spec.containers[0].name = cleanLabel(options.params.labels['soajs.service.name']);
         payload.spec.template.spec.containers[0].image = options.params.image;
         payload.spec.template.spec.containers[0].workingDir = ((options.params.containerDir) ? options.params.containerDir : '');
-        payload.spec.template.spec.containers[0].command = [options.params.cmd[0]];
+        // incase no command was provided
+        if(options.params.cmd && options.params.cmd[0]){
+	        payload.spec.template.spec.containers[0].command = [options.params.cmd[0]];
+        }
         payload.spec.template.spec.containers[0].args = options.params.cmd.splice(1);
         payload.spec.template.spec.containers[0].env = lib.buildEnvList({ envs: options.params.variables });
 
@@ -278,7 +281,11 @@ var engine = {
                 });
             });
         }
-
+        //added support for annotations
+		if (options.annotations){
+        	payload.spec.template.metadata.annotations = options.annotations;
+		}
+			
         //NOTE: only one volume is supported for now
         if (options.params.volume) {
             payload.spec.volumes.push({

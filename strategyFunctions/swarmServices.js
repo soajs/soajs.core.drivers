@@ -101,8 +101,11 @@ var engine = {
         payload.TaskTemplate.ContainerSpec.Image = options.params.image;
         payload.TaskTemplate.ContainerSpec.Env = options.params.variables;
         payload.TaskTemplate.ContainerSpec.Dir = ((options.params.containerDir) ? options.params.containerDir : "");
-        payload.TaskTemplate.ContainerSpec.Command = [options.params.cmd[0]];
-        payload.TaskTemplate.ContainerSpec.Args = options.params.cmd.splice(1);
+	    // incase no command was provided
+        if (options.params.cmd){
+	        payload.TaskTemplate.ContainerSpec.Command = [options.params.cmd[0]];
+	        payload.TaskTemplate.ContainerSpec.Args = options.params.cmd.splice(1);
+        }
         payload.TaskTemplate.Resources.Limits.MemoryBytes = options.params.memoryLimit;
         payload.TaskTemplate.RestartPolicy.Condition = options.params.restartPolicy.condition;
         payload.TaskTemplate.RestartPolicy.MaxAttempts = options.params.restartPolicy.maxAttempts;
