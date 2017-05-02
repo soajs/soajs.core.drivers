@@ -445,7 +445,10 @@ var engine = {
                             if (!deployment.spec.template.spec.containers[0].env) deployment.spec.template.spec.containers[0].env = [];
                             deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_REDEPLOY_TRIGGER', value: 'true' });
 
-                            if (deployment.spec.template.metadata && deployment.spec.template.metadata.labels && deployment.spec.template.metadata.labels['soajs.service.type'] === 'nginx') {
+                            if (options.params.action === 'rebuild' &&
+                                deployment.spec.template.metadata &&
+                                deployment.spec.template.metadata.labels &&
+                                deployment.spec.template.metadata.labels['soajs.service.type'] === 'nginx') {
                                 if (options.params.ui) { //in case of rebuilding nginx, pass custom ui environment variables
                                     deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_REPO', value: options.params.ui.repo });
                                     deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_OWNER', value: options.params.ui.owner });

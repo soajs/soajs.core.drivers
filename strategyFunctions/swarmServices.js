@@ -198,8 +198,8 @@ var engine = {
                         if (!update.TaskTemplate.ContainerSpec.Env) update.TaskTemplate.ContainerSpec.Env = [];
 
                         update.TaskTemplate.ContainerSpec.Env.push('SOAJS_REDEPLOY_TRIGGER=true');
-                        
-                        if (update.Labels && update.Labels['soajs.service.type'] === 'nginx') {
+
+                        if (options.params.action === 'rebuild' && update.Labels && update.Labels['soajs.service.type'] === 'nginx') {
                             if (options.params.ui) { //in case of rebuilding nginx, pass custom ui environment variables
                                 update.TaskTemplate.ContainerSpec.Env.push('SOAJS_GIT_REPO=' + options.params.ui.repo);
                                 update.TaskTemplate.ContainerSpec.Env.push('SOAJS_GIT_OWNER=' + options.params.ui.owner);
