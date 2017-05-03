@@ -256,6 +256,7 @@ var engine = {
         //NOTE: only one container is being set per pod
         payload.spec.template.spec.containers[0].name = cleanLabel(options.params.labels['soajs.service.name']);
         payload.spec.template.spec.containers[0].image = options.params.image;
+        payload.spec.template.spec.containers[0].imagePullPolicy = options.params.imagePullPolicy || 'Always';
         payload.spec.template.spec.containers[0].workingDir = ((options.params.containerDir) ? options.params.containerDir : '');
         payload.spec.template.spec.containers[0].command = [options.params.cmd[0]];
         payload.spec.template.spec.containers[0].args = options.params.cmd.splice(1);

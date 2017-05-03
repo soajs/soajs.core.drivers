@@ -22,7 +22,7 @@ module.exports = {
                     {
                         "name": "",
                         "image": "",
-                        "imagePullPolicy": "IfNotPresent",
+                        "imagePullPolicy": "",
                         "workingDir": "",
                         "command": [],
                         "args": [],
