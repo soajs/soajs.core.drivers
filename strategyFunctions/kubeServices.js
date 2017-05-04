@@ -263,8 +263,8 @@ var engine = {
         payload.spec.template.spec.containers[0].image = options.params.image;
         payload.spec.template.spec.containers[0].imagePullPolicy = options.params.imagePullPolicy || 'Always';
         payload.spec.template.spec.containers[0].workingDir = ((options.params.containerDir) ? options.params.containerDir : '');
-        payload.spec.template.spec.containers[0].command = options.params.cmd.deploy.command;
-        payload.spec.template.spec.containers[0].args = options.params.cmd.deploy.args;
+        payload.spec.template.spec.containers[0].command = options.params.command;
+        payload.spec.template.spec.containers[0].args = options.params.args;
         payload.spec.template.spec.containers[0].env = lib.buildEnvList({ envs: options.params.variables });
 
         if (options.params.memoryLimit) {
