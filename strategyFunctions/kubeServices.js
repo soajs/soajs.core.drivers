@@ -186,7 +186,12 @@ var engine = {
      *
      */
     deployService (options, cb) {
-        options.params.variables.push('SOAJS_DEPLOY_HA=kubernetes');
+	    for(var i =0; i < options.params.variables.length; i++){
+		    if(options.params.variables[i].indexOf('$SOAJS_DEPLOY_HA') !== -1){
+			    options.params.variables[i] = options.params.variables[i].replace("$SOAJS_DEPLOY_HA","kubernetes");
+			    break;
+		    }
+	    }
 
         let service = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/service.template.js'));
         service.metadata.name = cleanLabel(options.params.name) + '-service';
@@ -258,8 +263,8 @@ var engine = {
         payload.spec.template.spec.containers[0].image = options.params.image;
         payload.spec.template.spec.containers[0].imagePullPolicy = options.params.imagePullPolicy || 'Always';
         payload.spec.template.spec.containers[0].workingDir = ((options.params.containerDir) ? options.params.containerDir : '');
-        payload.spec.template.spec.containers[0].command = [options.params.cmd[0]];
-        payload.spec.template.spec.containers[0].args = options.params.cmd.splice(1);
+        payload.spec.template.spec.containers[0].command = options.params.cmd.deploy.command;
+        payload.spec.template.spec.containers[0].args = options.params.cmd.deploy.args;
         payload.spec.template.spec.containers[0].env = lib.buildEnvList({ envs: options.params.variables });
 
         if (options.params.memoryLimit) {

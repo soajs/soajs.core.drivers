@@ -218,16 +218,21 @@ const kubeLib = {
     buildEnvList (options) {
         let envs = [];
         options.envs.forEach((oneVar) => {
-            envs.push({ name: oneVar.split('=')[0], value: oneVar.split('=')[1] });
-        });
-
-        envs.push({
-            name: 'SOAJS_HA_NAME',
-            valueFrom: {
-                fieldRef: {
-                    fieldPath: 'metadata.name'
-                }
-            }
+        	
+        	let envVariable = oneVar.split('=');
+        	if(envVariable[1] === '$SOAJS_HA_NAME'){
+		        envs.push({
+			        name: envVariable[0],
+			        valueFrom: {
+				        fieldRef: {
+					        fieldPath: 'metadata.name'
+				        }
+			        }
+		        });
+	        }
+	        else{
+                envs.push({ name: envVariable[0], value: envVariable[1] });
+	        }
         });
 
         return envs;

@@ -94,15 +94,23 @@ var engine = {
         }
 
         let payload = utils.cloneObj(require(serviceSchemaPath));
-        options.params.variables.push('SOAJS_DEPLOY_HA=swarm');
-        options.params.variables.push('SOAJS_HA_NAME={{.Task.Name}}');
+        
+        for(var i =0; i < options.params.variables.length; i++){
+	        if(options.params.variables[i].indexOf('$SOAJS_DEPLOY_HA') !== -1){
+		        options.params.variables[i] = options.params.variables[i].replace("$SOAJS_DEPLOY_HA", "swarm");
+	        }
+	
+	        if(options.params.variables[i].indexOf('$SOAJS_HA_NAME') !== -1){
+		        options.params.variables[i] = options.params.variables[i].replace("$SOAJS_HA_NAME", "{{.Task.Name}}");
+	        }
+        }
 
         payload.Name = options.params.name;
         payload.TaskTemplate.ContainerSpec.Image = options.params.image;
         payload.TaskTemplate.ContainerSpec.Env = options.params.variables;
         payload.TaskTemplate.ContainerSpec.Dir = ((options.params.containerDir) ? options.params.containerDir : "");
-        payload.TaskTemplate.ContainerSpec.Command = [options.params.cmd[0]];
-        payload.TaskTemplate.ContainerSpec.Args = options.params.cmd.splice(1);
+        payload.TaskTemplate.ContainerSpec.Command = options.params.cmd.deploy.command;
+        payload.TaskTemplate.ContainerSpec.Args = options.params.cmd.deploy.args;
         payload.TaskTemplate.Resources.Limits.MemoryBytes = options.params.memoryLimit;
         payload.TaskTemplate.RestartPolicy.Condition = options.params.restartPolicy.condition;
         payload.TaskTemplate.RestartPolicy.MaxAttempts = options.params.restartPolicy.maxAttempts;
