@@ -362,6 +362,8 @@ var engine = {
             namespace = lib.buildNameSpace(options);
         }
         //namespace to be checked by initNamespace function
+	    console.log(JSON.stringify(service, null, 2));
+	    console.log(JSON.stringify(payload, null, 2));
         options.checkNamespace = namespace;
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
