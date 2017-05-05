@@ -472,7 +472,7 @@ var engine = {
         });
 
         function AddServicePorts(service, ports) {
-            let ports = [];
+            let portsOutput = [];
             if (ports && ports.length > 0) {
                 ports.forEach((onePortEntry, portIndex) => {
                     let portConfig = {
@@ -497,10 +497,10 @@ var engine = {
                         portConfig.name = onePortEntry.name || 'published' + portConfig.name;
                     }
 
-                    ports.push(portConfig);
+                    portsOutput.push(portConfig);
                 });
 
-                service.spec.ports = ports;
+                service.spec.ports = portsOutput;
                 return service;
             }
         }
