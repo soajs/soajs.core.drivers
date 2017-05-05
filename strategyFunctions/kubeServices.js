@@ -255,7 +255,13 @@ var engine = {
         //NOTE: only one container is being set per pod
         payload.spec.template.spec.containers[0].name = cleanLabel(options.params.labels['soajs.service.name']);
         payload.spec.template.spec.containers[0].image = options.params.image;
-        payload.spec.template.spec.containers[0].workingDir = ((options.params.containerDir) ? options.params.containerDir : delete payload.spec.template.spec.containers[0].workingDir);
+        
+        if (options.params.containerDir){
+	        payload.spec.template.spec.containers[0].workingDir = options.params.containerDir;
+        }
+        else {
+	        delete payload.spec.template.spec.containers[0].workingDir;
+        }
         // incase no command was provided
         if(options.params.cmd && options.params.cmd && Array.isArray(options.params.cmd && options.params.cmd)){
 	        payload.spec.template.spec.containers[0].command = [options.params.cmd[0]];
