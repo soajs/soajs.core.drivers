@@ -212,6 +212,16 @@ var engine = {
                             });
                         }
                         else if (options.params.action === 'rebuild') {
+                            for(var i =0; i < options.params.newBuild.variables.length; i++){
+                    	        if(options.params.newBuild.variables[i].indexOf('$SOAJS_DEPLOY_HA') !== -1){
+                    		        options.params.newBuild.variables[i] = options.params.newBuild.variables[i].replace("$SOAJS_DEPLOY_HA", "swarm");
+                    	        }
+
+                    	        if(options.params.newBuild.variables[i].indexOf('$SOAJS_HA_NAME') !== -1){
+                    		        options.params.newBuild.variables[i] = options.params.newBuild.variables[i].replace("$SOAJS_HA_NAME", "{{.Task.Name}}");
+                    	        }
+                            }
+
                             update.TaskTemplate.ContainerSpec.Env = options.params.newBuild.variables;
                             update.TaskTemplate.ContainerSpec.Image = options.params.newBuild.image;
                             update.TaskTemplate.ContainerSpec.Command = options.params.newBuild.command;

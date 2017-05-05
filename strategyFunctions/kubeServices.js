@@ -418,7 +418,14 @@ var engine = {
                                 });
                             }
                             else if (options.params.action === 'rebuild') {
-                                deployment.spec.template.spec.containers[0].env = options.params.newBuild.variables;
+                                for(var i = 0; i < options.params.newBuild.variables.length; i++){
+                        		    if(options.params.newBuild.variables[i].indexOf('$SOAJS_DEPLOY_HA') !== -1){
+                        			    options.params.newBuild.variables[i] = options.params.newBuild.variables[i].replace("$SOAJS_DEPLOY_HA","kubernetes");
+                        			    break;
+                        		    }
+                        	    }
+
+                                deployment.spec.template.spec.containers[0].env = lib.buildEnvList({ envs: options.params.newBuild.variables });
                                 deployment.spec.template.spec.containers[0].image = options.params.newBuild.image;
                                 deployment.spec.template.spec.containers[0].imagePullPolicy = options.params.newBuild.imagePullPolicy;
                                 deployment.spec.template.spec.containers[0].command = options.params.newBuild.command;
@@ -426,7 +433,7 @@ var engine = {
 
                                 if (options.params.newBuild.ports && options.params.newBuild.ports.length > 0) {
                                     let filter = { labelSelector: 'soajs.service.label=' + options.params.id };
-                                    deployer.core.namespaces(namespace).services.get({qs: filter}, (error, serviceList) => {
+                                    deployer.core.namespaces(namespace).services.get({qs: filter}, (error, servicesList) => {
                                         utils.checkError(error, 533, cb, () => {
                                             //service already found, update it
                                             if (servicesList && servicesList.items && servicesList.items.length > 0) {
