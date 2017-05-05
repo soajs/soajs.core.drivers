@@ -287,7 +287,7 @@ var engine = {
 			
         //NOTE: only one volume is supported for now
         if (options.params.volume) {
-            payload.spec.volumes.push({
+            payload.spec.template.volumes.push({
                 name: options.params.volume.name,
                 hostPath: {
                     path: options.params.volume.source
