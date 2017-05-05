@@ -187,43 +187,44 @@ var engine = {
      */
     deployService (options, cb) {
         options.params.variables.push('SOAJS_DEPLOY_HA=kubernetes');
-
-        let service = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/service.template.js'));
-        service.metadata.name = cleanLabel(options.params.name) + '-service';
-
-        service.metadata.labels = options.params.labels;
-        service.spec.selector = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
-
-        let ports = [];
-        if (options.params.ports && options.params.ports.length > 0) {
-            options.params.ports.forEach((onePortEntry, portIndex) => {
-                let portConfig = {
-                    protocol: 'TCP',
-                    name: onePortEntry.name || 'port' + portIndex,
-                    port: onePortEntry.target,
-                    targetPort: onePortEntry.target
-                };
-
-                if (onePortEntry.isPublished) {
-                	if(options.deployerConfig.nginxDeployType === 'LoadBalancer'){
-			            service.spec.type = 'LoadBalancer';
-		                delete portConfig.nodePort;
-	                }
-	                else{
-		                if (!service.spec.type || service.spec.type !== 'NodePort') {
-			                service.spec.type = 'NodePort';
-		                }
-		                portConfig.nodePort = onePortEntry.published;
-	                }
-
-                    portConfig.name = onePortEntry.name || 'published' + portConfig.name;
-                }
-
-                ports.push(portConfig);
-            });
-
-            service.spec.ports = ports;
-        }
+	    let service;
+	    if (options.params.ports && options.params.ports.length > 0) {
+		    service = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/service.template.js'));
+		    service.metadata.name = cleanLabel(options.params.name) + '-service';
+		
+		    service.metadata.labels = options.params.labels;
+		    service.spec.selector = {'soajs.service.label': options.params.labels['soajs.service.label']};
+		
+		    let ports = [];
+		
+		    options.params.ports.forEach((onePortEntry, portIndex) => {
+			    let portConfig = {
+				    protocol: 'TCP',
+				    name: onePortEntry.name || 'port' + portIndex,
+				    port: onePortEntry.target,
+				    targetPort: onePortEntry.target
+			    };
+			
+			    if (onePortEntry.isPublished) {
+				    if (options.deployerConfig.nginxDeployType === 'LoadBalancer') {
+					    service.spec.type = 'LoadBalancer';
+					    delete portConfig.nodePort;
+				    }
+				    else {
+					    if (!service.spec.type || service.spec.type !== 'NodePort') {
+						    service.spec.type = 'NodePort';
+					    }
+					    portConfig.nodePort = onePortEntry.published;
+				    }
+				
+				    portConfig.name = onePortEntry.name || 'published' + portConfig.name;
+			    }
+			
+			    ports.push(portConfig);
+		    });
+		
+		    service.spec.ports = ports;
+	    }
         let payload = {};
         if (options.params.replication.mode === 'deployment') {
             let deploymentSchemaPath = __dirname + '/../schemas/kubernetes/deployment.template.js';
@@ -365,19 +366,26 @@ var engine = {
 	    console.log(JSON.stringify(service, null, 2));
 	    console.log(JSON.stringify(payload, null, 2));
         options.checkNamespace = namespace;
-        lib.getDeployer(options, (error, deployer) => {
-            utils.checkError(error, 540, cb, () => {
-                initNamespace(deployer, options, function(error){
-                    deployer.core.namespaces(namespace).services.post({ body: service }, (error) => {
-                        utils.checkError(error, 525, cb, () => {
-                            deployer.extensions.namespaces(namespace)[options.params.type].post({ body: payload }, (error) => {
-                                utils.checkError(error, 526, cb, cb.bind(null, null, true));
-                            });
-                        });
-                    });
-                });
-            });
-        });
+	    lib.getDeployer(options, (error, deployer) => {
+		    utils.checkError(error, 540, cb, () => {
+			    initNamespace(deployer, options, function (error) {
+				    if (service) {
+					    deployer.core.namespaces(namespace).services.post({body: service}, (error) => {
+						    utils.checkError(error, 525, cb, () => {
+							    deployer.extensions.namespaces(namespace)[options.params.type].post({body: payload}, (error) => {
+								    utils.checkError(error, 526, cb, cb.bind(null, null, true));
+							    });
+						    });
+					    });
+				    }
+				    else {
+					    deployer.extensions.namespaces(namespace)[options.params.type].post({body: payload}, (error) => {
+						    utils.checkError(error, 526, cb, cb.bind(null, null, true));
+					    });
+				    }
+			    });
+		    });
+	    });
 
         function cleanLabel(label) {
             return label.toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-');
