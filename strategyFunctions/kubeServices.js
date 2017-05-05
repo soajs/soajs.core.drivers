@@ -255,11 +255,15 @@ var engine = {
         //NOTE: only one container is being set per pod
         payload.spec.template.spec.containers[0].name = cleanLabel(options.params.labels['soajs.service.name']);
         payload.spec.template.spec.containers[0].image = options.params.image;
-        payload.spec.template.spec.containers[0].workingDir = ((options.params.containerDir) ? options.params.containerDir : '');
+        payload.spec.template.spec.containers[0].workingDir = ((options.params.containerDir) ? options.params.containerDir : delete payload.spec.template.spec.containers[0].workingDir);
         // incase no command was provided
         if(options.params.cmd && options.params.cmd && Array.isArray(options.params.cmd && options.params.cmd)){
 	        payload.spec.template.spec.containers[0].command = [options.params.cmd[0]];
 	        payload.spec.template.spec.containers[0].args = options.params.cmd.splice(1);
+        }
+        else {
+        	delete payload.spec.template.spec.containers[0].command;
+	        delete payload.spec.template.spec.containers[0].args;
         }
         payload.spec.template.spec.containers[0].env = lib.buildEnvList({ envs: options.params.variables });
 
@@ -281,8 +285,8 @@ var engine = {
             });
         }
         //added support for annotations
-		if (options.annotations){
-        	payload.spec.template.metadata.annotations = options.annotations;
+		if (options.params.annotations){
+        	payload.spec.template.metadata.annotations = options.params.annotations;
 		}
 			
         //NOTE: only one volume is supported for now
@@ -353,7 +357,6 @@ var engine = {
         }
         //namespace to be checked by initNamespace function
         options.checkNamespace = namespace;
-		console.log(JSON.stringify(payload, null, 2))
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
                 initNamespace(deployer, options, function(error){
