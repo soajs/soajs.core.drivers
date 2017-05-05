@@ -188,15 +188,13 @@ var engine = {
     deployService (options, cb) {
         options.params.variables.push('SOAJS_DEPLOY_HA=kubernetes');
 	    let service;
+	    let ports = [];
 	    if (options.params.ports && options.params.ports.length > 0) {
 		    service = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/service.template.js'));
 		    service.metadata.name = cleanLabel(options.params.name) + '-service';
 		
 		    service.metadata.labels = options.params.labels;
 		    service.spec.selector = {'soajs.service.label': options.params.labels['soajs.service.label']};
-		
-		    let ports = [];
-		
 		    options.params.ports.forEach((onePortEntry, portIndex) => {
 			    let portConfig = {
 				    protocol: 'TCP',
