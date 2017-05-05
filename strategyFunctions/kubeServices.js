@@ -309,46 +309,7 @@ var engine = {
         }
 
         if (options.params.readinessProbe) {
-            payload.spec.template.spec.containers[0].readinessProbe = { httpGet: {} };
-            if (options.params.labels && options.params.labels.hasOwnProperty('soajs.service.type')) {
-                if (options.params.labels['soajs.service.type'] === 'service' || options.params.labels['soajs.service.type'] === 'daemon') {
-                    payload.spec.template.spec.containers[0].readinessProbe.httpGet.path = '/heartbeat';
-                    payload.spec.template.spec.containers[0].readinessProbe.httpGet.port = 'maintenance';
-                }
-                else if (options.params.labels['soajs.service.type'] === 'nginx') {
-                    payload.spec.template.spec.containers[0].readinessProbe.httpGet.path = '/';
-                    payload.spec.template.spec.containers[0].readinessProbe.httpGet.port = 'http';
-                }
-            }
-            else {
-                //NOTE: in case of deploying a custom service, the values will be supplied by the user
-                payload.spec.template.spec.containers[0].readinessProbe.httpGet.path = options.params.readinessProbe.path || '/';
-                payload.spec.template.spec.containers[0].readinessProbe.httpGet.port = options.params.readinessProbe.port;
-            }
-
-            payload.spec.template.spec.containers[0].readinessProbe.initialDelaySeconds = options.params.readinessProbe.initialDelaySeconds;
-            payload.spec.template.spec.containers[0].readinessProbe.timeoutSeconds = options.params.readinessProbe.timeoutSeconds;
-            payload.spec.template.spec.containers[0].readinessProbe.periodSeconds = options.params.readinessProbe.periodSeconds;
-            payload.spec.template.spec.containers[0].readinessProbe.successThreshold = options.params.readinessProbe.successThreshold;
-            payload.spec.template.spec.containers[0].readinessProbe.failureThreshold = options.params.readinessProbe.failureThreshold;
-        }
-
-        //Check if SSL is enabled and if the user specified a secret name
-        if (options.params.labels['soajs.service.type'] === 'nginx') {
-            if (options.params.ssl && options.params.ssl.enabled && options.params.ssl.secret) {
-                payload.spec.template.spec.volumes.push({
-                    name: 'ssl',
-                    secret: {
-                        secretName: options.params.ssl.secret
-                    }
-                });
-
-                payload.spec.template.spec.containers[0].volumeMounts.push({
-                    name: 'ssl',
-                    mountPath: '/etc/soajs/ssl',
-                    readOnly: true
-                });
-            }
+            payload.spec.template.spec.containers[0].readinessProbe = options.params.readinessProbe;
         }
 
         let namespace = null;
@@ -449,126 +410,100 @@ var engine = {
                         let check = (deployment.spec && deployment.spec.template && deployment.spec.template.spec && deployment.spec.template.spec.containers && deployment.spec.template.spec.containers[0]);
                         utils.checkError(!check, 653, cb, () => {
                             if (!deployment.spec.template.spec.containers[0].env) deployment.spec.template.spec.containers[0].env = [];
-                            deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_REDEPLOY_TRIGGER', value: 'true' });
 
-                            if (options.params.action === 'rebuild' &&
-                                deployment.spec.template.metadata &&
-                                deployment.spec.template.metadata.labels &&
-                                deployment.spec.template.metadata.labels['soajs.service.type'] === 'nginx') {
-                                if (options.params.ui) { //in case of rebuilding nginx, pass custom ui environment variables
-                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_REPO', value: options.params.ui.repo });
-                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_OWNER', value: options.params.ui.owner });
-                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_BRANCH', value: options.params.ui.branch });
-                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_COMMIT', value: options.params.ui.commit });
-                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_PROVIDER', value: options.params.ui.provider });
-                                    deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_DOMAIN', value: options.params.ui.domain });
+                            if (options.params.action === 'redeploy') {
+                                deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_REDEPLOY_TRIGGER', value: 'true' });
+                                deployer.extensions.namespaces(namespace)[contentType].put({ name: options.params.id, body: deployment }, (error) => {
+                                    utils.checkError(error, 653, cb, cb.bind(null, null, true));
+                                });
+                            }
+                            else if (options.params.action === 'rebuild') {
+                                deployment.spec.template.spec.containers[0].env = options.params.newBuild.variables;
+                                deployment.spec.template.spec.containers[0].image = options.params.newBuild.image;
+                                deployment.spec.template.spec.containers[0].imagePullPolicy = options.params.newBuild.imagePullPolicy;
+                                deployment.spec.template.spec.containers[0].command = options.params.newBuild.command;
+                                deployment.spec.template.spec.containers[0].args = options.params.newBuild.args;
 
-                                    if (options.params.ui.token) {
-                                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_GIT_TOKEN', value: options.params.ui.token });
-                                    }
+                                if (options.params.newBuild.ports && options.params.newBuild.ports.length > 0) {
+                                    let filter = { labelSelector: 'soajs.service.label=' + options.params.id };
+                                    deployer.core.namespaces(namespace).services.get({qs: filter}, (error, serviceList) => {
+                                        utils.checkError(error, 533, cb, () => {
+                                            //service already found, update it
+                                            if (servicesList && servicesList.items && servicesList.items.length > 0) {
+                                                servicesList.items[0].spec.ports = options.params.newBuild.ports;
+                                                let service = AddServicePorts(servicesList.items[0], options.params.newBuild.ports);
+                                                deployer.core.namespaces(namespace).services.put({ name: service.metadata.name, body: service }, (error) => {
+                                                    utils.checkError(error, 673, cb, () => {
+                                                        deployer.extensions.namespaces(namespace)[contentType].put({ name: options.params.id, body: deployment }, (error) => {
+                                                            utils.checkError(error, 653, cb, cb.bind(null, null, true));
+                                                        });
+                                                    });
+                                                });
+                                            }
+                                            //service not found, create it
+                                            else {
+                                                let service = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/service.template.js'));
+                                                service.metadata.name = cleanLabel(options.params.name) + '-service';
+
+                                                service.metadata.labels = options.params.labels;
+                                                service.spec.selector = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
+                                                service = AddServicePorts(service, options.params.newBuild.ports);
+                                                deployer.core.namespaces(namespace).services.post({ body: service }, (error) => {
+                                                    utils.checkError(error, 525, cb, () => {
+                                                        deployer.extensions.namespaces(namespace)[contentType].put({ name: options.params.id, body: deployment }, (error) => {
+                                                            utils.checkError(error, 653, cb, cb.bind(null, null, true));
+                                                        });
+                                                    });
+                                                });
+                                            }
+                                        });
+                                    });
                                 }
                                 else {
-                                    //if user does not want custom UI, remove existing UI env variables if any
-                                    let uiVars = [ 'SOAJS_GIT_REPO', 'SOAJS_GIT_OWNER', 'SOAJS_GIT_BRANCH', 'SOAJS_GIT_COMMIT', 'SOAJS_GIT_PROVIDER', 'SOAJS_GIT_DOMAIN', 'SOAJS_GIT_TOKEN' ];
-                                    for (let i = deployment.spec.template.spec.containers[0].env.length - 1; i >= 0; i--) {
-                                        let oneVar = deployment.spec.template.spec.containers[0].env[i];
-                                        if (uiVars.indexOf(oneVar.name) !== -1) {
-                                            deployment.spec.template.spec.containers[0].env.splice(i, 1);
-                                        }
-                                    }
-                                }
-
-                                if (options.params.ssl) {
-                                    //Check if SSL is enabled and if the user specified a secret name
-                                    if (options.params.ssl.enabled) {
-                                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_API_HTTPS', value: '1' });
-                                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_API_HTTP_REDIRECT', value: '1' });
-                                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SITE_HTTPS', value: '1' });
-                                        deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SITE_HTTP_REDIRECT', value: '1' });
-
-                                        if (options.params.ssl.kubeSecret) {
-                                            let sslVolumeLocation = '';
-                                            for (let i = 0; i < deployment.spec.template.spec.containers[0].env.length; i++) {
-                                                let oneVar = deployment.spec.template.spec.containers[0].env[i];
-                                                if (oneVar.name === 'SOAJS_NX_SSL_CERTS_LOCATION') {
-                                                    sslVolumeLocation = oneVar.value;
-                                                    break;
-                                                }
-                                            }
-
-                                            if (!sslVolumeLocation) {
-                                                sslVolumeLocation = '/etc/soajs/ssl';
-                                                deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SSL_CERTS_LOCATION', value: sslVolumeLocation });
-                                            }
-
-                                            deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_CUSTOM_SSL', value: '1' });
-                                            deployment.spec.template.spec.containers[0].env.push({ name: 'SOAJS_NX_SSL_SECRET', value: options.params.ssl.kubeSecret });
-
-                                            deployment.spec.template.spec.volumes.push({
-                                                name: 'ssl',
-                                                secret: {
-                                                    secretName: options.params.ssl.kubeSecret
-                                                }
-                                            });
-
-                                            deployment.spec.template.spec.containers[0].volumeMounts.push({
-                                                name: 'ssl',
-                                                mountPath: sslVolumeLocation,
-                                                readOnly: true
-                                            });
-                                        }
-                                        else {
-                                            let customSSLVars = [ 'SOAJS_NX_CUSTOM_SSL', 'SOAJS_NX_SSL_CERTS_LOCATION', 'SOAJS_NX_SSL_SECRET' ];
-                                            for (let i = deployment.spec.template.spec.containers[0].env.length - 1; i >= 0; i--) {
-                                                let oneVar = deployment.spec.template.spec.containers[0].env[i];
-                                                if (customSSLVars.indexOf(oneVar.name) !== -1) {
-                                                    deployment.spec.template.spec.containers[0].env.splice(i, 1);
-                                                }
-                                            }
-
-                                            //NOTE: no need to traverse the array in reverse since we are only splicing one element and breaking
-                                            if (deployment.spec.template.spec.volumes) {
-                                                for (let i = 0; i < deployment.spec.template.spec.volumes.length; i++) {
-                                                    if (deployment.spec.template.spec.volumes[i].name === 'ssl') {
-                                                        deployment.spec.template.spec.volumes.splice(i, 1);
-                                                        break;
-                                                    }
-                                                }
-                                            }
-
-                                            //NOTE: no need to traverse the array in reverse since we are only splicing one element and breaking
-                                            if (deployment.spec.template.spec.containers[0].volumeMounts) {
-                                                for (let i = 0; i < deployment.spec.template.spec.containers[0].volumeMounts.length; i++) {
-                                                    if (deployment.spec.template.spec.containers[0].volumeMounts[i].name === 'ssl') {
-                                                        deployment.spec.template.spec.containers[0].volumeMounts.splice(i, 1);
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                else {
-                                    let sslEnvVars = [ 'SOAJS_NX_API_HTTPS', 'SOAJS_NX_API_HTTP_REDIRECT', 'SOAJS_NX_SITE_HTTPS', 'SOAJS_NX_SITE_HTTP_REDIRECT' ];
-
-                                    for (let i = deployment.spec.template.spec.containers[0].env.length - 1; i >= 0; i--) {
-                                        let oneVar = deployment.spec.template.spec.containers[0].env[i];
-                                        if (sslEnvVars.indexOf(oneVar.name) !== -1) {
-                                            deployment.spec.template.spec.containers[0].env.splice(i, 1);
-                                        }
-                                    }
+                                    deployer.extensions.namespaces(namespace)[contentType].put({ name: options.params.id, body: deployment }, (error) => {
+                                        utils.checkError(error, 653, cb, cb.bind(null, null, true));
+                                    });
                                 }
                             }
-
-                            let namespace = lib.buildNameSpace(options);
-                            deployer.extensions.namespaces(namespace)[contentType].put({ name: options.params.id, body: deployment }, (error) => {
-                                utils.checkError(error, 653, cb, cb.bind(null, null, true));
-                            });
                         });
                     });
                 });
             });
         });
+
+        function AddServicePorts(service, ports) {
+            let ports = [];
+            if (ports && ports.length > 0) {
+                ports.forEach((onePortEntry, portIndex) => {
+                    let portConfig = {
+                        protocol: 'TCP',
+                        name: onePortEntry.name || 'port' + portIndex,
+                        port: onePortEntry.target,
+                        targetPort: onePortEntry.target
+                    };
+
+                    if (onePortEntry.isPublished) {
+                        if(options.deployerConfig.nginxDeployType === 'LoadBalancer'){
+                            service.spec.type = 'LoadBalancer';
+                            delete portConfig.nodePort;
+                        }
+                        else{
+                            if (!service.spec.type || service.spec.type !== 'NodePort') {
+                                service.spec.type = 'NodePort';
+                            }
+                            portConfig.nodePort = onePortEntry.published;
+                        }
+
+                        portConfig.name = onePortEntry.name || 'published' + portConfig.name;
+                    }
+
+                    ports.push(portConfig);
+                });
+
+                service.spec.ports = ports;
+                return service;
+            }
+        }
     },
 
     /**
@@ -587,7 +522,7 @@ var engine = {
                         let deploymentRecord = lib.buildDeploymentRecord({ deployment });
 
                         if (options.params.excludeTasks) {
-                            return cb(null, { deployment: deploymentRecord });
+                            return cb(null, { service: deploymentRecord });
                         }
 
                         deployer.core.namespaces(namespace).pods.get({qs: {labelSelector: 'soajs.service.label=' + options.params.id}}, (error, podList) => {

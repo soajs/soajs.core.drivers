@@ -94,6 +94,8 @@ module.exports = {
 
     670: "Error while retrieving the namespaces",
     671: "Error while deleting the namespace",
-    672: "Namespace already exists"
+    672: "Namespace already exists",
+
+    673: "Unable to update kubernetes service"
 
 };

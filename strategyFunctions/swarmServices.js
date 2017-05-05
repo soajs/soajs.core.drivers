@@ -94,12 +94,12 @@ var engine = {
         }
 
         let payload = utils.cloneObj(require(serviceSchemaPath));
-        
+
         for(var i =0; i < options.params.variables.length; i++){
 	        if(options.params.variables[i].indexOf('$SOAJS_DEPLOY_HA') !== -1){
 		        options.params.variables[i] = options.params.variables[i].replace("$SOAJS_DEPLOY_HA", "swarm");
 	        }
-	
+
 	        if(options.params.variables[i].indexOf('$SOAJS_HA_NAME') !== -1){
 		        options.params.variables[i] = options.params.variables[i].replace("$SOAJS_HA_NAME", "{{.Task.Name}}");
 	        }
@@ -205,56 +205,36 @@ var engine = {
                         if (!update.TaskTemplate.ContainerSpec) update.TaskTemplate.ContainerSpec = {};
                         if (!update.TaskTemplate.ContainerSpec.Env) update.TaskTemplate.ContainerSpec.Env = [];
 
-                        update.TaskTemplate.ContainerSpec.Env.push('SOAJS_REDEPLOY_TRIGGER=true');
-
-                        if (options.params.action === 'rebuild' && update.Labels && update.Labels['soajs.service.type'] === 'nginx') {
-                            if (options.params.ui) { //in case of rebuilding nginx, pass custom ui environment variables
-                                update.TaskTemplate.ContainerSpec.Env.push('SOAJS_GIT_REPO=' + options.params.ui.repo);
-                                update.TaskTemplate.ContainerSpec.Env.push('SOAJS_GIT_OWNER=' + options.params.ui.owner);
-                                update.TaskTemplate.ContainerSpec.Env.push('SOAJS_GIT_BRANCH=' + options.params.ui.branch);
-                                update.TaskTemplate.ContainerSpec.Env.push('SOAJS_GIT_COMMIT=' + options.params.ui.commit);
-                                update.TaskTemplate.ContainerSpec.Env.push('SOAJS_GIT_PROVIDER=' + options.params.ui.provider);
-                                update.TaskTemplate.ContainerSpec.Env.push('SOAJS_GIT_DOMAIN=' + options.params.ui.domain);
-
-                                if (options.params.ui.token) {
-                                    update.TaskTemplate.ContainerSpec.Env.push('SOAJS_GIT_TOKEN=' + options.params.ui.token);
-                                }
-                            }
-                            else {
-                                //if user does not want custom UI, remove existing UI env variables if any
-                                let uiVars = [ 'SOAJS_GIT_REPO', 'SOAJS_GIT_OWNER', 'SOAJS_GIT_BRANCH', 'SOAJS_GIT_COMMIT', 'SOAJS_GIT_PROVIDER', 'SOAJS_GIT_DOMAIN', 'SOAJS_GIT_TOKEN' ];
-                                for (let i = update.TaskTemplate.ContainerSpec.Env.length - 1; i >= 0; i--) {
-                                    let oneVar = update.TaskTemplate.ContainerSpec.Env[i].split('=')[0];
-                                    if (uiVars.indexOf(oneVar) !== -1) {
-                                        update.TaskTemplate.ContainerSpec.Env.splice(i, 1);
-                                    }
-                                }
-                            }
-
-                            if (options.params.ssl) {
-                                //Check if SSL is enabled and if the user specified a secret name
-                                if (options.params.ssl.enabled) {
-                                    update.TaskTemplate.ContainerSpec.Env.push('SOAJS_NX_API_HTTPS=1');
-                                    update.TaskTemplate.ContainerSpec.Env.push('SOAJS_NX_API_HTTP_REDIRECT=1');
-                                    update.TaskTemplate.ContainerSpec.Env.push('SOAJS_NX_SITE_HTTPS=1');
-                                    update.TaskTemplate.ContainerSpec.Env.push('SOAJS_NX_SITE_HTTP_REDIRECT=1');
-                                }
-                            }
-                            else {
-                                let sslEnvVars = [ 'SOAJS_NX_API_HTTPS=1', 'SOAJS_NX_API_HTTP_REDIRECT=1', 'SOAJS_NX_SITE_HTTPS=1', 'SOAJS_NX_SITE_HTTP_REDIRECT=1' ];
-
-                                for (let i = update.TaskTemplate.ContainerSpec.Env.length - 1; i >= 0; i--) {
-                                    let oneVar = update.TaskTemplate.ContainerSpec.Env[i];
-                                    if (sslEnvVars.indexOf(oneVar) !== -1) {
-                                        update.TaskTemplate.ContainerSpec.Env.splice(i, 1);
-                                    }
-                                }
-                            }
+                        if (options.params.action === 'redeploy') {
+                            update.TaskTemplate.ContainerSpec.Env.push('SOAJS_REDEPLOY_TRIGGER=true');
+                            service.update(update, (error) => {
+                                utils.checkError(error, 653, cb, cb.bind(null, null, true));
+                            });
                         }
+                        else if (options.params.action === 'rebuild') {
+                            update.TaskTemplate.ContainerSpec.Env = options.params.newBuild.variables;
+                            update.TaskTemplate.ContainerSpec.Image = options.params.newBuild.image;
+                            update.TaskTemplate.ContainerSpec.Command = options.params.newBuild.command;
+                            update.TaskTemplate.ContainerSpec.Args = options.params.newBuild.args;
+                            if (options.params.newBuild.ports && options.params.newBuild.ports.length > 0) {
+                                if (!update.EndpointSpec) update.EndpointSpec = { Mode: 'vip', };
+                                update.EndpointSpec.Ports = [];
 
-                        service.update(update, (error) => {
-                            utils.checkError(error, 653, cb, cb.bind(null, null, true));
-                        });
+                                options.params.newBuild.ports.forEach((onePortEntry) => {
+                                    if (onePortEntry.isPublished) {
+                                        payload.EndpointSpec.ports.push({
+                                            Protocol: 'tcp',
+                                            TargetPort: onePortEntry.target,
+                                            PublishedPort: onePortEntry.published
+                                        });
+                                    }
+                                });
+                            }
+
+                            service.update(update, (error) => {
+                                utils.checkError(error, 653, cb, cb.bind(null, null, true));
+                            });
+                        }
                     });
                 });
             });
