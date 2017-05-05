@@ -241,9 +241,6 @@ var engine = {
             payload = utils.cloneObj(require(daemonsetSchemaPath));
             options.params.type = 'daemonset';
         }
-		if (!payload.metadata){
-			payload.metadata = {};
-		}
         payload.metadata.name = cleanLabel(options.params.name);
         payload.metadata.labels = options.params.labels;
         payload.metadata.labels['soajs.service.label'] = cleanLabel(payload.metadata.labels['soajs.service.label']);
@@ -260,10 +257,10 @@ var engine = {
         payload.spec.template.spec.containers[0].image = options.params.image;
         payload.spec.template.spec.containers[0].workingDir = ((options.params.containerDir) ? options.params.containerDir : '');
         // incase no command was provided
-        if(options.params.cmd && options.params.cmd[0]){
+        if(options.params.cmd && options.params.cmd && Array.isArray(options.params.cmd && options.params.cmd)){
 	        payload.spec.template.spec.containers[0].command = [options.params.cmd[0]];
+	        payload.spec.template.spec.containers[0].args = options.params.cmd.splice(1);
         }
-        payload.spec.template.spec.containers[0].args = options.params.cmd.splice(1);
         payload.spec.template.spec.containers[0].env = lib.buildEnvList({ envs: options.params.variables });
 
         if (options.params.memoryLimit) {
