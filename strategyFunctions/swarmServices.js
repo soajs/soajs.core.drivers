@@ -228,7 +228,7 @@ var engine = {
                             update.TaskTemplate.ContainerSpec.Args = options.params.newBuild.args;
                             if (options.params.newBuild.ports && options.params.newBuild.ports.length > 0) {
                                 if (!update.EndpointSpec) update.EndpointSpec = { Mode: 'vip', };
-                                update.EndpointSpec.Ports = [];
+                                update.EndpointSpec.ports = [];
 
                                 options.params.newBuild.ports.forEach((onePortEntry) => {
                                     if (onePortEntry.isPublished) {
