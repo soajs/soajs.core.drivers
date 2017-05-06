@@ -430,6 +430,10 @@ var engine = {
                                 deployment.spec.template.spec.containers[0].imagePullPolicy = options.params.newBuild.imagePullPolicy;
                                 deployment.spec.template.spec.containers[0].command = options.params.newBuild.command;
                                 deployment.spec.template.spec.containers[0].args = options.params.newBuild.args;
+                                if (options.params.newBuild.voluming && Object.keys(options.params.newBuild.voluming).length > 0) {
+                                    deployment.spec.template.spec.volumes = options.params.newBuild.voluming.volumes;
+                                    deployment.spec.template.spec.containers[0].volumeMounts = options.params.newBuild.voluming.volumeMounts;
+                                }
 
                                 if (options.params.newBuild.ports && options.params.newBuild.ports.length > 0) {
                                     let filter = { labelSelector: 'soajs.service.label=' + options.params.id };
