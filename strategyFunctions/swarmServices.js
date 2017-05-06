@@ -226,6 +226,10 @@ var engine = {
                             update.TaskTemplate.ContainerSpec.Image = options.params.newBuild.image;
                             update.TaskTemplate.ContainerSpec.Command = options.params.newBuild.command;
                             update.TaskTemplate.ContainerSpec.Args = options.params.newBuild.args;
+                            if (options.params.newBuild.voluming && options.params.newBuild.voluming.volumes) {
+                                update.TaskTemplate.ContainerSpec.Mounts = options.params.newBuild.voluming.volumes;
+                            }
+
                             if (options.params.newBuild.ports && options.params.newBuild.ports.length > 0) {
                                 if (!update.EndpointSpec) update.EndpointSpec = { Mode: 'vip', };
                                 update.EndpointSpec.Ports = [];
