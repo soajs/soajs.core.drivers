@@ -28,22 +28,10 @@ module.exports = {
                         "args": [],
                         "ports": [],
                         "env": [],
-                        "volumeMounts": [
-                            {
-                                "mountPath": "/var/log/soajs/",
-                                "name": "soajs-log-volume"
-                            }
-                        ]
+                        "volumeMounts": []
                     }
                 ],
-                "volumes": [
-                    {
-                        "name": "soajs-log-volume",
-                        "hostPath": {
-                            "path": "/var/log/soajs/"
-                        }
-                    }
-                ]
+                "volumes": []
             }
         }
     }

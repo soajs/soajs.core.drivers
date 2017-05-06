@@ -9,13 +9,7 @@ module.exports = {
             "Dir": '',
             "Command": [],
             "Args": [],
-            "Mounts": [
-                {
-				    "Type": "volume",
-				    "Source": "soajs_log_volume",
-				    "Target": "/var/log/soajs/",
-                }
-            ]
+            "Mounts": []
         },
         "Resources": {
             "Limits": {
