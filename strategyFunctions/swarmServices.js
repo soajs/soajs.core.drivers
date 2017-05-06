@@ -232,7 +232,7 @@ var engine = {
 
                                 options.params.newBuild.ports.forEach((onePortEntry) => {
                                     if (onePortEntry.isPublished) {
-                                        payload.EndpointSpec.ports.push({
+	                                    update.EndpointSpec.ports.push({
                                             Protocol: 'tcp',
                                             TargetPort: onePortEntry.target,
                                             PublishedPort: onePortEntry.published
