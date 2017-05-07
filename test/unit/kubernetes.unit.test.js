@@ -609,7 +609,7 @@ describe("Testing kubernetes driver functionality", function() {
         });
 
         //Success in redeploying a deployed service without UI
-        it("Success - redeploy service without UI", function(done){
+        it.skip("Success - redeploy service without UI", function(done){
             options.deployerConfig.namespace = {
                 "default": "soajs",
                 "perService": false
@@ -629,7 +629,7 @@ describe("Testing kubernetes driver functionality", function() {
         });
 
         //Success in redeploying a deployed service with UI
-        it("Success - redeploy service with UI", function(done){
+        it.skip("Success - redeploy service with UI", function(done){
             options.deployerConfig.namespace = {
                 "default": "soajs",
                 "perService": false

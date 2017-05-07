@@ -318,7 +318,7 @@ describe("testing docker swarm driver functionality", function() {
         });
 
         //Success in redeploying a deployed service without UI
-        it("Success - redeploy service without UI", function(done){
+        it.skip("Success - redeploy service without UI", function(done){
             options.params = {
                 "id": interData.id
             };
@@ -332,7 +332,7 @@ describe("testing docker swarm driver functionality", function() {
         });
 
         //Success in redeploying a deployed service with UI
-        it("Success - redeploy service with UI", function(done){
+        it.skip("Success - redeploy service with UI", function(done){
             options.params = {
                 "id": interData.id
             };
@@ -572,7 +572,7 @@ describe("testing docker swarm driver functionality", function() {
         });
 
         //Getting the logs of a container that does exist
-        it("Success - get container logs", function(done){
+        it.skip("Success - get container logs", function(done){
             options.params = {
                 "taskId": interData.taskId
             };
