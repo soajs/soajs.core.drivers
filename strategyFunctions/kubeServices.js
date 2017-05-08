@@ -193,14 +193,14 @@ var engine = {
 		    }
 	    }
 
-        let service = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/service.template.js'));
-        service.metadata.name = cleanLabel(options.params.name) + '-service';
-
-        service.metadata.labels = options.params.labels;
-        service.spec.selector = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
-
         let ports = [];
         if (options.params.ports && options.params.ports.length > 0) {
+            let service = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/service.template.js'));
+            service.metadata.name = cleanLabel(options.params.name) + '-service';
+
+            service.metadata.labels = options.params.labels;
+            service.spec.selector = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
+
             options.params.ports.forEach((onePortEntry, portIndex) => {
                 let portConfig = {
                     protocol: 'TCP',
@@ -210,16 +210,16 @@ var engine = {
                 };
 
                 if (onePortEntry.isPublished) {
-                	if(options.deployerConfig.nginxDeployType === 'LoadBalancer'){
-			            service.spec.type = 'LoadBalancer';
-		                delete portConfig.nodePort;
-	                }
-	                else{
-		                if (!service.spec.type || service.spec.type !== 'NodePort') {
-			                service.spec.type = 'NodePort';
-		                }
-		                portConfig.nodePort = onePortEntry.published;
-	                }
+                    if(options.deployerConfig.nginxDeployType === 'LoadBalancer'){
+                        service.spec.type = 'LoadBalancer';
+                        delete portConfig.nodePort;
+                    }
+                    else{
+                        if (!service.spec.type || service.spec.type !== 'NodePort') {
+                            service.spec.type = 'NodePort';
+                        }
+                        portConfig.nodePort = onePortEntry.published;
+                    }
 
                     portConfig.name = onePortEntry.name || 'published' + portConfig.name;
                 }
@@ -246,7 +246,6 @@ var engine = {
             payload = utils.cloneObj(require(daemonsetSchemaPath));
             options.params.type = 'daemonset';
         }
-
         payload.metadata.name = cleanLabel(options.params.name);
         payload.metadata.labels = options.params.labels;
         payload.metadata.labels['soajs.service.label'] = cleanLabel(payload.metadata.labels['soajs.service.label']);
@@ -262,10 +261,28 @@ var engine = {
         payload.spec.template.spec.containers[0].name = cleanLabel(options.params.labels['soajs.service.name']);
         payload.spec.template.spec.containers[0].image = options.params.image;
         payload.spec.template.spec.containers[0].imagePullPolicy = options.params.imagePullPolicy || 'Always';
-        payload.spec.template.spec.containers[0].workingDir = ((options.params.containerDir) ? options.params.containerDir : '');
-        payload.spec.template.spec.containers[0].command = options.params.command;
-        payload.spec.template.spec.containers[0].args = options.params.args;
         payload.spec.template.spec.containers[0].env = lib.buildEnvList({ envs: options.params.variables });
+
+        if (options.params.containerDir) {
+            payload.spec.template.spec.containers[0].workingDir = options.params.containerDir;
+        }
+        else {
+            delete payload.spec.template.spec.containers[0].workingDir;
+        }
+
+        if (options.params.command && Array.isArray(options.params.command) && options.params.command.length > 0) {
+            payload.spec.template.spec.containers[0].command = options.params.command;
+        }
+        else {
+            delete payload.spec.template.spec.containers[0].command;
+        }
+
+        if (options.params.args && Array.isArray(options.params.args) && options.params.args.length > 0) {
+            payload.spec.template.spec.containers[0].args = options.params.args;
+        }
+        else {
+            delete payload.spec.template.spec.containers[0].args;
+        }
 
         if (options.params.memoryLimit) {
             payload.spec.template.spec.containers[0].resources = {
@@ -308,6 +325,11 @@ var engine = {
             }
         }
 
+        //added support for annotations
+		if (options.params.annotations){
+        	payload.spec.template.metadata.annotations = options.params.annotations;
+		}
+
         if (options.params.readinessProbe) {
             payload.spec.template.spec.containers[0].readinessProbe = options.params.readinessProbe;
         }
@@ -322,20 +344,26 @@ var engine = {
         }
         //namespace to be checked by initNamespace function
         options.checkNamespace = namespace;
-
-        lib.getDeployer(options, (error, deployer) => {
-            utils.checkError(error, 540, cb, () => {
-                initNamespace(deployer, options, function(error){
-                    deployer.core.namespaces(namespace).services.post({ body: service }, (error) => {
-                        utils.checkError(error, 525, cb, () => {
-                            deployer.extensions.namespaces(namespace)[options.params.type].post({ body: payload }, (error) => {
-                                utils.checkError(error, 526, cb, cb.bind(null, null, true));
-                            });
-                        });
-                    });
-                });
-            });
-        });
+	    lib.getDeployer(options, (error, deployer) => {
+		    utils.checkError(error, 540, cb, () => {
+			    initNamespace(deployer, options, function (error) {
+				    if (service) {
+					    deployer.core.namespaces(namespace).services.post({body: service}, (error) => {
+						    utils.checkError(error, 525, cb, () => {
+							    deployer.extensions.namespaces(namespace)[options.params.type].post({body: payload}, (error) => {
+								    utils.checkError(error, 526, cb, cb.bind(null, null, true));
+							    });
+						    });
+					    });
+				    }
+				    else {
+					    deployer.extensions.namespaces(namespace)[options.params.type].post({body: payload}, (error) => {
+						    utils.checkError(error, 526, cb, cb.bind(null, null, true));
+					    });
+				    }
+			    });
+		    });
+	    });
 
         function cleanLabel(label) {
             return label.toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-');

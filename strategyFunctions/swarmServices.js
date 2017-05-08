@@ -109,8 +109,6 @@ var engine = {
         payload.TaskTemplate.ContainerSpec.Image = options.params.image;
         payload.TaskTemplate.ContainerSpec.Env = options.params.variables;
         payload.TaskTemplate.ContainerSpec.Dir = ((options.params.containerDir) ? options.params.containerDir : "");
-        payload.TaskTemplate.ContainerSpec.Command = options.params.command;
-        payload.TaskTemplate.ContainerSpec.Args = options.params.args;
         payload.TaskTemplate.Resources.Limits.MemoryBytes = options.params.memoryLimit;
         payload.TaskTemplate.RestartPolicy.Condition = options.params.restartPolicy.condition;
         payload.TaskTemplate.RestartPolicy.MaxAttempts = options.params.restartPolicy.maxAttempts;
@@ -118,6 +116,20 @@ var engine = {
         payload.Networks[0].Target = ((options.params.network) ? options.params.network : "");
         payload.Labels = options.params.labels;
         payload.EndpointSpec = { Mode: 'vip' , ports: [] };
+
+        if (options.params.command && Array.isArray(options.params.command) && options.params.command.length > 0) {
+            payload.TaskTemplate.ContainerSpec.Command = options.params.command;
+        }
+        else {
+            delete payload.TaskTemplate.ContainerSpec.Command;
+        }
+
+        if (options.params.args && Array.isArray(options.params.args) && options.params.args.length > 0) {
+            payload.TaskTemplate.ContainerSpec.Args = options.params.args;
+        }
+        else {
+            delete payload.TaskTemplate.ContainerSpec.Args;
+        }
 
         //NOTE: bind docker unix socket only for controller deployments, required tp proxy requests
         //NOTE: static values are set, no need to make it dynamic for now
