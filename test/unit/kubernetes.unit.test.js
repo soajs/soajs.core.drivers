@@ -275,7 +275,7 @@ describe("Testing kubernetes driver functionality", function() {
                     "soajs.service.version": "2",
                     "soajs.service.label": "testdeploymentglobalmode"
                 },
-                "cmd": [
+                "command": [
                     "sh",
                     "-c",
                     "ping www.google.com"
@@ -304,6 +304,10 @@ describe("Testing kubernetes driver functionality", function() {
                     }
                 ],
                 "readinessProbe": {
+                    "httpGet": {
+                        "path": "/heartbeat",
+                        "port": "maintenance"
+                    },
                     "initialDelaySeconds": 5,
                     "timeoutSeconds": 5,
                     "periodSeconds": 3,
@@ -350,8 +354,10 @@ describe("Testing kubernetes driver functionality", function() {
                     "soajs.service.version": "2",
                     "soajs.service.label": "servicetobemanipulated"
                 },
-                "cmd": [
-                    "sh",
+                "command": [
+                    "sh"
+                ],
+                "args": [
                     "-c",
                     "ping www.google.com"
                 ],
@@ -430,10 +436,8 @@ describe("Testing kubernetes driver functionality", function() {
                     "soajs.service.version": "1",
                     "soajs.service.label": "proxy"
                 },
-                "cmd": [
-                    "bash",
-                    "-c",
-                    './soajsDeployer.sh -T service -X deploy -L'
+                "command": [
+                    "node index -T service -X"
                 ],
                 "memoryLimit": 200000000,
                 "replication": {
@@ -441,7 +445,7 @@ describe("Testing kubernetes driver functionality", function() {
                     "replicas": 2
                 },
                 "version": "",
-                "containerDir": '/opt/soajs/FILES/deployer/',
+                "containerDir": '/opt/soajs/deployer/',
                 "restartPolicy": {
                     "condition": "any",
                     "maxAttempts": 5
@@ -597,7 +601,8 @@ describe("Testing kubernetes driver functionality", function() {
 
             options.params = {
                 "id": "nothing",
-                "mode": "deployment"
+                "mode": "deployment",
+                "action": "redeploy"
             };
 
             drivers.redeployService(options, function(error, service){
@@ -608,8 +613,8 @@ describe("Testing kubernetes driver functionality", function() {
             });
         });
 
-        //Success in redeploying a deployed service without UI
-        it.skip("Success - redeploy service without UI", function(done){
+        //Success in redeploying a deployed service
+        it("Success - redeploy service", function(done){
             options.deployerConfig.namespace = {
                 "default": "soajs",
                 "perService": false
@@ -617,7 +622,8 @@ describe("Testing kubernetes driver functionality", function() {
 
             options.params = {
                 "id": interData.id,
-                "mode": "deployment"
+                "mode": "deployment",
+                "action": "redeploy"
             };
 
             drivers.redeployService(options, function(error, service){
@@ -628,8 +634,8 @@ describe("Testing kubernetes driver functionality", function() {
             });
         });
 
-        //Success in redeploying a deployed service with UI
-        it.skip("Success - redeploy service with UI", function(done){
+        //Success in rebuilding a deployed service with UI
+        it("Success - rebuilding a service", function(done){
             options.deployerConfig.namespace = {
                 "default": "soajs",
                 "perService": false
@@ -637,17 +643,55 @@ describe("Testing kubernetes driver functionality", function() {
 
             options.params = {
                 "id": interData.id,
-                "mode": "deployment"
+                "mode": "deployment",
+                "action": "rebuild",
+                "newBuild": {
+                    "env": "dev2",
+                    "name": "servicetobemanipulated",
+                    "image": "alpine",
+                    "variables": [
+                        "Dummy_Variable=variable",
+                    ],
+                    "labels": {
+                        "soajs.content": "true",
+                        "soajs.env.code": "dev2",
+                        "soajs.service.name": "servicetobemanipulated",
+                        "soajs.service.version": "2",
+                        "soajs.service.label": "servicetobemanipulated"
+                    },
+                    "command": [
+                        "sh"
+                    ],
+                    "args": [
+                        "-c",
+                        "sleep 3600"
+                    ],
+                    "memoryLimit": 200000000,
+                    "replication": {
+                        "mode": "deployment",
+                        "replicas": 1
+                    },
+                    "version": "",
+                    "containerDir": "/opt/",
+                    "restartPolicy": {
+                        "condition": "any",
+                        "maxAttempts": 5
+                    },
+                    "network": "soajsnet",
+                    "ports": [
+                        {
+                            "name": "service",
+                            "isPublished": false,
+                            "target": 4004
+                        },
+                        {
+                            "name": "maintenance",
+                            "isPublished": false,
+                            "target": 5004
+                        }
+                    ]
+                }
             };
-
-            options.params.ui ={
-                "repo": "repo",
-                "owner": "owner",
-                "branch": "branch",
-                "commit": "commit",
-                "provider": "provider",
-                "domain": "domain"
-            }
 
             drivers.redeployService(options, function(error, service){
                 assert.ok(service);

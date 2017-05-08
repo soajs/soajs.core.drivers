@@ -186,8 +186,10 @@ describe("testing docker swarm driver functionality", function() {
                     "soajs.service.version": "1",
                     "soajs.service.label": "dashboard_soajs_prx"
                 },
-                "cmd": [
-                    "sh",
+                "command": [
+                    "sh"
+                ],
+                "args": [
                     "-c",
                     'sleep 3600'
                 ],
@@ -306,7 +308,8 @@ describe("testing docker swarm driver functionality", function() {
         //Failure in redeploying a deployed service
         it("Fail - redeploy service", function(done){
             options.params = {
-                "id": "nothing"
+                "id": "nothing",
+                "action": "redeploy"
             };
 
             drivers.redeployService(options, function(error, service){
@@ -317,10 +320,11 @@ describe("testing docker swarm driver functionality", function() {
             });
         });
 
-        //Success in redeploying a deployed service without UI
-        it.skip("Success - redeploy service without UI", function(done){
+        //Success in redeploying a deployed service
+        it("Success - redeploy service", function(done){
             options.params = {
-                "id": interData.id
+                "id": interData.id,
+                "action": "redeploy"
             };
 
             drivers.redeployService(options, function(error, service){
@@ -331,20 +335,59 @@ describe("testing docker swarm driver functionality", function() {
             });
         });
 
-        //Success in redeploying a deployed service with UI
-        it.skip("Success - redeploy service with UI", function(done){
+        //Success in rebuilding the service
+        it("Success - redeploy service with UI", function(done){
             options.params = {
-                "id": interData.id
-            };
+                "id": interData.id,
+                "action": "rebuild",
+                "newBuild": {
+                    "env": "dashboard",
+                    "name": "dashboard_soajs_prx",
+                    "image": "alpine:latest",
+                    "variables": [
+                        'NODE_ENV=production',
+                        'SOAJS_ENV=dashboard',
+                        'SOAJS_SOLO=true',
+                        'SOAJS_DEPLOY_HA=swarm',
+                        'SOAJS_HA_NAME={{.Task.Name}}',
 
-            options.params.ui ={
-                "repo": "repo",
-                "owner": "owner",
-                "branch": "branch",
-                "commit": "commit",
-                "provider": "provider",
-                "domain": "domain"
-            }
+                        'SOAJS_PROFILE=/opt/soajs/FILES/profiles/profile.js',
+                        'SOAJS_SRV_AUTOREGISTERHOST=true',
+
+                        'SOAJS_GIT_OWNER=soajs',
+                        'SOAJS_GIT_REPO=soajs.prx',
+                        'SOAJS_GIT_BRANCH=develop'
+                    ],
+                    "labels": {
+                        "soajs.content": "true",
+                        "soajs.env.code": "dashboard",
+                        "soajs.service.type": "service",
+                        "soajs.service.name": "proxy",
+                        "soajs.service.group": "SOAJS-Core-Services",
+                        "soajs.service.version": "1",
+                        "soajs.service.label": "dashboard_soajs_prx"
+                    },
+                    "cmd": [
+                        "sh",
+                        "-c",
+                        'sleep 3600'
+                    ],
+                    "memoryLimit": 200000000,
+                    "replication": {
+                        "mode": "replicated",
+                        "replicas": 1
+                    },
+                    "version": "",
+                    "containerDir": '/opt/soajs/FILES/deployer/',
+                    "restartPolicy": {
+                        "condition": "any",
+                        "maxAttempts": 5
+                    },
+                    "network": "soajsnet",
+                    "ports": [
+                    ]
+                }
+            };
 
             drivers.redeployService(options, function(error, service){
                 assert.ok(service);
@@ -572,15 +615,18 @@ describe("testing docker swarm driver functionality", function() {
         });
 
         //Getting the logs of a container that does exist
-        it.skip("Success - get container logs", function(done){
+        it("Success - get container logs", function(done){
             options.params = {
                 "taskId": interData.taskId
             };
             options.driver = "swarm.local";
-            drivers.getContainerLogs(options, function(error, logs){
-            	assert.ifError(error);
-                done();
-            });
+
+            setTimeout(function () {
+                drivers.getContainerLogs(options, function(error, logs){
+                    assert.ifError(error);
+                    done();
+                });
+            }, 6000);
         });
     });
 });
