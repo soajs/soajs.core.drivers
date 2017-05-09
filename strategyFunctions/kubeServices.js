@@ -98,7 +98,10 @@ var engine = {
     listServices (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
-                let filter = {};
+                let filter = {
+                    labelSelector: 'soajs.content=true'
+                };
+
                 if (options.params && options.params.env && !options.params.custom) {
                     filter = {
                         labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase()
@@ -121,6 +124,7 @@ var engine = {
 
                                 async.map(deployments, (oneDeployment, callback) => {
                                     let filter = {};
+                                    filter.labelSelector = 'soajs.content=true, soajs.service.label= ' + oneDeployment.metadata.name;
                                     if (options.params && options.params.env && !options.params.custom) {
                                         filter.labelSelector = 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.label= ' + oneDeployment.metadata.name;
                                     }
@@ -192,7 +196,7 @@ var engine = {
 	    if (options.params.ports && options.params.ports.length > 0) {
 		    service = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/service.template.js'));
 		    service.metadata.name = cleanLabel(options.params.name) + '-service';
-		
+
 		    service.metadata.labels = options.params.labels;
 		    service.spec.selector = {'soajs.service.label': options.params.labels['soajs.service.label']};
 		    options.params.ports.forEach((onePortEntry, portIndex) => {
@@ -202,7 +206,7 @@ var engine = {
 				    port: onePortEntry.target,
 				    targetPort: onePortEntry.target
 			    };
-			
+
 			    if (onePortEntry.isPublished) {
 				    if (options.deployerConfig.nginxDeployType === 'LoadBalancer') {
 					    service.spec.type = 'LoadBalancer';
@@ -214,13 +218,13 @@ var engine = {
 					    }
 					    portConfig.nodePort = onePortEntry.published;
 				    }
-				
+
 				    portConfig.name = onePortEntry.name || 'published' + portConfig.name;
 			    }
-			
+
 			    ports.push(portConfig);
 		    });
-		
+
 		    service.spec.ports = ports;
 	    }
         let payload = {};
@@ -254,7 +258,7 @@ var engine = {
         //NOTE: only one container is being set per pod
         payload.spec.template.spec.containers[0].name = cleanLabel(options.params.labels['soajs.service.name']);
         payload.spec.template.spec.containers[0].image = options.params.image;
-        
+
         if (options.params.containerDir){
 	        payload.spec.template.spec.containers[0].workingDir = options.params.containerDir;
         }
@@ -293,7 +297,7 @@ var engine = {
 		if (options.params.annotations){
         	payload.spec.template.metadata.annotations = options.params.annotations;
 		}
-			
+
         //NOTE: only one volume is supported for now
         if (options.params.volume) {
             payload.spec.template.spec.volumes.push({
