@@ -109,7 +109,7 @@ var engine = {
                 }
                 else if (options.params && options.params.custom) {
                     filter = {
-                        labelSelector: 'soajs.content != true'
+                        labelSelector: 'soajs.content in (true, false, null), !soajs.env.code'
                     };
                 }
                 //get deployments from all namespaces
