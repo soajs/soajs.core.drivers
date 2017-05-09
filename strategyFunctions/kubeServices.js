@@ -98,7 +98,10 @@ var engine = {
     listServices (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
-                let filter = {};
+                let filter = {
+                    labelSelector: 'soajs.content=true'
+                };
+
                 if (options.params && options.params.env && !options.params.custom) {
                     filter = {
                         labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase()
@@ -106,7 +109,7 @@ var engine = {
                 }
                 else if (options.params && options.params.custom) {
                     filter = {
-                        labelSelector: 'soajs.content != true'
+                        labelSelector: 'soajs.content in (true, false, null), !soajs.env.code'
                     };
                 }
                 //get deployments from all namespaces
@@ -121,6 +124,7 @@ var engine = {
 
                                 async.map(deployments, (oneDeployment, callback) => {
                                     let filter = {};
+                                    filter.labelSelector = 'soajs.content=true, soajs.service.label= ' + oneDeployment.metadata.name;
                                     if (options.params && options.params.env && !options.params.custom) {
                                         filter.labelSelector = 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.label= ' + oneDeployment.metadata.name;
                                     }

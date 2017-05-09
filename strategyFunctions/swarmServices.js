@@ -22,7 +22,7 @@ var engine = {
     listServices (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
-                let params = {};
+                let params = { label: [ 'soajs.content=true' ] };;
                 if (options.params && options.params.env && !options.params.custom) {
                     params.filters = { label: [ 'soajs.content=true', 'soajs.env.code=' + options.params.env ] };
                 }
@@ -36,7 +36,10 @@ var engine = {
                          */
                         if (options.params && options.params.custom) {
                             async.filter(services, (oneService, callback) => {
-                                return callback(null, (!oneService.Spec || !oneService.Spec.Labels || !oneService.Spec.Labels['soajs.content']));
+                                if (!oneService.Spec || !oneService.Spec.Labels) return callback(null, true);
+                                if (!oneService.Spec.Labels['soajs.content'] || oneService.Spec.Labels['soajs.content'] !== 'true') return callback(null, true);
+                                if (oneService.Spec.Labels['soajs.content'] === 'true' && !oneService.Spec.Labels['soajs.env.code']) return callback(null, true);
+                                return callback(null, false);
                             }, (error, services) => {
                                 processServicesData(deployer, services, cb);
                             });
