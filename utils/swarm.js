@@ -201,7 +201,7 @@ const lib = {
     buildServiceRecord (options) {
         let record = {
             id: options.service.ID,
-            version: options.service.Version.Index,
+            version: ((options.service.Version && options.service.Version.Index) ? options.service.Version.Index : ''),
             name: options.service.Spec.Name,
             labels: options.service.Spec.Labels,
             env: options.service.Spec.TaskTemplate.ContainerSpec.Env || [],
