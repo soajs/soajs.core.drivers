@@ -98,20 +98,14 @@ var engine = {
     listServices (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
-                let filter = {
-                    labelSelector: 'soajs.content=true'
-                };
+                let filter = {};
 
                 if (options.params && options.params.env && !options.params.custom) {
                     filter = {
                         labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase()
                     };
                 }
-                else if (options.params && options.params.custom) {
-                    filter = {
-                        labelSelector: 'soajs.content in (true, false, null), !soajs.env.code'
-                    };
-                }
+
                 //get deployments from all namespaces
                 deployer.extensions.deployments.get({qs: filter}, (error, deploymentList) => {
                     utils.checkError(error, 536, cb, () => {
@@ -122,64 +116,81 @@ var engine = {
                                 if (deploymentList && deploymentList.items) deployments = deployments.concat(deploymentList.items);
                                 if (daemonsetList && daemonsetList.items) deployments = deployments.concat(daemonsetList.items);
 
-                                async.map(deployments, (oneDeployment, callback) => {
-                                    let filter = {};
-                                    filter.labelSelector = 'soajs.content=true, soajs.service.label= ' + oneDeployment.metadata.name;
-                                    if (options.params && options.params.env && !options.params.custom) {
-                                        filter.labelSelector = 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.label= ' + oneDeployment.metadata.name;
-                                    }
-                                    else if (options.params && options.params.custom) {
-                                        if (oneDeployment.spec && oneDeployment.spec.selector && oneDeployment.spec.selector.matchLabels) {
-                                            filter.labelSelector = lib.buildLabelSelector(oneDeployment.spec.selector);
-                                        }
-                                    }
-                                    //get services from all namespaces
-                                    deployer.core.services.get({qs: filter}, (error, serviceList) => {
-                                        if (error) {
-                                            return callback(error);
-                                        }
-
-                                        let service = {};
-                                        if (serviceList && serviceList.items && Array.isArray(serviceList.items) && serviceList.items.length > 0) {
-                                            service = serviceList.items[0];
-                                        }
-
-                                        let record = lib.buildDeploymentRecord({ deployment: oneDeployment , service });
-
-                                        if (options.params && options.params.excludeTasks) {
-                                            return callback(null, record);
-                                        }
-
-                                        //get pods from all namespaces
-                                        deployer.core.pods.get({qs: filter}, (error, podsList) => {
-                                            if (error) {
-                                                return callback(error);
-                                            }
-
-                                            async.map(podsList.items, (onePod, callback) => {
-                                                if (options.params && !options.params.custom) {
-                                                    return callback(null, lib.buildPodRecord({ pod: onePod }));
-                                                }
-                                                else { //custom services do not include soajs labels that identify deployment name
-                                                    return callback(null, lib.buildPodRecord({ pod: onePod, deployment: oneDeployment }));
-                                                }
-                                            }, (error, pods) => {
-                                                if (error) {
-                                                    return callback(error);
-                                                }
-
-                                                record.tasks = pods;
-                                                return callback(null, record);
-                                            });
-                                        });
+                                if (options.params && options.params.custom) {
+                                    async.filter(deployments, (oneDeployment, callback) => {
+                                        if (!oneDeployment.metadata || !oneDeployment.metadata.labels) return callback(null, true);
+                                        if (!oneDeployment.metadata.labels['soajs.content'] || oneDeployment.metadata.labels['soajs.content'] !== 'true') return callback(null, true);
+                                        if (oneDeployment.metadata.labels['soajs.content'] === 'true' && !oneDeployment.metadata.labels['soajs.env.code']) return callback(null, true);
+                                        if ((!oneDeployment.metadata.labels['soajs.content'] || oneDeployment.metadata.labels['soajs.content'] !== 'true') && oneDeployment.metadata.labels['soajs.env.code']) return callback(null, true);
+                                        return callback(null, false);
+                                    }, (error, deployments) => {
+                                        processDeploymentsData(deployer, deployments, cb);
                                     });
-                                }, cb);
+                                }
+                                else {
+                                    processDeploymentsData(deployer, deployments, cb);
+                                }
                             });
                         });
                     });
                 });
             });
         });
+
+        function processDeploymentsData(deployer, deployments, cb) {
+            async.map(deployments, (oneDeployment, callback) => {
+                let filter = {};
+                filter.labelSelector = 'soajs.content=true, soajs.service.label= ' + oneDeployment.metadata.name;
+                if (options.params && options.params.env && !options.params.custom) {
+                    filter.labelSelector = 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.label= ' + oneDeployment.metadata.name;
+                }
+                else if (options.params && options.params.custom) {
+                    if (oneDeployment.spec && oneDeployment.spec.selector && oneDeployment.spec.selector.matchLabels) {
+                        filter.labelSelector = lib.buildLabelSelector(oneDeployment.spec.selector);
+                    }
+                }
+                //get services from all namespaces
+                deployer.core.services.get({qs: filter}, (error, serviceList) => {
+                    if (error) {
+                        return callback(error);
+                    }
+
+                    let service = {};
+                    if (serviceList && serviceList.items && Array.isArray(serviceList.items) && serviceList.items.length > 0) {
+                        service = serviceList.items[0];
+                    }
+
+                    let record = lib.buildDeploymentRecord({ deployment: oneDeployment , service });
+
+                    if (options.params && options.params.excludeTasks) {
+                        return callback(null, record);
+                    }
+
+                    //get pods from all namespaces
+                    deployer.core.pods.get({qs: filter}, (error, podsList) => {
+                        if (error) {
+                            return callback(error);
+                        }
+
+                        async.map(podsList.items, (onePod, callback) => {
+                            if (options.params && !options.params.custom) {
+                                return callback(null, lib.buildPodRecord({ pod: onePod }));
+                            }
+                            else { //custom services do not include soajs labels that identify deployment name
+                                return callback(null, lib.buildPodRecord({ pod: onePod, deployment: oneDeployment }));
+                            }
+                        }, (error, pods) => {
+                            if (error) {
+                                return callback(error);
+                            }
+
+                            record.tasks = pods;
+                            return callback(null, record);
+                        });
+                    });
+                });
+            }, cb);
+        }
     },
 
     /**
