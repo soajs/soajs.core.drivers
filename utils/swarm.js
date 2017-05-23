@@ -172,51 +172,127 @@ const lib = {
 
     buildNodeRecord (options) {
         let record = {
-            id: options.node.ID,
-            hostname: options.node.Description.Hostname,
-            ip: options.node.Status.Addr,
-            version: options.node.Version.Index,
-            state: options.node.Status.State,
+            id: '',
+            hostname: '',
+            ip: '',
+            version: '',
+            state: '',
             spec: {
-                role: options.node.Spec.Role,
-                availability: options.node.Spec.Availability
+                role: '',
+                availability: ''
             },
             resources: {
-                cpus: options.node.Description.Resources.NanoCPUs / 1000000000,
-                memory: options.node.Description.Resources.MemoryBytes
+                cpus: '',
+                memory: ''
             }
         };
 
-        if (record.spec.role === 'manager') {
-            record.managerStatus = {
-                leader: options.node.ManagerStatus.Leader,
-                reachability: options.node.ManagerStatus.Reachability,
-                address: options.node.ManagerStatus.Addr
-            };
+        if (options && options.node) {
+            if (options.node.ID) {
+                record.id = options.node.ID;
+            }
+
+            if (options.node.Description) {
+                if (options.node.Description.Hostname) {
+                    record.hostname = options.node.Description.Hostname;
+                }
+                if (options.node.Description.Resources) {
+                    if (options.node.Description.Resources && options.node.Description.Resources.NanoCPUs) {
+                        record.resources.cpus = options.node.Description.Resources.NanoCPUs / 1000000000;
+                    }
+                    if (options.node.Description.Resources.MemoryBytes) {
+                        record.resources.memory = options.node.Description.Resources.MemoryBytes;
+                    }
+                }
+            }
+
+            if (options.node.Status) {
+                if (options.node.Status.Addr) {
+                    record.ip = options.node.Status.Addr;
+                }
+                if (options.node.Status.State) {
+                    record.state = options.node.Status.State;
+                }
+            }
+
+            if (options.node.Version && options.node.Version.Index) {
+                record.version = options.node.Version.Index;
+            }
+
+            if (options.node.Spec) {
+                if (options.node.Spec.Role) {
+                    record.spec.role = options.node.Spec.Role;
+                }
+                if (options.node.Spec.Availability) {
+                    record.spec.availability = options.node.Spec.Availability;
+                }
+            }
+
+            if (record.spec.role === 'manager') {
+                record.managerStatus = {
+                    leader: '',
+                    reachability: '',
+                    address: ''
+                };
+
+                if (options.node.ManagerStatus) {
+                    if (options.node.ManagerStatus.Leader) {
+                        record.managerStatus.leader = options.node.ManagerStatus.Leader;
+                    }
+                    if (options.node.ManagerStatus.Reachability) {
+                        record.managerStatus.reachability = options.node.ManagerStatus.Reachability;
+                    }
+                    if (options.node.ManagerStatus.Addr) {
+                        record.managerStatus.address = options.node.ManagerStatus.Addr;
+                    }
+                }
+            }
         }
+
 
         return record;
     },
 
     buildServiceRecord (options) {
         let record = {
-            id: options.service.ID,
-            version: ((options.service.Version && options.service.Version.Index) ? options.service.Version.Index : ''),
-            name: options.service.Spec.Name,
-            labels: options.service.Spec.Labels,
-            env: options.service.Spec.TaskTemplate.ContainerSpec.Env || [],
+            id: '',
+            version: '',
+            name: '',
+            labels: {},
+            env: [],
             ports: [],
             tasks: []
         };
 
-        if (options.service.Endpoint && options.service.Endpoint.Ports && options.service.Endpoint.Ports.length > 0) {
-            options.service.Endpoint.Ports.forEach((onePortConfig) => {
-                record.ports.push({
-                    protocol: onePortConfig.Protocol,
-                    target: onePortConfig.TargetPort,
-                    published: onePortConfig.PublishedPort
+        if (options && options.service) {
+            if (options.service.ID) {
+                record.id = options.service.ID;
+            }
+            if (options.service.Version && options.service.Version.Index) {
+                record.version = options.service.Version.Index;
+            }
+
+            if (options.service.Spec) {
+                if (options.service.Spec.Name) {
+                    record.name = options.service.Spec.Name;
+                }
+                if (options.service.Spec.Labels) {
+                    record.labels = options.service.Spec.Labels;
+                }
+                if (options.service.Spec.TaskTemplate && options.service.Spec.TaskTemplate.ContainerSpec && options.service.Spec.TaskTemplate.ContainerSpec.Env) {
+                    record.env = options.service.Spec.TaskTemplate.ContainerSpec.Env;
+                }
+            }
+
+            if (options.service.Endpoint && options.service.Endpoint.Ports && options.service.Endpoint.Ports.length > 0) {
+                options.service.Endpoint.Ports.forEach((onePortConfig) => {
+                    record.ports.push({
+                        protocol: onePortConfig.Protocol,
+                        target: onePortConfig.TargetPort,
+                        published: onePortConfig.PublishedPort
+                    });
                 });
-            });
+            }
         }
 
         return record;
@@ -224,29 +300,75 @@ const lib = {
 
     buildTaskRecord (options) {
         let record = {
-            id: options.task.ID,
-            version: options.task.Version.Index,
-            name: options.serviceName + ((options.task.Slot) ? '.' + options.task.Slot : ''), //might add extra value later
+            id: '',
+            version: '',
+            name: '',
             ref: {
-                slot: options.task.Slot,
+                slot: '',
                 service: {
-                    name: options.serviceName,
-                    id: options.task.ServiceID
+                    name: '',
+                    id: ''
                 },
                 node: {
-                    id: options.task.NodeID
+                    id: ''
                 },
                 container: {
-                    id: options.task.Status.ContainerStatus.ContainerID
+                    id: ''
                 }
             },
             status: {
-                ts: options.task.Status.Timestamp, //timestamp of the last status update
-                state: options.task.Status.State, //current state of the task, example: running
-                desiredState: options.task.DesiredState, //desired state of the task, example: running
-                message: options.task.Status.Message //current message of the task, example: started or error,
+                ts: '',
+                state: '',
+                desiredState: '',
+                message: ''
             }
         };
+
+        if (options) {
+            if (options.serviceName) {
+                record.ref.service.name = options.serviceName;
+            }
+            if (options.task) {
+                if (options.task.ID) {
+                    record.id = options.task.ID;
+                }
+                if (options.task.Version && options.task.Version.Index) {
+                    record.version = options.task.Version.Index;
+                }
+                if (options.serviceName && options.task.Slot) {
+                    record.name = options.serviceName + ((options.task.Slot) ? '.' + options.task.Slot : ''); //might add extra value later
+                }
+                if (options.task.Slot) {
+                    record.ref.slot = options.task.Slot;
+                }
+                if (options.task.ServiceID) {
+                    record.ref.service.id = options.task.ServiceID;
+                }
+                if (options.task.NodeID) {
+                    record.ref.node.id = options.task.NodeID;
+                }
+
+                if (options.task.Status) {
+                    if (options.task.Status.ContainerStatus && options.task.Status.ContainerStatus.ContainerID) {
+                        record.ref.container.id = options.task.Status.ContainerStatus.ContainerID;
+                    }
+
+                    if (options.task.Status.Timestamp) {
+                        record.status.ts = options.task.Status.Timestamp; //timestamp of the last status update
+                    }
+                    if (options.task.Status.State) {
+                        record.status.state = options.task.Status.State; //current state of the task, example: running
+                    }
+                    if (options.task.Status.Message) {
+                        record.status.message = options.task.Status.Message; //current message of the task, example: started or error,
+                    }
+                }
+
+                if (options.task.DesiredState) {
+                    record.status.desiredState = options.task.DesiredState; //desired state of the task, example: running
+                }
+            }
+        }
 
         return record;
     }
