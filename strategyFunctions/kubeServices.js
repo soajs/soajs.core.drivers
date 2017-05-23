@@ -468,6 +468,8 @@ var engine = {
                         		    }
                         	    }
 
+                                deployment.metadata.labels = options.params.newBuild.labels;
+                                deployment.spec.template.metadata.labels = options.params.newBuild.labels;
                                 deployment.spec.template.spec.containers[0].env = lib.buildEnvList({ envs: options.params.newBuild.variables });
                                 deployment.spec.template.spec.containers[0].image = options.params.newBuild.image;
                                 deployment.spec.template.spec.containers[0].imagePullPolicy = options.params.newBuild.imagePullPolicy;

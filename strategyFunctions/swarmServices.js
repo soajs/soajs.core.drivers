@@ -242,6 +242,7 @@ var engine = {
                             update.TaskTemplate.ContainerSpec.Image = options.params.newBuild.image;
                             update.TaskTemplate.ContainerSpec.Command = options.params.newBuild.command;
                             update.TaskTemplate.ContainerSpec.Args = options.params.newBuild.args;
+                            update.TaskTemplate.ContainerSpec.Labels = options.params.newBuild.labels;
                             if (options.params.newBuild.voluming && options.params.newBuild.voluming.volumes) {
                                 update.TaskTemplate.ContainerSpec.Mounts = options.params.newBuild.voluming.volumes;
                             }
