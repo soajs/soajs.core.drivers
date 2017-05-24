@@ -208,7 +208,7 @@ var engine = {
 		    }
 	    }
 
-        let ports = [], service = {};
+        let ports = [], service = null;
         if (options.params.ports && options.params.ports.length > 0) {
             service = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/service.template.js'));
             service.metadata.name = cleanLabel(options.params.name) + '-service';
