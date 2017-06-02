@@ -24,7 +24,7 @@ var engine = {
             utils.checkError(error, 540, cb, () => {
                 let params = {};
                 if (options.params && options.params.env && !options.params.custom) {
-                    params.filters = { label: [ 'soajs.content=true', 'soajs.env.code=' + options.params.env ] };
+                    params.filters = { label: [ 'soajs.env.code=' + options.params.env ] };
                 }
 
                 deployer.listServices(params, (error, services) => {
@@ -349,7 +349,7 @@ var engine = {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
                 let params = {
-                    filters: { label: [ 'soajs.content=true', 'soajs.env.code=' + options.params.env, 'soajs.service.name=' + options.params.serviceName ] }
+                    filters: { label: [ 'soajs.env.code=' + options.params.env, 'soajs.service.name=' + options.params.serviceName ] }
                 };
 
                 if (options.params.version) {
@@ -565,7 +565,7 @@ var engine = {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
                 let params = {
-                    filters: { label: [ 'soajs.content=true', 'soajs.env.code=' + options.params.env, 'soajs.service.name=' + options.params.serviceName ] }
+                    filters: { label: [ 'soajs.env.code=' + options.params.env, 'soajs.service.name=' + options.params.serviceName ] }
                 };
                 deployer.listServices(params, (error, services) => {
                     utils.checkError(error, 549, cb, () => {
@@ -599,7 +599,7 @@ var engine = {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
                 let params = {
-                    filters: { label: [ 'soajs.content=true', 'soajs.env.code=' + options.params.env, 'soajs.service.name=' + options.params.serviceName ] }
+                    filters: { label: [ 'soajs.env.code=' + options.params.env, 'soajs.service.name=' + options.params.serviceName ] }
                 };
 
                 if (options.params.version) {
