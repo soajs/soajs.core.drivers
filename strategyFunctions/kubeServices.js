@@ -609,7 +609,7 @@ var engine = {
                 let namespace = lib.buildNameSpace(options);
 
                 let filter = {
-                    labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.name=' + options.params.serviceName
+                    labelSelector: 'soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.name=' + options.params.serviceName
                 };
 
                 if (options.params.version) {
@@ -867,7 +867,7 @@ var engine = {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
                 let filter = {
-                    labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.name=' + options.params.serviceName
+                    labelSelector: 'soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.name=' + options.params.serviceName
                 };
 
                 //NOTE: this function cannot include a namespace while accessing the kubernetes api
@@ -926,7 +926,7 @@ var engine = {
                 let namespace = lib.buildNameSpace(options);
 
                 let filter = {
-                    labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.name=' + options.params.serviceName
+                    labelSelector: 'soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.name=' + options.params.serviceName
                 };
 
                 if (options.params.version) {
