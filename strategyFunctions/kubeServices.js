@@ -102,7 +102,7 @@ var engine = {
 
                 if (options.params && options.params.env && !options.params.custom) {
                     filter = {
-                        labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase()
+                        labelSelector: 'soajs.env.code=' + options.params.env.toLowerCase()
                     };
                 }
 
@@ -140,9 +140,9 @@ var engine = {
         function processDeploymentsData(deployer, deployments, cb) {
             async.map(deployments, (oneDeployment, callback) => {
                 let filter = {};
-                filter.labelSelector = 'soajs.content=true, soajs.service.label= ' + oneDeployment.metadata.name;
+                filter.labelSelector = 'soajs.service.label= ' + oneDeployment.metadata.name;
                 if (options.params && options.params.env && !options.params.custom) {
-                    filter.labelSelector = 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.label= ' + oneDeployment.metadata.name;
+                    filter.labelSelector = 'soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.label= ' + oneDeployment.metadata.name;
                 }
                 else if (options.params && options.params.custom) {
                     if (oneDeployment.spec && oneDeployment.spec.selector && oneDeployment.spec.selector.matchLabels) {
