@@ -37,9 +37,7 @@ var engine = {
                         if (options.params && options.params.custom) {
                             async.filter(services, (oneService, callback) => {
                                 if (!oneService.Spec || !oneService.Spec.Labels) return callback(null, true);
-                                if (!oneService.Spec.Labels['soajs.content'] || oneService.Spec.Labels['soajs.content'] !== 'true') return callback(null, true);
                                 if (oneService.Spec.Labels['soajs.content'] === 'true' && !oneService.Spec.Labels['soajs.env.code']) return callback(null, true);
-                                if ((!oneService.Spec.Labels['soajs.content'] || oneService.Spec.Labels['soajs.content'] !== 'true') && oneService.Spec.Labels['soajs.env.code']) return callback(null, true);
                                 return callback(null, false);
                             }, (error, services) => {
                                 processServicesData(deployer, services, cb);
