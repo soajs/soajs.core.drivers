@@ -119,7 +119,7 @@ var engine = {
                                 if (options.params && options.params.custom) {
                                     async.filter(deployments, (oneDeployment, callback) => {
                                         if (!oneDeployment.metadata || !oneDeployment.metadata.labels) return callback(null, true);
-                                        if (oneDeployment.metadata.labels['soajs.content'] === 'true' && !oneDeployment.metadata.labels['soajs.env.code']) return callback(null, true);
+                                        if (!oneDeployment.metadata.labels['soajs.env.code']) return callback(null, true);
                                         return callback(null, false);
                                     }, (error, deployments) => {
                                         processDeploymentsData(deployer, deployments, cb);
