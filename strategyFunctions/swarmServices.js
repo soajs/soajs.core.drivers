@@ -24,7 +24,7 @@ var engine = {
             utils.checkError(error, 540, cb, () => {
                 let params = {};
                 if (options.params && options.params.env && !options.params.custom) {
-                    params.filters = { label: [ 'soajs.content=true', 'soajs.env.code=' + options.params.env ] };
+                    params.filters = { label: [ 'soajs.env.code=' + options.params.env ] };
                 }
 
                 deployer.listServices(params, (error, services) => {
@@ -37,9 +37,7 @@ var engine = {
                         if (options.params && options.params.custom) {
                             async.filter(services, (oneService, callback) => {
                                 if (!oneService.Spec || !oneService.Spec.Labels) return callback(null, true);
-                                if (!oneService.Spec.Labels['soajs.content'] || oneService.Spec.Labels['soajs.content'] !== 'true') return callback(null, true);
-                                if (oneService.Spec.Labels['soajs.content'] === 'true' && !oneService.Spec.Labels['soajs.env.code']) return callback(null, true);
-                                if ((!oneService.Spec.Labels['soajs.content'] || oneService.Spec.Labels['soajs.content'] !== 'true') && oneService.Spec.Labels['soajs.env.code']) return callback(null, true);
+                                if (!oneService.Spec.Labels['soajs.env.code']) return callback(null, true);
                                 return callback(null, false);
                             }, (error, services) => {
                                 processServicesData(deployer, services, cb);
@@ -135,15 +133,8 @@ var engine = {
             delete payload.TaskTemplate.ContainerSpec.Args;
         }
 
-        //NOTE: bind docker unix socket only for controller deployments, required tp proxy requests
-        //NOTE: static values are set, no need to make it dynamic for now
+        //NOTE: controllers should only be deployed on manager nodes, needed for /proxySocket
         if (options.params.labels['soajs.service.name'] === 'controller') {
-            payload.TaskTemplate.ContainerSpec.Mounts.push({
-                "Type": "bind",
-                "ReadOnly": true,
-                "Source": "/var/run/docker.sock",
-                "Target": "/var/run/docker.sock",
-            });
             payload.TaskTemplate.Placement = {
                 Constraints: [ 'node.role == manager' ]
             };
@@ -349,7 +340,7 @@ var engine = {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
                 let params = {
-                    filters: { label: [ 'soajs.content=true', 'soajs.env.code=' + options.params.env, 'soajs.service.name=' + options.params.serviceName ] }
+                    filters: { label: [ 'soajs.env.code=' + options.params.env, 'soajs.service.name=' + options.params.serviceName ] }
                 };
 
                 if (options.params.version) {
@@ -565,7 +556,7 @@ var engine = {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
                 let params = {
-                    filters: { label: [ 'soajs.content=true', 'soajs.env.code=' + options.params.env, 'soajs.service.name=' + options.params.serviceName ] }
+                    filters: { label: [ 'soajs.env.code=' + options.params.env, 'soajs.service.name=' + options.params.serviceName ] }
                 };
                 deployer.listServices(params, (error, services) => {
                     utils.checkError(error, 549, cb, () => {
@@ -599,7 +590,7 @@ var engine = {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
                 let params = {
-                    filters: { label: [ 'soajs.content=true', 'soajs.env.code=' + options.params.env, 'soajs.service.name=' + options.params.serviceName ] }
+                    filters: { label: [ 'soajs.env.code=' + options.params.env, 'soajs.service.name=' + options.params.serviceName ] }
                 };
 
                 if (options.params.version) {

@@ -102,7 +102,7 @@ var engine = {
 
                 if (options.params && options.params.env && !options.params.custom) {
                     filter = {
-                        labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase()
+                        labelSelector: 'soajs.env.code=' + options.params.env.toLowerCase()
                     };
                 }
 
@@ -119,9 +119,7 @@ var engine = {
                                 if (options.params && options.params.custom) {
                                     async.filter(deployments, (oneDeployment, callback) => {
                                         if (!oneDeployment.metadata || !oneDeployment.metadata.labels) return callback(null, true);
-                                        if (!oneDeployment.metadata.labels['soajs.content'] || oneDeployment.metadata.labels['soajs.content'] !== 'true') return callback(null, true);
-                                        if (oneDeployment.metadata.labels['soajs.content'] === 'true' && !oneDeployment.metadata.labels['soajs.env.code']) return callback(null, true);
-                                        if ((!oneDeployment.metadata.labels['soajs.content'] || oneDeployment.metadata.labels['soajs.content'] !== 'true') && oneDeployment.metadata.labels['soajs.env.code']) return callback(null, true);
+                                        if (!oneDeployment.metadata.labels['soajs.env.code']) return callback(null, true);
                                         return callback(null, false);
                                     }, (error, deployments) => {
                                         processDeploymentsData(deployer, deployments, cb);
@@ -140,9 +138,9 @@ var engine = {
         function processDeploymentsData(deployer, deployments, cb) {
             async.map(deployments, (oneDeployment, callback) => {
                 let filter = {};
-                filter.labelSelector = 'soajs.content=true, soajs.service.label= ' + oneDeployment.metadata.name;
+                filter.labelSelector = 'soajs.service.label= ' + oneDeployment.metadata.name;
                 if (options.params && options.params.env && !options.params.custom) {
-                    filter.labelSelector = 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.label= ' + oneDeployment.metadata.name;
+                    filter.labelSelector = 'soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.label= ' + oneDeployment.metadata.name;
                 }
                 else if (options.params && options.params.custom) {
                     if (oneDeployment.spec && oneDeployment.spec.selector && oneDeployment.spec.selector.matchLabels) {
@@ -609,7 +607,7 @@ var engine = {
                 let namespace = lib.buildNameSpace(options);
 
                 let filter = {
-                    labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.name=' + options.params.serviceName
+                    labelSelector: 'soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.name=' + options.params.serviceName
                 };
 
                 if (options.params.version) {
@@ -867,7 +865,7 @@ var engine = {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
                 let filter = {
-                    labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.name=' + options.params.serviceName
+                    labelSelector: 'soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.name=' + options.params.serviceName
                 };
 
                 //NOTE: this function cannot include a namespace while accessing the kubernetes api
@@ -926,7 +924,7 @@ var engine = {
                 let namespace = lib.buildNameSpace(options);
 
                 let filter = {
-                    labelSelector: 'soajs.content=true, soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.name=' + options.params.serviceName
+                    labelSelector: 'soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.name=' + options.params.serviceName
                 };
 
                 if (options.params.version) {
