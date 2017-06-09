@@ -133,15 +133,8 @@ var engine = {
             delete payload.TaskTemplate.ContainerSpec.Args;
         }
 
-        //NOTE: bind docker unix socket only for controller deployments, required tp proxy requests
-        //NOTE: static values are set, no need to make it dynamic for now
+        //NOTE: controllers should only be deployed on manager nodes, needed for /proxySocket
         if (options.params.labels['soajs.service.name'] === 'controller') {
-            payload.TaskTemplate.ContainerSpec.Mounts.push({
-                "Type": "bind",
-                "ReadOnly": true,
-                "Source": "/var/run/docker.sock",
-                "Target": "/var/run/docker.sock",
-            });
             payload.TaskTemplate.Placement = {
                 Constraints: [ 'node.role == manager' ]
             };
