@@ -396,7 +396,13 @@ describe("Testing kubernetes driver functionality", function() {
 
                     drivers.listServices(options, function(error, service){
                         interData.id = service[0].id
-                        done();
+
+                        options.params.custom = true;
+                        drivers.listServices(options, function (error, services) {
+                            assert.ifError(error);
+                            assert.ok(services);
+                            done();
+                        });
                     });
                 }, 2000);
             });
@@ -897,7 +903,8 @@ describe("Testing kubernetes driver functionality", function() {
 
             options.params = {
                 "env": "dashboard",
-                "serviceName": "proxy"
+                "serviceName": "proxy",
+                "version": "1"
             };
 
             drivers.getServiceHost(options, function(error, serviceHost){
