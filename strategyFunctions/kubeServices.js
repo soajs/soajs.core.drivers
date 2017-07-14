@@ -478,6 +478,12 @@ var engine = {
                                     deployment.spec.template.spec.containers[0].volumeMounts = options.params.newBuild.voluming.volumeMounts || [];
                                 }
 
+                                if(options.params.newBuild.memoryLimit) {
+                                    if(!deployment.spec.template.spec.containers[0].resources) deployment.spec.template.spec.containers[0].resources = {};
+                                    if(!deployment.spec.template.spec.containers[0].resources.limits) deployment.spec.template.spec.containers[0].resources.limits = {};
+                                    deployment.spec.template.spec.containers[0].resources.limits.memory = options.params.newBuild.memoryLimit;
+                                }
+
                                 if (options.params.newBuild.ports && options.params.newBuild.ports.length > 0) {
                                     let filter = { labelSelector: 'soajs.service.label=' + options.params.id };
                                     deployer.core.namespaces(namespace).services.get({qs: filter}, (error, servicesList) => {

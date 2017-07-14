@@ -239,6 +239,13 @@ var engine = {
                                 update.TaskTemplate.ContainerSpec.Mounts = options.params.newBuild.voluming.volumes;
                             }
 
+                            if(options.params.newBuild.memoryLimit) {
+                                if(!update.TaskTemplate.Resources) update.TaskTemplate.Resources = {};
+                                if(!update.TaskTemplate.Resources.Limits) update.TaskTemplate.Resources.Limits = {};
+                                if(!update.TaskTemplate.Resources.Limits.MemoryBytes) update.TaskTemplate.Resources.Limits.MemoryBytes = {};
+                                update.TaskTemplate.Resources.Limits.MemoryBytes = options.params.newBuild.memoryLimit;
+                            }
+
                             if (options.params.newBuild.ports && options.params.newBuild.ports.length > 0) {
                                 if (!update.EndpointSpec) update.EndpointSpec = { Mode: 'vip', };
                                 update.EndpointSpec.Ports = [];
