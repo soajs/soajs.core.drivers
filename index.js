@@ -1,5 +1,12 @@
 /*jshint esversion: 6 */
 
+/*
+ * Core drivers use dockerode and kubernetes-client npm modules to communicate with the docker and kubernetes APIs
+ *      - dockerode: https://www.npmjs.com/package/dockerode
+ *      - kubernetes-client: https://www.npmjs.com/package/kubernetes-client
+ */
+
+
 "use strict";
 
 let fs = require('fs');

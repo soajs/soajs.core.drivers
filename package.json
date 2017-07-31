@@ -26,10 +26,10 @@
     "jshint": "2.9.4",
     "lodash": "4.17.4",
     "mocha": "3.2.0",
-    "shelljs": "0.7.5"
+    "shelljs": "0.7.5",
+    "soajs.core.libs": "1.0.*"
   },
   "devDependencies": {
-    "bcryptjs": "*",
     "express": "4.14.1",
     "grunt": "^1.0.1",
     "grunt-contrib-jshint": "1.1.0",

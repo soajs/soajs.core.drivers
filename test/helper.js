@@ -6,7 +6,6 @@ var testConsole = {
 	}
 };
 
-var bcrypt = require('bcryptjs');
 var request = require("request");
 
 var lib = {
@@ -36,14 +35,6 @@ var lib = {
 			testConsole.log('==== RESPONSE:', JSON.stringify(body));
 			return cb(err, body, response);
 		});
-	},
-
-	hasher: function(config) {
-		this.config = config;
-
-		this.compare = function(plainText, hashText, cb) {
-			return bcrypt.compare(plainText, hashText, cb);
-		};
 	}
 };
 module.exports = lib;

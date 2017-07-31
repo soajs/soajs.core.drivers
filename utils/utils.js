@@ -2,6 +2,7 @@
 "use strict";
 const util = require('util'); //NOTE: util is a native package in node, no need to include it in package.json
 const errorFile = require('../utils/errors.js');
+const coreLibs = require('soajs.core.libs');
 
 var utils = {
     "checkError": function (error, code, cb, scb) {
@@ -19,32 +20,7 @@ var utils = {
             return scb();
         }
     },
-    'cloneObj': function (obj) {
-        if (typeof obj !== "object" || obj === null) {
-            return obj;
-        }
-
-        if (obj instanceof Date) {
-            return new Date(obj.getTime());
-        }
-
-        if (obj instanceof RegExp) {
-            return new RegExp(obj);
-        }
-
-        if (obj instanceof Array && Object.keys(obj).every(function (k) {
-                return !isNaN(k);
-            })) {
-            return obj.slice(0);
-        }
-        var _obj = {};
-        for (var attr in obj) {
-            if (Object.hasOwnProperty.call(obj, attr)) {
-                _obj[attr] = utils.cloneObj(obj[attr]);
-            }
-        }
-        return _obj;
-    },
+    'cloneObj': coreLibs.utils.cloneObj,
 
     'validProperty': function (object, propertyName) {
         return !(
