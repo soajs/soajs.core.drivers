@@ -17,6 +17,33 @@ $ npm install soajs.core.drivers
 ```
 ---
 
+## Usage
+Each strategy function takes an **options** object and callback function as input.
+The **options** object is composed of the following:
+```js
+{
+	"strategy": "kubernetes", //swarm or kubernetes
+	"driver": "kubernetes.local", //strategy + target (local or remote)
+	"env": "dev", //environment from where the deployer config was retrieved
+	"deployerConfig": { //object that contains the specific configuration per driver
+      //sample kubernetes deployer config
+		"nginxDeployType": "NodePort",
+		"namespace": {
+			"default": "soajs",
+			"perService": false
+		},
+		"auth": {
+			"token": "123321"
+		}
+	},
+	"soajs": {
+		"registry": {} //soajs registry object, no longer mandatory
+	},
+	"model": {}, //data model layer, no longer mandatory
+	"params": {} //user input specific per function
+}
+```
+
 ## Service Features
 The SOAJS Core Drivers contains several APIs to manage the Kubernetes cluster and/or Docker swarm:
 * Node management APIs: Add/Update/Remove/Inspect.
