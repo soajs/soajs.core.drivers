@@ -129,10 +129,11 @@ const kubeLib = {
             id: options.deployment.metadata.name, //setting id = name
             version: options.deployment.metadata.resourceVersion,
             name: options.deployment.metadata.name,
+            namespace: options.deployment.metadata.namespace,
             labels: options.deployment.metadata.labels,
             env: getEnvVariables(options.deployment.spec.template.spec),
             ports: getPorts(options.service),
-            namespace: options.deployment.metadata.namespace,
+            resources: getResources(options.deployment.spec.template.spec),
             tasks: []
         };
 
@@ -175,6 +176,20 @@ const kubeLib = {
             });
 
             return deploymentPorts;
+        }
+
+        function getResources (podSpec) {
+            //current deployments include one container per pod, resources from the first container are enough
+            let resources = { limits: {} };
+
+            if (podSpec && podSpec.containers && podSpec.containers.length > 0 && podSpec.containers[0].resources) {
+                if (podSpec.containers[0].resources.limits) {
+                    if (podSpec.containers[0].resources.limits.memory) resources.limits.memory = podSpec.containers[0].resources.limits.memory;
+                    if (podSpec.containers[0].resources.limits.cpu) resources.limits.cpu = podSpec.containers[0].resources.limits.cpu;
+                }
+            }
+
+            return resources;
         }
 
         return record;

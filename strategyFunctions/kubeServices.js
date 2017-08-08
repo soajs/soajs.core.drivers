@@ -189,7 +189,9 @@ var engine = {
 
                             options.params = { id: oneDeployment.metadata.name };
                             autoscaler.getAutoscaler(options, (error, hpa) => {
-                                if (error) utilLog.log(error); //NOTE: in case an autoscaler was not found, an error will be returned. No need to handle error, ignore it
+                                if (error) {
+                                    return callback(error);
+                                }
 
                                 record.autoscaler = hpa;
                                 return callback(null, record);

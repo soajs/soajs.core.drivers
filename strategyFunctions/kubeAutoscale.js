@@ -27,9 +27,14 @@ const engine = {
                 utils.checkError(!validInput, 674, cb, () => {
                     let namespace = lib.buildNameSpace(options);
                     deployer.autoscaling.namespaces(namespace).hpa.get({ name: options.params.id }, (error, hpa) => {
-                        utils.checkError(error, 675, cb, () => {
-                            return cb(null, lib.buildAutoscalerRecord({ hpa }));
-                        });
+                        if (error && error.code === 404) { //NOTE: autoscaler not found, return empty object instead of error
+                            return cb(null, {});
+                        }
+                        else {
+                            utils.checkError(error, 675, cb, () => {
+                                return cb(null, lib.buildAutoscalerRecord({ hpa }));
+                            });
+                        }
                     });
                 });
             });
