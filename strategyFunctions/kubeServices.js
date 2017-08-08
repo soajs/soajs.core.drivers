@@ -10,6 +10,7 @@ const errorFile = require('../utils/errors.js');
 const async = require('async');
 const request = require('request');
 const utilLog = require('util');
+const path = require('path');
 
 const gridfsColl = 'fs.files';
 
@@ -217,7 +218,11 @@ var engine = {
 
         let ports = [], service = null;
         if (options.params.ports && options.params.ports.length > 0) {
-            service = utils.cloneObj(require(__dirname + '/../schemas/kubernetes/service.template.js'));
+            let serviceSchemaPath = path.join(__dirname, '../schemas/kubernetes/service.template.js');
+            if (require.resolve(serviceSchemaPath)) {
+                delete require.cache[require.resolve(serviceSchemaPath)];
+            }
+            service = utils.cloneObj(require(serviceSchemaPath));
             service.metadata.name = cleanLabel(options.params.name) + '-service';
 
             service.metadata.labels = options.params.labels;
@@ -253,7 +258,7 @@ var engine = {
         }
         let payload = {};
         if (options.params.replication.mode === 'deployment') {
-            let deploymentSchemaPath = __dirname + '/../schemas/kubernetes/deployment.template.js';
+            let deploymentSchemaPath = path.join(__dirname, '../schemas/kubernetes/deployment.template.js');
             if (require.resolve(deploymentSchemaPath)) {
                 delete require.cache[require.resolve(deploymentSchemaPath)];
             }
@@ -261,7 +266,7 @@ var engine = {
             options.params.type = 'deployment';
         }
         else if (options.params.replication.mode === 'daemonset') {
-            let daemonsetSchemaPath = __dirname + '/../schemas/kubernetes/daemonset.template.js';
+            let daemonsetSchemaPath = path.join(__dirname, '../schemas/kubernetes/daemonset.template.js');
             if (require.resolve(daemonsetSchemaPath)) {
                 delete require.cache[require.resolve(daemonsetSchemaPath)];
             }
@@ -373,14 +378,18 @@ var engine = {
 					    deployer.core.namespaces(namespace).services.post({body: service}, (error) => {
 						    utils.checkError(error, 525, cb, () => {
 							    deployer.extensions.namespaces(namespace)[options.params.type].post({body: payload}, (error) => {
-								    utils.checkError(error, 526, cb, cb.bind(null, null, true));
+								    utils.checkError(error, 526, cb, () => {
+                                        checkAutoscaler(options, cb.bind(null, null, true));
+                                    });
 							    });
 						    });
 					    });
 				    }
 				    else {
 					    deployer.extensions.namespaces(namespace)[options.params.type].post({body: payload}, (error) => {
-						    utils.checkError(error, 526, cb, cb.bind(null, null, true));
+                            utils.checkError(error, 526, cb, () => {
+                                checkAutoscaler(options, cb.bind(null, null, true));
+                            });
 					    });
 				    }
 			    });
@@ -418,6 +427,20 @@ var engine = {
                     deployer.core.namespace.post({body: namespace}, cb);
                 });
             });
+        }
+
+        function checkAutoscaler(options, cb) {
+            if(options.params.autoscale && Object.keys(options.params.autoscale).length > 0) {
+                let name = cleanLabel(options.params.name);
+                let type = options.params.type; //deployment or daemonset
+                options.params = options.params.autoscale;
+                options.params.id = name;
+                options.params.type = type;
+                return autoscaler.createAutoscaler(options, cb);
+            }
+            else {
+                return cb(null, true);
+            }
         }
     },
 
