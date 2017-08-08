@@ -10,6 +10,33 @@ const lib = require('../utils/kubernetes.js');
 const engine = {
 
     /**
+     * Function that gets a horizontal pod autoscaler for a deployment
+     * @param  {Object}   options Options passed to function
+     * @param  {Function} cb      Callback function
+     * @return {void}
+     */
+    getAutoscaler (options, cb) {
+        lib.getDeployer(options, (error, deployer) => {
+            utils.checkError(error, 520, cb, () => {
+
+                let validInput = (options.params);
+                if(validInput) {
+                    validInput = validInput && options.params.id;
+                }
+
+                utils.checkError(!validInput, 674, cb, () => {
+                    let namespace = lib.buildNameSpace(options);
+                    deployer.autoscaling.namespaces(namespace).hpa.get({ name: options.params.id }, (error, hpa) => {
+                        utils.checkError(error, 675, cb, () => {
+                            return cb(null, lib.buildAutoscalerRecord({ hpa }));
+                        });
+                    });
+                });
+            });
+        });
+    },
+
+    /**
      * Function that creates a horizontal pod autoscaler for a deployment
      * @param  {Object}   options Options passed to function
      * @param  {Function} cb      Callback function
