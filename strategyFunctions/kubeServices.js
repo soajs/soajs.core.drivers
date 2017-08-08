@@ -3,12 +3,14 @@
 
 const utils = require('../utils/utils.js');
 const lib = require('../utils/kubernetes.js');
+const autoscaler = require('./kubeAutoscale.js');
 
 const errorFile = require('../utils/errors.js');
 
 const async = require('async');
 const request = require('request');
-var utilLog = require('util');
+const utilLog = require('util');
+
 const gridfsColl = 'fs.files';
 
 var engine = {
@@ -183,7 +185,14 @@ var engine = {
                             }
 
                             record.tasks = pods;
-                            return callback(null, record);
+
+                            options.params = { id: oneDeployment.metadata.name };
+                            autoscaler.getAutoscaler(options, (error, hpa) => {
+                                if (error) utilLog.log(error); //NOTE: in case an autoscaler was not found, an error will be returned. No need to handle error, ignore it
+
+                                record.autoscaler = hpa;
+                                return callback(null, record);
+                            });
                         });
                     });
                 });
