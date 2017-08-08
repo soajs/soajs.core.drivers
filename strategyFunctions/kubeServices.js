@@ -438,10 +438,10 @@ var engine = {
         }
 
         function checkAutoscaler(options, cb) {
-            if(options.params.autoscale && Object.keys(options.params.autoscale).length > 0) {
+            if(options.params.autoScale && Object.keys(options.params.autoScale).length > 0) {
                 let name = cleanLabel(options.params.name);
                 let type = options.params.type; //deployment or daemonset
-                options.params = options.params.autoscale;
+                options.params = options.params.autoScale;
                 options.params.id = name;
                 options.params.type = type;
                 return autoscaler.createAutoscaler(options, cb);
