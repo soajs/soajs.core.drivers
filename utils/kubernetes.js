@@ -50,6 +50,11 @@ const kubeLib = {
         kubeConfig.version = 'v1beta1';
         kubernetes.extensions = new K8Api.Extensions(kubeConfig);
 
+        // delete kubeConfig.version;
+        // kubernetes.api = new K8Api.Api(kubeConfig);
+        kubeConfig.version = 'v2alpha1';
+        kubernetes.autoscaling = new K8Api.Autoscaling(kubeConfig);
+
         return cb(null, kubernetes);
     },
 
@@ -218,7 +223,7 @@ const kubeLib = {
     buildEnvList (options) {
         let envs = [];
         options.envs.forEach((oneVar) => {
-        	
+
         	let envVariable = oneVar.split('=');
         	if(envVariable[1] === '$SOAJS_HA_NAME'){
 		        envs.push({

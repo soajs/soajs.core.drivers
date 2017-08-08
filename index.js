@@ -382,6 +382,54 @@ module.exports = {
     },
 
     /**
+     * Create an autoscaler for a given deployment
+     * @param  {Object}   options
+     * @param  {Function} cb
+     *
+     */
+    createAutoscaler (options, cb) {
+        getStrategy(options, (error, strategy) => {
+            utils.checkError(error, 518, cb, () => {
+                checkIfSupported({strategy: strategy, function: 'createAutoscaler'}, cb, () => {
+                    strategy.createAutoscaler(options, cb);
+                });
+            });
+        });
+    },
+
+    /**
+     * Update an autoscaler for a given deployment
+     * @param  {Object}   options
+     * @param  {Function} cb
+     *
+     */
+    updateAutoscaler (options, cb) {
+        getStrategy(options, (error, strategy) => {
+            utils.checkError(error, 518, cb, () => {
+                checkIfSupported({strategy: strategy, function: 'updateAutoscaler'}, cb, () => {
+                    strategy.updateAutoscaler(options, cb);
+                });
+            });
+        });
+    },
+
+    /**
+     * Delete an autoscaler for a given deployment
+     * @param  {Object}   options
+     * @param  {Function} cb
+     *
+     */
+    deleteAutoscaler (options, cb) {
+        getStrategy(options, (error, strategy) => {
+            utils.checkError(error, 518, cb, () => {
+                checkIfSupported({strategy: strategy, function: 'deleteAutoscaler'}, cb, () => {
+                    strategy.deleteAutoscaler(options, cb);
+                });
+            });
+        });
+    },
+
+    /**
      * Get the latest version of a deployed service
      * Returns integer: service version
      * @param {Object} options

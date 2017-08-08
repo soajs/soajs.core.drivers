@@ -96,6 +96,12 @@ module.exports = {
     671: "Error while deleting the namespace",
     672: "Namespace already exists",
 
-    673: "Unable to update kubernetes service"
+    673: "Unable to update kubernetes service",
+
+    674: "Missing required input",
+    675: "Unable to get autoscaler",
+    676: "Unable to create autoscaler",
+    677: "Unable to update autoscaler",
+    678: "Unable to delete autoscaler",
 
 };
