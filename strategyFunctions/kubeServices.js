@@ -321,6 +321,12 @@ var engine = {
             };
         }
 
+        if (options.params.cpuLimit) {
+            if (!payload.spec.template.spec.containers[0].resources) payload.spec.template.spec.containers[0].resources = {};
+            if (!payload.spec.template.spec.containers[0].resources.limits) payload.spec.template.spec.containers[0].resources.limits = {};
+            payload.spec.template.spec.containers[0].resources.limits.cpu = options.params.cpuLimit;
+        }
+
         if (ports && ports.length > 0) {
             payload.spec.template.spec.containers[0].ports = [];
             ports.forEach((onePort) => {
@@ -516,6 +522,12 @@ var engine = {
                                     if(!deployment.spec.template.spec.containers[0].resources) deployment.spec.template.spec.containers[0].resources = {};
                                     if(!deployment.spec.template.spec.containers[0].resources.limits) deployment.spec.template.spec.containers[0].resources.limits = {};
                                     deployment.spec.template.spec.containers[0].resources.limits.memory = options.params.newBuild.memoryLimit;
+                                }
+
+                                if(options.params.newBuild.cpuLimit) {
+                                    if(!deployment.spec.template.spec.containers[0].resources) deployment.spec.template.spec.containers[0].resources = {};
+                                    if(!deployment.spec.template.spec.containers[0].resources.limits) deployment.spec.template.spec.containers[0].resources.limits = {};
+                                    deployment.spec.template.spec.containers[0].resources.limits.cpu = options.params.newBuild.cpuLimit;
                                 }
 
                                 if (options.params.newBuild.ports && options.params.newBuild.ports.length > 0) {
