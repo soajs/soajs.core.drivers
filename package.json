@@ -21,7 +21,7 @@
     "async": "^2.1.4",
     "dockerode": "aff04/dockerode.git",
     "gridfs-stream": "*",
-    "kubernetes-client": "^3.0.0",
+    "kubernetes-client": "aff04/kubernetes-client.git#v3.10.1",
     "request": "*",
     "jshint": "2.9.4",
     "lodash": "4.17.4",
