@@ -76,6 +76,10 @@ const engine = {
         kubeServices.maintenance(options, cb);
     },
 
+    'getAutoscaler': function(options, cb) {
+        kubeAutoscale.getAutoscaler(options, cb);
+    },
+
     'createAutoscaler': function(options, cb) {
         kubeAutoscale.createAutoscaler(options, cb);
     },

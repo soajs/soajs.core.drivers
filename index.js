@@ -382,6 +382,22 @@ module.exports = {
     },
 
     /**
+     * Get an autoscaler for a given deployment
+     * @param  {Object}   options
+     * @param  {Function} cb
+     *
+     */
+    getAutoscaler (options, cb) {
+        getStrategy(options, (error, strategy) => {
+            utils.checkError(error, 518, cb, () => {
+                checkIfSupported({strategy: strategy, function: 'getAutoscaler'}, cb, () => {
+                    strategy.getAutoscaler(options, cb);
+                });
+            });
+        });
+    },
+
+    /**
      * Create an autoscaler for a given deployment
      * @param  {Object}   options
      * @param  {Function} cb
