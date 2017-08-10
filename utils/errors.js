@@ -103,5 +103,6 @@ module.exports = {
     676: "Unable to create autoscaler",
     677: "Unable to update autoscaler",
     678: "Unable to delete autoscaler",
+    679: "Autoscaling is only supported for Deployments"
 
 };

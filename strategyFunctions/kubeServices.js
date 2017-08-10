@@ -387,7 +387,11 @@ var engine = {
 						    utils.checkError(error, 525, cb, () => {
 							    deployer.extensions.namespaces(namespace)[options.params.type].post({body: payload}, (error) => {
 								    utils.checkError(error, 526, cb, () => {
-                                        checkAutoscaler(options, cb.bind(null, null, true));
+                                        checkAutoscaler(options, (error) => {
+                                            utils.checkError(error, (error && error.code) || 676, cb, () => {
+                                                return cb(null, true);
+                                            });
+                                        });
                                     });
 							    });
 						    });
@@ -396,7 +400,11 @@ var engine = {
 				    else {
 					    deployer.extensions.namespaces(namespace)[options.params.type].post({body: payload}, (error) => {
                             utils.checkError(error, 526, cb, () => {
-                                checkAutoscaler(options, cb.bind(null, null, true));
+                                checkAutoscaler(options, (error) => {
+                                    utils.checkError(error, (error && error.code) || 676, cb, () => {
+                                        return cb(null, true);
+                                    });
+                                });
                             });
 					    });
 				    }
@@ -440,7 +448,7 @@ var engine = {
         function checkAutoscaler(options, cb) {
             if(options.params.autoScale && Object.keys(options.params.autoScale).length > 0) {
                 let name = cleanLabel(options.params.name);
-                let type = options.params.type; //deployment or daemonset
+                let type = options.params.type;
                 options.params = options.params.autoScale;
                 options.params.id = name;
                 options.params.type = type;
