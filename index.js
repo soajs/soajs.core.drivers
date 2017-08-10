@@ -446,6 +446,22 @@ module.exports = {
     },
 
     /**
+     * Create any type of kubernetes resource
+     * @param  {Object}   options
+     * @param  {Function} cb
+     *
+     */
+    createResources (options, cb) {
+        getStrategy(options, (error, strategy) => {
+            utils.checkError(error, 518, cb, () => {
+                checkIfSupported({strategy: strategy, function: 'createResources'}, cb, () => {
+                    strategy.createResources(options, cb);
+                });
+            });
+        });
+    },
+
+    /**
      * Get the latest version of a deployed service
      * Returns integer: service version
      * @param {Object} options
