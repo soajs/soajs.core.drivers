@@ -451,11 +451,11 @@ module.exports = {
      * @param  {Function} cb
      *
      */
-    createResources (options, cb) {
+    manageResources (options, cb) {
         getStrategy(options, (error, strategy) => {
             utils.checkError(error, 518, cb, () => {
-                checkIfSupported({strategy: strategy, function: 'createResources'}, cb, () => {
-                    strategy.createResources(options, cb);
+                checkIfSupported({strategy: strategy, function: 'manageResources'}, cb, () => {
+                    strategy.manageResources(options, cb);
                 });
             });
         });

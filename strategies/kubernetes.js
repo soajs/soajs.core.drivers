@@ -93,8 +93,8 @@ const engine = {
         kubeAutoscale.deleteAutoscaler(options, cb);
     },
 
-    'createResources': function(options, cb) {
-        kubeApi.createResources(options, cb);
+    'manageResources': function(options, cb) {
+        kubeApi.manageResources(options, cb);
     },
 
     'getLatestVersion': function(options, cb){

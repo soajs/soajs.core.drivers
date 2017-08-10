@@ -14,21 +14,34 @@ const engine = {
      * @param  {Function} cb
      *
      */
-    createResources(options, cb) {
+    manageResources(options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
 
                 let validInput = (options.params);
                 if(validInput) {
-                    validInput = validInput && (options.params.resources && Array.isArray(options.params.resources) && options.params.resources.length > 0)
+                    validInput = validInput && (options.params.action && ['post', 'get', 'delete'].indexOf(options.params.action) !== -1);
+                    validInput = validInput && (options.params.resources && Array.isArray(options.params.resources) && options.params.resources.length > 0);
                 }
 
                 utils.checkError(!validInput, 674, cb, () => {
-                    async.eachSeries(options.params.resources, (oneResource, callback) => {
+                    async.mapSeries(options.params.resources, (oneResource, callback) => {
                         let namespace = (oneResource && oneResource.metadata && oneResource.metadata.namespace) ? oneResource.metadata.namespace : 'default';
-                        return deployer.api.group(oneResource).namespaces(namespace).kind(oneResource).post({ body: oneResource }, callback);
-                    }, (error) => {
-                        return utils.checkError(error, 680, cb, cb.bind(null, null, true));
+                        let apiParams = {};
+                        if (['post'].indexOf(options.params.action) !== -1) {
+                            apiParams = { body: oneResource };
+                        }
+                        else if (['get', 'delete'].indexOf(options.params.action) !== -1 && oneResource.metadata && oneResource.metadata.name) {
+                            apiParams = { name: oneResource.metadata.name };
+                        }
+
+                        return deployer.api.group(oneResource).namespaces(namespace).kind(oneResource)[options.params.action](apiParams, callback);
+                    }, (error, results) => {
+                        if (error && error.code === 404 && options.params.action === 'delete') { //NOTE: ignore 404 error if api call is to delete a resource
+                            return cb(null, true);
+                        }
+
+                        return utils.checkError(error, 680, cb, cb.bind(null, null, (options.params.action === 'get') ? results : true));
                     });
                 });
             });
