@@ -729,18 +729,39 @@ var engine = {
                                             deployer.core.namespaces(namespace).services.delete({name: oneService.metadata.name}, callback);
                                         }, (error) => {
                                             utils.checkError(error, 534, cb, () => {
-                                                cleanup(deployer, filter);
+                                                deleteAutoscaler((error) => {
+                                                    utils.checkError(error, 678, cb, () => {
+                                                        cleanup(deployer, filter);
+                                                    });
+                                                })
                                             });
                                         });
                                     }
                                     else {
-                                        cleanup(deployer, filter);
+                                        deleteAutoscaler((error) => {
+                                            utils.checkError(error, 678, cb, () => {
+                                                cleanup(deployer, filter);
+                                            });
+                                        })
                                     }
                                 });
                             });
                         });
                     });
                 });
+            });
+        }
+
+        function deleteAutoscaler(cb) {
+            let autoscalerOptions = Object.assign({}, options);
+            autoscalerOptions.params = { id: options.params.id };
+            let namespace = lib.buildNameSpace(autoscalerOptions);
+            autoscaler.getAutoscaler(autoscalerOptions, (error, hpa) => {
+                if(error) return cb(error);
+
+                if(!hpa || Object.keys(hpa).length === 0) return cb();
+
+                return autoscaler.deleteAutoscaler(autoscalerOptions, cb);
             });
         }
 
