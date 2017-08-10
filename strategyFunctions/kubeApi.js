@@ -35,12 +35,14 @@ const engine = {
                             apiParams = { name: oneResource.metadata.name };
                         }
 
-                        return deployer.api.group(oneResource).namespaces(namespace).kind(oneResource)[options.params.action](apiParams, callback);
+                        deployer.api.group(oneResource).namespaces(namespace).kind(oneResource)[options.params.action](apiParams, function (error, response) {
+                            if (error && error.code === 404) {
+                                if (options.params.action === 'get') return callback(null, {});
+                                else if (options.params.action === 'delete') return callback(null, true);
+                            }
+                            return callback(error, response);
+                        });
                     }, (error, results) => {
-                        if (error && error.code === 404 && options.params.action === 'delete') { //NOTE: ignore 404 error if api call is to delete a resource
-                            return cb(null, true);
-                        }
-
                         return utils.checkError(error, 680, cb, cb.bind(null, null, (options.params.action === 'get') ? results : true));
                     });
                 });
