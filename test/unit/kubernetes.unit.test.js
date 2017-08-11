@@ -933,7 +933,107 @@ describe("Testing kubernetes driver functionality", function() {
             });
         });
     });
-
+	
+	//Test the different scenarios of finding/listing/inspection docker swarm services
+	describe("Testing kubernetes service finding/listing/inspection", function(){
+		
+		it("Success - create Autoscaler", function(done){
+			
+			options.deployerConfig.namespace = {
+				"default": "soajs",
+				"perService": false
+			};
+			//options.env = "dev2";
+			options.params = {
+				id: interData.replicaId,
+				type: 'deployment',
+				min: 1,
+				max: 3,
+				metrics: {
+					cpu: {
+						percent: 50
+					}
+				}
+			};
+			drivers.createAutoscaler(options, function (error, task) {
+				assert.ok(task);
+				done();
+			});
+		});
+		
+		it("Success - get Autoscaler", function(done){
+			
+			options.deployerConfig.namespace = {
+				"default": "soajs",
+				"perService": false
+			};
+			options.params = {
+				id: interData.replicaId
+			};
+			drivers.getAutoscaler(options, function (error, task) {
+				assert.ok(task);
+				done();
+			});
+		});
+		
+		it("Success - update Autoscaler", function(done){
+			
+			options.deployerConfig.namespace = {
+				"default": "soajs",
+				"perService": false
+			};
+			//options.env = "dev2";
+			options.params = {
+				id: interData.replicaId,
+				type: 'deployment',
+				min: 1,
+				max: 3,
+				metrics: {
+					cpu: {
+						percent: 60
+					}
+				}
+			};
+			drivers.updateAutoscaler(options, function (error, task) {
+				assert.ok(task);
+				done();
+			});
+		});
+		
+		//Inspecting a service with autoscale
+		it("Fail - inpsecting service", function(done){
+			options.deployerConfig.namespace = {
+				"default": "soajs",
+				"perService": false
+			};
+			
+			options.params = {
+				"id": interData.replicaId
+			};
+			drivers.inspectService(options, function(error, service){
+				assert.ok(service);
+				done();
+			});
+		});
+		
+		it("Success - delete Autoscaler", function(done){
+			
+			options.deployerConfig.namespace = {
+				"default": "soajs",
+				"perService": false
+			};
+			//options.env = "dev2";
+			options.params = {
+				id: interData.replicaId
+			};
+			drivers.deleteAutoscaler(options, function (error, task) {
+				assert.ok(task);
+				done();
+			});
+		});
+		
+	});
+	
     //Test the different methods of kubernetes tasks/containers
     describe("Testing kubernetes task operations", function(){
         //Inspecting a task that does not exist
@@ -1008,7 +1108,7 @@ describe("Testing kubernetes driver functionality", function() {
             });
         });
 
-        //getting the logs of a containter that does not exist
+        //getting the logs of a container that does not exist
         it("Fail - get container logs", function(done){
             options.deployerConfig.namespace = {
                 "default": "soajs",
