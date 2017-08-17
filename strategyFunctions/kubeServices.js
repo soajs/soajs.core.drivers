@@ -225,7 +225,12 @@ var engine = {
                 delete require.cache[require.resolve(serviceSchemaPath)];
             }
             service = utils.cloneObj(require(serviceSchemaPath));
-            service.metadata.name = cleanLabel(options.params.name) + '-service';
+            if(options.params.customName) {
+                service.metadata.name = cleanLabel(options.params.name);
+            }
+            else {
+                service.metadata.name = cleanLabel(options.params.name) + '-service';
+            }
 
             service.metadata.labels = options.params.labels;
             service.spec.selector = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
@@ -234,7 +239,7 @@ var engine = {
                 let portConfig = {
                     protocol: 'TCP',
                     name: onePortEntry.name || 'port' + portIndex,
-                    port: onePortEntry.target,
+                    port: onePortEntry.port || onePortEntry.target,
                     targetPort: onePortEntry.target
                 };
 
@@ -385,31 +390,31 @@ var engine = {
 				    if (service) {
 					    deployer.core.namespaces(namespace).services.post({body: service}, (error) => {
 						    utils.checkError(error, 525, cb, () => {
-							    deployer.extensions.namespaces(namespace)[options.params.type].post({body: payload}, (error) => {
-								    utils.checkError(error, 526, cb, () => {
-                                        checkAutoscaler(options, (error) => {
-                                            utils.checkError(error, (error && error.code) || 676, cb, () => {
-                                                return cb(null, true);
-                                            });
-                                        });
-                                    });
-							    });
+                                return createDeployment();
 						    });
 					    });
 				    }
 				    else {
-					    deployer.extensions.namespaces(namespace)[options.params.type].post({body: payload}, (error) => {
-                            utils.checkError(error, 526, cb, () => {
+                        return createDeployment();
+				    }
+			    });
+		    });
+
+            function createDeployment() {
+                deployer.extensions.namespaces(namespace)[options.params.type].post({body: payload}, (error) => {
+                    utils.checkError(error, 526, cb, () => {
+                        checkServiceAccount(deployer, namespace, (error) => {
+                            utils.checkError(error, 682, cb, () => {
                                 checkAutoscaler(options, (error) => {
                                     utils.checkError(error, (error && error.code) || 676, cb, () => {
                                         return cb(null, true);
                                     });
                                 });
                             });
-					    });
-				    }
-			    });
-		    });
+                        });
+                    });
+                });
+            }
 	    });
 
         function cleanLabel(label) {
@@ -453,6 +458,15 @@ var engine = {
                 options.params.id = name;
                 options.params.type = type;
                 return autoscaler.createAutoscaler(options, cb);
+            }
+            else {
+                return cb(null, true);
+            }
+        }
+
+        function checkServiceAccount(deployer, namespace, cb) {
+            if(options.params.serviceAccount && Object.keys(options.params.serviceAccount).length > 0) {
+                return deployer.core.namespaces(namespace).serviceaccounts.post({ body: options.params.serviceAccount }, cb);
             }
             else {
                 return cb(null, true);
@@ -770,6 +784,15 @@ var engine = {
                 if(!hpa || Object.keys(hpa).length === 0) return cb();
 
                 return autoscaler.deleteAutoscaler(autoscalerOptions, cb);
+            });
+        }
+
+        function deleteServiceAccount(deployer, namespace, cb) {
+            deployer.core.namespaces(namespace).serviceaccounts.delete({ name: options.params.id }, (error, serviceAccount) => {
+                if(error && error.code === 404) return cb(null, true);
+                utils.checkError(error, 683, cb, () => {
+                    return cb(null, true);
+                });
             });
         }
 
