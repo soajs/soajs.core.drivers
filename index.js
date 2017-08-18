@@ -382,6 +382,23 @@ module.exports = {
     },
 
     /**
+    * List kubernetes services, return raw response
+    *
+    * @param {Object} options
+    * @param {Function} cb
+    * @returns {*}
+    */
+    listKubeServices (options, cb) {
+        getStrategy(options, (error, strategy) => {
+            utils.checkError(error, 518, cb, () => {
+                checkIfSupported({strategy: strategy, function: 'listKubeServices'}, cb, () => {
+                    strategy.listKubeServices(options, cb);
+                });
+            });
+        });
+    },
+
+    /**
      * Get an autoscaler for a given deployment
      * @param  {Object}   options
      * @param  {Function} cb

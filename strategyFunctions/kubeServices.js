@@ -957,6 +957,26 @@ var engine = {
         });
     },
 
+
+    /**
+     * List kubernetes services in all namespaces, return raw data
+     *
+     * @param {Object} options
+     * @param {Function} cb
+     *
+     */
+    listKubeServices (options, cb) {
+        lib.getDeployer(options, (error, deployer) => {
+            utils.checkError(error, 520, cb, () => {
+                deployer.core.services.get({}, (error, services) => {
+                    utils.checkError(error, 533, cb, () => {
+                        return cb(null, services);
+                    });
+                });
+            });
+        });
+    },
+
     /**
      * Get the latest version of a deployed service
      * Returns integer: service version
