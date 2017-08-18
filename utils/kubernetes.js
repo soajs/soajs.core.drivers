@@ -50,10 +50,11 @@ const kubeLib = {
         kubeConfig.version = 'v1beta1';
         kubernetes.extensions = new K8Api.Extensions(kubeConfig);
 
-        // delete kubeConfig.version;
-        // kubernetes.api = new K8Api.Api(kubeConfig);
         kubeConfig.version = 'v2alpha1';
         kubernetes.autoscaling = new K8Api.Autoscaling(kubeConfig);
+
+        delete kubeConfig.version;
+        kubernetes.api = new K8Api.Api(kubeConfig);
 
         return cb(null, kubernetes);
     },

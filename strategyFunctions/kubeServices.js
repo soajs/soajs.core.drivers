@@ -225,7 +225,12 @@ var engine = {
                 delete require.cache[require.resolve(serviceSchemaPath)];
             }
             service = utils.cloneObj(require(serviceSchemaPath));
-            service.metadata.name = cleanLabel(options.params.name) + '-service';
+            if(options.params.customName) {
+                service.metadata.name = cleanLabel(options.params.name);
+            }
+            else {
+                service.metadata.name = cleanLabel(options.params.name) + '-service';
+            }
 
             service.metadata.labels = options.params.labels;
             service.spec.selector = { 'soajs.service.label': options.params.labels['soajs.service.label'] };
@@ -234,7 +239,7 @@ var engine = {
                 let portConfig = {
                     protocol: 'TCP',
                     name: onePortEntry.name || 'port' + portIndex,
-                    port: onePortEntry.target,
+                    port: onePortEntry.port || onePortEntry.target,
                     targetPort: onePortEntry.target
                 };
 
@@ -385,23 +390,31 @@ var engine = {
 				    if (service) {
 					    deployer.core.namespaces(namespace).services.post({body: service}, (error) => {
 						    utils.checkError(error, 525, cb, () => {
-							    deployer.extensions.namespaces(namespace)[options.params.type].post({body: payload}, (error) => {
-								    utils.checkError(error, 526, cb, () => {
-                                        checkAutoscaler(options, cb.bind(null, null, true));
-                                    });
-							    });
+                                return createDeployment();
 						    });
 					    });
 				    }
 				    else {
-					    deployer.extensions.namespaces(namespace)[options.params.type].post({body: payload}, (error) => {
-                            utils.checkError(error, 526, cb, () => {
-                                checkAutoscaler(options, cb.bind(null, null, true));
-                            });
-					    });
+                        return createDeployment();
 				    }
 			    });
 		    });
+
+            function createDeployment() {
+                deployer.extensions.namespaces(namespace)[options.params.type].post({body: payload}, (error) => {
+                    utils.checkError(error, 526, cb, () => {
+                        checkServiceAccount(deployer, namespace, (error) => {
+                            utils.checkError(error, 682, cb, () => {
+                                checkAutoscaler(options, (error) => {
+                                    utils.checkError(error, (error && error.code) || 676, cb, () => {
+                                        return cb(null, true);
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+            }
 	    });
 
         function cleanLabel(label) {
@@ -440,11 +453,20 @@ var engine = {
         function checkAutoscaler(options, cb) {
             if(options.params.autoScale && Object.keys(options.params.autoScale).length > 0) {
                 let name = cleanLabel(options.params.name);
-                let type = options.params.type; //deployment or daemonset
+                let type = options.params.type;
                 options.params = options.params.autoScale;
                 options.params.id = name;
                 options.params.type = type;
                 return autoscaler.createAutoscaler(options, cb);
+            }
+            else {
+                return cb(null, true);
+            }
+        }
+
+        function checkServiceAccount(deployer, namespace, cb) {
+            if(options.params.serviceAccount && Object.keys(options.params.serviceAccount).length > 0) {
+                return deployer.core.namespaces(namespace).serviceaccounts.post({ body: options.params.serviceAccount }, cb);
             }
             else {
                 return cb(null, true);
@@ -729,17 +751,47 @@ var engine = {
                                             deployer.core.namespaces(namespace).services.delete({name: oneService.metadata.name}, callback);
                                         }, (error) => {
                                             utils.checkError(error, 534, cb, () => {
-                                                cleanup(deployer, filter);
+                                                deleteAutoscaler((error) => {
+                                                    utils.checkError(error, 678, cb, () => {
+                                                        cleanup(deployer, filter);
+                                                    });
+                                                })
                                             });
                                         });
                                     }
                                     else {
-                                        cleanup(deployer, filter);
+                                        deleteAutoscaler((error) => {
+                                            utils.checkError(error, 678, cb, () => {
+                                                cleanup(deployer, filter);
+                                            });
+                                        })
                                     }
                                 });
                             });
                         });
                     });
+                });
+            });
+        }
+
+        function deleteAutoscaler(cb) {
+            let autoscalerOptions = Object.assign({}, options);
+            autoscalerOptions.params = { id: options.params.id };
+            let namespace = lib.buildNameSpace(autoscalerOptions);
+            autoscaler.getAutoscaler(autoscalerOptions, (error, hpa) => {
+                if(error) return cb(error);
+
+                if(!hpa || Object.keys(hpa).length === 0) return cb();
+
+                return autoscaler.deleteAutoscaler(autoscalerOptions, cb);
+            });
+        }
+
+        function deleteServiceAccount(deployer, namespace, cb) {
+            deployer.core.namespaces(namespace).serviceaccounts.delete({ name: options.params.id }, (error, serviceAccount) => {
+                if(error && error.code === 404) return cb(null, true);
+                utils.checkError(error, 683, cb, () => {
+                    return cb(null, true);
                 });
             });
         }
@@ -899,6 +951,26 @@ var engine = {
                                 }, cb);
                             });
                         });
+                    });
+                });
+            });
+        });
+    },
+
+
+    /**
+     * List kubernetes services in all namespaces, return raw data
+     *
+     * @param {Object} options
+     * @param {Function} cb
+     *
+     */
+    listKubeServices (options, cb) {
+        lib.getDeployer(options, (error, deployer) => {
+            utils.checkError(error, 520, cb, () => {
+                deployer.core.services.get({}, (error, servicesList) => {
+                    utils.checkError(error, 533, cb, () => {
+                        return cb(null, (servicesList && servicesList.items) ? servicesList.items : []);
                     });
                 });
             });

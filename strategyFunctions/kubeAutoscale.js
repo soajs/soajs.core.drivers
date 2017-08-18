@@ -63,34 +63,36 @@ const engine = {
                     validInput = validInput && (options.params.metrics && Object.keys(options.params.metrics).length > 0)
                 }
 
-                utils.checkError(!validInput, 674, cb, () => {
-                    autoscaler.metadata.name = options.params.id;
-                    autoscaler.spec.scaleTargetRef.name = options.params.id;
-                    autoscaler.spec.scaleTargetRef.kind = options.params.type.charAt(0).toUpperCase() + options.params.type.substring(1);
+                utils.checkError(options.params.type !== 'deployment', 679, cb, () => {
+                    utils.checkError(!validInput, 674, cb, () => {
+                        autoscaler.metadata.name = options.params.id;
+                        autoscaler.spec.scaleTargetRef.name = options.params.id;
+                        autoscaler.spec.scaleTargetRef.kind = options.params.type.charAt(0).toUpperCase() + options.params.type.substring(1);
 
-                    autoscaler.spec.minReplicas = options.params.min;
-                    autoscaler.spec.maxReplicas = options.params.max;
+                        autoscaler.spec.minReplicas = options.params.min;
+                        autoscaler.spec.maxReplicas = options.params.max;
 
-                    async.map(Object.keys(options.params.metrics), (oneMetric, callback) => {
-                        //NOTE: only supported metric for now is CPU
-                        let resource = {};
-                        if(oneMetric === 'cpu') {
-                            resource = {
-                                type: "Resource",
-                                resource: {
-                                    name: "cpu",
-                                    targetAverageUtilization: options.params.metrics[oneMetric].percent
-                                }
-                            };
-                        }
+                        async.map(Object.keys(options.params.metrics), (oneMetric, callback) => {
+                            //NOTE: only supported metric for now is CPU
+                            let resource = {};
+                            if(oneMetric === 'cpu') {
+                                resource = {
+                                    type: "Resource",
+                                    resource: {
+                                        name: "cpu",
+                                        targetAverageUtilization: options.params.metrics[oneMetric].percent
+                                    }
+                                };
+                            }
 
-                        return callback(null, resource);
-                    }, (error, metrics) => {
-                        autoscaler.spec.metrics = metrics;
-                        let namespace = lib.buildNameSpace(options);
-                        deployer.autoscaling.namespaces(namespace).hpa.post({ body: autoscaler }, (error) => {
-                            utils.checkError(error, 676, cb, () => {
-                                return cb(null, true);
+                            return callback(null, resource);
+                        }, (error, metrics) => {
+                            autoscaler.spec.metrics = metrics;
+                            let namespace = lib.buildNameSpace(options);
+                            deployer.autoscaling.namespaces(namespace).hpa.post({ body: autoscaler }, (error) => {
+                                utils.checkError(error, 676, cb, () => {
+                                    return cb(null, true);
+                                });
                             });
                         });
                     });

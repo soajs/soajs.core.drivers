@@ -5,6 +5,7 @@
 const kubeNodes = require('../strategyFunctions/kubeNodes.js');
 const kubeServices = require('../strategyFunctions/kubeServices');
 const kubeAutoscale = require('../strategyFunctions/kubeAutoscale.js');
+const kubeApi = require('../strategyFunctions/kubeApi.js');
 const errorFile = require('../utils/errors.js');
 
 const engine = {
@@ -76,6 +77,10 @@ const engine = {
         kubeServices.maintenance(options, cb);
     },
 
+    'listKubeServices': function(options, cb) {
+        kubeServices.listKubeServices(options, cb);
+    },
+
     'getAutoscaler': function(options, cb) {
         kubeAutoscale.getAutoscaler(options, cb);
     },
@@ -90,6 +95,10 @@ const engine = {
 
     'deleteAutoscaler': function(options, cb) {
         kubeAutoscale.deleteAutoscaler(options, cb);
+    },
+
+    'manageResources': function(options, cb) {
+        kubeApi.manageResources(options, cb);
     },
 
     'getLatestVersion': function(options, cb){

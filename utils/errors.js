@@ -103,5 +103,12 @@ module.exports = {
     676: "Unable to create autoscaler",
     677: "Unable to update autoscaler",
     678: "Unable to delete autoscaler",
+    679: "Autoscaling is only supported for Deployments",
+
+    680: "Unable to create resource",
+    681: "Unable to load resource templates, resource not supported",
+
+    682: "Unable to create service account",
+    683: "Unable to delete service account"
 
 };
