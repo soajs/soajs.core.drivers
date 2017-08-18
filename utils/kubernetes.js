@@ -60,7 +60,7 @@ const kubeLib = {
                 kubeConfig.version = 'v2alpha1';
                 kubernetes.autoscaling = new K8Api.Autoscaling(kubeConfig);
             }
-            else {
+            else if (kubeServerVersion.minor === '7') {
                 kubeConfig.version = 'v1';
                 kubernetes.autoscaling = new K8Api.Autoscaling(kubeConfig);
             }

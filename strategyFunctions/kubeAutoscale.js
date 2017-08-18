@@ -56,6 +56,11 @@ const engine = {
                 }
                 let autoscaler = utils.cloneObj(require(templatePath));
 
+                //if driver detected kubernetes server v1.7, use autoscaling v1 instead of v2alpha1
+                if(deployer.autoscaling && deployer.autoscaling.version === 'v1') {
+                    autoscaler.apiVersion = 'autoscaling/v1';
+                }
+
                 let validInput = (options.params);
                 if(validInput) {
                     validInput = validInput && (options.params.id && options.params.type);
