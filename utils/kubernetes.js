@@ -289,13 +289,21 @@ const kubeLib = {
                 if(options.hpa.spec.minReplicas) record.replicas.min = options.hpa.spec.minReplicas;
                 if(options.hpa.spec.maxReplicas) record.replicas.max = options.hpa.spec.maxReplicas;
 
-                if(options.hpa.spec.metrics) {
-                    options.hpa.spec.metrics.forEach((oneMetric) => {
-                        //NOTE: only supported metric for now is CPU
-                        if(oneMetric.resource && oneMetric.resource.name === 'cpu') {
-                            record.metrics[oneMetric.resource.name] = { percent: oneMetric.resource.targetAverageUtilization };
-                        }
-                    });
+                if(options.hpa.apiVersion === 'autoscaling/v2alpha1') {
+                    if(options.hpa.spec.metrics) {
+                        options.hpa.spec.metrics.forEach((oneMetric) => {
+                            //NOTE: only supported metric for now is CPU
+                            if(oneMetric.resource && oneMetric.resource.name === 'cpu') {
+                                record.metrics[oneMetric.resource.name] = { percent: oneMetric.resource.targetAverageUtilization };
+                            }
+                        });
+                    }
+                }
+                else if(options.hpa.apiVersion === 'autoscaling/v1') {
+                    //NOTE: only supported metric for now is CPU
+                    if(options.hpa.spec.targetCPUUtilizationPercentage) {
+                        record.metrics['cpu'] = { percent: options.hpa.spec.targetCPUUtilizationPercentage };
+                    }
                 }
             }
         }
