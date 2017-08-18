@@ -73,7 +73,7 @@ const kubeLib = {
     },
 
     getServerVersion(options, cb) {
-        if(kubeServerVersion && Object.keys(kubeServerVersion).length > 0) {
+        if(kubeServerVersion && kubeServerVersion.major && kubeServerVersion.minor) {
             return cb();
         }
 
@@ -82,7 +82,8 @@ const kubeLib = {
             auth: {
                 bearer: ''
             },
-            strictSSL: false
+            strictSSL: false,
+            json: true
         };
 
         if (options && options.deployerConfig && options.deployerConfig.auth && options.deployerConfig.auth.token) {
