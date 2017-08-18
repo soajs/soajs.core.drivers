@@ -968,9 +968,9 @@ var engine = {
     listKubeServices (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
-                deployer.core.services.get({}, (error, services) => {
+                deployer.core.services.get({}, (error, servicesList) => {
                     utils.checkError(error, 533, cb, () => {
-                        return cb(null, services);
+                        return cb(null, (servicesList && servicesList.items) ? servicesList.items : []);
                     });
                 });
             });
