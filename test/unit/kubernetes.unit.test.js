@@ -1,17 +1,18 @@
 "use strict";
-var fs = require('fs');
-var shell = require('shelljs');
-var assert = require('assert');
-var helper = require("../helper.js");
-var drivers = helper.requireModule('./index.js');
-var imagePrefix = process.env.SOAJS_IMAGE_PREFIX;
+let fs = require('fs');
+let shell = require('shelljs');
+let assert = require('assert');
+let helper = require("../helper.js");
+let drivers = helper.requireModule('./index.js');
+let imagePrefix = process.env.SOAJS_IMAGE_PREFIX;
 
 describe("Testing kubernetes driver functionality", function() {
     //Used when data from one testCase is needed in another test case
-    var interData = {};
-    var options = {};
+    let interData = {};
+	let options = {};
+	let template = {};
     options.deployerConfig = {};
-
+	
     options.soajs = {
         registry: {
             serviceConfig: {
@@ -174,7 +175,15 @@ describe("Testing kubernetes driver functionality", function() {
                 done();
             });
         });
-
+	
+	    it("Success - List Kube services", function(done){
+		    options.params = { };
+		    drivers.listKubeServices(options, function(error, services){
+			    assert.ok(services);
+			    done();
+		    });
+	    });
+	    
         //Failure in inspecting node
         it("Fail - inspecting node", function(done) {
             options.deployerConfig.namespace = {
@@ -257,16 +266,19 @@ describe("Testing kubernetes driver functionality", function() {
         //Successfully deploying a service global mode
         it("Success - service deployment global mode - global namespace - readinessProbes", function(done){
             options.deployerConfig.namespace = {
-                "default": "soajs",
+                "default": "soajs-test",
                 "perService": false
             };
-
+	        options.deployerConfig.nginxDeployType = "LoadBalancer";
             options.params = {
                 "env": "dev",
+	            "namespace": "soajs-test",
                 "name": "testdeploymentglobalmode",
+	            "customName": "customName",
                 "image": "alpine",
                 "variables": [
                     "Dummy_Variable=variable",
+	                "$SOAJS_DEPLOY_HA"
                 ],
                 "labels": {
                     "soajs.content": "true",
@@ -280,7 +292,7 @@ describe("Testing kubernetes driver functionality", function() {
                     "-c",
                     "ping www.google.com"
                 ],
-                "memoryLimit": 200000000,
+	            "cpuLimit": "0.1",
                 "replication": {
                     "mode": "daemonset",
                 },
@@ -291,18 +303,6 @@ describe("Testing kubernetes driver functionality", function() {
                     "maxAttempts": 5
                 },
                 "network": "soajsnet",
-                "ports": [
-                    {
-                        "name": "service",
-                        "isPublished": false,
-                        "target": 4002
-                    },
-                    {
-                        "name": "maintenance",
-                        "isPublished": false,
-                        "target": 5002
-                    }
-                ],
                 "readinessProbe": {
                     "httpGet": {
                         "path": "/heartbeat",
@@ -312,16 +312,31 @@ describe("Testing kubernetes driver functionality", function() {
                     "timeoutSeconds": 5,
                     "periodSeconds": 3,
                     "successThreshold": 1,
-                    "failureThreshold": 3,
-                    "port": 5002
+                    "failureThreshold": 3
                 },
+	            "voluming": {
+		            "volumes": [
+			            {
+				            "name": "soajs-log-volume-test",
+				            "hostPath": {
+					            "path": "/var/log/soajstest"
+				            }
+			            }
+		            ],
+		            "volumeMounts": [
+			            {
+				            "mountPath": "/var/log/soajstest",
+				            "name": "soajs-log-volume-test",
+			            }
+		            ]
+	            }
             };
 
             drivers.deployService(options, function(error, service){
                 assert.ok(service);
                 setTimeout(function () {
                     options.params = {
-                        "env": "dev",
+                        "env": "dev"
                     };
 
                     drivers.listServices(options, function(error, service){
@@ -334,7 +349,7 @@ describe("Testing kubernetes driver functionality", function() {
 
         //Successfully deploying a service replicated mode
         it("Success - service deployment replicated mode (needed for tests below) - global namespace", function(done){
-
+	        options.deployerConfig.nginxDeployType = "LoadBalancer";
             options.deployerConfig.namespace = {
                 "default": "soajs",
                 "perService": false
@@ -367,12 +382,28 @@ describe("Testing kubernetes driver functionality", function() {
                     "replicas": 1
                 },
                 "version": "",
-                "containerDir": "/opt/",
+                "containerDir": "",
                 "restartPolicy": {
                     "condition": "any",
                     "maxAttempts": 5
                 },
+	            serviceAccount: {
+		            "metadata": {
+			            "name": "heapster",
+			            "namespace": "soajs"
+		            }
+	            },
+	            "autoScale": {
+		            min: 1,
+		            max: 3,
+		            metrics: {
+			            cpu: {
+				            percent: 50
+			            }
+		            }
+	            },
                 "network": "soajsnet",
+	            "cpuLimit": "0.1",
                 "ports": [
                     {
                         "name": "service",
@@ -383,7 +414,12 @@ describe("Testing kubernetes driver functionality", function() {
                         "name": "maintenance",
                         "isPublished": false,
                         "target": 5004
-                    }
+                    },
+	                {
+		                "name": "published",
+		                "isPublished": true,
+		                "target": 4044
+	                }
                 ]
             };
 
@@ -399,6 +435,7 @@ describe("Testing kubernetes driver functionality", function() {
 
                         options.params.custom = true;
                         drivers.listServices(options, function (error, services) {
+	                        delete  options.deployerConfig.nginxDeployType;
                             assert.ifError(error);
                             assert.ok(services);
                             done();
@@ -467,7 +504,12 @@ describe("Testing kubernetes driver functionality", function() {
                         "name": "maintenance",
                         "isPublished": false,
                         "target": 5009
-                    }
+                    },
+	                {
+		                "name": "published",
+		                "isPublished": true,
+		                "target": 4044
+	                }
                 ]
             };
 
@@ -479,7 +521,7 @@ describe("Testing kubernetes driver functionality", function() {
                     };
 
                     drivers.listServices(options, function(error, service){
-                        interData.replicaId = service[0].id
+                        interData.replicaId = service[0].id;
                         done();
                     });
                 }, 10000);
@@ -619,8 +661,8 @@ describe("Testing kubernetes driver functionality", function() {
             });
         });
 
-        //Success in redeploying a deployed service
-        it("Success - redeploy service", function(done){
+        //Success in redeploying a deployed service 1
+        it("Success - redeploy service 1", function(done){
             options.deployerConfig.namespace = {
                 "default": "soajs",
                 "perService": false
@@ -639,6 +681,83 @@ describe("Testing kubernetes driver functionality", function() {
                 }, 2000);
             });
         });
+	
+	    //Success in redeploying a deployed service 2
+	    it("Success - redeploy service 2", function(done){
+		    options.deployerConfig.namespace = {
+			    "default": "soajs-test",
+			    "perService": false
+		    };
+		
+		    options.params = {
+			    "id": interData.globalId,
+			    "name": "testdeploymentglobalmode",
+			    "mode": "daemonset",
+			    "action": "rebuild",
+			    "labels": {
+				    "soajs.content": "true",
+				    "soajs.env.code": "dev",
+				    "soajs.service.name": "testdeploymentglobalmode",
+				    "soajs.service.version": "2",
+				    "soajs.service.label": "testdeploymentglobalmode"
+			    },
+			    "newBuild": {
+				    "labels": {
+					    "soajs.content": "true",
+					    "soajs.env.code": "dev",
+					    "soajs.service.name": "testdeploymentglobalmode",
+					    "soajs.service.version": "2",
+					    "soajs.service.label": "testdeploymentglobalmode"
+				    },
+				    "image": "alpine",
+			    	"variables": [
+					    "testVar=$SOAJS_DEPLOY_HA"
+				    ],
+				    "ports": [
+					    {
+						    "name": "service",
+						    "isPublished": false,
+						    "target": 4004
+					    },
+					    {
+						    "name": "maintenance",
+						    "isPublished": false,
+						    "target": 5004
+					    },
+					    {
+						    "name": "published",
+						    "isPublished": true,
+						    "target": 4044
+					    }
+				    ],
+				    "cpuLimit": "100m",
+				    "memoryLimit": 1000000,
+				    "voluming": {
+					    "volumes": [
+						    {
+							    "name": "soajs-log-volume-test",
+							    "hostPath": {
+								    "path": "/var/log/soajstest"
+							    }
+						    }
+					    ],
+					    "volumeMounts": [
+						    {
+							    "mountPath": "/var/log/soajstest",
+							    "name": "soajs-log-volume-test",
+						    }
+					    ]
+				    }
+			    }
+		    };
+		
+		    drivers.redeployService(options, function(error, service){
+			    assert.ok(service);
+			    setTimeout(function () {
+				    done();
+			    }, 2000);
+		    });
+	    });
 
         //Success in rebuilding a deployed service with UI
         it("Success - rebuilding a service", function(done){
@@ -749,7 +868,7 @@ describe("Testing kubernetes driver functionality", function() {
         //Success in deleting a deployed global service
         it("Success - delete global service", function(done){
             options.deployerConfig.namespace = {
-                "default": "soajs",
+                "default": "soajs-test",
                 "perService": false
             };
 
@@ -1001,7 +1120,7 @@ describe("Testing kubernetes driver functionality", function() {
 		});
 		
 		//Inspecting a service with autoscale
-		it("Fail - inpsecting service", function(done){
+		it("Success - inpsecting service", function(done){
 			options.deployerConfig.namespace = {
 				"default": "soajs",
 				"perService": false
@@ -1011,6 +1130,76 @@ describe("Testing kubernetes driver functionality", function() {
 				"id": interData.replicaId
 			};
 			drivers.inspectService(options, function(error, service){
+				assert.ok(service);
+				done();
+			});
+		});
+		
+		//Managing Resources post
+		it("Success - managing Resources - post", function(done){
+			options.deployerConfig.namespace = {
+				"default": "soajs",
+				"perService": false
+			};
+			options.params = {
+				"action" : 'post',
+				"resource": 'heapster',
+				"id": interData.replicaId
+			};
+			drivers.manageResources(options, function(error, service){
+				
+				assert.ok(service);
+				done();
+			});
+		});
+		
+		//Managing Resources get with out  template
+		it("Success - managing Resource - get", function(done){
+			options.deployerConfig.namespace = {
+				"default": "soajs",
+				"perService": false
+			};
+			options.params = {
+				action : 'get',
+				"resource": 'heapster',
+				"id": interData.replicaId
+			};
+			drivers.manageResources(options, function(error, service){
+				template = service;
+				assert.ok(service);
+				done();
+			});
+		});
+		//Managing Resources get with template
+		it("Success - managing Resource - get - with template", function(done){
+			options.deployerConfig.namespace = {
+				"default": "soajs",
+				"perService": false
+			};
+			options.params = {
+				action : 'get',
+				"resource": 'heapster',
+				"id": interData.replicaId,
+				"templates": template
+			};
+			drivers.manageResources(options, function(error, service){
+				assert.ok(service);
+				done();
+			});
+		});
+		
+		
+		it("Success - managing Resource - delete", function(done){
+			options.deployerConfig.namespace = {
+				"default": "soajs",
+				"perService": false
+			};
+			options.params = {
+				action : 'delete',
+				"resource": 'heapster',
+				"id": interData.replicaId
+			};
+			drivers.manageResources(options, function(error, service){
 				assert.ok(service);
 				done();
 			});

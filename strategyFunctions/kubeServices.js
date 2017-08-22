@@ -341,29 +341,11 @@ var engine = {
                 });
             });
         }
-
-        //NOTE: for custom deployments, only one volume is supported for now
-        if (options.params.type === 'custom') {
-            if (options.params.volume) {
-                payload.spec.template.spec.volumes.push({
-                    name: options.params.volume.name,
-                    hostPath: {
-                        path: options.params.volume.source
-                    }
-                });
-
-                payload.spec.template.spec.containers[0].volumeMounts.push({
-                    mountPath: options.params.volume.target,
-                    name: options.params.volume.name
-                });
-            }
-        }
-        else {
-            if (options.params.voluming && options.params.voluming.volumes && options.params.voluming.volumeMounts) {
-                payload.spec.template.spec.volumes = payload.spec.template.spec.volumes.concat(options.params.voluming.volumes);
-                payload.spec.template.spec.containers[0].volumeMounts = payload.spec.template.spec.containers[0].volumeMounts.concat(options.params.voluming.volumeMounts);
-            }
-        }
+	    //[a-z0-9]([-a-z0-9]*[a-z0-9])?
+	    if (options.params.voluming && options.params.voluming.volumes && options.params.voluming.volumeMounts) {
+		    payload.spec.template.spec.volumes = payload.spec.template.spec.volumes.concat(options.params.voluming.volumes);
+		    payload.spec.template.spec.containers[0].volumeMounts = payload.spec.template.spec.containers[0].volumeMounts.concat(options.params.voluming.volumeMounts);
+	    }
 
         //added support for annotations
 		if (options.params.annotations){
@@ -521,13 +503,14 @@ var engine = {
                                 });
                             }
                             else if (options.params.action === 'rebuild') {
-                                for(var i = 0; i < options.params.newBuild.variables.length; i++){
-                        		    if(options.params.newBuild.variables[i].indexOf('$SOAJS_DEPLOY_HA') !== -1){
-                        			    options.params.newBuild.variables[i] = options.params.newBuild.variables[i].replace("$SOAJS_DEPLOY_HA","kubernetes");
-                        			    break;
-                        		    }
-                        	    }
-
+                            	if (options.params.newBuild.variables && Array.isArray(options.params.newBuild.variables)){
+		                            for(var i = 0; i < options.params.newBuild.variables.length; i++){
+			                            if(options.params.newBuild.variables[i].indexOf('$SOAJS_DEPLOY_HA') !== -1){
+				                            options.params.newBuild.variables[i] = options.params.newBuild.variables[i].replace("$SOAJS_DEPLOY_HA","kubernetes");
+				                            break;
+			                            }
+		                            }
+	                            }
                                 deployment.metadata.labels = options.params.newBuild.labels;
                                 deployment.spec.template.metadata.labels = options.params.newBuild.labels;
                                 deployment.spec.template.spec.containers[0].env = lib.buildEnvList({ envs: options.params.newBuild.variables });
@@ -632,6 +615,9 @@ var engine = {
                 return service;
             }
         }
+	    function cleanLabel(label) {
+		    return label.toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-');
+	    }
     },
 
     /**
@@ -784,15 +770,6 @@ var engine = {
                 if(!hpa || Object.keys(hpa).length === 0) return cb();
 
                 return autoscaler.deleteAutoscaler(autoscalerOptions, cb);
-            });
-        }
-
-        function deleteServiceAccount(deployer, namespace, cb) {
-            deployer.core.namespaces(namespace).serviceaccounts.delete({ name: options.params.id }, (error, serviceAccount) => {
-                if(error && error.code === 404) return cb(null, true);
-                utils.checkError(error, 683, cb, () => {
-                    return cb(null, true);
-                });
             });
         }
 

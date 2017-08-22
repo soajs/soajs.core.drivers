@@ -1,4 +1,6 @@
-{
+'use strict';
+
+module.exports = {
     "apiVersion": "extensions/v1beta1",
     "kind": "Deployment",
     "metadata": {

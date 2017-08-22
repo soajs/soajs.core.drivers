@@ -123,7 +123,7 @@ module.exports = function (grunt) {
 		},
 
 		instrument: {
-			files: ['*.js', 'schemas/**/*.js', 'strategies/*.js', 'utils/*.js', 'strategyFunctions/*.js'],
+			files: ['*.js', 'schemas/**/*.js', 'strategies/*.js', 'utils/*.js', 'strategyFunctions/*.js', 'resources/**/**/**.js'],
 			//files: ['**/*.js'],
 			options: {
 				lazy: false,
@@ -194,7 +194,6 @@ module.exports = function (grunt) {
 	//grunt.registerTask("test", ['unit','integration']);
 	grunt.registerTask("test", ['clean', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration']);
 	grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:unitDocker', 'mochaTest:unitKubernetes', 'mochaTest:cleanUp', 'storeCoverage', 'makeReport', 'coveralls']);
-	grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:unitKubernetes', 'mochaTest:cleanUp', 'storeCoverage', 'makeReport', 'coveralls']);
 	//grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration', 'storeCoverage', 'makeReport']);
 
 };
