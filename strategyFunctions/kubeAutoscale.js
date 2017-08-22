@@ -56,6 +56,11 @@ const engine = {
                 }
                 let autoscaler = utils.cloneObj(require(templatePath));
 
+                //if driver detected kubernetes server v1.7, use autoscaling v1 instead of v2alpha1
+                if(deployer.autoscaling && deployer.autoscaling.version === 'v1') {
+                    autoscaler.apiVersion = 'autoscaling/v1';
+                }
+
                 let validInput = (options.params);
                 if(validInput) {
                     validInput = validInput && (options.params.id && options.params.type);
@@ -87,7 +92,14 @@ const engine = {
 
                             return callback(null, resource);
                         }, (error, metrics) => {
-                            autoscaler.spec.metrics = metrics;
+                            if(deployer.autoscaling && deployer.autoscaling.version === 'v2alpha1') {
+                                autoscaler.spec.metrics = metrics;
+                            }
+                            else if(deployer.autoscaling && deployer.autoscaling.version === 'v1') {
+                                //NOTE: only cpu metric is supported for now
+                                autoscaler.spec.targetCPUUtilizationPercentage  = metrics[0].resource.targetAverageUtilization;
+                            }
+
                             let namespace = lib.buildNameSpace(options);
                             deployer.autoscaling.namespaces(namespace).hpa.post({ body: autoscaler }, (error) => {
                                 utils.checkError(error, 676, cb, () => {
@@ -140,7 +152,13 @@ const engine = {
 
                                 return callback(null, resource);
                             }, (error, metrics) => {
-                                hpa.spec.metrics = metrics;
+                                if(deployer.autoscaling && deployer.autoscaling.version === 'v2alpha1') {
+                                    hpa.spec.metrics = metrics;
+                                }
+                                else if(deployer.autoscaling && deployer.autoscaling.version === 'v1') {
+                                    //NOTE: only cpu metric is supported for now
+                                    hpa.spec.targetCPUUtilizationPercentage  = metrics[0].resource.targetAverageUtilization;
+                                }
                                 deployer.autoscaling.namespaces(namespace).hpa.put({ name: options.params.id, body: hpa }, (error) => {
                                     utils.checkError(error, 677, cb, () => {
                                         return cb(null, true);
