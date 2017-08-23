@@ -23,7 +23,7 @@ addons:
 before_script:
   - npm install -g grunt-cli
   - docker pull alpine:latest && docker pull soajsorg/soajs:latest
-  - docker run -d --volume=/:/rootfs:ro --volume=/sys:/sys:rw --volume=/var/lib/docker/:/var/lib/docker:rw --volume=/var/lib/kubelet/:/var/lib/kubelet:rw --volume=/var/run:/var/run:rw -p 8080:80 --net=host --pid=host --privileged ameerfaraj/hyperkube /hyperkube kubelet --containerized --hostname-override=127.0.0.1 --require-kubeconfig --pod-manifest-path=/etc/kubernetes/manifests --cluster-dns=10.0.0.10 --cluster-domain=cluster.local --allow-privileged --v=2
+  - docker run -d --volume=/:/rootfs:ro --volume=/sys:/sys:rw --volume=/var/lib/docker/:/var/lib/docker:rw --volume=/var/lib/kubelet/:/var/lib/kubelet:rw --volume=/var/run:/var/run:rw --restart=always -p 8080:80 --net=host --pid=host --privileged ameerfaraj/hyperkube /hyperkube kubelet --containerized --hostname-override=127.0.0.1 --require-kubeconfig --pod-manifest-path=/etc/kubernetes/manifests --cluster-dns=10.0.0.10 --cluster-domain=cluster.local --allow-privileged --v=2
   - sudo curl -sSL "http://storage.googleapis.com/kubernetes-release/release/v1.7.0/bin/linux/amd64/kubectl" > ./kubectl
   - sudo mv ./kubectl /usr/local/bin/
   - sudo chmod +x /usr/local/bin/kubectl
