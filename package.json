@@ -23,10 +23,6 @@
     "gridfs-stream": "*",
     "kubernetes-client": "aff04/kubernetes-client.git#v3.10.1",
     "request": "*",
-    "jshint": "2.9.4",
-    "lodash": "4.17.4",
-    "mocha": "3.2.0",
-    "shelljs": "0.7.5",
     "soajs.core.libs": "1.0.*"
   },
   "devDependencies": {
@@ -40,6 +36,9 @@
     "grunt-env": "0.4.4",
     "grunt-istanbul": "0.7.2",
     "grunt-coveralls": "1.0.1",
-    "http-proxy": "1.16.2"
+    "http-proxy": "1.16.2",
+    "jshint": "2.9.4",
+    "mocha": "3.2.0",
+    "shelljs": "0.7.5"
   }
 }
