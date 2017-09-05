@@ -3,9 +3,6 @@
 
 const K8Api = require('kubernetes-client');
 const config = require('../config.js');
-const request = require('request');
-
-let kubeServerVersion = {};
 
 const kubeLib = {
     buildNameSpace(options){
@@ -47,61 +44,19 @@ const kubeLib = {
             delete kubeConfig.auth;
         }
 
-        kubeLib.getServerVersion(options, (error) => {
-            if(error) return cb(error);
+        kubeConfig.version = 'v1';
+        kubernetes.core = new K8Api.Core(kubeConfig);
 
-            kubeConfig.version = 'v1';
-            kubernetes.core = new K8Api.Core(kubeConfig);
+        kubeConfig.version = 'v1beta1';
+        kubernetes.extensions = new K8Api.Extensions(kubeConfig);
 
-            kubeConfig.version = 'v1beta1';
-            kubernetes.extensions = new K8Api.Extensions(kubeConfig);
+        kubeConfig.version = 'v1';
+        kubernetes.autoscaling = new K8Api.Autoscaling(kubeConfig);
 
-            if(kubeServerVersion.minor === '6') {
-                kubeConfig.version = 'v2alpha1';
-                kubernetes.autoscaling = new K8Api.Autoscaling(kubeConfig);
-            }
-            else if (kubeServerVersion.minor === '7') {
-                kubeConfig.version = 'v1';
-                kubernetes.autoscaling = new K8Api.Autoscaling(kubeConfig);
-            }
+        delete kubeConfig.version;
+        kubernetes.api = new K8Api.Api(kubeConfig);
 
-            delete kubeConfig.version;
-            kubernetes.api = new K8Api.Api(kubeConfig);
-
-            return cb(null, kubernetes);
-        });
-    },
-
-    getServerVersion(options, cb) {
-        if(kubeServerVersion && kubeServerVersion.major && kubeServerVersion.minor) {
-            return cb();
-        }
-
-        let requestOptions = {
-            uri: config.kubernetes.apiHost + '/version',
-            auth: {
-                bearer: ''
-            },
-            strictSSL: false,
-            json: true
-        };
-
-        if (options && options.deployerConfig && options.deployerConfig.auth && options.deployerConfig.auth.token) {
-            requestOptions.auth.bearer = options.deployerConfig.auth.token;
-        }
-
-        if (process.env.SOAJS_TEST_KUBE_PORT) {
-            //NOTE: unit testing on travis requires a different setup
-            requestOptions.uri = 'http://localhost:' + process.env.SOAJS_TEST_KUBE_PORT + '/version';
-            delete requestOptions.auth;
-        }
-
-        request.get(requestOptions, (error, response, body) => {
-            if(error) return cb(error);
-
-            kubeServerVersion = body;
-            return cb();
-        });
+        return cb(null, kubernetes);
     },
 
     buildNameSpaceRecord (options) {
