@@ -7,7 +7,9 @@ module.exports = {
         "labels": {
             "task": "monitoring",
             "kubernetes.io/cluster-service": "true",
-            "kubernetes.io/name": "Heapster"
+            "kubernetes.io/name": "Heapster",
+            "soajs.service.type": "system",
+            "soajs.service.subtype": "heapster",
         },
         "name": "heapster",
         "namespace": "kube-system"
