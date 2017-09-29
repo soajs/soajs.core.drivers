@@ -335,7 +335,8 @@ const lib = {
                 if (options.task.Version && options.task.Version.Index) {
                     record.version = options.task.Version.Index;
                 }
-                if (options.serviceName && options.task.Slot) {
+
+                if (options.serviceName) {
                     record.name = options.serviceName + ((options.task.Slot) ? '.' + options.task.Slot : ''); //might add extra value later
                 }
                 if (options.task.Slot) {
