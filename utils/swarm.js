@@ -286,11 +286,17 @@ const lib = {
 
             if (options.service.Endpoint && options.service.Endpoint.Ports && options.service.Endpoint.Ports.length > 0) {
                 options.service.Endpoint.Ports.forEach((onePortConfig) => {
-                    record.ports.push({
+                    let port = {
                         protocol: onePortConfig.Protocol,
                         target: onePortConfig.TargetPort,
                         published: onePortConfig.PublishedPort
-                    });
+                    };
+
+                    if(onePortConfig.PublishMode && onePortConfig.PublishMode === 'local') {
+                        port.preserveClientIP = true;
+                    }
+
+                    record.ports.push(port);
                 });
             }
         }
