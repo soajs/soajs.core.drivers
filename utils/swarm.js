@@ -292,7 +292,7 @@ const lib = {
                         published: onePortConfig.PublishedPort
                     };
 
-                    if(onePortConfig.PublishMode && onePortConfig.PublishMode === 'local') {
+                    if(onePortConfig.PublishMode && onePortConfig.PublishMode === 'host') {
                         port.preserveClientIP = true;
                     }
 
