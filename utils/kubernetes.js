@@ -175,7 +175,7 @@ const kubeLib = {
                     published: onePortConfig.nodePort || null
                 };
 
-                if(service.spec && service.spec.externalTrafficPolicy === 'local') {
+                if(service.spec && service.spec.externalTrafficPolicy === 'Local') {
                     port.preserveClientIP = true;
                 }
 
