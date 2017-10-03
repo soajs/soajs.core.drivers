@@ -237,7 +237,7 @@ var engine = {
 
             options.params.ports.forEach((onePortEntry, portIndex) => {
                 let portConfig = {
-                    protocol: onePortEntry.protocol.toUpperCase() || 'TCP',
+                    protocol: ((onePortEntry.protocol) ? onePortEntry.protocol.toUpperCase() : 'TCP'),
                     name: onePortEntry.name || 'port' + portIndex,
                     port: onePortEntry.port || onePortEntry.target,
                     targetPort: onePortEntry.target
@@ -591,7 +591,7 @@ var engine = {
             if (ports && ports.length > 0) {
                 ports.forEach((onePortEntry, portIndex) => {
                     let portConfig = {
-                        protocol: onePortEntry.protocol.toUpperCase() || 'TCP',
+                        protocol: ((onePortEntry.protocol) ? onePortEntry.protocol.toUpperCase() : 'TCP'),
                         name: onePortEntry.name || 'port' + portIndex,
                         port: onePortEntry.target,
                         targetPort: onePortEntry.target
