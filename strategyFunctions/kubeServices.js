@@ -587,7 +587,7 @@ var engine = {
         });
 
         function AddServicePorts(service, ports) {
-            let portsOutput = [];
+            let portsOutput = [], preserveClientIP = false;
             if (ports && ports.length > 0) {
                 ports.forEach((onePortEntry, portIndex) => {
                     let portConfig = {
@@ -613,11 +613,16 @@ var engine = {
 
                         if(onePortEntry.preserveClientIP) {
                             service.spec.externalTrafficPolicy = 'Local';
+                            preserveClientIP = true;
                         }
                     }
 
                     portsOutput.push(portConfig);
                 });
+
+                if(!preserveClientIP && service && service.spec && service.spec.externalTrafficPolicy === 'Local') {
+                    delete service.spec.externalTrafficPolicy;
+                }
 
                 service.spec.ports = portsOutput;
                 return service;
@@ -636,10 +641,11 @@ var engine = {
      *
      */
     inspectService (options, cb) {
+        let contentType = options.params.mode || 'deployment';
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
                 let namespace = lib.buildNameSpace(options);
-                deployer.extensions.namespaces(namespace).deployment.get(options.params.id, (error, deployment) => {
+                deployer.extensions.namespaces(namespace)[contentType].get(options.params.id, (error, deployment) => {
                     utils.checkError(error, 536, cb, () => {
                         let deploymentRecord = lib.buildDeploymentRecord({ deployment });
 
