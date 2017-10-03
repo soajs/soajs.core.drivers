@@ -258,7 +258,7 @@ var engine = {
                     portConfig.name = onePortEntry.name || 'published' + portConfig.name;
 
                     if(onePortEntry.preserveClientIP) {
-                        service.spec.externalTrafficPolicy = 'local';
+                        service.spec.externalTrafficPolicy = 'Local';
                     }
                 }
 
@@ -612,7 +612,7 @@ var engine = {
                         portConfig.name = onePortEntry.name || 'published' + portConfig.name;
 
                         if(onePortEntry.preserveClientIP) {
-                            service.spec.externalTrafficPolicy = 'local';
+                            service.spec.externalTrafficPolicy = 'Local';
                         }
                     }
 
