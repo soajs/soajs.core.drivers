@@ -169,11 +169,17 @@ const kubeLib = {
 
             let deploymentPorts = [];
             service.spec.ports.forEach((onePortConfig) => {
-                deploymentPorts.push({
+                let port = {
                     protocol: onePortConfig.protocol,
                     target: onePortConfig.targetPort || onePortConfig.port,
                     published: onePortConfig.nodePort || null
-                });
+                };
+
+                if(service.spec && service.spec.externalTrafficPolicy === 'Local') {
+                    port.preserveClientIP = true;
+                }
+
+                deploymentPorts.push(port);
             });
 
             return deploymentPorts;

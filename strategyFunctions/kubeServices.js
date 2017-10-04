@@ -32,7 +32,7 @@ var engine = {
                         }, function (error, foundNamespace) {
                             utils.checkError(foundNamespace, 672, cb, () => {
                                 utilLog.log('Creating a new namespace: ' + namespaceName + ' ...');
-                                var namespace = {
+                                let namespace = {
                                     kind: 'Namespace',
                                     apiVersion: 'v1',
                                     metadata: {
@@ -211,7 +211,7 @@ var engine = {
      *
      */
     deployService (options, cb) {
-	    for(var i =0; i < options.params.variables.length; i++){
+	    for(let i =0; i < options.params.variables.length; i++){
 		    if(options.params.variables[i].indexOf('$SOAJS_DEPLOY_HA') !== -1){
 			    options.params.variables[i] = options.params.variables[i].replace("$SOAJS_DEPLOY_HA","kubernetes");
 			    break;
@@ -237,7 +237,7 @@ var engine = {
 
             options.params.ports.forEach((onePortEntry, portIndex) => {
                 let portConfig = {
-                    protocol: 'TCP',
+                    protocol: ((onePortEntry.protocol) ? onePortEntry.protocol.toUpperCase() : 'TCP'),
                     name: onePortEntry.name || 'port' + portIndex,
                     port: onePortEntry.port || onePortEntry.target,
                     targetPort: onePortEntry.target
@@ -256,6 +256,10 @@ var engine = {
                     }
 
                     portConfig.name = onePortEntry.name || 'published' + portConfig.name;
+
+                    if(onePortEntry.preserveClientIP) {
+                        service.spec.externalTrafficPolicy = 'Local';
+                    }
                 }
 
                 ports.push(portConfig);
@@ -417,7 +421,7 @@ var engine = {
                         return cb(null, true);
                     }
 
-                    var namespace = {
+                    let namespace = {
                         kind: 'Namespace',
                         apiVersion: 'v1',
                         metadata: {
@@ -504,7 +508,7 @@ var engine = {
                             }
                             else if (options.params.action === 'rebuild') {
                             	if (options.params.newBuild.variables && Array.isArray(options.params.newBuild.variables)){
-		                            for(var i = 0; i < options.params.newBuild.variables.length; i++){
+		                            for(let i = 0; i < options.params.newBuild.variables.length; i++){
 			                            if(options.params.newBuild.variables[i].indexOf('$SOAJS_DEPLOY_HA') !== -1){
 				                            options.params.newBuild.variables[i] = options.params.newBuild.variables[i].replace("$SOAJS_DEPLOY_HA","kubernetes");
 				                            break;
@@ -583,11 +587,11 @@ var engine = {
         });
 
         function AddServicePorts(service, ports) {
-            let portsOutput = [];
+            let portsOutput = [], preserveClientIP = false;
             if (ports && ports.length > 0) {
                 ports.forEach((onePortEntry, portIndex) => {
                     let portConfig = {
-                        protocol: 'TCP',
+                        protocol: ((onePortEntry.protocol) ? onePortEntry.protocol.toUpperCase() : 'TCP'),
                         name: onePortEntry.name || 'port' + portIndex,
                         port: onePortEntry.target,
                         targetPort: onePortEntry.target
@@ -606,10 +610,19 @@ var engine = {
                         }
 
                         portConfig.name = onePortEntry.name || 'published' + portConfig.name;
+
+                        if(onePortEntry.preserveClientIP) {
+                            service.spec.externalTrafficPolicy = 'Local';
+                            preserveClientIP = true;
+                        }
                     }
 
                     portsOutput.push(portConfig);
                 });
+
+                if(!preserveClientIP && service && service.spec && service.spec.externalTrafficPolicy === 'Local') {
+                    delete service.spec.externalTrafficPolicy;
+                }
 
                 service.spec.ports = portsOutput;
                 return service;
@@ -628,10 +641,11 @@ var engine = {
      *
      */
     inspectService (options, cb) {
+        let contentType = options.params.mode || 'deployment';
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
                 let namespace = lib.buildNameSpace(options);
-                deployer.extensions.namespaces(namespace).deployment.get(options.params.id, (error, deployment) => {
+                deployer.extensions.namespaces(namespace)[contentType].get(options.params.id, (error, deployment) => {
                     utils.checkError(error, 536, cb, () => {
                         let deploymentRecord = lib.buildDeploymentRecord({ deployment });
 
