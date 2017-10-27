@@ -433,68 +433,22 @@ var engine = {
      * @returns {*}
      */
     getContainerLogs (options, cb) {
-        /**
-         * 1. inspect task provided as input, get container id and node id
-         * 2. inspect target node and get its ip
-         * 3. connect to target node and get container logs
-         */
-
-        let res = options.res;
-        delete options.res;
         lib.getDeployer(options, (error, deployer) => {
-            check(error, 540, () => {
-                //NOTE: engine.inspectTask() does not return the container status
+            utils.checkError(error, 540, cb, () => {
                 let task = deployer.getTask(options.params.taskId);
-                task.inspect((error, taskInfo) => {
-                    check(error, 555, () => {
-                        let containerId = taskInfo.Status.ContainerStatus.ContainerID;
-                        let nodeId = taskInfo.NodeID;
-                        options.params.id = nodeId;
-                        options.deployerConfig.flags = { targetNode: true, swarmMember: true };
-                        lib.getDeployer(options, (error, deployer) => {
-                            check(error, 540, () => {
-                                let container = deployer.getContainer(containerId);
-                                let logOptions = {
-                                    stdout: true,
-                                    stderr: true,
-                                    tail: options.params.tail || 400
-                                };
-                                container.logs(logOptions, (error, logStream) => {
-                                    check(error, 537, () => {
-                                        let data, chunk;
-                                        logStream.setEncoding('utf8');
-                                        logStream.on('readable', () => {
-                                            while((chunk = logStream.read()) !== null) {
-                                                data += chunk.toString('utf8');
-                                            }
-                                        });
-
-                                        logStream.on('end', () => {
-                                            logStream.destroy();
-                                            //this if statement is used for test cases.
-                                            //originally, the data is returned as a response due to the limitations of angular
-                                            if(cb)
-                                                return cb(null,data);
-                                            return res.jsonp(options.soajs.buildResponse(null, { data }));
-                                        });
-                                    });
-                                });
-                            });
-                        });
+                let logOptions = {
+                    stdout: true,
+                    stderr: true,
+                    tail: options.params.tail || 400
+                };
+                task.defaultOptions = { log: {} };
+                task.logs(logOptions, (error, data) => {
+                    utils.checkError(error, 537, cb, () => {
+                        return cb(null, { data });
                     });
                 });
             });
         });
-
-        function check(error, code, cb1) {
-            if (error && !cb) {
-                return res.jsonp(options.soajs.buildResponse({code: code, msg: errorFile[code]}));
-            }
-            else if (error && cb) {
-                return cb({code: code, msg: errorFile[code]});
-            }
-            return cb1();
-        }
     },
 
     /**
