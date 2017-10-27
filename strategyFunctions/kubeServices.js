@@ -7,6 +7,7 @@ const autoscaler = require('./kubeAutoscale.js');
 
 const errorFile = require('../utils/errors.js');
 
+const WebSocket = require('ws');
 const async = require('async');
 const request = require('request');
 const utilLog = require('util');
@@ -888,65 +889,58 @@ var engine = {
      * @param {Function} cb
      *
      */
-    maintenance (options, cb) {
-        lib.getDeployer(options, (error, deployer) => {
-            utils.checkError(error, 520, cb, () => {
-                let filter = {
-                    labelSelector: 'soajs.service.label=' + options.params.id //kubernetes references content by name not id, therefore id field is set to content name
-                };
-                let namespace = lib.buildNameSpace(options);
-                deployer.core.namespaces(namespace).pods.get({qs: filter}, (error, podsList) => {
-                    utils.checkError(error, 659, cb, () => {
-                        utils.checkError(!podsList || !podsList.items || podsList.items.length === 0, 657, cb, () => {
-                            async.map(podsList.items, (onePod, callback) => {
-                                let podInfo = {
-                                    id: onePod.metadata.name,
-                                    ipAddress: ((onePod.status && onePod.status.podIP) ? onePod.status.podIP : null)
-                                };
-                                return callback(null, podInfo);
-                            }, (error, targets) => {
-                                async.map(targets, (oneTarget, callback) => {
-                                    if (!oneTarget.ipAddress) {
-                                        return callback(null, {
-                                            result: false,
-                                            ts: new Date().getTime(),
-                                            error: {
-                                                msg: 'Unable to get the ip address of the pod'
-                                            }
-                                        });
-                                    }
+     maintenance (options, cb) {
+         lib.getDeployer(options, (error, deployer) => {
+             utils.checkError(error, 520, cb, () => {
+                 let filter = {
+                     labelSelector: 'soajs.service.label=' + options.params.id //kubernetes references content by name not id, therefore id field is set to content name
+                 };
 
-                                    let requestOptions = {
-                                        uri: 'http://' + oneTarget.ipAddress + ':' + options.params.maintenancePort + '/' + options.params.operation,
-                                        json: true
-                                    };
-                                    request.get(requestOptions, (error, response, body) => {
-                                        let operationResponse = {
-                                            id: oneTarget.id,
-                                            response: {}
-                                        };
+                 let namespace = lib.buildNameSpace(options);
+                 deployer.core.namespaces(namespace).pods.get({ qs: filter }, (error, podList) => {
+                     utils.checkError(error, 659, cb, () => {
+                         utils.checkError(!podList || !podList.items || podList.items.length === 0, 657, cb, () => {
+                             async.map(podList.items, (onePod, callback) => {
+                                 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
-                                        if (error) {
-                                            operationResponse.response = {
-                                                result: false,
-                                                ts: new Date().getTime(),
-                                                error: error
-                                            };
-                                        }
-                                        else {
-                                            operationResponse.response = body;
-                                        }
+                                 function exec(pod, cmd, callback) {
+                                     let response = '', uri = '';
 
-                                        return callback(null, operationResponse);
-                                    });
-                                }, cb);
-                            });
-                        });
-                    });
-                });
-            });
-        });
-    },
+                                     if(deployer.config && deployer.config.url) {
+                                         uri = `wss://${deployer.config.url.split('//')[1]}`; //remove the https protocol
+                                     }
+
+                                     uri += `/api/v1/namespaces/${namespace}/pods/${onePod.metadata.name}/exec?`;
+                                     uri += 'stdout=1&stdin=1&stderr=1';
+                                     cmd.forEach(subCmd => uri += `&command=${encodeURIComponent(subCmd)}`);
+
+                                     let wsOptions = {};
+                                     if(deployer.config && deployer.config.auth && deployer.config.auth.bearer) {
+                                         wsOptions.headers = {
+                                             'Authorization': `Bearer ${deployer.config.auth.bearer}`
+                                         }
+                                     }
+
+                                     let ws = new WebSocket(uri, "base64.channel.k8s.io", wsOptions);
+                                     ws.on('message', (data) => {
+                                         if (data[0].match(/^[0-3]$/)) {
+                                             response += Buffer.from(data.slice(1), 'base64').toString("ascii");
+                                         }
+                                     });
+                                     ws.on('close', () => callback(response));
+                                 }
+
+                                 exec(onePod.metadata.name, ['/bin/bash', '-c', `curl -s -X GET http://localhost:${options.params.maintenancePort}/${options.params.operation}`], (response) => {
+                                     return callback(null, response);
+                                 }
+                             )
+                         }, cb);
+                     });
+                 });
+             });
+         });
+     });
+ },
 
 
     /**

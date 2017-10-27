@@ -507,61 +507,102 @@ var engine = {
     maintenance (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
-                let params = {
-                    filters: { service: [options.params.id] }
-                };
-                deployer.listTasks(params, (error, tasks) => {
-                    utils.checkError(error, 552, cb, () => {
-                        async.map(tasks, (oneTask, callback) => {
-                            async.detect(oneTask.NetworksAttachments, (oneConfig, callback) => {
-                                return callback(null, oneConfig.Network && oneConfig.Network.Spec && oneConfig.Network.Spec.Name === options.params.network);
-                            }, (error, networkInfo) => {
-                                let taskInfo = {
-                                    id: oneTask.ID,
-                                    networkInfo: networkInfo
-                                };
-                                return callback(null, taskInfo);
-                            });
-                        }, (error, targets) => {
-                            async.map(targets, (oneTarget, callback) => {
-                                if (!oneTarget.networkInfo || !oneTarget.networkInfo.Addresses || oneTarget.networkInfo.Addresses.length === 0) {
+                getNodes(deployer, (error, nodesList) => {
+                    getTasks(deployer, (error, tasksList) => {
+                        async.map(tasksList, (oneTask, callback) => {
+                            if(!(oneTask.Status && oneTask.Status.ContainerStatus && oneTask.Status.ContainerStatus.ContainerID && oneTask.Status.State === 'running')) {
+                                return callback(null, {
+                                    result: false,
+                                    ts: new Date().getTime(),
+                                    error: {
+                                        msg: 'Unable to get the ip address of the container'
+                                    }
+                                });
+                            }
+
+                            oneTask.containerId = oneTask.Status.ContainerStatus.ContainerID;
+                            //get the node record of every task and add it to its record
+                            async.detect(nodesList, (oneNode, callback) => {
+                                return callback(null, oneTask.NodeID === oneNode.ID && (oneNode.Status && oneNode.Status.State === 'ready' && oneNode.Status.Addr));
+                            }, (error, taskNode) => {
+                                if(!taskNode) {
                                     return callback(null, {
                                         result: false,
                                         ts: new Date().getTime(),
                                         error: {
-                                            msg: 'Unable to get the ip address of the container'
+                                            msg: 'Unable to get the container\'s node or node is not ready'
                                         }
                                     });
                                 }
-                                let oneIp = oneTarget.networkInfo.Addresses[0].split('/')[0];
-                                let requestOptions = {
-                                    uri: 'http://' + oneIp + ':' + options.params.maintenancePort + '/' + options.params.operation,
-                                    json: true
-                                };
-                                request.get(requestOptions, (error, response, body) => {
-                                    let operationResponse = {
-                                        id: oneTarget.id,
-                                        response: {}
-                                    };
 
-                                    if (error) {
-                                        operationResponse.response = {
+                                oneTask.nodeRecord = taskNode;
+                                options.params.targetHost = oneTask.nodeRecord.Status.Addr;
+                                lib.getDeployer(options, (error, targetDeployer) => {
+                                    if(error) {
+                                        return callback(null, {
                                             result: false,
                                             ts: new Date().getTime(),
-                                            error: error
-                                        };
+                                            error: {
+                                                msg: 'Unable to get the container\'s node or node is not ready'
+                                            }
+                                        });
                                     }
-                                    else {
-                                        operationResponse.response = body;
+
+                                    function exec(containerId, cmd, callback) {
+                                        let container = targetDeployer.getContainer(containerId);
+                                        container.exec({ Cmd: command, AttachStdout: true }, (error, exec) => {
+                                            if(error) return callback(error);
+
+                                            exec.start({}, (error, stream) => {
+                                                if(error) return callback(error);
+
+                                                let out = '';
+                                                stream.setEncoding('utf8');
+                                                stream.on('data', (data) => { out += data; });
+                                                stream.on('end', () => { return callback(null, out.toString()); });
+                                                stream.on('error', (error) => { return callback(error); });
+                                            });
+                                        });
                                     }
-                                    return callback(null, operationResponse);
+
+                                    let command = [`curl`, '-s', `-X`, `GET`, `http://localhost:${options.params.maintenancePort}/${options.params.operation}`];
+                                    return exec(oneTask.containerId, command, (error, response) => {
+                                        if(error) {
+                                            return callback(null, {
+                                                result: false,
+                                                ts: new Date().getTime(),
+                                                error: {
+                                                    msg: 'Unable to perform maintenance operation on container, error: ' + error.message
+                                                }
+                                            });
+                                        }
+
+                                        return callback(null, response);
+                                    });
                                 });
-                            }, cb);
-                        });
+                            });
+                        }, cb);
                     });
-                });
+                })
             });
         });
+
+        function getNodes(deployer, cb) {
+            deployer.listNodes((error, nodesList) => {
+                utils.checkError(error, 540, cb, () => {
+                    return cb(null, nodesList);
+                });
+            });
+        }
+
+        function getTasks(deployer, cb) {
+            let params = { filters: { service: [options.params.id] } };
+            deployer.listTasks(params, (error, tasksList) => {
+                utils.checkError(error, 552, cb, () => {
+                    return cb(null, tasksList);
+                });
+            });
+        }
     },
 
     /**

@@ -12,90 +12,31 @@ const gridfsColl = 'fs.files';
 
 const lib = {
     getDeployer (options, cb) {
-        let config = options.deployerConfig, deployer;
+        let protocol = 'https://',
+            domain = `${options.registry.apiPrefix}.${options.registry.domain}`,
+            port = '2376'; //static for now
 
-        if (!config.flags || (config.flags && !config.flags.targetNode)) {
-            redirectToProxy();
+        if(options && options.params && options.params.targetHost) {
+            domain = options.params.targetHost;
         }
 
-        //remote deployments should use certificates if function requires connecting to a worker node
-        if (config.flags && config.flags.targetNode) {
-            getTargetNode(options, (error, target) => {
-                utils.checkError(error, 600, cb, () => {
-                    //target object in this case contains ip/port of target node
-                    findCerts(options, (error, certs) => {
-                        utils.checkError(error, 600, cb, () => {
-                            deployer = new Docker(buildDockerConfig(target.host, target.port, certs));
-                            lib.ping({ deployer }, (error) => {
-                                utils.checkError(error, 600, cb, () => { //TODO: fix
-                                    return cb(null, deployer);
-                                });
-                            });
-                        });
-                    });
-                });
+        let host = `${protocol}${domain}`;
+
+        if(!options.model || Object.keys(options.model).length === 0) {
+            options.model = require('../models/mongo.js');
+        }
+
+        if(!options.env && (options.params && options.params.env)) {
+            options.env = options.params.env;
+        }
+
+        findCerts(options, (error, certs) => {
+            utils.checkError(error, 600, cb, () => {
+                let deployer = new Docker(buildDockerConfig(host, port, certs));
+                return cb(null, deployer);
             });
-        }
+        });
 
-        function redirectToProxy() {
-            let ports = options.soajs.registry.serviceConfig.ports;
-            deployer = new Docker({
-                host: ((process.env.SOAJS_ENV) ? process.env.SOAJS_ENV.toLowerCase() : 'dev') + '-controller',
-                port: ports.controller + ports.maintenanceInc,
-                version: 'proxySocket'
-            });
-            lib.ping({ deployer }, (error) => {
-                utils.checkError(error, 600, cb, () => { //TODO: fix params
-                    return cb(null, deployer);
-                });
-            });
-        }
-
-        function getTargetNode(options, cb) {
-            /**
-             * This function is triggered whenever a connection to a specific node is required. Three options are available:
-             * 1. The target node is a member of the cluster, query the swarm to get its address and return it (example: get logs of a container deployed on cluster member x)
-             * 2. The target node is not a member of the cluster, such as when adding a new node to the cluster
-             */
-            if (config.flags.swarmMember) {
-                if (options.driver.split('.')[1] === 'local') { //local deployment means the cluster has one manager node only
-                    return redirectToProxy();
-                }
-
-                let customOptions = utils.cloneObj(options);
-                delete customOptions.deployerConfig.flags.targetNode;
-
-                //node is already part of the swarm, inspect it to obtain its address
-                inspectNode(customOptions, (error, node) => {
-                    utils.checkError(error, 600, cb, () => { //TODO: wrong error code, update
-                        if (node.role === 'manager') { //option number one
-                            return cb(null, {host: node.managerStatus.address.split(':')[0], port: '2376'}); //TODO: get port from env record, deployer object
-                        }
-                        else {
-                            return cb(null, {host: node.ip, port: '2376'}); //TODO: get port from env record, deployer object
-                        }
-                    });
-                });
-            }
-            else { //option number two
-                //swarmMember = false flag means the target node is a new node that should be added to the cluster, invoked by addNode()
-                //we only need to return the host/port provided by the user, the ping function will later test if a connection can be established
-                return cb(null, {host: options.params.host, port: options.params.port});
-            }
-        }
-
-        function inspectNode(options, cb) {
-            lib.getDeployer(options, (error, deployer) => {
-                utils.checkError(error, 540, cb, () => {
-                    let node = deployer.getNode(options.params.id);
-                    node.inspect((error, node) => {
-                        utils.checkError(error, 547, cb, () => {
-                            return cb(null, lib.buildNodeRecord({ node }));
-                        });
-                    });
-                });
-            });
-        }
 
         function findCerts(options, cb) {
             if (!options.env) {
