@@ -21,7 +21,11 @@ const kubeLib = {
     },
 
     getDeployer(options, cb) {
-        let kubeURL = config.kubernetes.apiHost;
+        let protocol = 'https://',
+            domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`, //TODO: check if options.soajs.registry exits
+            port = '8443'; //static for now, refers to minikube port
+
+        let kubeURL = `${protocol}${domain}:${port}`;
 
         let kubernetes = {};
         let kubeConfig = {
@@ -58,6 +62,9 @@ const kubeLib = {
 
         delete kubeConfig.version;
         kubernetes.api = new K8Api.Api(kubeConfig);
+
+        //add the configuration used to connect to the api
+        kubernetes.config = kubeConfig;
 
         return cb(null, kubernetes);
     },
