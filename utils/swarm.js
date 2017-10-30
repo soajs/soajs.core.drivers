@@ -12,6 +12,19 @@ const gridfsColl = 'fs.files';
 
 const lib = {
     getDeployer (options, cb) {
+        let deployer = {};
+
+        if(options && options.driver && options.driver.split('.')[1] === 'local') {
+            let ports = options.soajs.registry.serviceConfig.ports;
+            deployer = new Docker({
+                host: ((process.env.SOAJS_ENV) ? process.env.SOAJS_ENV.toLowerCase() : 'dev') + '-controller',
+                port: ports.controller + ports.maintenanceInc,
+                version: 'proxySocket'
+            });
+
+            return cb(null, deployer);
+        }
+
         let protocol = 'https://',
             domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`, //TODO: check if options.soajs.registry exits
             port = '2376'; //static for now
@@ -32,7 +45,7 @@ const lib = {
 
         findCerts(options, (error, certs) => {
             utils.checkError(error, 600, cb, () => {
-                let deployer = new Docker(buildDockerConfig(host, port, certs));
+                deployer = new Docker(buildDockerConfig(host, port, certs));
                 return cb(null, deployer);
             });
         });
