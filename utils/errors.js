@@ -109,6 +109,8 @@ module.exports = {
     681: "Unable to load resource templates, resource not supported",
 
     682: "Unable to create service account",
-    683: "Unable to delete service account"
+    683: "Unable to delete service account",
+	
+	684: "Unable to get metrics"
 
 };

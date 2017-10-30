@@ -6,6 +6,7 @@ const kubeNodes = require('../strategyFunctions/kubeNodes.js');
 const kubeServices = require('../strategyFunctions/kubeServices');
 const kubeAutoscale = require('../strategyFunctions/kubeAutoscale.js');
 const kubeApi = require('../strategyFunctions/kubeApi.js');
+const kubeMetrics = require('../strategyFunctions/kubeMetrics.js');
 const errorFile = require('../utils/errors.js');
 
 const engine = {
@@ -108,6 +109,14 @@ const engine = {
     'getServiceHost': function(options, cb){
         kubeServices.getServiceHost(options, cb);
     },
+	
+	'getServicesMetrics': function(options, cb){
+		kubeMetrics.getServicesMetrics(options, cb);
+	},
+	
+	'getNodesMetrics': function(options, cb){
+		kubeMetrics.getNodesMetrics(options, cb);
+	},
 };
 
 module.exports = engine;

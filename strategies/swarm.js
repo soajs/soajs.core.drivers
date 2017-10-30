@@ -3,6 +3,7 @@
 "use strict";
 const swarmNodes = require('../strategyFunctions/swarmNodes.js');
 const swarmServices = require('../strategyFunctions/swarmServices');
+const swarmMetrics = require('../strategyFunctions/swarmMetrics');
 const errorFile = require('../utils/errors.js');
 
 const engine = {
@@ -78,7 +79,11 @@ const engine = {
 
     'getServiceHost': function(options, cb){
         swarmServices.getServiceHost(options, cb);
-    }
+    },
+	
+	'getServicesMetrics': function(options, cb){
+		swarmMetrics.getServicesMetrics(options, cb);
+	},
 
 };
 

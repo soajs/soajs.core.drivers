@@ -52,6 +52,9 @@ const kubeLib = {
 
         kubeConfig.version = 'v1';
         kubernetes.autoscaling = new K8Api.Autoscaling(kubeConfig);
+	
+	    kubeConfig.version = 'v1alpha1';
+	    kubernetes.metrics = new K8Api.Metrics(kubeConfig);
 
         delete kubeConfig.version;
         kubernetes.api = new K8Api.Api(kubeConfig);
