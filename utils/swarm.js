@@ -14,7 +14,7 @@ const lib = {
     getDeployer (options, cb) {
         let deployer = {};
 
-        if(options && options.driver && options.driver.split('.')[1] === 'local') {
+        if(options && options.driver && options.driver.split('.')[1] === 'local' && !(options.params && options.params.targetHost)) {
             let ports = options.soajs.registry.serviceConfig.ports;
             deployer = new Docker({
                 host: ((process.env.SOAJS_ENV) ? process.env.SOAJS_ENV.toLowerCase() : 'dev') + '-controller',
@@ -31,9 +31,12 @@ const lib = {
 
         if(options && options.params && options.params.targetHost) {
             domain = options.params.targetHost;
+            if(options.params.targetPort) {
+                port = options.params.targetPort;
+            }
         }
 
-        let host = `${protocol}${domain}`;
+        let host = `${protocol}${domain}:${port}`;
 
         if(!options.model || Object.keys(options.model).length === 0) {
             options.model = require('../models/mongo.js');
