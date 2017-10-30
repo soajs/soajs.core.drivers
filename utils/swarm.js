@@ -13,7 +13,7 @@ const gridfsColl = 'fs.files';
 const lib = {
     getDeployer (options, cb) {
         let protocol = 'https://',
-            domain = `${options.registry.apiPrefix}.${options.registry.domain}`,
+            domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`, //TODO: check if options.soajs.registry exits
             port = '2376'; //static for now
 
         if(options && options.params && options.params.targetHost) {

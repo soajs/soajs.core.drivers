@@ -22,7 +22,7 @@ const kubeLib = {
 
     getDeployer(options, cb) {
         let protocol = 'https://',
-            domain = `${options.registry.apiPrefix}.${options.registry.domain}`,
+            domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`, //TODO: check if options.soajs.registry exits
             port = '8443'; //static for now, refers to minikube port
 
         let kubeURL = `${protocol}${domain}:${port}`;
