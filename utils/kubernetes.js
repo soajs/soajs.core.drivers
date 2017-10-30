@@ -21,11 +21,17 @@ const kubeLib = {
     },
 
     getDeployer(options, cb) {
-        let protocol = 'https://',
-            domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`, //TODO: check if options.soajs.registry exits
-            port = '8443'; //static for now, refers to minikube port
+        let kubeURL = '';
+        if(options && options.driver && options.driver.split('.')[1] === 'local') {
+            kubeURL = config.kubernetes.apiHost;
+        }
+        else {
+            let protocol = 'https://',
+                domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`, //TODO: check if options.soajs.registry exits
+                port = '8443'; //static for now, refers to minikube port
 
-        let kubeURL = `${protocol}${domain}:${port}`;
+            kubeURL = `${protocol}${domain}:${port}`;
+        }
 
         let kubernetes = {};
         let kubeConfig = {
