@@ -4,7 +4,7 @@ module.exports = {
 	"apiVersion": "rbac.authorization.k8s.io/v1beta1",
 	"kind": "ClusterRoleBinding",
 	"metadata": {
-		"name": "metrics-server:system:auth-delegator",
+		"name": "metrics-server:system:auth-delegator"
 	},
 	"roleRef": {
 		"apiGroup": "rbac.authorization.k8s.io",

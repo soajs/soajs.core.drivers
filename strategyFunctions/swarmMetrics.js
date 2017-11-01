@@ -15,21 +15,34 @@ const engine = {
 	getServicesMetrics(options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
 			utils.checkError(error, 540, cb, () => {
-				deployer.listContainers({}, (error, containers) => {
-					utils.checkError(error, 684, cb, () => {
-						let params = {
-							"stream": false
-						};
-						async.map(containers, (oneContainer, callback) => {
-							let container = deployer.getContainer(oneContainer.Id);
-							container.stats(params, (error, containerStats) => {
-								callback(error, containerStats);
+				deployer.listNodes((error, nodesList) => {
+					utils.checkError(error, 540, cb, () => {
+						async.concat(nodesList, (oneNode, callback) => {
+							// options.params = {};
+							// options.params.targetHost = oneNode.Status.Addr;
+							lib.getDeployer(options, (error, deployer) => {
+								utils.checkError(error, 540, cb, () => {
+									deployer.listContainers({}, (error, containers) => {
+										utils.checkError(error, 684, cb, () => {
+											let params = {
+												"stream": false
+											};
+											async.map(containers, (oneContainer, callback) => {
+												let container = deployer.getContainer(oneContainer.Id);
+												container.stats(params, (error, containerStats) => {
+													callback(error, containerStats);
+												});
+											}, callback);
+										});
+									});
+								});
 							});
 						}, (error, stats) => {
 							utils.checkError(error, 684, cb, () => {
 								processServicesMetrics(stats, cb);
 							});
 						});
+						
 					});
 				});
 			});

@@ -4,7 +4,7 @@ module.exports = {
 	"apiVersion": "apiregistration.k8s.io/v1beta1",
 	"kind": "APIService",
 	"metadata": {
-		"name": "v1alpha1.metrics",
+		"name": "v1alpha1.metrics"
 	},
 	"spec": {
 		"service": {
