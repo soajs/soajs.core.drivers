@@ -3,6 +3,7 @@
 'use strict';
 
 const utils = require('./utils.js');
+const errors = require('./errors.js');
 
 const Grid = require('gridfs-stream');
 const async = require('async');
@@ -10,11 +11,142 @@ const Docker = require('dockerode');
 
 const gridfsColl = 'fs.files';
 
+const certsCache = {};
+
 const lib = {
     getDeployer (options, cb) {
         let deployer = {};
 
-        if(options && options.driver && options.driver.split('.')[1] === 'local' && !(options.params && options.params.targetHost)) {
+        if(!options.env) {
+            if(options.params && options.params.env) {
+                options.env = options.params.env;
+            }
+            else if(options.soajs && options.soajs.registry && options.soajs.registry.environment) {
+                options.env = options.soajs.registry.environment;
+            }
+            else {
+                return cb({ source: 'driver', value: 'No environment code passed to driver', code: 686, msg: errors[686] });
+            }
+        }
+
+        if(!options.soajs || !options.soajs.registry) {
+            return cb({ source: 'driver', value: 'No environment registry passed to driver', code: 687, msg: errors[687] });
+        }
+
+        if(options && options.driver && options.driver.split('.')[1] === 'local') {
+            // if(!options.params || !options.params.targetHost) {
+            //     return redirectToProxy();
+            // }
+
+            return redirectToProxy();
+        }
+
+        let protocol = 'https://',
+            domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`,
+            port = (options.deployerConfig && options.deployerConfig.apiPort) ? options.deployerConfig.apiPort : '2376'
+
+        if(options && options.params && options.params.targetHost) {
+            domain = options.params.targetHost;
+            if(options.params.targetPort) {
+                port = options.params.targetPort;
+            }
+        }
+        let host = `${protocol}${domain}:${port}`;
+
+        if(!options.model) {
+            options.model = require('../models/mongo.js');
+        }
+
+        findCerts(options, (error, certs) => {
+            //NOTE: error is handled in function
+            deployer = new Docker(buildDockerConfig(host, port, certs));
+            return cb(null, deployer);
+        });
+
+
+        function findCerts(options, cb) {
+            checkCertsCache(options, (error, certs) => {
+                if(certs && Object.keys(certs).length > 0) {
+                    return cb(null, certs);
+                }
+
+                let opts = {
+                    collection: gridfsColl,
+                    conditions: {
+                        ['metadata.env.' + options.env.toUpperCase()]: options.driver
+                    }
+                };
+
+                options.model.findEntries(options.soajs, opts, (error, certs) => {
+                    utils.checkError(error, 684, cb, () => {
+                        utils.checkError(!certs || certs.length === 0, 685, cb, () => {
+                            options.model.getDb(options.soajs).getMongoDB((error, db) => {
+                                utils.checkError(error, 684, cb, () => {
+                                    let gfs = Grid(db, options.model.getDb(options.soajs).mongodb);
+                                    return pullCerts(certs, gfs, db, cb);
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        }
+
+        function checkCertsCache(options, cb) {
+            if(certsCache && certsCache[options.env] && certsCache[options.env][options.driver] && Object.keys(certsCache[options.env][options.driver]).length > 0) {
+                options.deployer = new Docker(buildDockerConfig(host, port, certsCache[options.env][options.driver]));
+                lib.ping(options, (error, response) => {
+                    if(error || response !== 'OK') {
+                        console.log('Cached certificates are not valid, pulling certs again ...');
+                        certsCache[options.env][options.driver] = {};
+
+                        return cb();
+                    }
+                    return cb(null, certsCache[options.env][options.driver]);
+                });
+            }
+
+            return cb();
+        }
+
+        function pullCerts(certs, gfs, db, cb) {
+            var certBuffers = {};
+            async.each(certs, (oneCert, callback) => {
+                var gs = new gfs.mongo.GridStore(db, oneCert._id, 'r', {
+                    root: 'fs',
+                    w: 1,
+                    fsync: true
+                });
+
+                gs.open((error, gstore) => {
+                    if(error) return callback(error);
+
+                    gstore.read((error, filedata) => {
+                        if(error) return callback(error);
+
+                        gstore.close();
+                        certBuffers[oneCert.metadata.certType] = filedata;
+                        return callback(null, true);
+                    });
+                });
+            }, (error, result) => {
+                utils.checkError(error, 684, cb, () => {
+                    return cb(null, certBuffers);
+                });
+            });
+        }
+
+        function buildDockerConfig(host, port, certs) {
+            let dockerConfig = { host, port };
+            let certKeys = Object.keys(certs);
+            certKeys.forEach((oneCertKey) => {
+                dockerConfig[oneCertKey] = certs[oneCertKey];
+            });
+
+            return dockerConfig;
+        }
+
+        function redirectToProxy() {
             let ports = options.soajs.registry.serviceConfig.ports;
             deployer = new Docker({
                 host: ((process.env.SOAJS_ENV) ? process.env.SOAJS_ENV.toLowerCase() : 'dev') + '-controller',
@@ -23,103 +155,6 @@ const lib = {
             });
 
             return cb(null, deployer);
-        }
-
-        let protocol = 'https://',
-            domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`, //TODO: check if options.soajs.registry exits
-            port = '2376'; //static for now
-
-        if(options && options.params && options.params.targetHost) {
-            domain = options.params.targetHost;
-            if(options.params.targetPort) {
-                port = options.params.targetPort;
-            }
-        }
-
-        let host = `${protocol}${domain}:${port}`;
-
-        if(!options.model || Object.keys(options.model).length === 0) {
-            options.model = require('../models/mongo.js');
-        }
-
-        if(!options.env && (options.params && options.params.env)) {
-            options.env = options.params.env;
-        }
-
-        findCerts(options, (error, certs) => {
-            utils.checkError(error, 600, cb, () => {
-                deployer = new Docker(buildDockerConfig(host, port, certs));
-                return cb(null, deployer);
-            });
-        });
-
-
-        function findCerts(options, cb) {
-            if (!options.env) {
-                return cb(600);
-            }
-
-            let opts = {
-                collection: gridfsColl,
-                conditions: {
-                    ['metadata.env.' + options.env.toUpperCase()]: options.driver
-                }
-            };
-
-            options.model.findEntries(options.soajs, opts, (error, certs) => {
-                utils.checkError(error, 600, cb, () => {
-                    if (!certs || certs.length === 0) {
-                        return cb(600);
-                    }
-
-                    options.model.getDb(options.soajs).getMongoDB((error, db) => {
-                        utils.checkError(error, 600, cb, () => {
-                            let gfs = Grid(db, options.model.getDb(options.soajs).mongodb);
-                            return pullCerts(certs, gfs, db, cb);
-                        });
-                    });
-                });
-            });
-        }
-
-        function pullCerts(certs, gfs, db, cb) {
-            var certBuffers = {};
-            async.each(certs, (oneCert, callback) => {
-                var gs = new gfs.mongo.GridStore(db, oneCert._id, 'r', { //TODO: update to support model injection
-                    root: 'fs',
-                    w: 1,
-                    fsync: true
-                });
-
-                gs.open((error, gstore) => {
-                    utils.checkError(error, 600, callback, () => {
-                        gstore.read((error, filedata) => {
-                            utils.checkError(error, 600, callback, () => {
-                                gstore.close();
-
-                                var certName = oneCert.filename.split('.')[0];
-                                certBuffers[oneCert.metadata.certType] = filedata;
-                                return callback(null, true);
-                            });
-                        });
-                    });
-                });
-            }, (error, result) => {
-                utils.checkError(error, 600, cb, () => {
-                    return cb(null, certBuffers);
-                });
-            });
-        }
-
-        function buildDockerConfig(host, port, certs) {
-            let dockerConfig = { host, port };
-
-            let certKeys = Object.keys(certs);
-            certKeys.forEach((oneCertKey) => {
-                dockerConfig[oneCertKey] = certs[oneCertKey];
-            });
-
-            return dockerConfig;
         }
     },
 

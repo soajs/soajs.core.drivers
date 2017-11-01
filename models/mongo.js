@@ -1,8 +1,6 @@
 'use strict';
-/////////////////////////////////
-//NOTE: this does not work!!
-var Mongo = require("soajs").mongo; //TODO: this does not work
-/////////////////////////////////
+
+var Mongo = require("soajs.core.modules").mongo;
 var mongo = null;
 
 function checkForMongo(soajs) {
