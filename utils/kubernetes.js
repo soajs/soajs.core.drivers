@@ -3,6 +3,7 @@
 
 const K8Api = require('kubernetes-client');
 const config = require('../config.js');
+const errors = require('./errors.js');
 
 const kubeLib = {
     buildNameSpace(options){
@@ -22,13 +23,18 @@ const kubeLib = {
 
     getDeployer(options, cb) {
         let kubeURL = '';
+
+        if(!options.soajs || !options.soajs.registry) {
+            return cb({ source: 'driver', value: 'No environment registry passed to driver', code: 687, msg: errors[687] });
+        }
+
         if(options && options.driver && options.driver.split('.')[1] === 'local') {
             kubeURL = config.kubernetes.apiHost;
         }
         else {
             let protocol = 'https://',
-                domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`, //TODO: check if options.soajs.registry exits
-                port = '8443'; //static for now, refers to minikube port
+                domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`,
+                port = (options.deployerConfig && options.deployerConfig.apiPort) ? options.deployerConfig.apiPort : '6443'
 
             kubeURL = `${protocol}${domain}:${port}`;
         }

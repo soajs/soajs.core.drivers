@@ -111,6 +111,11 @@ module.exports = {
     682: "Unable to create service account",
     683: "Unable to delete service account",
 	
-	684: "Unable to get metrics"
+    684: "Unable to get certificates",
+    685: "Certificates for this environment were not found",
+    686: "No environment code passed to driver",
+    687: "No environment registry passed to driver",
+	
+	688: "Unable to get metrics"
 
 };
