@@ -86,6 +86,7 @@ const engine = {
                                 }
 	                            if (namespace) {
 		                            deployer.api.group(oneResource).namespaces(namespace).kind(oneResource)[options.params.action](apiParams, function (error, response) {
+		                            	// if not found (get, delete) or already exists (post) don't return an error
 			                            if (error && (error.code === 404 || error.code === 409)) {
 				                            if (options.params.action === 'get' || options.params.action === 'post') return callback(null, {});
 				                            else if (options.params.action === 'delete') return callback(null, true);

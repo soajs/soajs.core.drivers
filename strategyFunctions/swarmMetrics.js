@@ -18,12 +18,12 @@ const engine = {
 				deployer.listNodes((error, nodesList) => {
 					utils.checkError(error, 540, cb, () => {
 						async.concat(nodesList, (oneNode, callback) => {
-							// options.params = {};
-							// options.params.targetHost = oneNode.Status.Addr;
+							options.params = {};
+							options.params.targetHost = oneNode.Status.Addr;
 							lib.getDeployer(options, (error, deployer) => {
 								utils.checkError(error, 540, cb, () => {
 									deployer.listContainers({}, (error, containers) => {
-										utils.checkError(error, 684, cb, () => {
+										utils.checkError(error, 688, cb, () => {
 											let params = {
 												"stream": false
 											};
@@ -38,7 +38,7 @@ const engine = {
 								});
 							});
 						}, (error, stats) => {
-							utils.checkError(error, 684, cb, () => {
+							utils.checkError(error, 688, cb, () => {
 								processServicesMetrics(stats, cb);
 							});
 						});
@@ -72,7 +72,7 @@ const engine = {
 				}
 				callback();
 			}, function (error) {
-				utils.checkError(error, 684, cb, () => {
+				utils.checkError(error, 688, cb, () => {
 					cb(error, servicesMetrics);
 				});
 			});

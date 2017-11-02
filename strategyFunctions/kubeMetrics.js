@@ -21,7 +21,7 @@ const engine = {
 						return cb(null, {});
 					}
 					else {
-						utils.checkError((error || !servicesMetrics.items), 684, cb, () => {
+						utils.checkError((error || !servicesMetrics.items), 688, cb, () => {
 							processServicesMetrics(servicesMetrics.items, cb);
 						});
 					}
@@ -53,7 +53,7 @@ const engine = {
 				});
 				
 			}, function (error) {
-				utils.checkError(error, 684, cb, () => {
+				utils.checkError(error, 688, cb, () => {
 					cb(error, servicesMetrics);
 				});
 			});
@@ -74,7 +74,7 @@ const engine = {
 						return cb(null, {});
 					}
 					else {
-						utils.checkError((error || !nodesMetrics.items), 684, cb, () => {
+						utils.checkError((error || !nodesMetrics.items), 688, cb, () => {
 							processNodesMetrics(nodesMetrics.items, cb);
 						});
 					}
@@ -101,7 +101,7 @@ const engine = {
 				servicesMetrics[oneMetric.metadata.name] = usage;
 				callback();
 			}, function (error) {
-				utils.checkError(error, 684, cb, () => {
+				utils.checkError(error, 688, cb, () => {
 					cb(error, servicesMetrics);
 				});
 			});
