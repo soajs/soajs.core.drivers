@@ -927,7 +927,25 @@ var engine = {
                                              response += Buffer.from(data.slice(1), 'base64').toString("ascii");
                                          }
                                      });
-                                     ws.on('close', () => callback(response));
+                                     ws.on('close', () => {
+                                         response = response.substring(response.indexOf('{'), response.lastIndexOf('}') + 1);
+
+                                         let operationResponse = {
+                                             id: onePod.metadata.name,
+                                             response: {}
+                                         };
+
+                                         try {
+                                             response = JSON.parse(response);
+                                             operationResponse.response = response;
+                                             return callback(operationResponse);
+                                         }
+                                         catch(e) {
+                                             console.log("Unable to parse maintenance operation output");
+                                             operationResponse.response = true;
+                                             return callback(operationResponse);
+                                         }
+                                     });
                                  }
 
                                  exec(onePod.metadata.name, ['/bin/bash', '-c', `curl -s -X GET http://localhost:${options.params.maintenancePort}/${options.params.operation}`], (response) => {

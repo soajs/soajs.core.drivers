@@ -513,7 +513,26 @@ var engine = {
                                                 let out = '';
                                                 stream.setEncoding('utf8');
                                                 stream.on('data', (data) => { out += data; });
-                                                stream.on('end', () => { return callback(null, out.toString()); });
+                                                stream.on('end', () => {
+                                                    out = out.toString();
+                                                    out = out.substring(out.indexOf('{'), out.lastIndexOf('}') + 1);
+
+                                                    let operationResponse = {
+                                                        id: oneTask.ID,
+                                                        response: {}
+                                                    };
+
+                                                    try {
+                                                        out = JSON.parse(out);
+                                                        operationResponse.response = out;
+                                                        return callback(null, operationResponse);
+                                                    }
+                                                    catch(e) {
+                                                        console.log("Unable to parse maintenance operation output");
+                                                        operationResponse.response = true;
+                                                        return callback(null, operationResponse);
+                                                    }
+                                                });
                                                 stream.on('error', (error) => { return callback(error); });
                                             });
                                         });
