@@ -51,7 +51,8 @@ var engine = {
                     payload.RemoteAddrs = remoteAddrs;
                     payload.JoinToken = ((options.params.role === 'manager') ? cluster.swarm.JoinTokens.Manager : cluster.swarm.JoinTokens.Worker);
 
-                    options.deployerConfig.flags = { targetNode: true, swarmMember: false };
+                    options.params.targetHost = options.params.host;
+                    options.params.targetPort = options.params.port;
                     lib.getDeployer(options, (error, deployer) => {
                         utils.checkError(error, 540, cb, () => {
                             deployer.swarmJoin(payload, (error, res) => {
@@ -81,32 +82,31 @@ var engine = {
      * @returns {*}
      */
     'removeNode': function (options, cb) {
-        /*
-         - get deployer for target node
-         - leave swarm
-         - get deployer of a manager node in the swarm
-         - remove node
-         */
-
-        options.deployerConfig.flags = { targetNode: true, swarmMember: true };
-        lib.getDeployer(options, (error, targetDeployer) => {
-            utils.checkError(error, 540, cb, () => {
-                targetDeployer.swarmLeave((error) => {
-                    utils.checkError(error, 545, cb, () => {
-
-                        delete options.deployerConfig.flags;
-                        lib.getDeployer(options, (error, deployer) => {
-                            utils.checkError(error, 540, cb, () => {
-                                let node = deployer.getNode(options.params.id);
-                                node.remove({force: true}, (error) => {
-                                    utils.checkError(error, 654, cb, cb.bind(null, null, true));
-                                });
-                            });
-                        });
-                    });
-                });
-            });
-        });
+         //get master node deployer
+         lib.getDeployer(options, (error, deployer) => {
+             utils.checkError(error, 540, cb, () => {
+                 let node = deployer.getNode(options.params.nodeId);
+                 node.inspect((error, targetNode) => {
+                     utils.checkError(error, 547, cb, () => {
+                         options.params.targetHost = targetNode.Status.Addr;
+                         //get target node deployer
+                         lib.getDeployer(options, (error, targetDeployer) => {
+                             utils.checkError(error, 540, cb, () => {
+                                 //leave swarm at target node level
+                                 targetDeployer.swarmLeave((error) => {
+                                     utils.checkError(error, 545, cb, () => {
+                                         //remove node from swarm at master node level
+                                         node.remove({ force: true }, (error) => {
+                                             utils.checkError(error, 654, cb, cb.bind(null, null, true));
+                                         });
+                                     });
+                                 });
+                             });
+                         });
+                     });
+                 });
+             });
+         });
     },
 
     /**
