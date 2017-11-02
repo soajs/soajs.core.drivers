@@ -388,13 +388,13 @@ var engine = {
 		    });
 
             function createDeployment() {
-                deployer.extensions.namespaces(namespace)[options.params.type].post({body: payload}, (error) => {
-                    utils.checkError(error, 526, cb, () => {
+                deployer.extensions.namespaces(namespace)[options.params.type].post({ body: payload }, (error, deployment) => {
+                    utils.checkError(error || !deployment || !deployment.metadata, 526, cb, () => {
                         checkServiceAccount(deployer, namespace, (error) => {
                             utils.checkError(error, 682, cb, () => {
                                 checkAutoscaler(options, (error) => {
                                     utils.checkError(error, (error && error.code) || 676, cb, () => {
-                                        return cb(null, true);
+                                        return cb(null, { id: deployment.metadata.name });
                                     });
                                 });
                             });

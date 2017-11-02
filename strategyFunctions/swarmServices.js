@@ -190,7 +190,7 @@ var engine = {
             utils.checkError(error, 540, cb, () => {
                 deployer.createService(payload, (error, service) => {
                     utils.checkError(error, 662, cb, () => {
-                        return cb(null, service);
+                        return cb(null, { id: service.ID });
                     });
                 });
             });
