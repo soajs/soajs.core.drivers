@@ -53,7 +53,7 @@ const lib = {
         }
         let host = `${protocol}${domain}:${port}`;
 
-        if(!options.model) {
+        if(!options.model || Object.keys(options.model).length === 0) {
             options.model = require('../models/mongo.js');
         }
 
