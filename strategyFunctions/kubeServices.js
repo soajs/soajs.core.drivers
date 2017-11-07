@@ -828,12 +828,8 @@ var engine = {
      *
      */
     getContainerLogs (options, cb) {
-
-        let res = options.res;
-        delete options.res;
         lib.getDeployer(options, (error, deployer) => {
-            check(error, 520, () => {
-
+            utils.checkError(error, 520, cb, () => {
                 let params = {
                     qs: {
                         tailLines: options.params.tail || 400
@@ -841,45 +837,16 @@ var engine = {
                 };
                 let namespace = lib.buildNameSpace(options);
                 deployer.core.namespaces(namespace).pods.get({name: options.params.taskId}, (error, pod) => {
-                    check(error, 656, () => {
-                        if (pod.spec && pod.spec.containers && pod.spec.containers.length > 0) {
-                            let controllerContainer = {};
-                            for (let i = 0; i < pod.spec.containers.length; i++) {
-                                if (pod.spec.containers[i].name.indexOf('controller') !== -1) {
-                                    controllerContainer = pod.spec.containers[i];
-                                    break;
-                                }
-                            }
-
-                            if (controllerContainer) {
-                                params.qs.container = controllerContainer.name;
-                            }
-
-
-                            deployer.core.namespaces(namespace).pods(options.params.taskId).log.get(params, (error, logs) => {
-                                check(error, 537, () => {
-                                    if(cb)
-                                        return cb(null,logs);
-                                    return res.jsonp(options.soajs.buildResponse(null, { data: logs }));
-                                });
+                    utils.checkError(error, 656, cb, () => {
+                        deployer.core.namespaces(namespace).pods(options.params.taskId).log.get(params, (error, logs) => {
+                            utils.checkError(error, 537, cb, () => {
+                                return cb(null, logs);
                             });
-                        }
+                        });
                     });
                 });
             });
         });
-
-        function check(error, code, cb1) {
-            if (error && !cb) {
-                console.log (error);
-                return res.jsonp(options.soajs.buildResponse({code: code, msg: errorFile[code]}));
-            }
-            else if (error && cb) {
-                console.log (error);
-                return cb({code: code, msg: errorFile[code]});
-            }
-            return cb1();
-        }
     },
 
     /**
