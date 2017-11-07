@@ -17,6 +17,9 @@ module.exports = {
                 "labels": {}
             },
             "spec": {
+                "updateStrategy": {
+                    "type": "RollingUpdate" //NOTE: this is required to ensure that redeploy service restarts all pods
+                },
                 "containers": [
                     {
                         "name": "",
