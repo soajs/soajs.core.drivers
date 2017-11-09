@@ -63,8 +63,12 @@ const engine = {
 					usage.memoryLimit = oneStat.memory_stats.limit;
 					usage.memPercent = (usage.memory / usage.memoryLimit * 100).toFixed(2);
 					usage.timestamp = oneStat.read;
-					getBlockIO(oneStat.blkio_stats.io_service_bytes_recursive, usage);
-					getNetIO(oneStat.networks, usage);
+					if(oneStat.blkio_stats.io_service_bytes_recursive){
+						getBlockIO(oneStat.blkio_stats.io_service_bytes_recursive, usage);
+					}
+					if(oneStat.networks) {
+						getNetIO(oneStat.networks, usage);
+					}
 					servicesMetrics[containerName] = usage;
 				}
 				catch (e) {
