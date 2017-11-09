@@ -491,7 +491,7 @@ var engine = {
      *
      */
     redeployService (options, cb) {
-        let contentType = options.params.mode;
+        let contentType = options.params.mode || 'deployment';
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
                 let namespace = lib.buildNameSpace(options);

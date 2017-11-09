@@ -7,6 +7,11 @@ const errors = require('./errors.js');
 
 const kubeLib = {
     buildNameSpace(options){
+        //if a namespace is already passed, override registry config and use it
+        if(options.namespace) {
+            return options.namespace;
+        }
+
         let namespace = options.deployerConfig.namespace.default;
 
         if(options.deployerConfig.namespace.perService){
@@ -68,7 +73,7 @@ const kubeLib = {
 
         kubeConfig.version = 'v1';
         kubernetes.autoscaling = new K8Api.Autoscaling(kubeConfig);
-	
+
 	    kubeConfig.version = 'v1alpha1';
 	    kubernetes.metrics = new K8Api.Metrics(kubeConfig);
 
