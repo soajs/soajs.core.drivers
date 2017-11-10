@@ -26,6 +26,26 @@ const kubeLib = {
         return namespace;
     },
 
+    getDeployment(options, deployer, cb) {
+        let type = options.params.mode || 'deployment';
+        let namespace = kubeLib.buildNameSpace(options);
+        deployer.extensions.namespaces(namespace)[type].get({ name: options.params.id }, (error, deployment) => {
+            if(error && error.code !== 404) return cb(error);
+
+            if(deployment && deployment.metadata && deployment.metadata.name) return cb(null, deployment);
+
+            //remaining option is error 404, check daemonsets
+            type = 'daemonset';
+            deployer.extensions.namespaces(namespace)[type].get({ name: options.params.id }, (error, daemonset) => {
+                if(error) return cb(error);
+
+                if(daemonset && daemonset.metadata && daemonset.metadata.name) return cb(null, daemonset);
+
+                return cb();
+            });
+        });
+    },
+
     getDeployer(options, cb) {
         let kubeURL = '';
 

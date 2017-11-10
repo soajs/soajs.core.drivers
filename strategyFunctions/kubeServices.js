@@ -491,12 +491,11 @@ var engine = {
      *
      */
     redeployService (options, cb) {
-        let contentType = options.params.mode || 'deployment';
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
-                let namespace = lib.buildNameSpace(options);
-                deployer.extensions.namespaces(namespace)[contentType].get({name: options.params.id}, (error, deployment) => {
-                    utils.checkError(error, 536, cb, () => {
+                lib.getDeployment(options, deployer, (error, deployment) => {
+                    utils.checkError(error || !deployment, 536, cb, () => {
+                        let namespace = lib.buildNameSpace(options);
                         let check = (deployment.spec && deployment.spec.template && deployment.spec.template.spec && deployment.spec.template.spec.containers && deployment.spec.template.spec.containers[0]);
                         utils.checkError(!check, 653, cb, () => {
                             if (!deployment.spec.template.spec.containers[0].env) deployment.spec.template.spec.containers[0].env = [];
@@ -642,19 +641,18 @@ var engine = {
      *
      */
     inspectService (options, cb) {
-        let contentType = options.params.mode || 'deployment';
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
-                let namespace = lib.buildNameSpace(options);
-                deployer.extensions.namespaces(namespace)[contentType].get(options.params.id, (error, deployment) => {
-                    utils.checkError(error, 536, cb, () => {
+                lib.getDeployment(options, deployer, function(error, deployment) {
+                    utils.checkError(error || !deployment, 536, cb, () => {
+                        let namespace = lib.buildNameSpace(options);
                         let deploymentRecord = lib.buildDeploymentRecord({ deployment });
 
                         if (options.params.excludeTasks) {
                             return cb(null, { service: deploymentRecord });
                         }
 
-                        deployer.core.namespaces(namespace).pods.get({qs: {labelSelector: 'soajs.service.label=' + options.params.id}}, (error, podList) => {
+                        deployer.core.namespaces(namespace).pods.get({ qs: { labelSelector: 'soajs.service.label=' + options.params.id } }, (error, podList) => {
                             utils.checkError(error, 529, cb, () => {
                                 async.map(podList.items, (onePod, callback) => {
                                     return callback(null, lib.buildPodRecord({ pod: onePod }));
@@ -723,52 +721,58 @@ var engine = {
      *
      */
     deleteService (options, cb) {
-        let contentType = options.params.mode;
-        if (contentType === 'deployment') {
-            options.params.scale = 0;
-            engine.scaleService(options, (error) => {
-                utils.checkError(error, 527, cb, () => {
-                    deleteContent();
+        let namespace = lib.buildNameSpace(options);
+        lib.getDeployer(options, (error, deployer) => {
+            utils.checkError(error, 520, cb, () => {
+                lib.getDeployment(options, deployer, (error, deployment) => {
+                    utils.checkError(error || !deployment || !deployment.kind, 536, cb, () => {
+                        if (deployment.kind.toLowerCase() === 'deployment') {
+                            options.params.scale = 0;
+                            engine.scaleService(options, (error) => {
+                                utils.checkError(error, 527, cb, () => {
+                                    deleteContent(deployer, deployment);
+                                });
+                            });
+                        }
+                        else {
+                            deleteContent(deployer, deployment);
+                        }
+                    });
                 });
             });
-        }
-        else {
-            deleteContent();
-        }
+        });
 
-        function deleteContent() {
-            lib.getDeployer(options, (error, deployer) => {
-                utils.checkError(error, 520, cb, () => {
-                    let namespace = lib.buildNameSpace(options);
-                    deployer.extensions.namespaces(namespace)[contentType].delete({name: options.params.id, qs: { gracePeriodSeconds: 0 }}, (error) => {
-                        utils.checkError(error, 534, cb, () => {
-                            let filter = {
-                                labelSelector: 'soajs.service.label=' + options.params.id //kubernetes references content by name not id, therefore id field is set to content name
-                            };
-                            deployer.core.namespaces(namespace).services.get({qs: filter}, (error, servicesList) => { //only one service for a given service can exist
-                                utils.checkError(error, 533, cb, () => {
-                                    if (servicesList && servicesList.items && servicesList.items.length > 0) {
-                                        async.each(servicesList.items, (oneService, callback) => {
-                                            deployer.core.namespaces(namespace).services.delete({name: oneService.metadata.name}, callback);
-                                        }, (error) => {
-                                            utils.checkError(error, 534, cb, () => {
-                                                deleteAutoscaler((error) => {
-                                                    utils.checkError(error, 678, cb, () => {
-                                                        cleanup(deployer, filter);
-                                                    });
-                                                })
-                                            });
-                                        });
-                                    }
-                                    else {
+        function deleteContent(deployer, deployment) {
+            let contentType = deployment.kind.toLowerCase();
+            deployer.extensions.namespaces(namespace)[contentType].delete({name: options.params.id, qs: { gracePeriodSeconds: 0 }}, (error) => {
+                utils.checkError(error, 534, cb, () => {
+                    let filter = {};
+                    if (deployment.spec && deployment.spec.selector && deployment.spec.selector.matchLabels) {
+                        filter.labelSelector = lib.buildLabelSelector(deployment.spec.selector);
+                    }
+
+                    deployer.core.namespaces(namespace).services.get({qs: filter}, (error, servicesList) => { //only one service for a given service can exist
+                        utils.checkError(error, 533, cb, () => {
+                            if (servicesList && servicesList.items && servicesList.items.length > 0) {
+                                async.each(servicesList.items, (oneService, callback) => {
+                                    deployer.core.namespaces(namespace).services.delete({name: oneService.metadata.name}, callback);
+                                }, (error) => {
+                                    utils.checkError(error, 534, cb, () => {
                                         deleteAutoscaler((error) => {
                                             utils.checkError(error, 678, cb, () => {
                                                 cleanup(deployer, filter);
                                             });
-                                        })
-                                    }
+                                        });
+                                    });
                                 });
-                            });
+                            }
+                            else {
+                                deleteAutoscaler((error) => {
+                                    utils.checkError(error, 678, cb, () => {
+                                        cleanup(deployer, filter);
+                                    });
+                                });
+                            }
                         });
                     });
                 });

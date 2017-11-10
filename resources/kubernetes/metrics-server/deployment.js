@@ -7,20 +7,26 @@ module.exports = {
 		"name": "metrics-server",
 		"namespace": "kube-system",
 		"labels": {
-			"k8s-app": "metrics-server"
+			"k8s-app": "metrics-server",
+			"soajs.service.type": "system",
+            "soajs.service.subtype": "other",
 		}
 	},
 	"spec": {
 		"selector": {
 			"matchLabels": {
-				"k8s-app": "metrics-server"
+				"k8s-app": "metrics-server",
+				"soajs.service.type": "system",
+	            "soajs.service.subtype": "other",
 			}
 		},
 		"template": {
 			"metadata": {
 				"name": "metrics-server",
 				"labels": {
-					"k8s-app": "metrics-server"
+					"k8s-app": "metrics-server",
+					"soajs.service.type": "system",
+		            "soajs.service.subtype": "other",
 				}
 			},
 			"spec": {
