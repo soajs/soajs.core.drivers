@@ -35,6 +35,8 @@ const kubeLib = {
             if(deployment && deployment.metadata && deployment.metadata.name) return cb(null, deployment);
 
             //remaining option is error 404, check daemonsets
+            if(error && error.code === 404) console.log(error);
+
             type = 'daemonset';
             deployer.extensions.namespaces(namespace)[type].get({ name: options.params.id }, (error, daemonset) => {
                 if(error) return cb(error);
