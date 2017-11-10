@@ -496,6 +496,7 @@ var engine = {
                 lib.getDeployment(options, deployer, (error, deployment) => {
                     utils.checkError(error || !deployment, 536, cb, () => {
                         let namespace = lib.buildNameSpace(options);
+                        let contentType = deployment.kind.toLowerCase();
                         let check = (deployment.spec && deployment.spec.template && deployment.spec.template.spec && deployment.spec.template.spec.containers && deployment.spec.template.spec.containers[0]);
                         utils.checkError(!check, 653, cb, () => {
                             if (!deployment.spec.template.spec.containers[0].env) deployment.spec.template.spec.containers[0].env = [];
