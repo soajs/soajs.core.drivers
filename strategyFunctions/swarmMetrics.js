@@ -30,6 +30,9 @@ const engine = {
 											async.map(containers, (oneContainer, callback) => {
 												let container = deployer.getContainer(oneContainer.Id);
 												container.stats(params, (error, containerStats) => {
+													if(oneContainer.Names && Array.isArray(oneContainer.Names) && oneContainer.Names.length > 0) {
+														containerStats.containerName = oneContainer.Names[0].replace(/^\//, "")
+													}
 													callback(error, containerStats);
 												});
 											}, callback);
@@ -56,7 +59,7 @@ const engine = {
 					memory: 0.00
 				};
 				try {
-					const containerName = oneStat.name.replace(/^\//, "");
+					const containerName = (oneStat.containerName) ? oneStat.containerName : (oneStat.name) ? oneStat.name.replace(/^\//, "") : "";
 					usage.cpuPercent = getCPU(oneStat);
 					usage.online_cpus = oneStat.precpu_stats.online_cpus;
 					usage.memory = oneStat.memory_stats.usage;
