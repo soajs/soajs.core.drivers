@@ -30,7 +30,7 @@ const engine = {
 											async.map(containers, (oneContainer, callback) => {
 												let container = deployer.getContainer(oneContainer.Id);
 												container.stats(params, (error, containerStats) => {
-													if(oneContainer.Names && Array.isArray(oneContainer.Names) && oneContainer.Names.length > 0) {
+													if(typeof  containerStats === 'object' && oneContainer.Names && Array.isArray(oneContainer.Names) && oneContainer.Names.length > 0) {
 														containerStats.containerName = oneContainer.Names[0].replace(/^\//, "")
 													}
 													callback(error, containerStats);
@@ -54,6 +54,9 @@ const engine = {
 		function processServicesMetrics(stats, cb) {
 			let servicesMetrics = {};
 			async.each(stats, (oneStat, callback) => {
+				if(typeof oneStat !== 'object'){
+					return callback();
+				}
 				let usage = {
 					cpuPercent: 0.00,
 					memory: 0.00
