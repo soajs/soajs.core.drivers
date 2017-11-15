@@ -11,21 +11,31 @@ describe("Testing kubernetes driver functionality", function() {
     let interData = {};
 	let options = {};
 	let template = {};
-    options.deployerConfig = {};
+	var interData = {};
+	var options = {};
+	options.deployerConfig = {
 	
-    options.soajs = {
-        registry: {
-            serviceConfig: {
-                ports: {
-                    controller: 4000,
-                    maintenanceInc: 1000
-                }
-            }
-        }
-    };
+	};
+	options.model = mongoStub;
+	options.soajs = {
+		registry: {
+			serviceConfig: {
+				ports: {
+					controller: 4000,
+					maintenanceInc: 1000
+				}
+			},
+			coreDB: {
+				provision: {
+				
+				}
+			}
+		}
+	};
 
     options.strategy = "kubernetes";
-
+	options.env = "DEV";
+	
     before("get auth token and set it in deployerConfig", function (done) {
         //NOTE: assuming only one secret is available
         shell.exec("kubectl describe secret | grep token: | cut -f 3", function (code, stdout, stderr) {

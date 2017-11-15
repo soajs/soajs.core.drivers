@@ -5,6 +5,47 @@ var helper = require("../helper.js");
 var drivers = helper.requireModule('./index.js');
 var imagePrefix = process.env.SOAJS_IMAGE_PREFIX;
 
+var mongoStub = {
+	checkForMongo: function (soajs) {
+		return true;
+	},
+	validateId: function (soajs, cb) {
+		return cb(null, soajs.inputmaskData.id);
+	},
+	findEntries: function (soajs, opts, cb) {
+		cb(null, ["test"]);
+	},
+	findEntry: function (soajs, opts, cb) {
+		cb(null, {});
+	},
+	removeEntry: function (soajs, opts, cb) {
+		cb(null, true);
+	},
+	saveEntry: function (soajs, opts, cb) {
+		cb(null, true);
+	},
+	insertEntry: function (soajs, opts, cb) {
+		cb(null, true);
+	},
+	updateEntry: function (soajs, opts, cb) {
+		cb(null, true);
+	},
+	initConnection: function (soajs) {
+		return true;
+	},
+	closeConnection: function (soajs) {
+		return true;
+	},
+	getDb: function (soajs) {
+		return {
+			getMongoDB: function(cb) {
+				return cb(null, true);
+			},
+			mongodb: true
+		}
+	}
+};
+
 describe("testing docker swarm driver functionality", function() {
     //Used when data from one testCase is needed in another test case
     var interData = {};
@@ -18,7 +59,12 @@ describe("testing docker swarm driver functionality", function() {
                     controller: 4000,
                     maintenanceInc: 1000
                 }
-            }
+            },
+	        coreDB: {
+		        provision: {
+			
+		        }
+	        }
         }
     };
 
@@ -580,10 +626,8 @@ describe("testing docker swarm driver functionality", function() {
             };
 
             drivers.maintenance(options, function(error, response){
-               assert.ok(error);
-               assert.equal(error.code, "552");
-               assert.equal(error.msg, "Unable to list the docker swarm service tasks");
-               done();
+            	assert.ok(response);
+                done();
             });
         });
 
@@ -607,8 +651,7 @@ describe("testing docker swarm driver functionality", function() {
                 "taskId": "nothing"
             };
             drivers.getContainerLogs(options, function(error, logs){
-                assert.equal(error.code, "555");
-                assert.equal(error.msg, "Unable to inspect the docker swarm task");
+                assert.equal(error.code, "537");
                 assert.ok(error);
                 done();
             });
