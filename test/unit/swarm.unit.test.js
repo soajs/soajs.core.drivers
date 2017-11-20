@@ -5,47 +5,6 @@ var helper = require("../helper.js");
 var drivers = helper.requireModule('./index.js');
 var imagePrefix = process.env.SOAJS_IMAGE_PREFIX;
 
-var mongoStub = {
-	checkForMongo: function (soajs) {
-		return true;
-	},
-	validateId: function (soajs, cb) {
-		return cb(null, soajs.inputmaskData.id);
-	},
-	findEntries: function (soajs, opts, cb) {
-		cb(null, ["test"]);
-	},
-	findEntry: function (soajs, opts, cb) {
-		cb(null, {});
-	},
-	removeEntry: function (soajs, opts, cb) {
-		cb(null, true);
-	},
-	saveEntry: function (soajs, opts, cb) {
-		cb(null, true);
-	},
-	insertEntry: function (soajs, opts, cb) {
-		cb(null, true);
-	},
-	updateEntry: function (soajs, opts, cb) {
-		cb(null, true);
-	},
-	initConnection: function (soajs) {
-		return true;
-	},
-	closeConnection: function (soajs) {
-		return true;
-	},
-	getDb: function (soajs) {
-		return {
-			getMongoDB: function(cb) {
-				return cb(null, true);
-			},
-			mongodb: true
-		}
-	}
-};
-
 describe("testing docker swarm driver functionality", function() {
     //Used when data from one testCase is needed in another test case
     var interData = {};
@@ -62,13 +21,15 @@ describe("testing docker swarm driver functionality", function() {
             },
 	        coreDB: {
 		        provision: {
-			
+
 		        }
 	        }
         }
     };
 
     options.strategy = "swarm";
+	options.driver = 'docker.local';
+	options.env = 'dev';
 
     //Testing the different methods of node and cluster management
     describe("Testing docker swarm cluster/node management", function() {
@@ -143,6 +104,34 @@ describe("testing docker swarm driver functionality", function() {
             });
         });
 
+		//Simulate add node - will not succeed
+        it("Fail - adding node", function(done) {
+			options.params = {
+				host: '127.0.0.1',
+				port: '2376',
+                role: 'manager'
+            };
+
+            drivers.addNode(options, function(error, node){
+                assert.ok(error);
+				assert.equal(error.code, 544);
+				done();
+            });
+        });
+
+		//Simulate delete node - will not succeed
+        it("Fail - deleting node", function(done) {
+			options.params = {
+				nodeId: interData.nodeId
+            };
+
+            drivers.removeNode(options, function(error, node){
+                assert.ok(error);
+				assert.equal(error.code, 545);
+				done();
+            });
+        });
+
     });
 
     //Testing the different methods of service management
@@ -189,6 +178,12 @@ describe("testing docker swarm driver functionality", function() {
                         "name": "maintenance-port",
                         "isPublished": false,
                         "target": 5002
+                    },
+					{
+                        "name": "preserveClientIP-port",
+                        "isPublished": true,
+                        "target": 30111,
+						"preserveClientIP": true
                     }
                 ]
             };
@@ -213,8 +208,8 @@ describe("testing docker swarm driver functionality", function() {
                     'NODE_ENV=production',
                     'SOAJS_ENV=dashboard',
                     'SOAJS_SOLO=true',
-                    'SOAJS_DEPLOY_HA=swarm',
-                    'SOAJS_HA_NAME={{.Task.Name}}',
+					'SOAJS_DEPLOY_HA=$SOAJS_DEPLOY_HA',
+					'SOAJS_HA_NAME=$SOAJS_HA_NAME',
 
                     'SOAJS_PROFILE=/opt/soajs/FILES/profiles/profile.js',
                     'SOAJS_SRV_AUTOREGISTERHOST=true',
@@ -251,8 +246,16 @@ describe("testing docker swarm driver functionality", function() {
                     "maxAttempts": 5
                 },
                 "network": "soajsnet",
-                "ports": [
-                ]
+                "ports": [],
+				"voluming": {
+					"volumes": [
+						{
+							"Type": "volume",
+							"Source": "soajs_log_volume",
+							"Target": "/var/log/soajs/"
+						}
+					]
+				}
             };
 
             drivers.deployService(options, function(error, service){
@@ -274,8 +277,8 @@ describe("testing docker swarm driver functionality", function() {
                     'NODE_ENV=production',
                     'SOAJS_ENV=dashboard',
 
-                    'SOAJS_DEPLOY_HA=swarm',
-                    'SOAJS_HA_NAME={{.Task.Name}}',
+					'SOAJS_DEPLOY_HA=$SOAJS_DEPLOY_HA',
+					'SOAJS_HA_NAME=$SOAJS_HA_NAME',
 
                     'SOAJS_PROFILE=/opt/soajs/FILES/profiles/profile.js',
                     'SOAJS_SRV_AUTOREGISTERHOST=true',
@@ -394,8 +397,8 @@ describe("testing docker swarm driver functionality", function() {
                         'NODE_ENV=production',
                         'SOAJS_ENV=dashboard',
                         'SOAJS_SOLO=true',
-                        'SOAJS_DEPLOY_HA=swarm',
-                        'SOAJS_HA_NAME={{.Task.Name}}',
+						'SOAJS_DEPLOY_HA=$SOAJS_DEPLOY_HA',
+						'SOAJS_HA_NAME=$SOAJS_HA_NAME',
 
                         'SOAJS_PROFILE=/opt/soajs/FILES/profiles/profile.js',
                         'SOAJS_SRV_AUTOREGISTERHOST=true',
@@ -431,7 +434,23 @@ describe("testing docker swarm driver functionality", function() {
                     },
                     "network": "soajsnet",
                     "ports": [
-                    ]
+						{
+	                        "name": "tester-port",
+	                        "target": 4009,
+	                        "isPublished": true,
+							"published": 4009,
+							"preserveClientIP": true
+	                    }
+                    ],
+					"voluming": {
+						"volumes": [
+							{
+				                "Type": "volume",
+				                "Source": "soajs_log_volume",
+				                "Target": "/var/log/soajs/"
+				            }
+						]
+					}
                 }
             };
 
@@ -477,7 +496,8 @@ describe("testing docker swarm driver functionality", function() {
         it("Success - finding service", function(done){
             options.params = {
                 "env": "dashboard",
-                "serviceName": "proxy"
+                "serviceName": "proxy",
+				"version": 1
             };
 
             drivers.findService(options, function(error, service){
@@ -507,6 +527,16 @@ describe("testing docker swarm driver functionality", function() {
             };
             drivers.listServices(options, function(error, service){
                 assert.ok(service);
+                done();
+            });
+        });
+
+        it("Success - listing custom services", function(done){
+            options.params = {
+                custom: true
+            };
+            drivers.listServices(options, function(error, services){
+                assert.ok(services);
                 done();
             });
         });
@@ -568,7 +598,8 @@ describe("testing docker swarm driver functionality", function() {
         it("Success - Getting the service host of a service", function(done){
             options.params = {
                 "env": "dashboard",
-                "serviceName": "proxy"
+                "serviceName": "proxy",
+				"version": 1
             };
 
             drivers.getServiceHost(options, function(error, serviceHost){
@@ -672,6 +703,94 @@ describe("testing docker swarm driver functionality", function() {
             }, 6000);
         });
     });
+
+	//Test the metrics functionality
+	describe("Testing docker swarm metrics", function() {
+
+		it("success - will get container metrics", function(done) {
+			options.params = {};
+			setTimeout(function() {
+				getMetrics(0, function(error, metrics) {
+					assert.ifError(error);
+					assert.ok(metrics);
+					done();
+				});
+			}, 5000);
+
+			//metrics may take some time to be available
+			function getMetrics(counter, cb) {
+				drivers.getServicesMetrics(options, function(error, metrics) {
+					assert.ifError(error);
+
+					if(metrics && Object.keys(metrics).length > 0) {
+						return cb(null, metrics);
+					}
+					else {
+						counter++;
+						if(counter < 20) {
+							setTimeout(function() {
+								return getMetrics(counter, cb);
+							}, 1000);
+						}
+						else {
+							return cb(null, {});
+						}
+					}
+				});
+			}
+		});
+
+	});
+
+	describe("Testing getDeployer()", function() {
+
+		it("success - will get env value from params instead of deployer object", function(done) {
+			options.env = '';
+			options.params = {
+                "env": "dev"
+            };
+            drivers.listServices(options, function(error, services){
+                assert.ok(services);
+                done();
+            });
+		});
+
+		it("success - will get env value from env record instead of deployer object", function(done) {
+			options.env = '';
+			options.params = {};
+			options.soajs.registry.code = 'dev';
+
+            drivers.listServices(options, function(error, services){
+                assert.ok(services);
+                done();
+            });
+		});
+
+		it("fail - no env info passed at all", function(done) {
+			options.env = '';
+			options.params = {};
+			options.soajs.registry.code = '';
+
+            drivers.listServices(options, function(error, services){
+                assert.ok(error);
+				assert.equal(error.code, 540);
+                done();
+            });
+		});
+
+
+		it("fail - no env record passed at all", function(done) {
+			options.env = '';
+			options.params = {};
+			delete options.soajs.registry;
+
+            drivers.listServices(options, function(error, services){
+                assert.ok(error);
+				assert.equal(error.code, 540);
+                done();
+            });
+		});
+	});
 });
 
 

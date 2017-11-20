@@ -11,12 +11,10 @@ describe("Testing kubernetes driver functionality", function() {
     let interData = {};
 	let options = {};
 	let template = {};
-	var interData = {};
-	var options = {};
 	options.deployerConfig = {
-	
+
 	};
-	options.model = mongoStub;
+	options.model = {}; //NOTE: kubernetes driver does not require a mongo connection
 	options.soajs = {
 		registry: {
 			serviceConfig: {
@@ -27,24 +25,15 @@ describe("Testing kubernetes driver functionality", function() {
 			},
 			coreDB: {
 				provision: {
-				
+
 				}
 			}
 		}
 	};
 
     options.strategy = "kubernetes";
+    options.driver = 'kubernetes.local';
 	options.env = "DEV";
-	
-    before("get auth token and set it in deployerConfig", function (done) {
-        //NOTE: assuming only one secret is available
-        shell.exec("kubectl describe secret | grep token: | cut -f 3", function (code, stdout, stderr) {
-            assert.ifError(stderr);
-            options.deployerConfig.auth = { token: stdout.trim() };
-
-            done();
-        });
-    });
 
     //Testing the different namespace methods
     describe("Testing kubernetes namespace management", function() {
@@ -185,7 +174,7 @@ describe("Testing kubernetes driver functionality", function() {
                 done();
             });
         });
-	
+
 	    it("Success - List Kube services", function(done){
 		    options.params = { };
 		    drivers.listKubeServices(options, function(error, services){
@@ -193,7 +182,7 @@ describe("Testing kubernetes driver functionality", function() {
 			    done();
 		    });
 	    });
-	    
+
         //Failure in inspecting node
         it("Fail - inspecting node", function(done) {
             options.deployerConfig.namespace = {
@@ -264,6 +253,23 @@ describe("Testing kubernetes driver functionality", function() {
 
             drivers.updateNode(options, function(error, node){
                 assert.ok(node);
+                done();
+            });
+        });
+
+        it("Fail - remove node", function(done) {
+            options.deployerConfig.namespace = {
+                "default": "soajs",
+                "perService": false
+            };
+
+            options.params = {
+                "id": 'tester'
+            };
+
+            drivers.removeNode(options, function(error, result){
+                assert.ok(error);
+                assert.equal(error.code, 523);
                 done();
             });
         });
@@ -691,14 +697,14 @@ describe("Testing kubernetes driver functionality", function() {
                 }, 2000);
             });
         });
-	
+
 	    //Success in redeploying a deployed service 2
 	    it("Success - redeploy service 2", function(done){
 		    options.deployerConfig.namespace = {
 			    "default": "soajs-test",
 			    "perService": false
 		    };
-		
+
 		    options.params = {
 			    "id": interData.globalId,
 			    "name": "testdeploymentglobalmode",
@@ -760,7 +766,7 @@ describe("Testing kubernetes driver functionality", function() {
 				    }
 			    }
 		    };
-		
+
 		    drivers.redeployService(options, function(error, service){
 			    assert.ok(service);
 			    setTimeout(function () {
@@ -850,8 +856,7 @@ describe("Testing kubernetes driver functionality", function() {
             };
 
             drivers.deleteService(options, function(error, service){
-                assert.equal(error.code, 534);
-                assert.equal(error.msg, "Unable to delete the kubernetes services");
+                assert.equal(error.code, 536);
                 assert.ok(error);
                 done();
             });
@@ -1062,12 +1067,12 @@ describe("Testing kubernetes driver functionality", function() {
             });
         });
     });
-	
+
 	//Test the different scenarios of finding/listing/inspection docker swarm services
 	describe("Testing kubernetes service finding/listing/inspection", function(){
-		
+
 		it("Success - create Autoscaler", function(done){
-			
+
 			options.deployerConfig.namespace = {
 				"default": "soajs",
 				"perService": false
@@ -1089,9 +1094,9 @@ describe("Testing kubernetes driver functionality", function() {
 				done();
 			});
 		});
-		
+
 		it("Success - get Autoscaler", function(done){
-			
+
 			options.deployerConfig.namespace = {
 				"default": "soajs",
 				"perService": false
@@ -1104,9 +1109,9 @@ describe("Testing kubernetes driver functionality", function() {
 				done();
 			});
 		});
-		
+
 		it("Success - update Autoscaler", function(done){
-			
+
 			options.deployerConfig.namespace = {
 				"default": "soajs",
 				"perService": false
@@ -1128,14 +1133,14 @@ describe("Testing kubernetes driver functionality", function() {
 				done();
 			});
 		});
-		
+
 		//Inspecting a service with autoscale
 		it("Success - inpsecting service", function(done){
 			options.deployerConfig.namespace = {
 				"default": "soajs",
 				"perService": false
 			};
-			
+
 			options.params = {
 				"id": interData.replicaId
 			};
@@ -1144,25 +1149,40 @@ describe("Testing kubernetes driver functionality", function() {
 				done();
 			});
 		});
-		
+
 		//Managing Resources post
-		it("Success - managing Resources - post", function(done){
+		it("Success - managing Resources - post - heapster", function(done){
 			options.deployerConfig.namespace = {
 				"default": "soajs",
 				"perService": false
 			};
 			options.params = {
 				"action" : 'post',
-				"resource": 'heapster',
-				"id": interData.replicaId
+				"resource": 'heapster'
 			};
+
 			drivers.manageResources(options, function(error, service){
-				
 				assert.ok(service);
 				done();
 			});
 		});
-		
+
+        it("Success - managing Resources - post - metrics server", function(done){
+			options.deployerConfig.namespace = {
+				"default": "soajs",
+				"perService": false
+			};
+			options.params = {
+				"action" : 'post',
+				"resource": 'metrics-server'
+			};
+
+			drivers.manageResources(options, function(error, service){
+				assert.ok(service);
+				done();
+			});
+		});
+
 		//Managing Resources get with out  template
 		it("Success - managing Resource - get", function(done){
 			options.deployerConfig.namespace = {
@@ -1171,8 +1191,7 @@ describe("Testing kubernetes driver functionality", function() {
 			};
 			options.params = {
 				action : 'get',
-				"resource": 'heapster',
-				"id": interData.replicaId
+				"resource": 'heapster'
 			};
 			drivers.manageResources(options, function(error, service){
 				template = service;
@@ -1180,6 +1199,39 @@ describe("Testing kubernetes driver functionality", function() {
 				done();
 			});
 		});
+
+        //Managing Resources get resource that is not per namespace
+		it("Success - managing Resource - get - resource is not per namespace", function(done){
+			options.deployerConfig.namespace = {
+				"default": "soajs",
+				"perService": false
+			};
+			options.params = {
+				action : 'get',
+				"resource": 'metrics-server'
+			};
+			drivers.manageResources(options, function(error, service){
+				assert.ok(service);
+				done();
+			});
+		});
+
+        //Managing Resources get resource that is not per namespace
+		it.skip("Success - managing Resource - delete - resource is not per namespace", function(done){
+			options.deployerConfig.namespace = {
+				"default": "soajs",
+				"perService": false
+			};
+			options.params = {
+				action : 'delete',
+				"resource": 'heapster'
+			};
+			drivers.manageResources(options, function(error, output){
+				assert.ok(output);
+				done();
+			});
+		});
+
 		//Managing Resources get with template
 		it("Success - managing Resource - get - with template", function(done){
 			options.deployerConfig.namespace = {
@@ -1189,7 +1241,6 @@ describe("Testing kubernetes driver functionality", function() {
 			options.params = {
 				action : 'get',
 				"resource": 'heapster',
-				"id": interData.replicaId,
 				"templates": template
 			};
 			drivers.manageResources(options, function(error, service){
@@ -1197,8 +1248,8 @@ describe("Testing kubernetes driver functionality", function() {
 				done();
 			});
 		});
-		
-		
+
+
 		it("Success - managing Resource - delete", function(done){
 			options.deployerConfig.namespace = {
 				"default": "soajs",
@@ -1214,9 +1265,26 @@ describe("Testing kubernetes driver functionality", function() {
 				done();
 			});
 		});
-		
+
+        //Managing Resources get resource that does not exist
+		it("Fail - managing Resource - invalid resource name passed", function(done){
+			options.deployerConfig.namespace = {
+				"default": "soajs",
+				"perService": false
+			};
+			options.params = {
+				action : 'get',
+				"resource": 'invalid-resource'
+			};
+			drivers.manageResources(options, function(error, service){
+				assert.ok(error);
+                assert.equal(error.code, 681);
+				done();
+			});
+		});
+
 		it("Success - delete Autoscaler", function(done){
-			
+
 			options.deployerConfig.namespace = {
 				"default": "soajs",
 				"perService": false
@@ -1230,9 +1298,9 @@ describe("Testing kubernetes driver functionality", function() {
 				done();
 			});
 		});
-		
+
 	});
-	
+
     //Test the different methods of kubernetes tasks/containers
     describe("Testing kubernetes task operations", function(){
         //Inspecting a task that does not exist
@@ -1246,9 +1314,8 @@ describe("Testing kubernetes driver functionality", function() {
                 "taskId": "nothing"
             };
             drivers.inspectTask(options, function(error, task){
-                assert.equal(error.code, "656");
-                assert.equal(error.msg, "Unable to inspect the specified pod");
                 assert.ok(error);
+                assert.equal(error.code, "656");
                 done();
             });
         });
@@ -1283,7 +1350,6 @@ describe("Testing kubernetes driver functionality", function() {
             drivers.maintenance(options, function(error, response){
                 assert.ok(error);
                 assert.equal(error.code, "657");
-                assert.equal(error.msg, "Could not find a Kubernetes deployment for the specified environment");
                 done();
             });
         });
@@ -1343,4 +1409,74 @@ describe("Testing kubernetes driver functionality", function() {
 
 
     });
+
+	describe("Testing kubernetes metrics", function() {
+
+		it("success - will get service metrics", function(done) {
+			options.params = {};
+            setTimeout(function() {
+                getMetrics(0, function(error, metrics) {
+                    assert.ifError(error);
+    				assert.ok(metrics);
+    				done();
+                });
+            }, 5000);
+
+            //metrics may take some time to be available
+            function getMetrics(counter, cb) {
+                drivers.getServicesMetrics(options, function(error, metrics) {
+    				assert.ifError(error);
+
+                    if(metrics && Object.keys(metrics).length > 0) {
+						return cb(null, metrics);
+					}
+					else {
+						counter++;
+						if(counter < 10) {
+							setTimeout(function() {
+								return getMetrics(counter, cb);
+							}, 1000);
+						}
+						else {
+							return cb(null, {});
+						}
+					}
+    			});
+            }
+		});
+
+        it("success - will get node metrics", function(done) {
+			options.params = {};
+            setTimeout(function() {
+                getMetrics(0, function(error, metrics) {
+                    assert.ifError(error);
+    				assert.ok(metrics);
+    				done();
+                });
+            }, 5000);
+
+            //metrics may take some time to be available
+            function getMetrics(counter, cb) {
+                drivers.getNodesMetrics(options, function(error, metrics) {
+    				assert.ifError(error);
+
+                    if(metrics && Object.keys(metrics).length > 0) {
+						return cb(null, metrics);
+					}
+					else {
+						counter++;
+						if(counter < 10) {
+							setTimeout(function() {
+								return getMetrics(counter, cb);
+							}, 1000);
+						}
+						else {
+							return cb(null, {});
+						}
+					}
+    			});
+            }
+		});
+
+	});
 });

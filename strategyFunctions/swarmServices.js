@@ -144,20 +144,8 @@ var engine = {
             payload.Mode.Replicated.Replicas = options.params.replication.replicas;
         }
 
-        if (options.params.type === 'custom') {
-            if (options.params.volume) {
-                payload.TaskTemplate.ContainerSpec.Mounts.push({
-                    Type: options.params.volume.type,
-                    ReadOnly: options.params.volume.readOnly,
-                    Source: options.params.volume.source,
-                    Target: options.params.volume.target,
-                });
-            }
-        }
-        else {
-            if (options.params.voluming && options.params.voluming.volumes && options.params.voluming.volumes.length > 0) {
-                payload.TaskTemplate.ContainerSpec.Mounts = payload.TaskTemplate.ContainerSpec.Mounts.concat(options.params.voluming.volumes);
-            }
+        if (options.params.voluming && options.params.voluming.volumes && options.params.voluming.volumes.length > 0) {
+            payload.TaskTemplate.ContainerSpec.Mounts = payload.TaskTemplate.ContainerSpec.Mounts.concat(options.params.voluming.volumes);
         }
 
         if (options.params.ports && options.params.ports.length > 0) {
@@ -176,14 +164,6 @@ var engine = {
                     payload.EndpointSpec.ports.push(port);
                 }
             });
-        }
-
-        if (process.env.SOAJS_TEST) {
-            //using lightweight image and commands to optimize travis builds
-            //the purpose of travis builds is to test the dashboard api, not the docker containers
-            payload.TaskTemplate.ContainerSpec.Image = 'alpine:latest';
-            payload.TaskTemplate.ContainerSpec.Command = ['sh'];
-            payload.TaskTemplate.ContainerSpec.Args = ['-c', 'sleep 36000'];
         }
 
         lib.getDeployer(options, (error, deployer) => {

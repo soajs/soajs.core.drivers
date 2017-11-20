@@ -876,7 +876,7 @@ var engine = {
                                  process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
                                  function exec(pod, cmd, callback) {
-                                     let response = '', uri = '';
+                                     let response = '', wsError = {}, uri = '';
 
                                      if(deployer.config && deployer.config.url) {
                                          uri = `wss://${deployer.config.url.split('//')[1]}`; //remove the https protocol
@@ -899,7 +899,23 @@ var engine = {
                                              response += Buffer.from(data.slice(1), 'base64').toString("ascii");
                                          }
                                      });
+
+                                     ws.on('error', (error) => {
+                                         console.log(error);
+                                         wsError = error;
+                                     });
+
                                      ws.on('close', () => {
+                                         if(wsError && Object.keys(wsError).length > 0) {
+                                             return callback({
+                                                 result: false,
+                                                 ts: new Date().getTime(),
+                                                 error: {
+                                                     msg: 'An error occured when trying to reach the target container'
+                                                 }
+                                             });
+                                         }
+
                                          response = response.substring(response.indexOf('{'), response.lastIndexOf('}') + 1);
 
                                          let operationResponse = {

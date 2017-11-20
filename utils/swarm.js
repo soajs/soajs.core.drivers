@@ -21,8 +21,8 @@ const lib = {
             if(options.params && options.params.env) {
                 options.env = options.params.env;
             }
-            else if(options.soajs && options.soajs.registry && options.soajs.registry.environment) {
-                options.env = options.soajs.registry.environment;
+            else if(options.soajs && options.soajs.registry && options.soajs.registry.code) {
+                options.env = options.soajs.registry.code.toLowerCase();
             }
             else {
                 return cb({ source: 'driver', value: 'No environment code passed to driver', code: 686, msg: errors[686] });
