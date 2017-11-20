@@ -35,6 +35,43 @@ describe("Testing kubernetes driver functionality", function() {
     options.driver = 'kubernetes.local';
 	options.env = "DEV";
 
+    describe("Adding kubernetes plugins - heapster and metrics server", function() {
+
+        //Managing Resources post
+		it("Success - managing Resources - post - heapster", function(done){
+			options.deployerConfig.namespace = {
+				"default": "soajs",
+				"perService": false
+			};
+			options.params = {
+				"action" : 'post',
+				"resource": 'heapster'
+			};
+
+			drivers.manageResources(options, function(error, service){
+				assert.ok(service);
+				done();
+			});
+		});
+
+        it("Success - managing Resources - post - metrics server", function(done){
+			options.deployerConfig.namespace = {
+				"default": "soajs",
+				"perService": false
+			};
+			options.params = {
+				"action" : 'post',
+				"resource": 'metrics-server'
+			};
+
+			drivers.manageResources(options, function(error, service){
+				assert.ok(service);
+				done();
+			});
+		});
+
+    });
+
     //Testing the different namespace methods
     describe("Testing kubernetes namespace management", function() {
 
@@ -1145,39 +1182,6 @@ describe("Testing kubernetes driver functionality", function() {
 				"id": interData.replicaId
 			};
 			drivers.inspectService(options, function(error, service){
-				assert.ok(service);
-				done();
-			});
-		});
-
-		//Managing Resources post
-		it("Success - managing Resources - post - heapster", function(done){
-			options.deployerConfig.namespace = {
-				"default": "soajs",
-				"perService": false
-			};
-			options.params = {
-				"action" : 'post',
-				"resource": 'heapster'
-			};
-
-			drivers.manageResources(options, function(error, service){
-				assert.ok(service);
-				done();
-			});
-		});
-
-        it("Success - managing Resources - post - metrics server", function(done){
-			options.deployerConfig.namespace = {
-				"default": "soajs",
-				"perService": false
-			};
-			options.params = {
-				"action" : 'post',
-				"resource": 'metrics-server'
-			};
-
-			drivers.manageResources(options, function(error, service){
 				assert.ok(service);
 				done();
 			});
