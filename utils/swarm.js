@@ -3,6 +3,7 @@
 'use strict';
 
 const utils = require('./utils.js');
+const errors = require('./errors.js');
 
 const Grid = require('gridfs-stream');
 const async = require('async');
@@ -10,31 +11,139 @@ const Docker = require('dockerode');
 
 const gridfsColl = 'fs.files';
 
+const certsCache = {};
+
 const lib = {
     getDeployer (options, cb) {
-        let config = options.deployerConfig, deployer;
+        let deployer = {};
 
-        if (!config.flags || (config.flags && !config.flags.targetNode)) {
-            redirectToProxy();
+        if(!options.env) {
+            if(options.params && options.params.env) {
+                options.env = options.params.env;
+            }
+            else if(options.soajs && options.soajs.registry && options.soajs.registry.code) {
+                options.env = options.soajs.registry.code.toLowerCase();
+            }
+            else {
+                return cb({ source: 'driver', value: 'No environment code passed to driver', code: 686, msg: errors[686] });
+            }
         }
 
-        //remote deployments should use certificates if function requires connecting to a worker node
-        if (config.flags && config.flags.targetNode) {
-            getTargetNode(options, (error, target) => {
-                utils.checkError(error, 600, cb, () => {
-                    //target object in this case contains ip/port of target node
-                    findCerts(options, (error, certs) => {
-                        utils.checkError(error, 600, cb, () => {
-                            deployer = new Docker(buildDockerConfig(target.host, target.port, certs));
-                            lib.ping({ deployer }, (error) => {
-                                utils.checkError(error, 600, cb, () => { //TODO: fix
-                                    return cb(null, deployer);
+        if(!options.soajs || !options.soajs.registry) {
+            return cb({ source: 'driver', value: 'No environment registry passed to driver', code: 687, msg: errors[687] });
+        }
+
+        if(options && options.driver && options.driver.split('.')[1] === 'local') {
+            // if(!options.params || !options.params.targetHost) {
+            //     return redirectToProxy();
+            // }
+
+            return redirectToProxy();
+        }
+
+        let protocol = 'https://',
+            domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`,
+            port = (options.deployerConfig && options.deployerConfig.apiPort) ? options.deployerConfig.apiPort : '2376'
+
+        if(options && options.params && options.params.targetHost) {
+            domain = options.params.targetHost;
+            if(options.params.targetPort) {
+                port = options.params.targetPort;
+            }
+        }
+        let host = `${protocol}${domain}:${port}`;
+
+        if(!options.model || Object.keys(options.model).length === 0) {
+            options.model = require('../models/mongo.js');
+        }
+
+        findCerts(options, (error, certs) => {
+            //NOTE: error is handled in function
+            deployer = new Docker(buildDockerConfig(host, port, certs));
+            return cb(null, deployer);
+        });
+
+
+        function findCerts(options, cb) {
+            checkCertsCache(options, (error, certs) => {
+                if(certs && Object.keys(certs).length > 0) {
+                    return cb(null, certs);
+                }
+
+                let opts = {
+                    collection: gridfsColl,
+                    conditions: {
+                        ['metadata.env.' + options.env.toUpperCase()]: options.driver
+                    }
+                };
+
+                options.model.findEntries(options.soajs, opts, (error, certs) => {
+                    utils.checkError(error, 684, cb, () => {
+                        utils.checkError(!certs || certs.length === 0, 685, cb, () => {
+                            options.model.getDb(options.soajs).getMongoDB((error, db) => {
+                                utils.checkError(error, 684, cb, () => {
+                                    let gfs = Grid(db, options.model.getDb(options.soajs).mongodb);
+                                    return pullCerts(certs, gfs, db, cb);
                                 });
                             });
                         });
                     });
                 });
             });
+        }
+
+        function checkCertsCache(options, cb) {
+            if(certsCache && certsCache[options.env] && certsCache[options.env][options.driver] && Object.keys(certsCache[options.env][options.driver]).length > 0) {
+                options.deployer = new Docker(buildDockerConfig(host, port, certsCache[options.env][options.driver]));
+                lib.ping(options, (error, response) => {
+                    if(error || response !== 'OK') {
+                        console.log('Cached certificates are not valid, pulling certs again ...');
+                        certsCache[options.env][options.driver] = {};
+
+                        return cb();
+                    }
+                    return cb(null, certsCache[options.env][options.driver]);
+                });
+            }
+
+            return cb();
+        }
+
+        function pullCerts(certs, gfs, db, cb) {
+            var certBuffers = {};
+            async.each(certs, (oneCert, callback) => {
+                var gs = new gfs.mongo.GridStore(db, oneCert._id, 'r', {
+                    root: 'fs',
+                    w: 1,
+                    fsync: true
+                });
+
+                gs.open((error, gstore) => {
+                    if(error) return callback(error);
+
+                    gstore.read((error, filedata) => {
+                        if(error) return callback(error);
+
+                        gstore.close();
+                        certBuffers[oneCert.metadata.certType] = filedata;
+                        return callback(null, true);
+                    });
+                });
+            }, (error, result) => {
+                utils.checkError(error, 684, cb, () => {
+                    return cb(null, certBuffers);
+                });
+            });
+        }
+
+        function buildDockerConfig(host, port, certs) {
+            let dockerConfig = { host, port };
+            let certKeys = Object.keys(certs);
+            certKeys.forEach((oneCertKey) => {
+                dockerConfig[oneCertKey] = certs[oneCertKey];
+            });
+
+            return dockerConfig;
         }
 
         function redirectToProxy() {
@@ -44,125 +153,8 @@ const lib = {
                 port: ports.controller + ports.maintenanceInc,
                 version: 'proxySocket'
             });
-            lib.ping({ deployer }, (error) => {
-                utils.checkError(error, 600, cb, () => { //TODO: fix params
-                    return cb(null, deployer);
-                });
-            });
-        }
 
-        function getTargetNode(options, cb) {
-            /**
-             * This function is triggered whenever a connection to a specific node is required. Three options are available:
-             * 1. The target node is a member of the cluster, query the swarm to get its address and return it (example: get logs of a container deployed on cluster member x)
-             * 2. The target node is not a member of the cluster, such as when adding a new node to the cluster
-             */
-            if (config.flags.swarmMember) {
-                if (options.driver.split('.')[1] === 'local') { //local deployment means the cluster has one manager node only
-                    return redirectToProxy();
-                }
-
-                let customOptions = utils.cloneObj(options);
-                delete customOptions.deployerConfig.flags.targetNode;
-
-                //node is already part of the swarm, inspect it to obtain its address
-                inspectNode(customOptions, (error, node) => {
-                    utils.checkError(error, 600, cb, () => { //TODO: wrong error code, update
-                        if (node.role === 'manager') { //option number one
-                            return cb(null, {host: node.managerStatus.address.split(':')[0], port: '2376'}); //TODO: get port from env record, deployer object
-                        }
-                        else {
-                            return cb(null, {host: node.ip, port: '2376'}); //TODO: get port from env record, deployer object
-                        }
-                    });
-                });
-            }
-            else { //option number two
-                //swarmMember = false flag means the target node is a new node that should be added to the cluster, invoked by addNode()
-                //we only need to return the host/port provided by the user, the ping function will later test if a connection can be established
-                return cb(null, {host: options.params.host, port: options.params.port});
-            }
-        }
-
-        function inspectNode(options, cb) {
-            lib.getDeployer(options, (error, deployer) => {
-                utils.checkError(error, 540, cb, () => {
-                    let node = deployer.getNode(options.params.id);
-                    node.inspect((error, node) => {
-                        utils.checkError(error, 547, cb, () => {
-                            return cb(null, lib.buildNodeRecord({ node }));
-                        });
-                    });
-                });
-            });
-        }
-
-        function findCerts(options, cb) {
-            if (!options.env) {
-                return cb(600);
-            }
-
-            let opts = {
-                collection: gridfsColl,
-                conditions: {
-                    ['metadata.env.' + options.env.toUpperCase()]: options.driver
-                }
-            };
-
-            options.model.findEntries(options.soajs, opts, (error, certs) => {
-                utils.checkError(error, 600, cb, () => {
-                    if (!certs || certs.length === 0) {
-                        return cb(600);
-                    }
-
-                    options.model.getDb(options.soajs).getMongoDB((error, db) => {
-                        utils.checkError(error, 600, cb, () => {
-                            let gfs = Grid(db, options.model.getDb(options.soajs).mongodb);
-                            return pullCerts(certs, gfs, db, cb);
-                        });
-                    });
-                });
-            });
-        }
-
-        function pullCerts(certs, gfs, db, cb) {
-            var certBuffers = {};
-            async.each(certs, (oneCert, callback) => {
-                var gs = new gfs.mongo.GridStore(db, oneCert._id, 'r', { //TODO: update to support model injection
-                    root: 'fs',
-                    w: 1,
-                    fsync: true
-                });
-
-                gs.open((error, gstore) => {
-                    utils.checkError(error, 600, callback, () => {
-                        gstore.read((error, filedata) => {
-                            utils.checkError(error, 600, callback, () => {
-                                gstore.close();
-
-                                var certName = oneCert.filename.split('.')[0];
-                                certBuffers[oneCert.metadata.certType] = filedata;
-                                return callback(null, true);
-                            });
-                        });
-                    });
-                });
-            }, (error, result) => {
-                utils.checkError(error, 600, cb, () => {
-                    return cb(null, certBuffers);
-                });
-            });
-        }
-
-        function buildDockerConfig(host, port, certs) {
-            let dockerConfig = { host, port };
-
-            let certKeys = Object.keys(certs);
-            certKeys.forEach((oneCertKey) => {
-                dockerConfig[oneCertKey] = certs[oneCertKey];
-            });
-
-            return dockerConfig;
+            return cb(null, deployer);
         }
     },
 
@@ -286,11 +278,17 @@ const lib = {
 
             if (options.service.Endpoint && options.service.Endpoint.Ports && options.service.Endpoint.Ports.length > 0) {
                 options.service.Endpoint.Ports.forEach((onePortConfig) => {
-                    record.ports.push({
+                    let port = {
                         protocol: onePortConfig.Protocol,
                         target: onePortConfig.TargetPort,
                         published: onePortConfig.PublishedPort
-                    });
+                    };
+
+                    if(onePortConfig.PublishMode && onePortConfig.PublishMode === 'host') {
+                        port.preserveClientIP = true;
+                    }
+
+                    record.ports.push(port);
                 });
             }
         }
@@ -335,7 +333,8 @@ const lib = {
                 if (options.task.Version && options.task.Version.Index) {
                     record.version = options.task.Version.Index;
                 }
-                if (options.serviceName && options.task.Slot) {
+
+                if (options.serviceName) {
                     record.name = options.serviceName + ((options.task.Slot) ? '.' + options.task.Slot : ''); //might add extra value later
                 }
                 if (options.task.Slot) {

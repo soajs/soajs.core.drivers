@@ -97,7 +97,7 @@ var engine = {
 
         let payload = utils.cloneObj(require(serviceSchemaPath));
 
-        for(var i =0; i < options.params.variables.length; i++){
+        for(let i =0; i < options.params.variables.length; i++){
 	        if(options.params.variables[i].indexOf('$SOAJS_DEPLOY_HA') !== -1){
 		        options.params.variables[i] = options.params.variables[i].replace("$SOAJS_DEPLOY_HA", "swarm");
 	        }
@@ -144,47 +144,33 @@ var engine = {
             payload.Mode.Replicated.Replicas = options.params.replication.replicas;
         }
 
-        if (options.params.type === 'custom') {
-            if (options.params.volume) {
-                payload.TaskTemplate.ContainerSpec.Mounts.push({
-                    Type: options.params.volume.type,
-                    ReadOnly: options.params.volume.readOnly,
-                    Source: options.params.volume.source,
-                    Target: options.params.volume.target,
-                });
-            }
-        }
-        else {
-            if (options.params.voluming && options.params.voluming.volumes && options.params.voluming.volumes.length > 0) {
-                payload.TaskTemplate.ContainerSpec.Mounts = payload.TaskTemplate.ContainerSpec.Mounts.concat(options.params.voluming.volumes);
-            }
+        if (options.params.voluming && options.params.voluming.volumes && options.params.voluming.volumes.length > 0) {
+            payload.TaskTemplate.ContainerSpec.Mounts = payload.TaskTemplate.ContainerSpec.Mounts.concat(options.params.voluming.volumes);
         }
 
         if (options.params.ports && options.params.ports.length > 0) {
             options.params.ports.forEach((onePortEntry) => {
                 if (onePortEntry.isPublished) {
-                    payload.EndpointSpec.ports.push({
-                        Protocol: 'tcp',
+                    let port = {
+                        Protocol: onePortEntry.protocol || 'tcp',
                         TargetPort: onePortEntry.target,
                         PublishedPort: onePortEntry.published
-                    });
+                    };
+
+                    if(onePortEntry.preserveClientIP) {
+                        port.PublishMode = 'host';
+                    }
+
+                    payload.EndpointSpec.ports.push(port);
                 }
             });
-        }
-
-        if (process.env.SOAJS_TEST) {
-            //using lightweight image and commands to optimize travis builds
-            //the purpose of travis builds is to test the dashboard api, not the docker containers
-            payload.TaskTemplate.ContainerSpec.Image = 'alpine:latest';
-            payload.TaskTemplate.ContainerSpec.Command = ['sh'];
-            payload.TaskTemplate.ContainerSpec.Args = ['-c', 'sleep 36000'];
         }
 
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
                 deployer.createService(payload, (error, service) => {
                     utils.checkError(error, 662, cb, () => {
-                        return cb(null, service);
+                        return cb(null, { id: service.id });
                     });
                 });
             });
@@ -219,7 +205,7 @@ var engine = {
                             });
                         }
                         else if (options.params.action === 'rebuild') {
-                            for(var i =0; i < options.params.newBuild.variables.length; i++){
+                            for(let i =0; i < options.params.newBuild.variables.length; i++){
                     	        if(options.params.newBuild.variables[i].indexOf('$SOAJS_DEPLOY_HA') !== -1){
                     		        options.params.newBuild.variables[i] = options.params.newBuild.variables[i].replace("$SOAJS_DEPLOY_HA", "swarm");
                     	        }
@@ -247,16 +233,22 @@ var engine = {
                             }
 
                             if (options.params.newBuild.ports && options.params.newBuild.ports.length > 0) {
-                                if (!update.EndpointSpec) update.EndpointSpec = { Mode: 'vip', };
+                                if (!update.EndpointSpec) update.EndpointSpec = { Mode: 'vip' };
                                 update.EndpointSpec.Ports = [];
 
                                 options.params.newBuild.ports.forEach((onePortEntry) => {
                                     if (onePortEntry.isPublished) {
-	                                    update.EndpointSpec.Ports.push({
-                                            Protocol: 'tcp',
+                                        let port = {
+                                            Protocol: onePortEntry.protocol || 'tcp',
                                             TargetPort: onePortEntry.target,
                                             PublishedPort: onePortEntry.published
-                                        });
+                                        };
+
+                                        if(onePortEntry.preserveClientIP) {
+                                            port.PublishMode = 'host';
+                                        }
+
+	                                    update.EndpointSpec.Ports.push(port);
                                     }
                                 });
                             }
@@ -421,68 +413,22 @@ var engine = {
      * @returns {*}
      */
     getContainerLogs (options, cb) {
-        /**
-         * 1. inspect task provided as input, get container id and node id
-         * 2. inspect target node and get its ip
-         * 3. connect to target node and get container logs
-         */
-
-        let res = options.res;
-        delete options.res;
         lib.getDeployer(options, (error, deployer) => {
-            check(error, 540, () => {
-                //NOTE: engine.inspectTask() does not return the container status
+            utils.checkError(error, 540, cb, () => {
                 let task = deployer.getTask(options.params.taskId);
-                task.inspect((error, taskInfo) => {
-                    check(error, 555, () => {
-                        let containerId = taskInfo.Status.ContainerStatus.ContainerID;
-                        let nodeId = taskInfo.NodeID;
-                        options.params.id = nodeId;
-                        options.deployerConfig.flags = { targetNode: true, swarmMember: true };
-                        lib.getDeployer(options, (error, deployer) => {
-                            check(error, 540, () => {
-                                let container = deployer.getContainer(containerId);
-                                let logOptions = {
-                                    stdout: true,
-                                    stderr: true,
-                                    tail: options.params.tail || 400
-                                };
-                                container.logs(logOptions, (error, logStream) => {
-                                    check(error, 537, () => {
-                                        let data, chunk;
-                                        logStream.setEncoding('utf8');
-                                        logStream.on('readable', () => {
-                                            while((chunk = logStream.read()) !== null) {
-                                                data += chunk.toString('utf8');
-                                            }
-                                        });
-
-                                        logStream.on('end', () => {
-                                            logStream.destroy();
-                                            //this if statement is used for test cases.
-                                            //originally, the data is returned as a response due to the limitations of angular
-                                            if(cb)
-                                                return cb(null,data);
-                                            return res.jsonp(options.soajs.buildResponse(null, { data }));
-                                        });
-                                    });
-                                });
-                            });
-                        });
+                let logOptions = {
+                    stdout: true,
+                    stderr: true,
+                    tail: options.params.tail || 400
+                };
+                task.defaultOptions = { log: {} };
+                task.logs(logOptions, (error, data) => {
+                    utils.checkError(error, 537, cb, () => {
+                        return cb(null, { data });
                     });
                 });
             });
         });
-
-        function check(error, code, cb1) {
-            if (error && !cb) {
-                return res.jsonp(options.soajs.buildResponse({code: code, msg: errorFile[code]}));
-            }
-            else if (error && cb) {
-                return cb({code: code, msg: errorFile[code]});
-            }
-            return cb1();
-        }
     },
 
     /**
@@ -495,61 +441,121 @@ var engine = {
     maintenance (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
-                let params = {
-                    filters: { service: [options.params.id] }
-                };
-                deployer.listTasks(params, (error, tasks) => {
-                    utils.checkError(error, 552, cb, () => {
-                        async.map(tasks, (oneTask, callback) => {
-                            async.detect(oneTask.NetworksAttachments, (oneConfig, callback) => {
-                                return callback(null, oneConfig.Network && oneConfig.Network.Spec && oneConfig.Network.Spec.Name === options.params.network);
-                            }, (error, networkInfo) => {
-                                let taskInfo = {
-                                    id: oneTask.ID,
-                                    networkInfo: networkInfo
-                                };
-                                return callback(null, taskInfo);
-                            });
-                        }, (error, targets) => {
-                            async.map(targets, (oneTarget, callback) => {
-                                if (!oneTarget.networkInfo || !oneTarget.networkInfo.Addresses || oneTarget.networkInfo.Addresses.length === 0) {
+                getNodes(deployer, (error, nodesList) => {
+                    getTasks(deployer, (error, tasksList) => {
+                        async.map(tasksList, (oneTask, callback) => {
+                            if(!(oneTask.Status && oneTask.Status.ContainerStatus && oneTask.Status.ContainerStatus.ContainerID && oneTask.Status.State === 'running')) {
+                                return callback(null, {
+                                    result: false,
+                                    ts: new Date().getTime(),
+                                    error: {
+                                        msg: 'Unable to get the ip address of the container'
+                                    }
+                                });
+                            }
+
+                            oneTask.containerId = oneTask.Status.ContainerStatus.ContainerID;
+                            //get the node record of every task and add it to its record
+                            async.detect(nodesList, (oneNode, callback) => {
+                                return callback(null, oneTask.NodeID === oneNode.ID && (oneNode.Status && oneNode.Status.State === 'ready' && oneNode.Status.Addr));
+                            }, (error, taskNode) => {
+                                if(!taskNode) {
                                     return callback(null, {
                                         result: false,
                                         ts: new Date().getTime(),
                                         error: {
-                                            msg: 'Unable to get the ip address of the container'
+                                            msg: 'Unable to get the container\'s node or node is not ready'
                                         }
                                     });
                                 }
-                                let oneIp = oneTarget.networkInfo.Addresses[0].split('/')[0];
-                                let requestOptions = {
-                                    uri: 'http://' + oneIp + ':' + options.params.maintenancePort + '/' + options.params.operation,
-                                    json: true
-                                };
-                                request.get(requestOptions, (error, response, body) => {
-                                    let operationResponse = {
-                                        id: oneTarget.id,
-                                        response: {}
-                                    };
 
-                                    if (error) {
-                                        operationResponse.response = {
+                                oneTask.nodeRecord = taskNode;
+                                options.params.targetHost = oneTask.nodeRecord.Status.Addr;
+                                lib.getDeployer(options, (error, targetDeployer) => {
+                                    if(error) {
+                                        return callback(null, {
                                             result: false,
                                             ts: new Date().getTime(),
-                                            error: error
-                                        };
+                                            error: {
+                                                msg: 'Unable to get the container\'s node or node is not ready'
+                                            }
+                                        });
                                     }
-                                    else {
-                                        operationResponse.response = body;
+
+                                    function exec(containerId, cmd, callback) {
+                                        let container = targetDeployer.getContainer(containerId);
+                                        container.exec({ Cmd: command, AttachStdout: true }, (error, exec) => {
+                                            if(error) return callback(error);
+
+                                            exec.start({}, (error, stream) => {
+                                                if(error) return callback(error);
+
+                                                let out = '';
+                                                stream.setEncoding('utf8');
+                                                stream.on('data', (data) => { out += data; });
+                                                stream.on('end', () => {
+                                                    out = out.toString();
+                                                    out = out.substring(out.indexOf('{'), out.lastIndexOf('}') + 1);
+
+                                                    let operationResponse = {
+                                                        id: oneTask.ID,
+                                                        response: {}
+                                                    };
+
+                                                    try {
+                                                        out = JSON.parse(out);
+                                                        operationResponse.response = out;
+                                                        return callback(null, operationResponse);
+                                                    }
+                                                    catch(e) {
+                                                        console.log("Unable to parse maintenance operation output");
+                                                        operationResponse.response = true;
+                                                        return callback(null, operationResponse);
+                                                    }
+                                                });
+                                                stream.on('error', (error) => { return callback(error); });
+                                            });
+                                        });
                                     }
-                                    return callback(null, operationResponse);
+
+                                    let command = [`curl`, '-s', `-X`, `GET`, `http://localhost:${options.params.maintenancePort}/${options.params.operation}`];
+                                    return exec(oneTask.containerId, command, (error, response) => {
+                                        if(error) {
+                                            return callback(null, {
+                                                result: false,
+                                                ts: new Date().getTime(),
+                                                error: {
+                                                    msg: 'Unable to perform maintenance operation on container, error: ' + error.message
+                                                }
+                                            });
+                                        }
+
+                                        return callback(null, response);
+                                    });
                                 });
-                            }, cb);
-                        });
+                            });
+                        }, cb);
                     });
-                });
+                })
             });
         });
+
+        function getNodes(deployer, cb) {
+            deployer.listNodes((error, nodesList) => {
+                utils.checkError(error, 540, cb, () => {
+                    return cb(null, nodesList);
+                });
+            });
+        }
+
+        function getTasks(deployer, cb) {
+            let params = { filters: { service: [options.params.id] } };
+            deployer.listTasks(params, (error, tasksList) => {
+                utils.checkError(error, 552, cb, () => {
+                    return cb(null, tasksList);
+                });
+            });
+        }
     },
 
     /**

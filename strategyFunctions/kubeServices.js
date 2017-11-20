@@ -7,6 +7,7 @@ const autoscaler = require('./kubeAutoscale.js');
 
 const errorFile = require('../utils/errors.js');
 
+const WebSocket = require('ws');
 const async = require('async');
 const request = require('request');
 const utilLog = require('util');
@@ -32,7 +33,7 @@ var engine = {
                         }, function (error, foundNamespace) {
                             utils.checkError(foundNamespace, 672, cb, () => {
                                 utilLog.log('Creating a new namespace: ' + namespaceName + ' ...');
-                                var namespace = {
+                                let namespace = {
                                     kind: 'Namespace',
                                     apiVersion: 'v1',
                                     metadata: {
@@ -211,7 +212,7 @@ var engine = {
      *
      */
     deployService (options, cb) {
-	    for(var i =0; i < options.params.variables.length; i++){
+	    for(let i =0; i < options.params.variables.length; i++){
 		    if(options.params.variables[i].indexOf('$SOAJS_DEPLOY_HA') !== -1){
 			    options.params.variables[i] = options.params.variables[i].replace("$SOAJS_DEPLOY_HA","kubernetes");
 			    break;
@@ -237,7 +238,7 @@ var engine = {
 
             options.params.ports.forEach((onePortEntry, portIndex) => {
                 let portConfig = {
-                    protocol: 'TCP',
+                    protocol: ((onePortEntry.protocol) ? onePortEntry.protocol.toUpperCase() : 'TCP'),
                     name: onePortEntry.name || 'port' + portIndex,
                     port: onePortEntry.port || onePortEntry.target,
                     targetPort: onePortEntry.target
@@ -256,6 +257,10 @@ var engine = {
                     }
 
                     portConfig.name = onePortEntry.name || 'published' + portConfig.name;
+
+                    if(onePortEntry.preserveClientIP) {
+                        service.spec.externalTrafficPolicy = 'Local';
+                    }
                 }
 
                 ports.push(portConfig);
@@ -383,13 +388,13 @@ var engine = {
 		    });
 
             function createDeployment() {
-                deployer.extensions.namespaces(namespace)[options.params.type].post({body: payload}, (error) => {
-                    utils.checkError(error, 526, cb, () => {
+                deployer.extensions.namespaces(namespace)[options.params.type].post({ body: payload }, (error, deployment) => {
+                    utils.checkError(error || !deployment || !deployment.metadata, 526, cb, () => {
                         checkServiceAccount(deployer, namespace, (error) => {
                             utils.checkError(error, 682, cb, () => {
                                 checkAutoscaler(options, (error) => {
                                     utils.checkError(error, (error && error.code) || 676, cb, () => {
-                                        return cb(null, true);
+                                        return cb(null, { id: deployment.metadata.name });
                                     });
                                 });
                             });
@@ -417,7 +422,7 @@ var engine = {
                         return cb(null, true);
                     }
 
-                    var namespace = {
+                    let namespace = {
                         kind: 'Namespace',
                         apiVersion: 'v1',
                         metadata: {
@@ -486,12 +491,12 @@ var engine = {
      *
      */
     redeployService (options, cb) {
-        let contentType = options.params.mode;
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
-                let namespace = lib.buildNameSpace(options);
-                deployer.extensions.namespaces(namespace)[contentType].get({name: options.params.id}, (error, deployment) => {
-                    utils.checkError(error, 536, cb, () => {
+                lib.getDeployment(options, deployer, (error, deployment) => {
+                    utils.checkError(error || !deployment, 536, cb, () => {
+                        let namespace = lib.buildNameSpace(options);
+                        let contentType = deployment.kind.toLowerCase();
                         let check = (deployment.spec && deployment.spec.template && deployment.spec.template.spec && deployment.spec.template.spec.containers && deployment.spec.template.spec.containers[0]);
                         utils.checkError(!check, 653, cb, () => {
                             if (!deployment.spec.template.spec.containers[0].env) deployment.spec.template.spec.containers[0].env = [];
@@ -504,7 +509,7 @@ var engine = {
                             }
                             else if (options.params.action === 'rebuild') {
                             	if (options.params.newBuild.variables && Array.isArray(options.params.newBuild.variables)){
-		                            for(var i = 0; i < options.params.newBuild.variables.length; i++){
+		                            for(let i = 0; i < options.params.newBuild.variables.length; i++){
 			                            if(options.params.newBuild.variables[i].indexOf('$SOAJS_DEPLOY_HA') !== -1){
 				                            options.params.newBuild.variables[i] = options.params.newBuild.variables[i].replace("$SOAJS_DEPLOY_HA","kubernetes");
 				                            break;
@@ -583,11 +588,11 @@ var engine = {
         });
 
         function AddServicePorts(service, ports) {
-            let portsOutput = [];
+            let portsOutput = [], preserveClientIP = false;
             if (ports && ports.length > 0) {
                 ports.forEach((onePortEntry, portIndex) => {
                     let portConfig = {
-                        protocol: 'TCP',
+                        protocol: ((onePortEntry.protocol) ? onePortEntry.protocol.toUpperCase() : 'TCP'),
                         name: onePortEntry.name || 'port' + portIndex,
                         port: onePortEntry.target,
                         targetPort: onePortEntry.target
@@ -606,10 +611,19 @@ var engine = {
                         }
 
                         portConfig.name = onePortEntry.name || 'published' + portConfig.name;
+
+                        if(onePortEntry.preserveClientIP) {
+                            service.spec.externalTrafficPolicy = 'Local';
+                            preserveClientIP = true;
+                        }
                     }
 
                     portsOutput.push(portConfig);
                 });
+
+                if(!preserveClientIP && service && service.spec && service.spec.externalTrafficPolicy === 'Local') {
+                    delete service.spec.externalTrafficPolicy;
+                }
 
                 service.spec.ports = portsOutput;
                 return service;
@@ -630,16 +644,16 @@ var engine = {
     inspectService (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 520, cb, () => {
-                let namespace = lib.buildNameSpace(options);
-                deployer.extensions.namespaces(namespace).deployment.get(options.params.id, (error, deployment) => {
-                    utils.checkError(error, 536, cb, () => {
+                lib.getDeployment(options, deployer, function(error, deployment) {
+                    utils.checkError(error || !deployment, 536, cb, () => {
+                        let namespace = lib.buildNameSpace(options);
                         let deploymentRecord = lib.buildDeploymentRecord({ deployment });
 
                         if (options.params.excludeTasks) {
                             return cb(null, { service: deploymentRecord });
                         }
 
-                        deployer.core.namespaces(namespace).pods.get({qs: {labelSelector: 'soajs.service.label=' + options.params.id}}, (error, podList) => {
+                        deployer.core.namespaces(namespace).pods.get({ qs: { labelSelector: 'soajs.service.label=' + options.params.id } }, (error, podList) => {
                             utils.checkError(error, 529, cb, () => {
                                 async.map(podList.items, (onePod, callback) => {
                                     return callback(null, lib.buildPodRecord({ pod: onePod }));
@@ -708,52 +722,58 @@ var engine = {
      *
      */
     deleteService (options, cb) {
-        let contentType = options.params.mode;
-        if (contentType === 'deployment') {
-            options.params.scale = 0;
-            engine.scaleService(options, (error) => {
-                utils.checkError(error, 527, cb, () => {
-                    deleteContent();
+        let namespace = lib.buildNameSpace(options);
+        lib.getDeployer(options, (error, deployer) => {
+            utils.checkError(error, 520, cb, () => {
+                lib.getDeployment(options, deployer, (error, deployment) => {
+                    utils.checkError(error || !deployment || !deployment.kind, 536, cb, () => {
+                        if (deployment.kind.toLowerCase() === 'deployment') {
+                            options.params.scale = 0;
+                            engine.scaleService(options, (error) => {
+                                utils.checkError(error, 527, cb, () => {
+                                    deleteContent(deployer, deployment);
+                                });
+                            });
+                        }
+                        else {
+                            deleteContent(deployer, deployment);
+                        }
+                    });
                 });
             });
-        }
-        else {
-            deleteContent();
-        }
+        });
 
-        function deleteContent() {
-            lib.getDeployer(options, (error, deployer) => {
-                utils.checkError(error, 520, cb, () => {
-                    let namespace = lib.buildNameSpace(options);
-                    deployer.extensions.namespaces(namespace)[contentType].delete({name: options.params.id, qs: { gracePeriodSeconds: 0 }}, (error) => {
-                        utils.checkError(error, 534, cb, () => {
-                            let filter = {
-                                labelSelector: 'soajs.service.label=' + options.params.id //kubernetes references content by name not id, therefore id field is set to content name
-                            };
-                            deployer.core.namespaces(namespace).services.get({qs: filter}, (error, servicesList) => { //only one service for a given service can exist
-                                utils.checkError(error, 533, cb, () => {
-                                    if (servicesList && servicesList.items && servicesList.items.length > 0) {
-                                        async.each(servicesList.items, (oneService, callback) => {
-                                            deployer.core.namespaces(namespace).services.delete({name: oneService.metadata.name}, callback);
-                                        }, (error) => {
-                                            utils.checkError(error, 534, cb, () => {
-                                                deleteAutoscaler((error) => {
-                                                    utils.checkError(error, 678, cb, () => {
-                                                        cleanup(deployer, filter);
-                                                    });
-                                                })
-                                            });
-                                        });
-                                    }
-                                    else {
+        function deleteContent(deployer, deployment) {
+            let contentType = deployment.kind.toLowerCase();
+            deployer.extensions.namespaces(namespace)[contentType].delete({name: options.params.id, qs: { gracePeriodSeconds: 0 }}, (error) => {
+                utils.checkError(error, 534, cb, () => {
+                    let filter = {};
+                    if (deployment.spec && deployment.spec.selector && deployment.spec.selector.matchLabels) {
+                        filter.labelSelector = lib.buildLabelSelector(deployment.spec.selector);
+                    }
+
+                    deployer.core.namespaces(namespace).services.get({qs: filter}, (error, servicesList) => { //only one service for a given service can exist
+                        utils.checkError(error, 533, cb, () => {
+                            if (servicesList && servicesList.items && servicesList.items.length > 0) {
+                                async.each(servicesList.items, (oneService, callback) => {
+                                    deployer.core.namespaces(namespace).services.delete({name: oneService.metadata.name}, callback);
+                                }, (error) => {
+                                    utils.checkError(error, 534, cb, () => {
                                         deleteAutoscaler((error) => {
                                             utils.checkError(error, 678, cb, () => {
                                                 cleanup(deployer, filter);
                                             });
-                                        })
-                                    }
+                                        });
+                                    });
                                 });
-                            });
+                            }
+                            else {
+                                deleteAutoscaler((error) => {
+                                    utils.checkError(error, 678, cb, () => {
+                                        cleanup(deployer, filter);
+                                    });
+                                });
+                            }
                         });
                     });
                 });
@@ -813,12 +833,8 @@ var engine = {
      *
      */
     getContainerLogs (options, cb) {
-
-        let res = options.res;
-        delete options.res;
         lib.getDeployer(options, (error, deployer) => {
-            check(error, 520, () => {
-
+            utils.checkError(error, 520, cb, () => {
                 let params = {
                     qs: {
                         tailLines: options.params.tail || 400
@@ -826,45 +842,16 @@ var engine = {
                 };
                 let namespace = lib.buildNameSpace(options);
                 deployer.core.namespaces(namespace).pods.get({name: options.params.taskId}, (error, pod) => {
-                    check(error, 656, () => {
-                        if (pod.spec && pod.spec.containers && pod.spec.containers.length > 0) {
-                            let controllerContainer = {};
-                            for (let i = 0; i < pod.spec.containers.length; i++) {
-                                if (pod.spec.containers[i].name.indexOf('controller') !== -1) {
-                                    controllerContainer = pod.spec.containers[i];
-                                    break;
-                                }
-                            }
-
-                            if (controllerContainer) {
-                                params.qs.container = controllerContainer.name;
-                            }
-
-
-                            deployer.core.namespaces(namespace).pods(options.params.taskId).log.get(params, (error, logs) => {
-                                check(error, 537, () => {
-                                    if(cb)
-                                        return cb(null,logs);
-                                    return res.jsonp(options.soajs.buildResponse(null, { data: logs }));
-                                });
+                    utils.checkError(error, 656, cb, () => {
+                        deployer.core.namespaces(namespace).pods(options.params.taskId).log.get(params, (error, logs) => {
+                            utils.checkError(error, 537, cb, () => {
+                                return cb(null, logs);
                             });
-                        }
+                        });
                     });
                 });
             });
         });
-
-        function check(error, code, cb1) {
-            if (error && !cb) {
-                console.log (error);
-                return res.jsonp(options.soajs.buildResponse({code: code, msg: errorFile[code]}));
-            }
-            else if (error && cb) {
-                console.log (error);
-                return cb({code: code, msg: errorFile[code]});
-            }
-            return cb1();
-        }
     },
 
     /**
@@ -874,65 +861,92 @@ var engine = {
      * @param {Function} cb
      *
      */
-    maintenance (options, cb) {
-        lib.getDeployer(options, (error, deployer) => {
-            utils.checkError(error, 520, cb, () => {
-                let filter = {
-                    labelSelector: 'soajs.service.label=' + options.params.id //kubernetes references content by name not id, therefore id field is set to content name
-                };
-                let namespace = lib.buildNameSpace(options);
-                deployer.core.namespaces(namespace).pods.get({qs: filter}, (error, podsList) => {
-                    utils.checkError(error, 659, cb, () => {
-                        utils.checkError(!podsList || !podsList.items || podsList.items.length === 0, 657, cb, () => {
-                            async.map(podsList.items, (onePod, callback) => {
-                                let podInfo = {
-                                    id: onePod.metadata.name,
-                                    ipAddress: ((onePod.status && onePod.status.podIP) ? onePod.status.podIP : null)
-                                };
-                                return callback(null, podInfo);
-                            }, (error, targets) => {
-                                async.map(targets, (oneTarget, callback) => {
-                                    if (!oneTarget.ipAddress) {
-                                        return callback(null, {
-                                            result: false,
-                                            ts: new Date().getTime(),
-                                            error: {
-                                                msg: 'Unable to get the ip address of the pod'
-                                            }
-                                        });
-                                    }
+     maintenance (options, cb) {
+         lib.getDeployer(options, (error, deployer) => {
+             utils.checkError(error, 520, cb, () => {
+                 let filter = {
+                     labelSelector: 'soajs.service.label=' + options.params.id //kubernetes references content by name not id, therefore id field is set to content name
+                 };
 
-                                    let requestOptions = {
-                                        uri: 'http://' + oneTarget.ipAddress + ':' + options.params.maintenancePort + '/' + options.params.operation,
-                                        json: true
-                                    };
-                                    request.get(requestOptions, (error, response, body) => {
-                                        let operationResponse = {
-                                            id: oneTarget.id,
-                                            response: {}
-                                        };
+                 let namespace = lib.buildNameSpace(options);
+                 deployer.core.namespaces(namespace).pods.get({ qs: filter }, (error, podList) => {
+                     utils.checkError(error, 659, cb, () => {
+                         utils.checkError(!podList || !podList.items || podList.items.length === 0, 657, cb, () => {
+                             async.map(podList.items, (onePod, callback) => {
+                                 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
-                                        if (error) {
-                                            operationResponse.response = {
-                                                result: false,
-                                                ts: new Date().getTime(),
-                                                error: error
-                                            };
-                                        }
-                                        else {
-                                            operationResponse.response = body;
-                                        }
+                                 function exec(pod, cmd, callback) {
+                                     let response = '', wsError = {}, uri = '';
 
-                                        return callback(null, operationResponse);
-                                    });
-                                }, cb);
-                            });
-                        });
-                    });
-                });
-            });
-        });
-    },
+                                     if(deployer.config && deployer.config.url) {
+                                         uri = `wss://${deployer.config.url.split('//')[1]}`; //remove the https protocol
+                                     }
+
+                                     uri += `/api/v1/namespaces/${namespace}/pods/${onePod.metadata.name}/exec?`;
+                                     uri += 'stdout=1&stdin=1&stderr=1';
+                                     cmd.forEach(subCmd => uri += `&command=${encodeURIComponent(subCmd)}`);
+
+                                     let wsOptions = {};
+                                     if(deployer.config && deployer.config.auth && deployer.config.auth.bearer) {
+                                         wsOptions.headers = {
+                                             'Authorization': `Bearer ${deployer.config.auth.bearer}`
+                                         }
+                                     }
+
+                                     let ws = new WebSocket(uri, "base64.channel.k8s.io", wsOptions);
+                                     ws.on('message', (data) => {
+                                         if (data[0].match(/^[0-3]$/)) {
+                                             response += Buffer.from(data.slice(1), 'base64').toString("ascii");
+                                         }
+                                     });
+
+                                     ws.on('error', (error) => {
+                                         console.log(error);
+                                         wsError = error;
+                                     });
+
+                                     ws.on('close', () => {
+                                         if(wsError && Object.keys(wsError).length > 0) {
+                                             return callback({
+                                                 result: false,
+                                                 ts: new Date().getTime(),
+                                                 error: {
+                                                     msg: 'An error occured when trying to reach the target container'
+                                                 }
+                                             });
+                                         }
+
+                                         response = response.substring(response.indexOf('{'), response.lastIndexOf('}') + 1);
+
+                                         let operationResponse = {
+                                             id: onePod.metadata.name,
+                                             response: {}
+                                         };
+
+                                         try {
+                                             response = JSON.parse(response);
+                                             operationResponse.response = response;
+                                             return callback(operationResponse);
+                                         }
+                                         catch(e) {
+                                             console.log("Unable to parse maintenance operation output");
+                                             operationResponse.response = true;
+                                             return callback(operationResponse);
+                                         }
+                                     });
+                                 }
+
+                                 exec(onePod.metadata.name, ['/bin/bash', '-c', `curl -s -X GET http://localhost:${options.params.maintenancePort}/${options.params.operation}`], (response) => {
+                                     return callback(null, response);
+                                 }
+                             )
+                         }, cb);
+                     });
+                 });
+             });
+         });
+     });
+ },
 
 
     /**

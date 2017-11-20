@@ -11,6 +11,9 @@ module.exports = {
         "selector": {
             "matchLabels": ""
         },
+        "updateStrategy": {
+            "type": "RollingUpdate" //NOTE: this is required to ensure that redeploy service restarts pods
+        },
         "template": {
             "metadata": {
                 "name": "",

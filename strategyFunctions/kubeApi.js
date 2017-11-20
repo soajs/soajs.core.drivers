@@ -76,7 +76,7 @@ const engine = {
                         utils.checkError(error, 681, cb, () => {
                             options.params.resources = templates;
                             async.mapSeries(options.params.resources, (oneResource, callback) => {
-                                let namespace = (oneResource && oneResource.metadata && oneResource.metadata.namespace) ? oneResource.metadata.namespace : 'default';
+                                let namespace = (oneResource && oneResource.metadata && oneResource.metadata.namespace) ? oneResource.metadata.namespace : null;
                                 let apiParams = {};
                                 if (['post'].indexOf(options.params.action) !== -1) {
                                     apiParams = { body: oneResource };
@@ -84,14 +84,24 @@ const engine = {
                                 else if (['get', 'delete'].indexOf(options.params.action) !== -1 && oneResource.metadata && oneResource.metadata.name) {
                                     apiParams = { name: oneResource.metadata.name };
                                 }
-
-                                deployer.api.group(oneResource).namespaces(namespace).kind(oneResource)[options.params.action](apiParams, function (error, response) {
-                                    if (error && error.code === 404) {
-                                        if (options.params.action === 'get') return callback(null, {});
-                                        else if (options.params.action === 'delete') return callback(null, true);
-                                    }
-                                    return callback(error, response);
-                                });
+	                            if (namespace) {
+		                            deployer.api.group(oneResource).namespaces(namespace).kind(oneResource)[options.params.action](apiParams, function (error, response) {
+		                            	// if not found (get, delete) or already exists (post) don't return an error
+			                            if (error && (error.code === 404 || error.code === 409)) {
+				                            if (options.params.action === 'get' || options.params.action === 'post') return callback(null, {});
+				                            else if (options.params.action === 'delete') return callback(null, true);
+			                            }
+			                            return callback(error, response);
+		                            });
+	                            } else {
+		                            deployer.api.group(oneResource).kind(oneResource)[options.params.action](apiParams, function (error, response) {
+			                            if (error && (error.code === 404 || error.code === 409)) {
+				                            if (options.params.action === 'get' || options.params.action === 'post') return callback(null, {});
+				                            else if (options.params.action === 'delete') return callback(null, true);
+			                            }
+			                            return callback(error, response);
+		                            });
+	                            }
                             }, (error, results) => {
                                 return utils.checkError(error, 680, cb, cb.bind(null, null, (options.params.action === 'get') ? results : true));
                             });

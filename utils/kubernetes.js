@@ -3,9 +3,15 @@
 
 const K8Api = require('kubernetes-client');
 const config = require('../config.js');
+const errors = require('./errors.js');
 
 const kubeLib = {
     buildNameSpace(options){
+        //if a namespace is already passed, override registry config and use it
+        if(options.namespace) {
+            return options.namespace;
+        }
+
         let namespace = options.deployerConfig.namespace.default;
 
         if(options.deployerConfig.namespace.perService){
@@ -20,8 +26,45 @@ const kubeLib = {
         return namespace;
     },
 
+    getDeployment(options, deployer, cb) {
+        let type = options.params.mode || 'deployment';
+        let namespace = kubeLib.buildNameSpace(options);
+        deployer.extensions.namespaces(namespace)[type].get({ name: options.params.id }, (error, deployment) => {
+            if(error && error.code !== 404) return cb(error);
+
+            if(deployment && deployment.metadata && deployment.metadata.name) return cb(null, deployment);
+
+            //remaining option is error 404, check daemonsets
+            if(error && error.code === 404) console.log(error);
+
+            type = 'daemonset';
+            deployer.extensions.namespaces(namespace)[type].get({ name: options.params.id }, (error, daemonset) => {
+                if(error) return cb(error);
+
+                if(daemonset && daemonset.metadata && daemonset.metadata.name) return cb(null, daemonset);
+
+                return cb();
+            });
+        });
+    },
+
     getDeployer(options, cb) {
-        let kubeURL = config.kubernetes.apiHost;
+        let kubeURL = '';
+
+        if(!options.soajs || !options.soajs.registry) {
+            return cb({ source: 'driver', value: 'No environment registry passed to driver', code: 687, msg: errors[687] });
+        }
+
+        if(options && options.driver && options.driver.split('.')[1] === 'local') {
+            kubeURL = config.kubernetes.apiHost;
+        }
+        else {
+            let protocol = 'https://',
+                domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`,
+                port = (options.deployerConfig && options.deployerConfig.apiPort) ? options.deployerConfig.apiPort : '6443'
+
+            kubeURL = `${protocol}${domain}:${port}`;
+        }
 
         let kubernetes = {};
         let kubeConfig = {
@@ -53,8 +96,14 @@ const kubeLib = {
         kubeConfig.version = 'v1';
         kubernetes.autoscaling = new K8Api.Autoscaling(kubeConfig);
 
+	    kubeConfig.version = 'v1alpha1';
+	    kubernetes.metrics = new K8Api.Metrics(kubeConfig);
+
         delete kubeConfig.version;
         kubernetes.api = new K8Api.Api(kubeConfig);
+
+        //add the configuration used to connect to the api
+        kubernetes.config = kubeConfig;
 
         return cb(null, kubernetes);
     },
@@ -169,11 +218,17 @@ const kubeLib = {
 
             let deploymentPorts = [];
             service.spec.ports.forEach((onePortConfig) => {
-                deploymentPorts.push({
+                let port = {
                     protocol: onePortConfig.protocol,
                     target: onePortConfig.targetPort || onePortConfig.port,
                     published: onePortConfig.nodePort || null
-                });
+                };
+
+                if(service.spec && service.spec.externalTrafficPolicy === 'Local') {
+                    port.preserveClientIP = true;
+                }
+
+                deploymentPorts.push(port);
             });
 
             return deploymentPorts;

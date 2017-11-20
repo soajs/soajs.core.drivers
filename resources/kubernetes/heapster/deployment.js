@@ -5,15 +5,28 @@ module.exports = {
     "kind": "Deployment",
     "metadata": {
         "name": "heapster",
-        "namespace": "kube-system"
+        "namespace": "kube-system",
+        "labels": {
+            "k8s-app": "heapster",
+            "soajs.service.type": "system",
+            "soajs.service.subtype": "other"
+        }
     },
     "spec": {
         "replicas": 1,
+        "selector": {
+            "matchLabels": {
+                "k8s-app": "heapster",
+                "soajs.service.type": "system",
+                "soajs.service.subtype": "other"
+            }
+        },
         "template": {
             "metadata": {
                 "labels": {
-                    "task": "monitoring",
-                    "k8s-app": "heapster"
+                    "k8s-app": "heapster",
+                    "soajs.service.type": "system",
+    	            "soajs.service.subtype": "other"
                 }
             },
             "spec": {

@@ -510,6 +510,38 @@ module.exports = {
                 });
             });
         });
-    }
+    },
+	
+	/**
+	 * Get Services Metrics
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	getServicesMetrics (options, cb) {
+		getStrategy(options, (error, strategy) => {
+			utils.checkError(error, 518, cb, () => {
+				checkIfSupported({strategy: strategy, function: 'getServicesMetrics'}, cb, () => {
+					strategy.getServicesMetrics(options, cb);
+				});
+			});
+		});
+	},
+	
+	/**
+	 * Get Nodes Metrics
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	getNodesMetrics (options, cb) {
+		getStrategy(options, (error, strategy) => {
+			utils.checkError(error, 518, cb, () => {
+				checkIfSupported({strategy: strategy, function: 'getNodesMetrics'}, cb, () => {
+					strategy.getNodesMetrics(options, cb);
+				});
+			});
+		});
+	}
 
 };
