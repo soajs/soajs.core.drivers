@@ -25,7 +25,7 @@
     "request": "2.81.0",
     "soajs.core.libs": "1.0.1",
     "soajs.core.modules": "2.0.0",
-    "ws": "3.2.0"
+    "ws": "3.3.1"
   },
   "devDependencies": {
     "express": "4.14.1",
