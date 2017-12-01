@@ -34,16 +34,12 @@ const lib = {
         }
 
         if(options && options.driver && options.driver.split('.')[1] === 'local') {
-            // if(!options.params || !options.params.targetHost) {
-            //     return redirectToProxy();
-            // }
-
             return redirectToProxy();
         }
 
         let protocol = 'https://',
             domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`,
-            port = (options.deployerConfig && options.deployerConfig.apiPort) ? options.deployerConfig.apiPort : '2376'
+            port = (options.deployerConfig && options.deployerConfig.apiPort) ? options.deployerConfig.apiPort : '2376';
 
         if(options && options.params && options.params.targetHost) {
             domain = options.params.targetHost;
@@ -63,11 +59,10 @@ const lib = {
             return cb(null, deployer);
         });
 
-
-        function findCerts(options, cb) {
+        function findCerts(options, fcb) {
             checkCertsCache(options, (error, certs) => {
                 if(certs && Object.keys(certs).length > 0) {
-                    return cb(null, certs);
+                    return fcb(null, certs);
                 }
 
                 let opts = {
@@ -83,7 +78,7 @@ const lib = {
                             options.model.getDb(options.soajs).getMongoDB((error, db) => {
                                 utils.checkError(error, 684, cb, () => {
                                     let gfs = Grid(db, options.model.getDb(options.soajs).mongodb);
-                                    return pullCerts(certs, gfs, db, cb);
+                                    return pullCerts(certs, gfs, db, fcb);
                                 });
                             });
                         });
@@ -92,24 +87,28 @@ const lib = {
             });
         }
 
-        function checkCertsCache(options, cb) {
-            if(certsCache && certsCache[options.env] && certsCache[options.env][options.driver] && Object.keys(certsCache[options.env][options.driver]).length > 0) {
-                options.deployer = new Docker(buildDockerConfig(host, port, certsCache[options.env][options.driver]));
+        function checkCertsCache(options, fcb) {
+            if(certsCache && certsCache[domain] && typeof(certsCache[domain]) === 'object' && Object.keys(certsCache[domain]).length > 0) {
+                options.deployer = new Docker(buildDockerConfig(host, port, certsCache[domain]));
                 lib.ping(options, (error, response) => {
                     if(error || response !== 'OK') {
                         console.log('Cached certificates are not valid, pulling certs again ...');
-                        certsCache[options.env][options.driver] = {};
+                        certsCache[domain] = {};
 
-                        return cb();
+                        return fcb();
                     }
-                    return cb(null, certsCache[options.env][options.driver]);
+
+                    console.log('Using certificates from cache');
+                    return fcb(null, certsCache[domain]);
                 });
             }
-
-            return cb();
+            else {
+                console.log('No certificates found in cache');
+                return fcb();
+            }
         }
 
-        function pullCerts(certs, gfs, db, cb) {
+        function pullCerts(certs, gfs, db, fcb) {
             var certBuffers = {};
             async.each(certs, (oneCert, callback) => {
                 var gs = new gfs.mongo.GridStore(db, oneCert._id, 'r', {
@@ -130,8 +129,12 @@ const lib = {
                     });
                 });
             }, (error, result) => {
+                options.model.closeConnection(options.soajs);
                 utils.checkError(error, 684, cb, () => {
-                    return cb(null, certBuffers);
+                    //add certificates to cache
+                    certsCache[domain] = certBuffers;
+
+                    return fcb(null, certBuffers);
                 });
             });
         }
