@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "async": "2.1.4",
-    "dockerode": "2.5.3",
+    "dockerode": "soajs/dockerode.git",
     "gridfs-stream": "1.1.1",
     "kubernetes-client": "soajs/kubernetes-client.git",
     "request": "2.81.0",

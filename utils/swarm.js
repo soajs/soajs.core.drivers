@@ -49,6 +49,10 @@ const lib = {
         }
         let host = `${protocol}${domain}:${port}`;
 
+        if(options && options.deployerConfig && options.deployerConfig.auth && options.deployerConfig.auth.token) {
+            return useApiWithToken();
+        }
+
         if(!options.model || Object.keys(options.model).length === 0) {
             options.model = require('../models/mongo.js');
         }
@@ -155,6 +159,19 @@ const lib = {
                 host: ((process.env.SOAJS_ENV) ? process.env.SOAJS_ENV.toLowerCase() : 'dev') + '-controller',
                 port: ports.controller + ports.maintenanceInc,
                 version: 'proxySocket'
+            });
+
+            return cb(null, deployer);
+        }
+
+        function useApiWithToken() {
+            deployer = new Docker({
+                protocol: 'https',
+                host: `${domain}`,
+                port: `${port}`,
+                headers: {
+                    'token': options.deployerConfig.auth.token
+                }
             });
 
             return cb(null, deployer);
