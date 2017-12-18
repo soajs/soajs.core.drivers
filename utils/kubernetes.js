@@ -63,6 +63,11 @@ const kubeLib = {
                 domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`,
                 port = (options.deployerConfig && options.deployerConfig.apiPort) ? options.deployerConfig.apiPort : '6443'
 
+            //if master node ip is set in deployer config, use it instead of environment domain
+            if(options.deployerConfig && options.deployerConfig.nodes) {
+                domain = options.deployerConfig.nodes;
+            }
+
             kubeURL = `${protocol}${domain}:${port}`;
         }
 
