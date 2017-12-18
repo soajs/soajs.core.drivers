@@ -41,6 +41,11 @@ const lib = {
             domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`,
             port = (options.deployerConfig && options.deployerConfig.apiPort) ? options.deployerConfig.apiPort : '2376';
 
+        //if manager node ip is set in deployer config, use it instead of environment domain
+        if(options.deployerConfig && options.deployerConfig.nodes) {
+            domain = options.deployerConfig.nodes;
+        }
+
         if(options && options.params && options.params.targetHost) {
             domain = options.params.targetHost;
             if(options.params.targetPort) {
