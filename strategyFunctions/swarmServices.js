@@ -133,11 +133,13 @@ var engine = {
             delete payload.TaskTemplate.ContainerSpec.Args;
         }
 
-        //NOTE: controllers should only be deployed on manager nodes, needed for /proxySocket
-        if (options.params.labels['soajs.service.name'] === 'controller') {
-            payload.TaskTemplate.Placement = {
-                Constraints: [ 'node.role == manager' ]
-            };
+        //NOTE: in local deployments, controllers should only be deployed on manager nodes, needed for /proxySocket route
+        if(options && options.driver && options.driver.split('.')[1] === 'local') {
+            if (options.params.labels['soajs.service.name'] === 'controller') {
+                payload.TaskTemplate.Placement = {
+                    Constraints: [ 'node.role == manager' ]
+                };
+            }
         }
 
         if (options.params.replication.mode === 'replicated') {
