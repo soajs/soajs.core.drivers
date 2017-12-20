@@ -4,6 +4,7 @@
 const utils = require('../utils/utils.js');
 const lib = require('../utils/swarm.js');
 const async = require('async');
+const request = require('request');
 
 const engine = {
 	/**
@@ -13,10 +14,14 @@ const engine = {
 	 * @returns {*}
 	 */
 	getServicesMetrics(options, cb) {
+		if(options && options.deployerConfig && options.deployerConfig.auth && options.deployerConfig.auth.token) {
+            return engine.getServicesMetricsApi(options, cb);
+        }
+
 		lib.getDeployer(options, (error, deployer) => {
 			utils.checkError(error, 540, cb, () => {
 				deployer.listNodes((error, nodesList) => {
-					utils.checkError(error, 540, cb, () => {
+					utils.checkError(error, 548, cb, () => {
 						async.concat(nodesList, (oneNode, callback) => {
 							options.params = {};
 							options.params.targetHost = oneNode.Status.Addr;
@@ -45,12 +50,12 @@ const engine = {
 								processServicesMetrics(stats, cb);
 							});
 						});
-						
+
 					});
 				});
 			});
 		});
-		
+
 		function processServicesMetrics(stats, cb) {
 			let servicesMetrics = {};
 			async.each(stats, (oneStat, callback) => {
@@ -87,8 +92,8 @@ const engine = {
 				});
 			});
 		}
-		
-		
+
+
 		function getCPU(oneStat) {
 			const postCpuStats = oneStat.cpu_stats;
 			const preCpuStats = oneStat.precpu_stats;
@@ -97,7 +102,7 @@ const engine = {
 			const cpuPercent = ((cpuDelta / systemDelta) * preCpuStats.online_cpus * 100).toFixed(2);
 			return isNaN(cpuPercent) ? 0 : cpuPercent
 		}
-		
+
 		function getBlockIO(blk, usage) {
 			blk.forEach(function (oneBlk) {
 				if (oneBlk.op && (oneBlk.op === 'Read' || oneBlk.op === 'Write')) {
@@ -105,7 +110,7 @@ const engine = {
 				}
 			});
 		}
-		
+
 		function getNetIO(nets, usage) {
 			usage.netIn = 0;
 			usage.netOut = 0;
@@ -121,6 +126,33 @@ const engine = {
 			}
 		}
 	},
+
+	/**
+	 * Function that gets Services Metrics using the cloud api
+	 * @param  {Object}   options Options passed to function
+	 * @param  {Function} cb      Callback function
+	 * @returns {*}
+	 */
+	getServicesMetricsApi(options, cb) {
+		options.returnApiInfo = true;
+        lib.getDeployer(options, (error, deployerInfo) => {
+            utils.checkError(error, 540, cb, () => {
+                let requestOptions = {
+        			uri: `${deployerInfo.host}/metrics`,
+        			headers: {
+        				'Content-Type': 'application/json',
+                        'token': deployerInfo.token
+        			},
+        			json: true
+        		};
+                request.get(requestOptions, (error, body, response) => {
+                    utils.checkError(error, 688, cb, () => {
+                        return cb(null, response);
+                    });
+                });
+            });
+        });
+	}
 };
 
 module.exports = engine;

@@ -441,6 +441,10 @@ var engine = {
      * @returns {*}
      */
     maintenance (options, cb) {
+        if(options && options.deployerConfig && options.deployerConfig.auth && options.deployerConfig.auth.token) {
+            return engine.maintenanceApi(options, cb);
+        }
+
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
                 getNodes(deployer, (error, nodesList) => {
@@ -558,6 +562,35 @@ var engine = {
                 });
             });
         }
+    },
+
+    /**
+     * Perform a SOAJS maintenance operation using cloud api
+     *
+     * @param {Object} options
+     * @param {Function} cb
+     * @returns {*}
+     */
+    maintenanceApi(options, cb) {
+        options.returnApiInfo = true;
+        lib.getDeployer(options, (error, deployerInfo) => {
+            utils.checkError(error, 540, cb, () => {
+                let requestOptions = {
+        			uri: `${deployerInfo.host}/maintenance`,
+        			headers: {
+        				'Content-Type': 'application/json',
+                        'token': deployerInfo.token
+        			},
+        			json: true,
+                    qs: options.params
+        		};
+                request.get(requestOptions, (error, body, response) => {
+                    utils.checkError(error, 689, cb, () => {
+                        return cb(null, response);
+                    });
+                });
+            });
+        });
     },
 
     /**

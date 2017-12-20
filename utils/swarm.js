@@ -170,6 +170,10 @@ const lib = {
         }
 
         function useApiWithToken() {
+            if(options.returnApiInfo) {
+                return cb(null, { host, token: options.deployerConfig.auth.token });
+            }
+
             deployer = new Docker({
                 protocol: 'https',
                 host: `${domain}`,
