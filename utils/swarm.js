@@ -37,7 +37,7 @@ const lib = {
             return redirectToProxy();
         }
 
-        let protocol = 'https://',
+        let protocol = (options.deployerConfig && options.deployerConfig.apiProtocol) ? options.deployerConfig.apiProtocol + '://' : 'https://',
             domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`,
             port = (options.deployerConfig && options.deployerConfig.apiPort) ? options.deployerConfig.apiPort : '2376';
 
@@ -175,7 +175,7 @@ const lib = {
             }
 
             deployer = new Docker({
-                protocol: 'https',
+                protocol: (options.deployerConfig && options.deployerConfig.apiProtocol) ? options.deployerConfig.apiProtocol : 'https',
                 host: `${domain}`,
                 port: `${port}`,
                 headers: {
