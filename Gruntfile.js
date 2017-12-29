@@ -157,7 +157,7 @@ module.exports = function (grunt) {
 			unitKubernetes: {
 				options: {
 					reporter: 'spec',
-					timeout: 90000
+					timeout: 120000
 				},
 				src: ['test/unit/_serversKubernetes.test.js']
 			},
