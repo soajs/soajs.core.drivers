@@ -421,12 +421,20 @@ var engine = {
                 let logOptions = {
                     stdout: true,
                     stderr: true,
-                    tail: options.params.tail || 400
+                    tail: options.params.tail || 400,
+                    follow: options.params.follow || false
                 };
                 task.defaultOptions = { log: {} };
                 task.logs(logOptions, (error, data) => {
                     utils.checkError(error, 537, cb, () => {
-                        return cb(null, { data });
+                        if(options.params.follow) {
+                            //return stream object
+                            return cb(null, data);
+                        }
+                        else {
+                            //return logs inside object
+                            return cb(null, { data });
+                        }
                     });
                 });
             });

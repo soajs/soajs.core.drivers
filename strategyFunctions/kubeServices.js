@@ -837,17 +837,24 @@ var engine = {
             utils.checkError(error, 520, cb, () => {
                 let params = {
                     qs: {
-                        tailLines: options.params.tail || 400
+                        tailLines: options.params.tail || 400,
+                        follow: options.params.follow || false
                     }
                 };
                 let namespace = lib.buildNameSpace(options);
                 deployer.core.namespaces(namespace).pods.get({name: options.params.taskId}, (error, pod) => {
                     utils.checkError(error, 656, cb, () => {
-                        deployer.core.namespaces(namespace).pods(options.params.taskId).log.get(params, (error, logs) => {
-                            utils.checkError(error, 537, cb, () => {
-                                return cb(null, logs);
+                        if(options.params.follow) {
+                            let stream = deployer.core.namespaces(namespace).pods(options.params.taskId).log.getStream(params);
+                            return cb(null, stream);
+                        }
+                        else {
+                            deployer.core.namespaces(namespace).pods(options.params.taskId).log.get(params, (error, logs) => {
+                                utils.checkError(error, 537, cb, () => {
+                                    return cb(null, logs);
+                                });
                             });
-                        });
+                        }
                     });
                 });
             });
