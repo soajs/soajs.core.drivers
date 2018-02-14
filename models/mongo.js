@@ -26,7 +26,7 @@ var lib = {
 			if (typeof  switchedConnection === 'object' && Object.keys(switchedConnection).length > 0) {
 				provision = switchedConnection;
 				if (soajs.log) {
-					soajs.log.debug('Switching to connection of', soajs.inputmaskData.project);
+					soajs.log.debug('Switching to connection of', soajs.inputmaskData.soajs_project);
 				}
 			}
 		} else {
@@ -154,11 +154,11 @@ var lib = {
 	"switchConnection" : function (soajs) {
 		var provision = true;
 		if (process.env.SOAJS_SAAS && soajs.servicesConfig && soajs.servicesConfig.dashboard && soajs.servicesConfig.dashboard.SOAJS_COMPANY) {
-			if (soajs.inputmaskData.project && soajs.servicesConfig.dashboard.SOAJS_COMPANY[soajs.inputmaskData.project]) {
-				if(soajs.registry.resources.cluster[soajs.inputmaskData.project]){
-					provision = soajsUtils.cloneObj(soajs.registry.resources.cluster[soajs.inputmaskData.project].config);
+			if (soajs.inputmaskData.soajs_project && soajs.servicesConfig.dashboard.SOAJS_COMPANY[soajs.inputmaskData.soajs_project]) {
+				if(soajs.registry.resources.cluster[soajs.inputmaskData.soajs_project]){
+					provision = soajsUtils.cloneObj(soajs.registry.resources.cluster[soajs.inputmaskData.soajs_project].config);
 					provision.name = soajs.registry.coreDB.provision.name;
-					provision.prefix = soajs.inputmaskData.project + "_";
+					provision.prefix = soajs.inputmaskData.soajs_project + "_";
 				}
 			}
 			else {
