@@ -160,6 +160,10 @@ var lib = {
 					provision.name = soajs.registry.coreDB.provision.name;
 					provision.prefix = soajs.inputmaskData.soajs_project + "_";
 				}
+				else {
+					soajs.log.error('Missing cluster for ', soajs.inputmaskData.soajs_project);
+					return false;
+				}
 			}
 			else {
 				return false;
