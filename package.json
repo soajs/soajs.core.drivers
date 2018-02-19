@@ -22,7 +22,7 @@
     "dockerode": "soajs/dockerode.git",
     "gridfs-stream": "1.1.1",
     "kubernetes-client": "soajs/kubernetes-client.git",
-    "request": "2.81.0",
+    "request": "2.82.0",
     "soajs.core.libs": "1.0.1",
     "soajs.core.modules": "2.0.1",
     "ws": "3.3.1"
