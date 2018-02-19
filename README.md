@@ -1,5 +1,7 @@
 # soajs.core.drivers
-
+[![Build Status](https://travis-ci.org/soajs/soajs.core.drivers.svg?branch=master)](https://travis-ci.org/soajs/soajs.core.drivers)
+[![Coverage Status](https://coveralls.io/repos/github/soajs/soajs.core.drivers/badge.svg?branch=master)](https://coveralls.io/github/soajs/soajs.core.drivers?branch=master)
+[![Known Vulnerabilities](https://snyk.io/test/github/soajs/soajs.core.drivers/badge.svg)](https://snyk.io/test/github/soajs/soajs.core.drivers)
 
 SOAJS Core Drivers is a repository that serves as a driver to both "Docker Swarm" and "Kubernetes" clustering
 
