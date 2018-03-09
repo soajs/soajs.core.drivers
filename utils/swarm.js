@@ -274,7 +274,7 @@ const lib = {
         return record;
     },
 
-    buildServiceRecord (options) {
+    buildServiceRecord (options, deployerObject) {
         let record = {
             id: '',
             version: '',
@@ -284,7 +284,9 @@ const lib = {
             ports: [],
             tasks: []
         };
-
+	    if (record.ports && record.ports.length > 0 ){
+		    record.ip = options.deployerConfig.nodes;
+	    }
         if (options && options.service) {
             if (options.service.ID) {
                 record.id = options.service.ID;
@@ -320,6 +322,14 @@ const lib = {
                     record.ports.push(port);
                 });
             }
+	        if (record.ports && record.ports.length > 0 ){
+		        if (deployerObject.driver === "docker.local"){
+			        record.ip = "127.0.0.1";
+		        }
+		        else {
+			        record.ip = deployerObject.deployerConfig.nodes;
+		        }
+	        }
         }
 
         return record;

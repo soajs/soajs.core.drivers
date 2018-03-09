@@ -162,7 +162,7 @@ var engine = {
                         service = serviceList.items[0];
                     }
 
-                    let record = lib.buildDeploymentRecord({ deployment: oneDeployment , service });
+                    let record = lib.buildDeploymentRecord({ deployment: oneDeployment , service}, options);
 
                     if (options.params && options.params.excludeTasks) {
                         return callback(null, record);
@@ -245,7 +245,8 @@ var engine = {
                 };
 
                 if (onePortEntry.isPublished) {
-                    if(options.deployerConfig.nginxDeployType === 'LoadBalancer'){
+                    if(options.deployerConfig.nginxDeployType === 'LoadBalancer'
+	                    && options.params.labels && options.params.labels["soajs.service.type"] === "server"){
                         service.spec.type = 'LoadBalancer';
                         delete portConfig.nodePort;
                     }
@@ -599,7 +600,8 @@ var engine = {
                     };
 
                     if (onePortEntry.isPublished) {
-                        if(options.deployerConfig.nginxDeployType === 'LoadBalancer'){
+                        if(options.deployerConfig.nginxDeployType === 'LoadBalancer'
+	                        && options.params.labels && options.params.labels["soajs.service.type"] === "server"){
                             service.spec.type = 'LoadBalancer';
                             delete portConfig.nodePort;
                         }
@@ -641,31 +643,34 @@ var engine = {
      * @param {Function} cb
      *
      */
-    inspectService (options, cb) {
-        lib.getDeployer(options, (error, deployer) => {
-            utils.checkError(error, 520, cb, () => {
-                lib.getDeployment(options, deployer, function(error, deployment) {
-                    utils.checkError(error || !deployment, 536, cb, () => {
-                        let namespace = lib.buildNameSpace(options);
-                        let deploymentRecord = lib.buildDeploymentRecord({ deployment });
-
-                        if (options.params.excludeTasks) {
-                            return cb(null, { service: deploymentRecord });
-                        }
-
-                        deployer.core.namespaces(namespace).pods.get({ qs: { labelSelector: 'soajs.service.label=' + options.params.id } }, (error, podList) => {
-                            utils.checkError(error, 529, cb, () => {
-                                async.map(podList.items, (onePod, callback) => {
-                                    return callback(null, lib.buildPodRecord({ pod: onePod }));
-                                }, (error, pods) => {
-                                    return cb(null, { service: deploymentRecord, tasks: pods });
-                                });
-                            });
-                        });
-                    });
-                });
-            });
-        });
+    inspectService(options, cb) {
+	    lib.getDeployer(options, (error, deployer) => {
+		    utils.checkError(error, 520, cb, () => {
+			    lib.getDeployment(options, deployer, function (error, deployment) {
+				    utils.checkError(error || !deployment, 536, cb, () => {
+					    lib.getService(options, deployer, deployment, function (error, service) {
+						    utils.checkError(error , 536, cb, () => {
+							    let namespace = lib.buildNameSpace(options);
+							    let deploymentRecord = lib.buildDeploymentRecord({deployment, service}, options);
+							    if (options.params.excludeTasks) {
+								    return cb(null, {service: deploymentRecord});
+							    }
+							
+							    deployer.core.namespaces(namespace).pods.get({qs: {labelSelector: 'soajs.service.label=' + options.params.id}}, (error, podList) => {
+								    utils.checkError(error, 529, cb, () => {
+									    async.map(podList.items, (onePod, callback) => {
+										    return callback(null, lib.buildPodRecord({pod: onePod}));
+									    }, (error, pods) => {
+										    return cb(null, {service: deploymentRecord, tasks: pods});
+									    });
+								    });
+							    });
+						    });
+					    });
+				    });
+			    });
+		    });
+	    });
     },
 
     /**
@@ -702,7 +707,7 @@ var engine = {
                                 utils.checkError(deployments.length === 0, 657, cb, () => {
                                     deployer.core.namespaces(namespace).services.get({qs: filter}, (error, serviceList) => {
                                         utils.checkError(error, 533, cb, () => {
-                                            return cb(null, lib.buildDeploymentRecord ({ deployment: deployments[0], service: serviceList.items[0] }));
+                                            return cb(null, lib.buildDeploymentRecord ({ deployment: deployments[0], service: serviceList.items[0] }, options));
                                         });
                                     });
                                 });

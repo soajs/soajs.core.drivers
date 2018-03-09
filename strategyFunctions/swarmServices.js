@@ -53,7 +53,7 @@ var engine = {
 
         function processServicesData(deployer, services, cb) {
             async.map(services, (oneService, callback) => {
-                let record = lib.buildServiceRecord({ service: oneService });
+                let record = lib.buildServiceRecord({ service: oneService }, options);
 
                 if (options.params && options.params.excludeTasks) {
                     return callback(null, record);
@@ -306,7 +306,7 @@ var engine = {
                 let service = deployer.getService(options.params.id);
                 service.inspect((error, serviceInfo) => {
                     utils.checkError(error, 550, cb, () => {
-                        let service = lib.buildServiceRecord({ service: serviceInfo });
+                        let service = lib.buildServiceRecord({ service: serviceInfo }, options);
 
                         if (options.params.excludeTasks) {
                             return cb(null, { service });
@@ -353,7 +353,7 @@ var engine = {
                     utils.checkError(error, 549, cb, () => {
                         utils.checkError(services.length === 0, 661, cb, () => {
                             //NOTE: only one service with the same name and version can exist in a given environment
-                            return cb(null, lib.buildServiceRecord({ service: services[0] }));
+                            return cb(null, lib.buildServiceRecord({ service: services[0] }, options));
                         });
                     });
                 });

@@ -47,7 +47,32 @@ const kubeLib = {
             });
         });
     },
-
+	getService(options, deployer, deployment, cb) {
+		let namespace = kubeLib.buildNameSpace(options);
+		let filter = {};
+		filter.labelSelector = 'soajs.service.label= ' + deployment.metadata.name;
+		if (options.params && options.params.env && !options.params.custom) {
+			filter.labelSelector = 'soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.label= ' + deployment.metadata.name;
+		}
+		else if (options.params && options.params.custom) {
+			if (deployment.spec && deployment.spec.selector && deployment.spec.selector.matchLabels) {
+				filter.labelSelector = kubeLib.buildLabelSelector(deployment.spec.selector);
+			}
+		}
+		deployer.core.namespaces(namespace).services.get({qs: filter}, (error, service) => {
+			if (error) {
+				return cb(error);
+			}
+			
+			if (!service || !service.metadata || !service.metadata.name) {
+				return cb(null, null);
+			}
+			else {
+				return cb(null, service);
+			}
+		});
+	},
+			
     getDeployer(options, cb) {
         let kubeURL = '';
 
@@ -179,7 +204,7 @@ const kubeLib = {
         }
     },
 
-    buildDeploymentRecord (options) {
+    buildDeploymentRecord (options, deployerObject) {
         let record = {
             id: options.deployment.metadata.name, //setting id = name
             version: options.deployment.metadata.resourceVersion,
@@ -191,7 +216,15 @@ const kubeLib = {
             resources: getResources(options.deployment.spec.template.spec),
             tasks: []
         };
-
+        if (record.ports && record.ports.length > 0 ){
+	        record.ip = deployerObject.deployerConfig.nodes;
+        }
+		if (options.service){
+			let ip = getLoadBalancerIp(options.service);
+			if (ip){
+				record.ip = ip
+			}
+		}
         return record;
 
         function getEnvVariables(podSpec) {
@@ -252,8 +285,16 @@ const kubeLib = {
 
             return resources;
         }
-
-        return record;
+	
+	    function getLoadBalancerIp (record, service) {
+		    if (service && service.status && service.status.loadBalancer && service.status.loadBalancer.ingress
+		    && service.status.loadBalancer.ingress[0] && service.status.loadBalancer.ingress[0].ip) {
+			    return service.status.loadBalancer.ingress[0].ip; //NOTE: not sure about this, need access to a gke deployment to verify it
+		    }
+		    else {
+			    return null;
+		    }
+	    }
     },
 
     buildPodRecord (options) {
