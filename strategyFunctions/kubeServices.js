@@ -162,7 +162,7 @@ var engine = {
                         service = serviceList.items[0];
                     }
 
-                    let record = lib.buildDeploymentRecord({ deployment: oneDeployment , service });
+                    let record = lib.buildDeploymentRecord({ deployment: oneDeployment , service}, options);
 
                     if (options.params && options.params.excludeTasks) {
                         return callback(null, record);
@@ -651,7 +651,7 @@ var engine = {
 					    lib.getService(options, deployer, function (error, service) {
 						    utils.checkError(error , 536, cb, () => {
 							    let namespace = lib.buildNameSpace(options);
-							    let deploymentRecord = lib.buildDeploymentRecord({deployment, service});
+							    let deploymentRecord = lib.buildDeploymentRecord({deployment, service}, options);
 							    if (options.params.excludeTasks) {
 								    return cb(null, {service: deploymentRecord});
 							    }
@@ -707,7 +707,7 @@ var engine = {
                                 utils.checkError(deployments.length === 0, 657, cb, () => {
                                     deployer.core.namespaces(namespace).services.get({qs: filter}, (error, serviceList) => {
                                         utils.checkError(error, 533, cb, () => {
-                                            return cb(null, lib.buildDeploymentRecord ({ deployment: deployments[0], service: serviceList.items[0] }));
+                                            return cb(null, lib.buildDeploymentRecord ({ deployment: deployments[0], service: serviceList.items[0] }, options));
                                         });
                                     });
                                 });

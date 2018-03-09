@@ -194,7 +194,7 @@ const kubeLib = {
         }
     },
 
-    buildDeploymentRecord (options) {
+    buildDeploymentRecord (options, deployerObject) {
         let record = {
             id: options.deployment.metadata.name, //setting id = name
             version: options.deployment.metadata.resourceVersion,
@@ -207,7 +207,7 @@ const kubeLib = {
             tasks: []
         };
         if (record.ports && record.ports.length > 0 ){
-	        record.ip = options.deployerConfig.nodes;
+	        record.ip = deployerObject.deployerConfig.nodes;
         }
 		if (options.service){
 			let ip = getLoadBalancerIp(options.service);
@@ -277,7 +277,7 @@ const kubeLib = {
         }
 	
 	    function getLoadBalancerIp (record, service) {
-		    if (service.status && service.status.loadBalancer && service.status.loadBalancer.ingress
+		    if (service && service.status && service.status.loadBalancer && service.status.loadBalancer.ingress
 		    && service.status.loadBalancer.ingress[0] && service.status.loadBalancer.ingress[0].ip) {
 			    return service.status.loadBalancer.ingress[0].ip; //NOTE: not sure about this, need access to a gke deployment to verify it
 		    }
