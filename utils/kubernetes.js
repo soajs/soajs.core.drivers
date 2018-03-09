@@ -47,7 +47,22 @@ const kubeLib = {
             });
         });
     },
-
+	getService(options, deployer, cb) {
+		let namespace = kubeLib.buildNameSpace(options);
+		deployer.core.namespaces(namespace).services.get({name: options.params.id}, (error, service) => {
+			if (error) {
+				return cb(error);
+			}
+			
+			if (!service || !service.metadata || !service.metadata.name) {
+				return cb(null, null);
+			}
+			else {
+				return cb(null, service);
+			}
+		});
+	},
+			
     getDeployer(options, cb) {
         let kubeURL = '';
 
@@ -191,7 +206,12 @@ const kubeLib = {
             resources: getResources(options.deployment.spec.template.spec),
             tasks: []
         };
-
+		if (options.service){
+			let ip = getLoadBalancerIp(options.service);
+			if (ip){
+				record.ip = ip
+			}
+		}
         return record;
 
         function getEnvVariables(podSpec) {
@@ -252,8 +272,16 @@ const kubeLib = {
 
             return resources;
         }
-
-        return record;
+	
+	    function getLoadBalancerIp (record, service) {
+		    if (service.status && service.status.loadBalancer && service.status.loadBalancer.ingress
+		    && service.status.loadBalancer.ingress[0] && service.status.loadBalancer.ingress[0].ip) {
+			    return service.status.loadBalancer.ingress[0].ip; //NOTE: not sure about this, need access to a gke deployment to verify it
+		    }
+		    else {
+			    return null;
+		    }
+	    }
     },
 
     buildPodRecord (options) {
