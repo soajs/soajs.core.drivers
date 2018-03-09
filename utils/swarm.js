@@ -284,7 +284,9 @@ const lib = {
             ports: [],
             tasks: []
         };
-
+	    if (record.ports && record.ports.length > 0 ){
+		    record.ip = options.deployerConfig.nodes;
+	    }
         if (options && options.service) {
             if (options.service.ID) {
                 record.id = options.service.ID;

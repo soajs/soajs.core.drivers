@@ -206,6 +206,9 @@ const kubeLib = {
             resources: getResources(options.deployment.spec.template.spec),
             tasks: []
         };
+        if (record.ports && record.ports.length > 0 ){
+	        record.ip = options.deployerConfig.nodes;
+        }
 		if (options.service){
 			let ip = getLoadBalancerIp(options.service);
 			if (ip){
