@@ -648,7 +648,7 @@ var engine = {
 		    utils.checkError(error, 520, cb, () => {
 			    lib.getDeployment(options, deployer, function (error, deployment) {
 				    utils.checkError(error || !deployment, 536, cb, () => {
-					    lib.getService(options, deployer, function (error, service) {
+					    lib.getService(options, deployer, deployment, function (error, service) {
 						    utils.checkError(error , 536, cb, () => {
 							    let namespace = lib.buildNameSpace(options);
 							    let deploymentRecord = lib.buildDeploymentRecord({deployment, service}, options);

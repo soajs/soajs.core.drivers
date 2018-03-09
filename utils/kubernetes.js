@@ -47,9 +47,19 @@ const kubeLib = {
             });
         });
     },
-	getService(options, deployer, cb) {
+	getService(options, deployer, deployment, cb) {
 		let namespace = kubeLib.buildNameSpace(options);
-		deployer.core.namespaces(namespace).services.get({name: options.params.id}, (error, service) => {
+		let filter = {};
+		filter.labelSelector = 'soajs.service.label= ' + deployment.metadata.name;
+		if (options.params && options.params.env && !options.params.custom) {
+			filter.labelSelector = 'soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.label= ' + deployment.metadata.name;
+		}
+		else if (options.params && options.params.custom) {
+			if (deployment.spec && deployment.spec.selector && deployment.spec.selector.matchLabels) {
+				filter.labelSelector = kubeLib.buildLabelSelector(deployment.spec.selector);
+			}
+		}
+		deployer.core.namespaces(namespace).services.get({qs: filter}, (error, service) => {
 			if (error) {
 				return cb(error);
 			}
