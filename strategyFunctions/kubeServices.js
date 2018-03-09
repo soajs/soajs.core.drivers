@@ -245,8 +245,7 @@ var engine = {
                 };
 
                 if (onePortEntry.isPublished) {
-                    if(options.deployerConfig.nginxDeployType === 'LoadBalancer'
-	                    && options.params.labels && options.params.labels["soajs.service.type"] === "server"){
+                    if(!onePortEntry.published){
                         service.spec.type = 'LoadBalancer';
                         delete portConfig.nodePort;
                     }
@@ -600,8 +599,7 @@ var engine = {
                     };
 
                     if (onePortEntry.isPublished) {
-                        if(options.deployerConfig.nginxDeployType === 'LoadBalancer'
-	                        && options.params.labels && options.params.labels["soajs.service.type"] === "server"){
+                        if(!onePortEntry.published){
                             service.spec.type = 'LoadBalancer';
                             delete portConfig.nodePort;
                         }
