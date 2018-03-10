@@ -228,7 +228,9 @@ const kubeLib = {
 		//has to run after checking loadBalancer
 		record.ports = getPorts(options.service);
 	    if (!loadBalancer){
-		    record.ip = deployerObject.deployerConfig.nodes;
+	    	if(options.nodeList && Array.isArray(options.nodeList) && options.nodeList.length === 1){
+		        record.ip = deployerObject.deployerConfig.nodes;
+		    }
 	    }
 		
         return record;

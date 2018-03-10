@@ -109,37 +109,41 @@ var engine = {
                         labelSelector: 'soajs.env.code=' + options.params.env.toLowerCase()
                     };
                 }
-
-                //get deployments from all namespaces
-                deployer.extensions.deployments.get({qs: filter}, (error, deploymentList) => {
-                    utils.checkError(error, 536, cb, () => {
-                        //get daemonset from all namespaces
-                        deployer.extensions.daemonsets.get({qs: filter}, (error, daemonsetList) => {
-                            utils.checkError(error, 663, cb, () => {
-                                let deployments = [];
-                                if (deploymentList && deploymentList.items) deployments = deployments.concat(deploymentList.items);
-                                if (daemonsetList && daemonsetList.items) deployments = deployments.concat(daemonsetList.items);
-
-                                if (options.params && options.params.custom) {
-                                    async.filter(deployments, (oneDeployment, callback) => {
-                                        if (!oneDeployment.metadata || !oneDeployment.metadata.labels) return callback(null, true);
-                                        if (!oneDeployment.metadata.labels['soajs.env.code']) return callback(null, true);
-                                        return callback(null, false);
-                                    }, (error, deployments) => {
-                                        processDeploymentsData(deployer, deployments, cb);
-                                    });
-                                }
-                                else {
-                                    processDeploymentsData(deployer, deployments, cb);
-                                }
-                            });
-                        });
-                    });
-                });
+	
+	            deployer.core.nodes.get({}, (error, nodeList) => {
+		            utils.checkError(error, 521, cb, () => {
+			            //get deployments from all namespaces
+			            deployer.extensions.deployments.get({qs: filter}, (error, deploymentList) => {
+				            utils.checkError(error, 536, cb, () => {
+					            //get daemonset from all namespaces
+					            deployer.extensions.daemonsets.get({qs: filter}, (error, daemonsetList) => {
+						            utils.checkError(error, 663, cb, () => {
+							            let deployments = [];
+							            if (deploymentList && deploymentList.items) deployments = deployments.concat(deploymentList.items);
+							            if (daemonsetList && daemonsetList.items) deployments = deployments.concat(daemonsetList.items);
+							
+							            if (options.params && options.params.custom) {
+								            async.filter(deployments, (oneDeployment, callback) => {
+									            if (!oneDeployment.metadata || !oneDeployment.metadata.labels) return callback(null, true);
+									            if (!oneDeployment.metadata.labels['soajs.env.code']) return callback(null, true);
+									            return callback(null, false);
+								            }, (error, deployments) => {
+									            processDeploymentsData(deployer, deployments, nodeList, cb);
+								            });
+							            }
+							            else {
+								            processDeploymentsData(deployer, deployments, nodeList, cb);
+							            }
+						            });
+					            });
+				            });
+			            });
+		            });
+	            });
             });
         });
 
-        function processDeploymentsData(deployer, deployments, cb) {
+        function processDeploymentsData(deployer, deployments, nodeList, cb) {
             async.map(deployments, (oneDeployment, callback) => {
                 let filter = {};
                 filter.labelSelector = 'soajs.service.label= ' + oneDeployment.metadata.name;
@@ -162,7 +166,7 @@ var engine = {
                         service = serviceList.items[0];
                     }
 
-                    let record = lib.buildDeploymentRecord({ deployment: oneDeployment , service}, options);
+                    let record = lib.buildDeploymentRecord({ deployment: oneDeployment , service, nodeList}, options);
 
                     if (options.params && options.params.excludeTasks) {
                         return callback(null, record);
@@ -644,22 +648,26 @@ var engine = {
     inspectService(options, cb) {
 	    lib.getDeployer(options, (error, deployer) => {
 		    utils.checkError(error, 520, cb, () => {
-			    lib.getDeployment(options, deployer, function (error, deployment) {
-				    utils.checkError(error || !deployment, 536, cb, () => {
-					    lib.getService(options, deployer, deployment, function (error, service) {
-						    utils.checkError(error , 536, cb, () => {
-							    let namespace = lib.buildNameSpace(options);
-							    let deploymentRecord = lib.buildDeploymentRecord({deployment, service}, options);
-							    if (options.params.excludeTasks) {
-								    return cb(null, {service: deploymentRecord});
-							    }
-							
-							    deployer.core.namespaces(namespace).pods.get({qs: {labelSelector: 'soajs.service.label=' + options.params.id}}, (error, podList) => {
-								    utils.checkError(error, 529, cb, () => {
-									    async.map(podList.items, (onePod, callback) => {
-										    return callback(null, lib.buildPodRecord({pod: onePod}));
-									    }, (error, pods) => {
-										    return cb(null, {service: deploymentRecord, tasks: pods});
+			    deployer.core.nodes.get({}, (error, nodeList) => {
+				    utils.checkError(error, 521, cb, () => {
+					    lib.getDeployment(options, deployer, function (error, deployment) {
+						    utils.checkError(error || !deployment, 536, cb, () => {
+							    lib.getService(options, deployer, deployment, function (error, service) {
+								    utils.checkError(error , 536, cb, () => {
+									    let namespace = lib.buildNameSpace(options);
+									    let deploymentRecord = lib.buildDeploymentRecord({deployment, service, nodeList}, options);
+									    if (options.params.excludeTasks) {
+										    return cb(null, {service: deploymentRecord});
+									    }
+									
+									    deployer.core.namespaces(namespace).pods.get({qs: {labelSelector: 'soajs.service.label=' + options.params.id}}, (error, podList) => {
+										    utils.checkError(error, 529, cb, () => {
+											    async.map(podList.items, (onePod, callback) => {
+												    return callback(null, lib.buildPodRecord({pod: onePod}));
+											    }, (error, pods) => {
+												    return cb(null, {service: deploymentRecord, tasks: pods});
+											    });
+										    });
 									    });
 								    });
 							    });
@@ -693,26 +701,30 @@ var engine = {
                         namespace += '-v' + options.params.version;
                     }
                 }
-
-                deployer.extensions.namespaces(namespace).deployments.get({qs: filter}, (error, deploymentList) => {
-                    utils.checkError(error, 549, cb, () => {
-                        deployer.extensions.namespaces(namespace).daemonsets.get({qs: filter}, (error, daemonsetList) => {
-                            utils.checkError(error, 663, cb, () => {
-                                let deployments = [];
-                                if (deploymentList && deploymentList.items && deploymentList.items.length > 0) deployments = deployments.concat(deploymentList.items);
-                                if (daemonsetList && daemonsetList.items && daemonsetList.items.length > 0) deployments = deployments.concat(daemonsetList.items);
-
-                                utils.checkError(deployments.length === 0, 657, cb, () => {
-                                    deployer.core.namespaces(namespace).services.get({qs: filter}, (error, serviceList) => {
-                                        utils.checkError(error, 533, cb, () => {
-                                            return cb(null, lib.buildDeploymentRecord ({ deployment: deployments[0], service: serviceList.items[0] }, options));
-                                        });
-                                    });
-                                });
-                            });
-                        });
-                    });
-                });
+		
+	            deployer.core.nodes.get({}, (error, nodeList) => {
+		            utils.checkError(error, 521, cb, () => {
+			            deployer.extensions.namespaces(namespace).deployments.get({qs: filter}, (error, deploymentList) => {
+				            utils.checkError(error, 549, cb, () => {
+					            deployer.extensions.namespaces(namespace).daemonsets.get({qs: filter}, (error, daemonsetList) => {
+						            utils.checkError(error, 663, cb, () => {
+							            let deployments = [];
+							            if (deploymentList && deploymentList.items && deploymentList.items.length > 0) deployments = deployments.concat(deploymentList.items);
+							            if (daemonsetList && daemonsetList.items && daemonsetList.items.length > 0) deployments = deployments.concat(daemonsetList.items);
+							
+							            utils.checkError(deployments.length === 0, 657, cb, () => {
+								            deployer.core.namespaces(namespace).services.get({qs: filter}, (error, serviceList) => {
+									            utils.checkError(error, 533, cb, () => {
+										            return cb(null, lib.buildDeploymentRecord ({ deployment: deployments[0], service: serviceList.items[0], nodeList }, options));
+									            });
+								            });
+							            });
+						            });
+					            });
+				            });
+			            });
+		            });
+	            });
             });
         });
     },
