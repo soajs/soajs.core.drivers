@@ -47,6 +47,7 @@ const kubeLib = {
             });
         });
     },
+	
 	getService(options, deployer, deployment, cb) {
 		let namespace = kubeLib.buildNameSpace(options);
 		let filter = {};
@@ -212,19 +213,24 @@ const kubeLib = {
             namespace: options.deployment.metadata.namespace,
             labels: options.deployment.metadata.labels,
             env: getEnvVariables(options.deployment.spec.template.spec),
-            ports: getPorts(options.service),
             resources: getResources(options.deployment.spec.template.spec),
             tasks: []
         };
-        if (record.ports && record.ports.length > 0 ){
-	        record.ip = deployerObject.deployerConfig.nodes;
-        }
+        
+        let loadBalancer = false;
 		if (options.service){
 			let ip = getLoadBalancerIp(options.service);
 			if (ip){
 				record.ip = ip
 			}
 		}
+		
+		//has to run after checking loadBalancer
+		record.ports = getPorts(options.service);
+	    if (!loadBalancer){
+		    record.ip = deployerObject.deployerConfig.nodes;
+	    }
+		
         return record;
 
         function getEnvVariables(podSpec) {
@@ -261,6 +267,10 @@ const kubeLib = {
                     target: onePortConfig.targetPort || onePortConfig.port,
                     published: onePortConfig.nodePort || null
                 };
+                
+                if(loadBalancer){
+                	port.published = port.target;
+                }
 
                 if(service.spec && service.spec.externalTrafficPolicy === 'Local') {
                     port.preserveClientIP = true;
@@ -289,7 +299,8 @@ const kubeLib = {
 	    function getLoadBalancerIp (record, service) {
 		    if (service && service.status && service.status.loadBalancer && service.status.loadBalancer.ingress
 		    && service.status.loadBalancer.ingress[0] && service.status.loadBalancer.ingress[0].ip) {
-			    return service.status.loadBalancer.ingress[0].ip; //NOTE: not sure about this, need access to a gke deployment to verify it
+			    loadBalancer = true;
+		    	return service.status.loadBalancer.ingress[0].ip; //NOTE: not sure about this, need access to a gke deployment to verify it
 		    }
 		    else {
 			    return null;
