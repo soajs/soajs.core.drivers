@@ -296,7 +296,7 @@ const kubeLib = {
             return resources;
         }
 	
-	    function getLoadBalancerIp (record, service) {
+	    function getLoadBalancerIp (service) {
 		    if (service && service.status && service.status.loadBalancer && service.status.loadBalancer.ingress
 		    && service.status.loadBalancer.ingress[0] && service.status.loadBalancer.ingress[0].ip) {
 			    loadBalancer = true;
