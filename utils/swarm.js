@@ -314,7 +314,7 @@ const lib = {
                         target: onePortConfig.TargetPort,
                         published: onePortConfig.PublishedPort
                     };
-
+					
                     if(onePortConfig.PublishMode && onePortConfig.PublishMode === 'host') {
                         port.preserveClientIP = true;
                     }
@@ -399,6 +399,20 @@ const lib = {
                     }
                     if (options.task.Status.Message) {
                         record.status.message = options.task.Status.Message; //current message of the task, example: started or error,
+                    }
+                    
+                    if(options.task.Status.PortStatus && options.task.Status.PortStatus.Ports && Array.isArray(options.task.Status.PortStatus.Ports) && options.task.Status.PortStatus.Ports.length > 0){
+	                    if(options.service && options.service.ports && Array.isArray(options.service.ports) && options.service.ports.length > 0){
+	                        options.service.ports.forEach((oneServicePort) => {
+	                            if(!oneServicePort.published){
+				                    options.task.Status.PortStatus.Ports.forEach((oneTaskPort) => {
+				                        if(oneTaskPort.TargetPort === oneServicePort.target){
+				                        	oneServicePort.published = oneTaskPort.PublishedPort;
+				                        }
+				                    });
+	                            }
+	                        });
+	                    }
                     }
                 }
 

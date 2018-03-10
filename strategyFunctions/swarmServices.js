@@ -68,7 +68,7 @@ var engine = {
                     }
 
                     async.map(serviceTasks, (oneTask, callback) => {
-                        return callback(null, lib.buildTaskRecord({ task: oneTask, serviceName: oneService.Spec.Name }));
+                        return callback(null, lib.buildTaskRecord({ task: oneTask, serviceName: oneService.Spec.Name, service: record }));
                     }, (error, tasks) => {
                         if (error) {
                             return callback(error);
@@ -319,7 +319,7 @@ var engine = {
                             utils.checkError(error, 552, cb, () => {
 
                                 async.map(serviceTasks, (oneTask, callback) => {
-                                    return callback(null, lib.buildTaskRecord({ task: oneTask, serviceName: options.params.id }));
+                                    return callback(null, lib.buildTaskRecord({ task: oneTask, serviceName: options.params.id, service: service }));
                                 }, (error, tasks) => {
                                     return cb(null, { service, tasks });
                                 });
