@@ -156,7 +156,7 @@ var engine = {
                     let port = {
                         Protocol: onePortEntry.protocol || 'tcp',
                         TargetPort: onePortEntry.target,
-                        PublishedPort: onePortEntry.published
+                        PublishedPort: onePortEntry.published || onePortEntry.target
                     };
 
                     if(onePortEntry.preserveClientIP) {
@@ -243,7 +243,7 @@ var engine = {
                                         let port = {
                                             Protocol: onePortEntry.protocol || 'tcp',
                                             TargetPort: onePortEntry.target,
-                                            PublishedPort: onePortEntry.published
+                                            PublishedPort: onePortEntry.published || onePortEntry.target
                                         };
 
                                         if(onePortEntry.preserveClientIP) {

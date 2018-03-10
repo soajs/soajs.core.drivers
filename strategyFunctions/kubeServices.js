@@ -257,7 +257,7 @@ var engine = {
                         if (!service.spec.type || service.spec.type !== 'NodePort') {
                             service.spec.type = 'NodePort';
                         }
-                        portConfig.nodePort = onePortEntry.published;
+                        portConfig.nodePort = onePortEntry.published || portConfig.targetPort;
                     }
 
                     portConfig.name = onePortEntry.name || 'published' + portConfig.name;
@@ -611,7 +611,7 @@ var engine = {
                             if (!service.spec.type || service.spec.type !== 'NodePort') {
                                 service.spec.type = 'NodePort';
                             }
-                            portConfig.nodePort = onePortEntry.published;
+                            portConfig.nodePort = onePortEntry.published || portConfig.targetPort;
                         }
 
                         portConfig.name = onePortEntry.name || 'published' + portConfig.name;
