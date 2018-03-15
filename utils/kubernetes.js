@@ -217,6 +217,7 @@ const kubeLib = {
             tasks: []
         };
         
+        let publishedService = false;
         let loadBalancer = false;
 		if (options.service){
 			let ip = getLoadBalancerIp(options.service);
@@ -231,6 +232,10 @@ const kubeLib = {
 	    	if(options.nodeList && options.nodeList.items && Array.isArray(options.nodeList.items) && options.nodeList.items.length === 1){
 		        record.ip = deployerObject.deployerConfig.nodes;
 		    }
+	    }
+	    
+	    if(!publishedService){
+	    	delete record.ip;
 	    }
 		
         return record;
@@ -273,7 +278,11 @@ const kubeLib = {
                 if(loadBalancer){
                 	port.published = port.target;
                 }
-
+	            
+                if(port.published){
+                	publishedService = true;
+                }
+                
                 if(service.spec && service.spec.externalTrafficPolicy === 'Local') {
                     port.preserveClientIP = true;
                 }
