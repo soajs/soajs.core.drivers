@@ -155,9 +155,12 @@ var engine = {
                 if (onePortEntry.isPublished) {
                     let port = {
                         Protocol: onePortEntry.protocol || 'tcp',
-                        TargetPort: onePortEntry.target,
-                        PublishedPort: onePortEntry.published || onePortEntry.target
+                        TargetPort: onePortEntry.target
                     };
+                    
+                    if(onePortEntry.published){
+	                    port.PublishedPort = onePortEntry.published;
+                    }
 
                     if(onePortEntry.preserveClientIP) {
                         port.PublishMode = 'host';
@@ -242,9 +245,12 @@ var engine = {
                                     if (onePortEntry.isPublished) {
                                         let port = {
                                             Protocol: onePortEntry.protocol || 'tcp',
-                                            TargetPort: onePortEntry.target,
-                                            PublishedPort: onePortEntry.published || onePortEntry.target
+                                            TargetPort: onePortEntry.target
                                         };
+                                        
+                                        if(onePortEntry.published){
+	                                        port.PublishedPort = onePortEntry.published;
+                                        }
 
                                         if(onePortEntry.preserveClientIP) {
                                             port.PublishMode = 'host';
