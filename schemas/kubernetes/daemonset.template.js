@@ -8,6 +8,7 @@ module.exports = {
         "labels": ""
     },
     "spec": {
+	    "revisionHistoryLimit": "2",
         "selector": {
             "matchLabels": ""
         },
@@ -20,7 +21,6 @@ module.exports = {
                 "labels": {}
             },
             "spec": {
-	            "revisionHistoryLimit": "2",
                 "containers": [
                     {
                         "name": "",
