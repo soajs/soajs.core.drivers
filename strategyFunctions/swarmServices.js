@@ -697,7 +697,9 @@ var engine = {
     inspectSecret (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => { //TODO: change to correct error code not 540
+                let secret = deployer.getSecret(options.id); //TODO: make sure this is where the ID is
 
+                return cb(null, secret);
             });
         });
     },
@@ -710,7 +712,18 @@ var engine = {
      * @returns {*}
      */
     createSecret (options, cb) {
-
+        lib.getDeployer(options, (error, deployer) => {
+            utils.checkError(error, 540, cb, () => { //TODO: change to correct error code not 540
+                deployer.createSecret(options, (error, response) => {
+                    if (error) {
+                        return cb(error, null);
+                    }
+                    else {
+                        return cb(null, response);
+                    }
+                });
+            });
+        });
     },
 
     /**
@@ -721,9 +734,9 @@ var engine = {
      * @returns {*}
      */
     updateSecret (options, cb) {
-
+        //TODO: we need to see what kubernetes provides for update secret and decide whether we keep this or not
     },
-	
+
 	/**
 	 * Delete Docker Secret
 	 *
@@ -731,10 +744,23 @@ var engine = {
 	 * @param {Function} cb
 	 * @returns {*}
 	 */
-	listSecrets (options, cb) {
-	
-	},
-	
+	deleteSecret (options, cb) {
+        lib.getDeployer(options, (error, deployer) => {
+            utils.checkError(error, 540, cb, () => { //TODO: change to correct error code not 540
+                let secret = deployer.getSecret(options.id); //TODO: make sure this is where the ID is
+
+                secret.remove((error, response) => {
+                    if (error) {
+                        return cb(error, null);
+                    }
+                    else {
+                        return cb(null, response);
+                    }
+                });
+            });
+        });
+    },
+
 	/**
      * Delete Docker Secret
      *
@@ -742,8 +768,19 @@ var engine = {
      * @param {Function} cb
      * @returns {*}
      */
-    deleteSecret (options, cb) {
-
+    listSecrets (options, cb) {
+        lib.getDeployer(options, (error, deployer) => {
+            utils.checkError(error, 540, cb, () => { //TODO: change to correct error code not 540
+                deployer.listSecrets((error, response) => {
+                    if (error) {
+                        return cb(error, null);
+                    }
+                    else {
+                        return cb(null, response);
+                    }
+                });
+            });
+        });
     }
 };
 
