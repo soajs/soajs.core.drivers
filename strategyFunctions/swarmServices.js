@@ -685,7 +685,7 @@ var engine = {
                 });
             });
         });
-    }
+    },
 
     /**
      * Get Docker Secret(s)
@@ -694,13 +694,13 @@ var engine = {
      * @param {Function} cb
      * @returns {*}
      */
-    getSecrets (options, cb) {
+    inspectSecret (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => { //TODO: change to correct error code not 540
 
             });
         });
-    }
+    },
 
     /**
      * Create Docker Secret
@@ -711,7 +711,7 @@ var engine = {
      */
     createSecret (options, cb) {
 
-    }
+    },
 
     /**
      * Update Docker Secret
@@ -722,9 +722,20 @@ var engine = {
      */
     updateSecret (options, cb) {
 
-    }
-
-    /**
+    },
+	
+	/**
+	 * Delete Docker Secret
+	 *
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	listSecrets (options, cb) {
+	
+	},
+	
+	/**
      * Delete Docker Secret
      *
      * @param {Object} options

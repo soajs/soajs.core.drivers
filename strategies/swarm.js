@@ -85,8 +85,8 @@ const engine = {
 		swarmMetrics.getServicesMetrics(options, cb);
 	},
 
-    'getSecrets': function(options, cb){
-		swarmServices.getSecrets(options, cb);
+    'inspectSecret': function(options, cb){
+		swarmServices.inspectSecret(options, cb);
 	},
 
 	'createSecret': function(options, cb){
@@ -99,6 +99,10 @@ const engine = {
 
 	'deleteSecret': function(options, cb){
 		swarmServices.deleteSecret(options, cb);
+	},
+	
+	'listSecrets': function(options, cb){
+		swarmServices.listSecrets(options, cb);
 	},
 
 };
