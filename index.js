@@ -542,6 +542,69 @@ module.exports = {
 				});
 			});
 		});
+	},
+	
+	/**
+	 * Create Secret
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	createSecret (options, cb) {
+		getStrategy(options, (error, strategy) => {
+			utils.checkError(error, 518, cb, () => {
+				checkIfSupported({strategy: strategy, function: 'createSecret'}, cb, () => {
+					strategy.createSecret(options, cb);
+				});
+			});
+		});
+	},
+	
+	/**
+	 * Delete Secret
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	deleteSecret (options, cb) {
+		getStrategy(options, (error, strategy) => {
+			utils.checkError(error, 518, cb, () => {
+				checkIfSupported({strategy: strategy, function: 'deleteSecret'}, cb, () => {
+					strategy.deleteSecret(options, cb);
+				});
+			});
+		});
+	},
+	
+	/**
+	 * Delete Secret
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	listSecrets (options, cb) {
+		getStrategy(options, (error, strategy) => {
+			utils.checkError(error, 518, cb, () => {
+				checkIfSupported({strategy: strategy, function: 'listSecrets'}, cb, () => {
+					strategy.listSecrets(options, cb);
+				});
+			});
+		});
+	},
+	
+	/**
+	 * Get one Secret
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	getSecret (options, cb) {
+		getStrategy(options, (error, strategy) => {
+			utils.checkError(error, 518, cb, () => {
+				checkIfSupported({strategy: strategy, function: 'getSecret'}, cb, () => {
+					strategy.getSecret(options, cb);
+				});
+			});
+		});
 	}
-
 };

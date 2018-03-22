@@ -68,6 +68,13 @@ module.exports = {
     560: "Unable to get the docker swarm service host",
 
     561: "Unable to reach the specified node",
+	
+	562: "Unable to list the kubernetes secrets",
+	563: "Unable to delete the kubernetes secret",
+	564: "Unable to create the kubernetes secret",
+	565: "No secrets founds ",
+	566: "Unable to delete secret ",
+	
     652: "Unable to add node to swarm, specified node is already part of a swarm",
 
     653: "Unable to redeploy service",
