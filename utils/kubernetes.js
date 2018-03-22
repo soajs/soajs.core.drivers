@@ -434,6 +434,7 @@ const kubeLib = {
 				response.push({
 					name: oneSecret.metadata.name,
 					namespace: oneSecret.metadata.namespace,
+					uid: oneSecret.metadata.uid,
 					data: oneSecret.data,
 					type: oneSecret.type
 				})

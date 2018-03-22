@@ -1153,6 +1153,7 @@ var engine = {
 						return cb(null, {
 							name: secret.metadata.name,
 							namespace: secret.metadata.namespace,
+							uid: secret.metadata.uid,
 							data: secret.data,
 							type: secret.type
 						});
@@ -1223,6 +1224,7 @@ var engine = {
 						return cb(null, {
 							name: secret.metadata.name,
 							namespace: secret.metadata.namespace,
+							uid: secret.metadata.uid,
 							data: secret.data,
 							type: secret.type
 						});
