@@ -157,7 +157,7 @@ var engine = {
                         Protocol: onePortEntry.protocol || 'tcp',
                         TargetPort: onePortEntry.target
                     };
-                    
+
                     if(onePortEntry.published){
 	                    port.PublishedPort = onePortEntry.published;
                     }
@@ -247,7 +247,7 @@ var engine = {
                                             Protocol: onePortEntry.protocol || 'tcp',
                                             TargetPort: onePortEntry.target
                                         };
-                                        
+
                                         if(onePortEntry.published){
 	                                        port.PublishedPort = onePortEntry.published;
                                         }
@@ -685,6 +685,54 @@ var engine = {
                 });
             });
         });
+    }
+
+    /**
+     * Get Docker Secret(s)
+     *
+     * @param {Object} options
+     * @param {Function} cb
+     * @returns {*}
+     */
+    getSecrets (options, cb) {
+        lib.getDeployer(options, (error, deployer) => {
+            utils.checkError(error, 540, cb, () => { //TODO: change to correct error code not 540
+
+            });
+        });
+    }
+
+    /**
+     * Create Docker Secret
+     *
+     * @param {Object} options
+     * @param {Function} cb
+     * @returns {*}
+     */
+    createSecret (options, cb) {
+
+    }
+
+    /**
+     * Update Docker Secret
+     *
+     * @param {Object} options
+     * @param {Function} cb
+     * @returns {*}
+     */
+    updateSecret (options, cb) {
+
+    }
+
+    /**
+     * Delete Docker Secret
+     *
+     * @param {Object} options
+     * @param {Function} cb
+     * @returns {*}
+     */
+    deleteSecret (options, cb) {
+
     }
 };
 

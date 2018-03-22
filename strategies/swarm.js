@@ -80,9 +80,25 @@ const engine = {
     'getServiceHost': function(options, cb){
         swarmServices.getServiceHost(options, cb);
     },
-	
+
 	'getServicesMetrics': function(options, cb){
 		swarmMetrics.getServicesMetrics(options, cb);
+	},
+
+    'getSecrets': function(options, cb){
+		swarmServices.getSecrets(options, cb);
+	},
+
+	'createSecret': function(options, cb){
+		swarmServices.createSecret(options, cb);
+	},
+
+	'updateSecret': function(options, cb){
+		swarmServices.updateSecret(options, cb);
+	},
+
+	'deleteSecret': function(options, cb){
+		swarmServices.deleteSecret(options, cb);
 	},
 
 };
