@@ -797,6 +797,7 @@ describe("testing docker swarm driver functionality", function() {
 			
 			drivers.deleteSecret(options, function(error, secret){
 				assert.ok(secret);
+				
 				done();
 			});
 		});
