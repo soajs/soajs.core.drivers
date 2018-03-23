@@ -688,7 +688,7 @@ var engine = {
     },
 
     /**
-     * Get Docker Secret(s)
+     * Get Docker Secret
      *
      * @param {Object} options
      * @param {Function} cb
@@ -696,10 +696,17 @@ var engine = {
      */
     getSecret (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
-            utils.checkError(error, 540, cb, () => { //TODO: change to correct error code not 540
-                let secret = deployer.getSecret(options.id); //TODO: make sure this is where the ID is
+            utils.checkError(error, 540, cb, () => {
+                let secret = deployer.getSecret(options.params.name);
 
-                return cb(null, secret);
+                secret.inspect((error, response) => {
+                    utils.checkError(error, 565, cb, () => {
+                        return cb(null, {
+                            name: response['Spec'].name,
+                            uid: response['ID']
+                        });
+                    });
+                });
             });
         });
     },
@@ -713,14 +720,18 @@ var engine = {
      */
     createSecret (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
-            utils.checkError(error, 540, cb, () => { //TODO: change to correct error code not 540
-                deployer.createSecret(options, (error, response) => {
-                    if (error) {
-                        return cb(error, null);
-                    }
-                    else {
-                        return cb(null, response);
-                    }
+            utils.checkError(error, 540, cb, () => {
+                let secret = {
+                    Name: options.params.name,
+                    Data: options.params.data
+                };
+
+                deployer.createSecret(secret, (error, response) => {
+                    utils.checkError(error, 567, cb, () => {
+                        return cb(null, {
+                            name: secret.Name,
+                            uid: response.id
+                        });
                 });
             });
         });
@@ -735,16 +746,13 @@ var engine = {
 	 */
 	deleteSecret (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
-            utils.checkError(error, 540, cb, () => { //TODO: change to correct error code not 540
-                let secret = deployer.getSecret(options.id); //TODO: make sure this is where the ID is
+            utils.checkError(error, 540, cb, () => {
+                let secret = deployer.getSecret(options.params.name);
 
                 secret.remove((error, response) => {
-                    if (error) {
-                        return cb(error, null);
-                    }
-                    else {
+                    utils.checkError(error, 568, cb, () => {
                         return cb(null, response);
-                    }
+                    });
                 });
             });
         });
@@ -759,14 +767,11 @@ var engine = {
      */
     listSecrets (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
-            utils.checkError(error, 540, cb, () => { //TODO: change to correct error code not 540
+            utils.checkError(error, 540, cb, () => {
                 deployer.listSecrets((error, response) => {
-                    if (error) {
-                        return cb(error, null);
-                    }
-                    else {
-                        return cb(null, response);
-                    }
+                    utils.checkError(error, 569, cb, () => {
+                        return cb(null, lib.buildSecretRecord(response));
+                    });
                 });
             });
         });
