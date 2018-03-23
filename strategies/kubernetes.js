@@ -117,6 +117,22 @@ const engine = {
 	'getNodesMetrics': function(options, cb){
 		kubeMetrics.getNodesMetrics(options, cb);
 	},
+	
+	'createSecret': function(options, cb){
+		kubeServices.createSecret(options, cb);
+	},
+	
+	'deleteSecret': function(options, cb){
+		kubeServices.deleteSecret(options, cb);
+	},
+	
+	'listSecrets': function(options, cb){
+		kubeServices.listSecrets(options, cb);
+	},
+	
+	'getSecret': function(options, cb){
+		kubeServices.getSecret(options, cb);
+	}
 };
 
 module.exports = engine;

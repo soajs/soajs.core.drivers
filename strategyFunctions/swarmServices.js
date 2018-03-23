@@ -694,7 +694,7 @@ var engine = {
      * @param {Function} cb
      * @returns {*}
      */
-    inspectSecret (options, cb) {
+    getSecret (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => { //TODO: change to correct error code not 540
                 let secret = deployer.getSecret(options.id); //TODO: make sure this is where the ID is
@@ -724,17 +724,6 @@ var engine = {
                 });
             });
         });
-    },
-
-    /**
-     * Update Docker Secret
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @returns {*}
-     */
-    updateSecret (options, cb) {
-        //TODO: we need to see what kubernetes provides for update secret and decide whether we keep this or not
     },
 
 	/**

@@ -511,7 +511,7 @@ module.exports = {
             });
         });
     },
-	
+
 	/**
 	 * Get Services Metrics
 	 * @param {Object} options
@@ -527,7 +527,7 @@ module.exports = {
 			});
 		});
 	},
-	
+
 	/**
 	 * Get Nodes Metrics
 	 * @param {Object} options
@@ -542,26 +542,10 @@ module.exports = {
 				});
 			});
 		});
-	}
+	},
 
 	/**
-	 * Inspect a Docker secret
-	 * @param {Object} options
-	 * @param {Function} cb
-	 * @returns {*}
-	 */
-	inspectSecret (options, cb) {
-		getStrategy(options, (error, strategy) => {
-			utils.checkError(error, 518, cb, () => {
-				checkIfSupported({strategy: strategy, function: 'inspectSecret'}, cb, () => {
-					strategy.inspectSecret(options, cb);
-				});
-			});
-		});
-	}
-
-	/**
-	 * Create a Docker secret
+	 * Create Secret
 	 * @param {Object} options
 	 * @param {Function} cb
 	 * @returns {*}
@@ -574,26 +558,10 @@ module.exports = {
 				});
 			});
 		});
-	}
+	},
 
 	/**
-	 * Update a Docker secret
-	 * @param {Object} options
-	 * @param {Function} cb
-	 * @returns {*}
-	 */
-	updateSecret (options, cb) {
-		getStrategy(options, (error, strategy) => {
-			utils.checkError(error, 518, cb, () => {
-				checkIfSupported({strategy: strategy, function: 'updateSecret'}, cb, () => {
-					strategy.updateSecret(options, cb);
-				});
-			});
-		});
-	}
-
-	/**
-	 * Delete a Docker secret
+	 * Delete Secret
 	 * @param {Object} options
 	 * @param {Function} cb
 	 * @returns {*}
@@ -606,10 +574,10 @@ module.exports = {
 				});
 			});
 		});
-	}
+	},
 
 	/**
-	 * List Docker secrets
+	 * Delete Secret
 	 * @param {Object} options
 	 * @param {Function} cb
 	 * @returns {*}
@@ -622,6 +590,21 @@ module.exports = {
 				});
 			});
 		});
-	}
+	},
 
+	/**
+	 * Get one Secret
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	getSecret (options, cb) {
+		getStrategy(options, (error, strategy) => {
+			utils.checkError(error, 518, cb, () => {
+				checkIfSupported({strategy: strategy, function: 'getSecret'}, cb, () => {
+					strategy.getSecret(options, cb);
+				});
+			});
+		});
+	}
 };

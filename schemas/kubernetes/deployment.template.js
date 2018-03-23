@@ -9,6 +9,7 @@ module.exports = {
     },
     "spec": {
         "replicas": 0,
+	    "revisionHistoryLimit": 2,
         "selector": {
             "matchLabels": ""
         },

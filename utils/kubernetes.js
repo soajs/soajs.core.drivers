@@ -425,7 +425,23 @@ const kubeLib = {
         }
 
         return labelSelector;
-    }
+    },
+	
+	buildSecretRecord (options){
+		let response = [];
+		if (options.items && options.items.length > 0){
+			options.items.forEach(function (oneSecret) {
+				response.push({
+					name: oneSecret.metadata.name,
+					namespace: oneSecret.metadata.namespace,
+					uid: oneSecret.metadata.uid,
+					data: oneSecret.data,
+					type: oneSecret.type
+				})
+			});
+		}
+		return response;
+	}
 };
 
 module.exports = kubeLib;
