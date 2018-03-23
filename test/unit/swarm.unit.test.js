@@ -741,6 +741,26 @@ describe("testing docker swarm driver functionality", function() {
 		});
 
 	});
+	
+	describe("Testing docker Secrets", function() {
+		
+		it("success - will create secret", function(done) {
+			done();
+		});
+		
+		it("success - will get one secret", function(done) {
+			done();
+		});
+		
+		it("success - will list secrets", function(done) {
+			done();
+		});
+		
+		it("success - will delete secrets", function(done) {
+			done();
+		});
+		
+	});
 
 	describe("Testing getDeployer()", function() {
 

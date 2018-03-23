@@ -1479,4 +1479,87 @@ describe("Testing kubernetes driver functionality", function() {
 		});
 
 	});
+	
+	describe("Testing kubernetes Secrets", function() {
+		
+		it("success - will create secret with type", function(done) {
+			options.deployerConfig.namespace ={
+				"default": "soajs",
+				"perService": false
+			};
+			
+			options.params = {
+				"name": "secrettest1",
+				"data": {
+					"key": "secretdata"
+				},
+				"type": "Generic"
+			};
+			drivers.createSecret(options, function(error, secret){
+				assert.ok(secret.name === options.params.name);
+				done();
+			});
+		});
+		
+		it("success - will create secret with no type", function(done) {
+			options.deployerConfig.namespace ={
+				"default": "soajs",
+				"perService": false
+			};
+			
+			options.params = {
+				"name": "secretnotype",
+				"data": {
+					"key": "secretdata"
+				}
+			};
+			drivers.createSecret(options, function(error, secret){
+				assert.ok(secret.name === options.params.name);
+				done();
+			});
+		});
+		
+		it("success - will get one secret", function(done) {
+			options.deployerConfig.namespace ={
+				"default": "soajs",
+				"perService": false
+			};
+			
+			options.params = {
+				"name": "secrettest1"
+			};
+			drivers.getSecret(options, function(error, secret){
+				assert.ok(secret);
+				done();
+			});
+		});
+		
+		it("success - will list secrets", function(done) {
+			options.deployerConfig.namespace ={
+				"default": "soajs",
+				"perService": false
+			};
+			
+			drivers.listSecrets(options, function(error, secrets){
+				assert.ok(secrets.length > 0);
+				done();
+			});
+		});
+		
+		it("success - will delete secrets", function(done) {
+			options.deployerConfig.namespace ={
+				"default": "soajs",
+				"perService": false
+			};
+			
+			options.params = {
+				"name": "secrettest1"
+			};
+			drivers.deleteSecret(options, function(error, secret){
+				assert.ok(secret);
+				done();
+			});
+		});
+		
+	});
 });

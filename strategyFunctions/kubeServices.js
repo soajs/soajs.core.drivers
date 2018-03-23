@@ -1148,7 +1148,7 @@ var engine = {
 					},
 					stringData: options.params.data
 				};
-				deployer.core.namespaces(namespace).secrets.post(secret, function (error, secret) {
+				deployer.core.namespaces(namespace).secrets.post({body: secret}, function (error, secret) {
 					utils.checkError(error, 564, cb, () => {
 						return cb(null, {
 							name: secret.metadata.name,
@@ -1177,9 +1177,9 @@ var engine = {
 				deployer.core.namespaces(namespace).secrets.delete({
 					name: options.params.name,
 					qs: {gracePeriodSeconds: 0}
-				}, function (error) {
+				}, function (error, response) {
 					utils.checkError(error, 563, cb, () => {
-						utils.checkError(error.status !== "Success", 566, cb, () => {
+						utils.checkError(response.status !== "Success", 566, cb, () => {
 							return cb(null, true);
 						});
 					});
