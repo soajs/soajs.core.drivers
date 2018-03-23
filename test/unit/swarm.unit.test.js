@@ -803,7 +803,7 @@ describe("testing docker swarm driver functionality", function() {
 		
 	});
 
-	describe.skip("Testing getDeployer()", function() {
+	describe("Testing getDeployer()", function() {
 
 		it("success - will get env value from params instead of deployer object", function(done) {
 			options.env = '';
