@@ -577,7 +577,7 @@ module.exports = {
 	},
 
 	/**
-	 * Delete Secret
+	 * List Secrets
 	 * @param {Object} options
 	 * @param {Function} cb
 	 * @returns {*}
