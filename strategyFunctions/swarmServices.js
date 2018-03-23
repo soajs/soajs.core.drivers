@@ -721,9 +721,12 @@ var engine = {
     createSecret (options, cb) {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
+
+                let data = Buffer.from(options.params.data).toString('base64');
+
                 let secret = {
                     Name: options.params.name,
-                    Data: options.params.data
+                    Data: data
                 };
 
                 deployer.createSecret(secret, (error, response) => {
