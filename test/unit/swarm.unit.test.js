@@ -745,24 +745,65 @@ describe("testing docker swarm driver functionality", function() {
 	describe("Testing docker Secrets", function() {
 		
 		it("success - will create secret", function(done) {
-			done();
+			options.params = {
+				"name": "nothing",
+				"data": "SSBhbSBHb2QK"
+			};
+			
+			drivers.createSecret(options, function(error, secret){
+				assert.equal(secret.name, options.params.name);
+				done();
+			});
+			
+		});
+		
+		it("success - will create secret not base 64", function(done) {
+			options.params = {
+				"name": "nothing",
+				"data": "i am god"
+			};
+			
+			drivers.createSecret(options, function(error){
+				assert.ok(error);
+				done();
+			});
+			
 		});
 		
 		it("success - will get one secret", function(done) {
-			done();
+			options.params = {
+				"name": "nothing"
+			};
+			
+			drivers.getSecret(options, function(error, secret){
+				assert.ok(secret);
+				done();
+			});
 		});
 		
 		it("success - will list secrets", function(done) {
-			done();
+			
+			
+			drivers.listSecrets(options, function(error, secrets){
+				assert.ok(secrets);
+				done();
+			});
 		});
 		
 		it("success - will delete secrets", function(done) {
-			done();
+			options.params = {
+				"name": "nothing"
+			};
+			
+			drivers.deleteSecret(options, function(error, secret){
+				assert.ok(secret);
+				done();
+			});
 		});
 		
 	});
 
-	describe("Testing getDeployer()", function() {
+	describe.skip("Testing getDeployer()", function() {
 
 		it("success - will get env value from params instead of deployer object", function(done) {
 			options.env = '';

@@ -698,7 +698,7 @@ var engine = {
         lib.getDeployer(options, (error, deployer) => {
             utils.checkError(error, 540, cb, () => {
                 let secret = deployer.getSecret(options.params.name);
-
+				
                 secret.inspect((error, response) => {
                     utils.checkError(error, 565, cb, () => {
                         return cb(null, {
@@ -719,22 +719,25 @@ var engine = {
      * @returns {*}
      */
     createSecret (options, cb) {
-        lib.getDeployer(options, (error, deployer) => {
-            utils.checkError(error, 540, cb, () => {
-                let secret = {
-                    Name: options.params.name,
-                    Data: options.params.data
-                };
-
-                deployer.createSecret(secret, (error, response) => {
-                    utils.checkError(error, 567, cb, () => {
-                        return cb(null, {
-                            name: secret.Name,
-                            uid: response.id
-                        });
-                });
-            });
-        });
+	    lib.getDeployer(options, (error, deployer) => {
+		    utils.checkError(error, 540, cb, () => {
+		    	if (options.params.data[options.params.name].typeOf !== 'string'){
+				    options.params.data[options.params.name] = options.params.data.toString();
+			    }
+			    let secret = {
+				    Name: options.params.name,
+				    Data: new Buffer(options.params.data[options.params.name]).toString('base64')
+			    };
+			    deployer.createSecret(secret, (error, response) => {
+				    utils.checkError(error, 567, cb, () => {
+					    return cb(null, {
+						    name: secret.Name,
+						    uid: response.id
+					    });
+				    });
+			    });
+		    });
+	    });
     },
 
 	/**
@@ -749,9 +752,9 @@ var engine = {
             utils.checkError(error, 540, cb, () => {
                 let secret = deployer.getSecret(options.params.name);
 
-                secret.remove((error, response) => {
+                secret.remove((error) => {
                     utils.checkError(error, 568, cb, () => {
-                        return cb(null, response);
+                        return cb(null, true);
                     });
                 });
             });

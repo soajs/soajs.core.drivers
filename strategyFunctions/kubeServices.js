@@ -1146,8 +1146,15 @@ var engine = {
 							'soajs.secret.type': options.params.type || 'Opaque'
 						}
 					},
-					stringData: options.params.data
+					stringData: {}
 				};
+				
+				if (Object.keys(options.params.data).length > 1) {
+					secret.stringData = options.params.data.stringData;
+				}
+				else {
+					secret.stringData[options.params.name] = options.params.data.stringData;
+				}
 				deployer.core.namespaces(namespace).secrets.post({body: secret}, function (error, secret) {
 					utils.checkError(error, 564, cb, () => {
 						return cb(null, {
