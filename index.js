@@ -544,4 +544,84 @@ module.exports = {
 		});
 	}
 
+	/**
+	 * Inspect a Docker secret
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	inspectSecret (options, cb) {
+		getStrategy(options, (error, strategy) => {
+			utils.checkError(error, 518, cb, () => {
+				checkIfSupported({strategy: strategy, function: 'inspectSecret'}, cb, () => {
+					strategy.inspectSecret(options, cb);
+				});
+			});
+		});
+	}
+
+	/**
+	 * Create a Docker secret
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	createSecret (options, cb) {
+		getStrategy(options, (error, strategy) => {
+			utils.checkError(error, 518, cb, () => {
+				checkIfSupported({strategy: strategy, function: 'createSecret'}, cb, () => {
+					strategy.createSecret(options, cb);
+				});
+			});
+		});
+	}
+
+	/**
+	 * Update a Docker secret
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	updateSecret (options, cb) {
+		getStrategy(options, (error, strategy) => {
+			utils.checkError(error, 518, cb, () => {
+				checkIfSupported({strategy: strategy, function: 'updateSecret'}, cb, () => {
+					strategy.updateSecret(options, cb);
+				});
+			});
+		});
+	}
+
+	/**
+	 * Delete a Docker secret
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	deleteSecret (options, cb) {
+		getStrategy(options, (error, strategy) => {
+			utils.checkError(error, 518, cb, () => {
+				checkIfSupported({strategy: strategy, function: 'deleteSecret'}, cb, () => {
+					strategy.deleteSecret(options, cb);
+				});
+			});
+		});
+	}
+
+	/**
+	 * List Docker secrets
+	 * @param {Object} options
+	 * @param {Function} cb
+	 * @returns {*}
+	 */
+	listSecrets (options, cb) {
+		getStrategy(options, (error, strategy) => {
+			utils.checkError(error, 518, cb, () => {
+				checkIfSupported({strategy: strategy, function: 'listSecrets'}, cb, () => {
+					strategy.listSecrets(options, cb);
+				});
+			});
+		});
+	}
+
 };

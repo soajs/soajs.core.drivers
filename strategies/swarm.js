@@ -85,6 +85,7 @@ const engine = {
 		swarmMetrics.getServicesMetrics(options, cb);
 	},
 
+
     'inspectSecret': function(options, cb){
 		swarmServices.inspectSecret(options, cb);
 	},
