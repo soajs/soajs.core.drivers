@@ -77,6 +77,9 @@ module.exports = {
     567: "Unable to create the docker secret",
     568: "Unable to delete Docker secret",
     569: "Unable to list the Docker secrets",
+    570: "Invalid secret data",
+	
+    571: "Namespace not found",
 
     652: "Unable to add node to swarm, specified node is already part of a swarm",
 

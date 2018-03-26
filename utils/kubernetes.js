@@ -4,6 +4,8 @@
 const K8Api = require('kubernetes-client');
 const config = require('../config.js');
 const errors = require('./errors.js');
+const utils = require('./utils.js');
+const async = require('async');
 
 const kubeLib = {
     buildNameSpace(options){
@@ -441,6 +443,25 @@ const kubeLib = {
 			});
 		}
 		return response;
+	},
+	
+	checkNameSpace(deployer, options, mainCb, call) {
+		if (options.params.namespace) {
+			deployer.core.namespaces.get({}, function (error, namespacesList) {
+				utils.checkError(error, 520, mainCb, () => {
+					async.detect(namespacesList.items, function (oneNamespace, callback) {
+						return callback(null, oneNamespace.metadata.name === options.params.namespace);
+					}, function (error, namespace) {
+						utils.checkError(!namespace, 571, mainCb, () => {
+							return call(null, namespace.metadata.name);
+						});
+					});
+				});
+			});
+		}
+		else {
+			return call(null, kubeLib.buildNameSpace(options));
+		}
 	}
 };
 

@@ -744,10 +744,12 @@ describe("testing docker swarm driver functionality", function() {
 	
 	describe("Testing docker Secrets", function() {
 		
-		it("success - will create secret", function(done) {
+		it("success - will create secret string", function(done) {
 			options.params = {
-				"name": "nothing",
-				"data": "SSBhbSBHb2QK"
+				"name": "string-secret",
+				"data": {
+					"string-secret": "data to saved in a secret"
+				}
 			};
 			
 			drivers.createSecret(options, function(error, secret){
@@ -757,13 +759,32 @@ describe("testing docker swarm driver functionality", function() {
 			
 		});
 		
-		it("success - will create secret not base 64", function(done) {
+		it("success - will create secret object", function(done) {
 			options.params = {
-				"name": "nothing",
-				"data": "i am god"
+				"name": "object-secret",
+				"data": {
+					"object-secret": {
+						"key": "data to saved in a secret"
+					}
+				}
 			};
 			
-			drivers.createSecret(options, function(error){
+			drivers.createSecret(options, function(error, secret){
+				assert.equal(secret.name, options.params.name);
+				done();
+			});
+			
+		});
+		
+		it("fail - will create secret", function(done) {
+			options.params = {
+				"name": "nothing",
+				"data": {
+					"not-found-secret": "data to saved in a secret"
+				}
+			};
+			
+			drivers.createSecret(options, function(error, secret){
 				assert.ok(error);
 				done();
 			});
@@ -772,11 +793,22 @@ describe("testing docker swarm driver functionality", function() {
 		
 		it("success - will get one secret", function(done) {
 			options.params = {
-				"name": "nothing"
+				"name": "string-secret"
 			};
 			
 			drivers.getSecret(options, function(error, secret){
 				assert.ok(secret);
+				done();
+			});
+		});
+		
+		it("fail  - will get one secret", function(done) {
+			options.params = {
+				"name": "not-found-secret"
+			};
+			
+			drivers.getSecret(options, function(error, secret){
+				assert.ok(error);
 				done();
 			});
 		});
@@ -786,13 +818,14 @@ describe("testing docker swarm driver functionality", function() {
 			
 			drivers.listSecrets(options, function(error, secrets){
 				assert.ok(secrets);
+				assert.equal(secrets.length, 2);
 				done();
 			});
 		});
 		
-		it("success - will delete secrets", function(done) {
+		it("success - will delete string secret", function(done) {
 			options.params = {
-				"name": "nothing"
+				"name": "string-secret"
 			};
 			
 			drivers.deleteSecret(options, function(error, secret){
@@ -801,6 +834,30 @@ describe("testing docker swarm driver functionality", function() {
 				done();
 			});
 		});
+		
+		it("success - will delete secret object", function(done) {
+			options.params = {
+				"name": "object-secret"
+			};
+			
+			drivers.deleteSecret(options, function(error, secret){
+				assert.ok(secret);
+				done();
+			});
+		});
+		
+		it("fail - will delete secret string", function(done) {
+			options.params = {
+				"name": "nothing"
+			};
+			
+			drivers.deleteSecret(options, function(error, secret){
+				assert.ok(error);
+				done();
+			});
+		});
+		
+		
 		
 	});
 

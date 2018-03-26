@@ -1482,7 +1482,7 @@ describe("Testing kubernetes driver functionality", function() {
 	
 	describe("Testing kubernetes Secrets", function() {
 		
-		it("success - will create secret with type", function(done) {
+		it("fail - will create with invalid namespace", function(done) {
 			options.deployerConfig.namespace ={
 				"default": "soajs",
 				"perService": false
@@ -1491,42 +1491,84 @@ describe("Testing kubernetes driver functionality", function() {
 			options.params = {
 				"name": "secrettest1",
 				"data": {
-					"key": "secretdata"
+					"secrettest1": "secretdata"
+				},
+				"type": "Generic",
+				"namespace": "default1"
+			};
+			drivers.createSecret(options, function(error, secret){
+				assert.ok(error);
+				done();
+			});
+		});
+		
+		it("success - will create secret with type and namespace", function(done) {
+			options.deployerConfig.namespace ={
+				"default": "soajs",
+				"perService": false
+			};
+			
+			options.params = {
+				"name": "secrettest1",
+				"data": {
+					"secrettest1": "secretdata"
+				},
+				"type": "Generic",
+				"namespace": "default"
+			};
+			drivers.createSecret(options, function(error, secret){
+				assert.ok(secret);
+				done();
+			});
+		});
+		
+		it("success - will create secret with multiple keys", function(done) {
+			options.deployerConfig.namespace ={
+				"default": "soajs",
+				"perService": false
+			};
+			
+			options.params = {
+				"name": "secretmultiple",
+				"data": {
+					"key1": "data1",
+					"key2": "data2"
 				},
 				"type": "Generic"
 			};
 			drivers.createSecret(options, function(error, secret){
-				assert.ok(secret.name === options.params.name);
+				assert.ok(secret);
 				done();
 			});
 		});
 		
-		it("success - will create secret with no type", function(done) {
+		it("success - will create secret with no type and no namespace", function(done) {
 			options.deployerConfig.namespace ={
 				"default": "soajs",
 				"perService": false
 			};
 			
 			options.params = {
-				"name": "secretnotype",
+				"name": "secrettest2",
 				"data": {
-					"key": "secretdata"
+					"secrettest2": "secretdata"
 				}
 			};
 			drivers.createSecret(options, function(error, secret){
-				assert.ok(secret.name === options.params.name);
+				assert.ok(secret);
 				done();
 			});
 		});
 		
-		it("success - will get one secret", function(done) {
+		it("success - will get secret with namespace", function(done) {
 			options.deployerConfig.namespace ={
 				"default": "soajs",
 				"perService": false
 			};
 			
 			options.params = {
-				"name": "secrettest1"
+				"name": "secrettest1",
+				"namespace": "default"
 			};
 			drivers.getSecret(options, function(error, secret){
 				assert.ok(secret);
@@ -1534,7 +1576,22 @@ describe("Testing kubernetes driver functionality", function() {
 			});
 		});
 		
-		it("success - will list secrets", function(done) {
+		it("success - will get secret with no namespace", function(done) {
+			options.deployerConfig.namespace ={
+				"default": "soajs",
+				"perService": false
+			};
+			
+			options.params = {
+				"name": "secrettest2"
+			};
+			drivers.getSecret(options, function(error, secret){
+				assert.ok(secret);
+				done();
+			});
+		});
+		
+		it("success - will list secrets with no namespace", function(done) {
 			options.deployerConfig.namespace ={
 				"default": "soajs",
 				"perService": false
@@ -1546,6 +1603,20 @@ describe("Testing kubernetes driver functionality", function() {
 			});
 		});
 		
+		it("success - will list secrets with namespace", function(done) {
+			options.deployerConfig.namespace = {
+				"default": "soajs",
+				"perService": false
+			};
+			options.params = {
+				"namespace": "soajs"
+			};
+			drivers.listSecrets(options, function(error, secrets){
+				assert.ok(secrets.length === 3);
+				done();
+			});
+		});
+		
 		it("success - will delete secrets", function(done) {
 			options.deployerConfig.namespace ={
 				"default": "soajs",
@@ -1553,7 +1624,23 @@ describe("Testing kubernetes driver functionality", function() {
 			};
 			
 			options.params = {
-				"name": "secrettest1"
+				"name": "secrettest1",
+				"namespace": "default"
+			};
+			drivers.deleteSecret(options, function(error, secret){
+				assert.ok(secret);
+				done();
+			});
+		});
+		
+		it("success - will delete secrets with no namespace", function(done) {
+			options.deployerConfig.namespace ={
+				"default": "soajs",
+				"perService": false
+			};
+			
+			options.params = {
+				"name": "secrettest2"
 			};
 			drivers.deleteSecret(options, function(error, secret){
 				assert.ok(secret);
