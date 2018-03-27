@@ -1214,7 +1214,7 @@ var engine = {
 	listSecrets(options, cb) {
 		lib.getDeployer(options, (error, deployer) => {
 			utils.checkError(error, 520, cb, () => {
-				if (options.params.namespace) {
+				if (options.params && options.params.namespace) {
 					lib.checkNameSpace(deployer, options, cb, function (error, namespace) {
 						deployer.core.namespaces(namespace).secrets.get(function (error, secrets) {
 							utils.checkError(error, 562, cb, () => {
