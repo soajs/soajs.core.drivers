@@ -1432,7 +1432,7 @@ describe("Testing kubernetes driver functionality", function() {
 					}
 					else {
 						counter++;
-						if(counter < 20) {
+						if(counter < 25) {
 							setTimeout(function() {
 								return getMetrics(counter, cb);
 							}, 1000);
@@ -1465,7 +1465,7 @@ describe("Testing kubernetes driver functionality", function() {
 					}
 					else {
 						counter++;
-						if(counter < 20) {
+						if(counter < 25) {
 							setTimeout(function() {
 								return getMetrics(counter, cb);
 							}, 1000);
