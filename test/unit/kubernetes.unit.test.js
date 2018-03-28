@@ -1612,7 +1612,7 @@ describe("Testing kubernetes driver functionality", function() {
 				"namespace": "soajs"
 			};
 			drivers.listSecrets(options, function(error, secrets){
-				assert.ok(secrets.length === 3);
+				assert.ok(secrets.length > 0);
 				done();
 			});
 		});
