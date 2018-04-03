@@ -123,6 +123,22 @@ var engine = {
 		payload.Labels = options.params.labels;
 		payload.EndpointSpec = {Mode: 'vip', ports: []};
 		
+		//append secrets to the service template being created if any
+		if(options.params.secrets && Array.isArray(options.params.secrets) && options.params.secrets.length > 0){
+			options.params.secrets.forEach((oneSecret) => {
+				payload.TaskTemplate.ContainerSpec.secrets.push({
+					SecretID: oneSecret.id,
+					SecretName: oneSecret.name,
+					File: {
+						Name: oneSecret.target,
+						UID: oneSecret.UID || "0",
+						GID: oneSecret.GID || "0",
+						Mode: oneSecret.Mode || 644
+					}
+				});
+			});
+		}
+		
 		if (options.params.command && Array.isArray(options.params.command) && options.params.command.length > 0) {
 			payload.TaskTemplate.ContainerSpec.Command = options.params.command;
 		}
@@ -232,6 +248,24 @@ var engine = {
 							update.TaskTemplate.ContainerSpec.Labels = options.params.newBuild.labels;
 							if (options.params.newBuild.voluming && options.params.newBuild.voluming.volumes) {
 								update.TaskTemplate.ContainerSpec.Mounts = options.params.newBuild.voluming.volumes;
+							}
+							
+							//append secrets to the service template being created if any
+							if(options.params.secrets && Array.isArray(options.params.secrets) && options.params.secrets.length > 0){
+								options.params.secrets.forEach((oneSecret) => {
+									update.TaskTemplate.ContainerSpec.secrets = [];
+									update.TaskTemplate.ContainerSpec.secrets.push({
+										SecretID: oneSecret.id,
+										SecretName: oneSecret.name,
+										File: {
+											Name: oneSecret.target,
+											UID: oneSecret.UID || "0",
+											GID: oneSecret.GID || "0",
+											Mode: oneSecret.Mode || 644
+										}
+										
+									});
+								});
 							}
 							
 							if (options.params.newBuild.memoryLimit) {
