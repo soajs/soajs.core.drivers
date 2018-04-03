@@ -10,7 +10,7 @@ describe("testing docker swarm driver functionality", function() {
     var interData = {};
     var options = {};
     options.deployerConfig = {};
-
+	var secret;
     options.soajs = {
         registry: {
             serviceConfig: {
@@ -133,6 +133,137 @@ describe("testing docker swarm driver functionality", function() {
         });
 
     });
+	
+	describe("Testing docker Secrets", function() {
+		
+		it("success - will create secret string", function(done) {
+			options.params = {
+				"name": "string-secret",
+				"data": {
+					"string-secret": "ZGF0YSB0byBzYXZlZCBpbiBhIHNlY3JldAo="
+				}
+			};
+			
+			drivers.createSecret(options, function(error, secret){
+				assert.equal(secret.name, options.params.name);
+				console.log(secret)
+				done();
+			});
+			
+		});
+		
+		it("success - will create secret object", function(done) {
+			options.params = {
+				"name": "object-secret",
+				"data": {
+					"object-secret": {
+						"key": "ZGF0YSB0byBzYXZlZCBpbiBhIHNlY3JldAo="
+					}
+				}
+			};
+			
+			drivers.createSecret(options, function(error, secret){
+				assert.equal(secret.name, options.params.name);
+				done();
+			});
+			
+		});
+		
+		it("fail - will create secret", function(done) {
+			options.params = {
+				"name": "nothing",
+				"data": {
+					"not-found-secret": "ZGF0YSB0byBzYXZlZCBpbiBhIHNlY3JldAo="
+				}
+			};
+			
+			drivers.createSecret(options, function(error, secret){
+				assert.ok(error);
+				done();
+			});
+			
+		});
+		
+		it("success - will get one secret", function(done) {
+			options.params = {
+				"name": "string-secret"
+			};
+			
+			drivers.getSecret(options, function(error, secret){
+				assert.ok(secret);
+				done();
+			});
+		});
+		
+		it("fail  - will get one secret", function(done) {
+			options.params = {
+				"name": "not-found-secret"
+			};
+			
+			drivers.getSecret(options, function(error, secret){
+				assert.ok(error);
+				done();
+			});
+		});
+		
+		it("success - will list secrets", function(done) {
+			drivers.listSecrets(options, function(error, secrets){
+				assert.ok(secrets);
+				assert.equal(secrets.length, 2);
+				done();
+			});
+		});
+		
+		it("success - will delete string secret", function(done) {
+			options.params = {
+				"name": "string-secret"
+			};
+			
+			drivers.deleteSecret(options, function(error, secret){
+				assert.ok(secret);
+				
+				done();
+			});
+		});
+		
+		it("success - will delete secret object", function(done) {
+			options.params = {
+				"name": "object-secret"
+			};
+			
+			drivers.deleteSecret(options, function(error, secret){
+				assert.ok(secret);
+				done();
+			});
+		});
+		
+		it("fail - will delete secret string", function(done) {
+			options.params = {
+				"name": "nothing"
+			};
+			
+			drivers.deleteSecret(options, function(error, secret){
+				assert.ok(error);
+				done();
+			});
+		});
+		
+		it("success - will create secret to be used", function(done) {
+			options.params = {
+				"name": "test-secret",
+				"data": {
+					"test-secret": "ZGF0YSB0byBzYXZlZCBpbiBhIHNlY3JldAo="
+				}
+			};
+			
+			drivers.createSecret(options, function(error, res){
+				secret = res;
+				done();
+			});
+			
+		});
+		
+	});
 
     //Testing the different methods of service management
     describe("Testing docker swarm service management", function() {
@@ -255,7 +386,12 @@ describe("testing docker swarm driver functionality", function() {
 							"Target": "/var/log/soajs/"
 						}
 					]
-				}
+				},
+	            "secrets": [{
+                	"id" : secret.uid,
+                	"name" : secret.name,
+                	"target" : secret.name,
+	            }]
             };
 
             drivers.deployService(options, function(error, service){
@@ -742,124 +878,6 @@ describe("testing docker swarm driver functionality", function() {
 
 	});
 	
-	describe("Testing docker Secrets", function() {
-		
-		it("success - will create secret string", function(done) {
-			options.params = {
-				"name": "string-secret",
-				"data": {
-					"string-secret": "data to saved in a secret"
-				}
-			};
-			
-			drivers.createSecret(options, function(error, secret){
-				assert.equal(secret.name, options.params.name);
-				done();
-			});
-			
-		});
-		
-		it("success - will create secret object", function(done) {
-			options.params = {
-				"name": "object-secret",
-				"data": {
-					"object-secret": {
-						"key": "data to saved in a secret"
-					}
-				}
-			};
-			
-			drivers.createSecret(options, function(error, secret){
-				assert.equal(secret.name, options.params.name);
-				done();
-			});
-			
-		});
-		
-		it("fail - will create secret", function(done) {
-			options.params = {
-				"name": "nothing",
-				"data": {
-					"not-found-secret": "data to saved in a secret"
-				}
-			};
-			
-			drivers.createSecret(options, function(error, secret){
-				assert.ok(error);
-				done();
-			});
-			
-		});
-		
-		it("success - will get one secret", function(done) {
-			options.params = {
-				"name": "string-secret"
-			};
-			
-			drivers.getSecret(options, function(error, secret){
-				assert.ok(secret);
-				done();
-			});
-		});
-		
-		it("fail  - will get one secret", function(done) {
-			options.params = {
-				"name": "not-found-secret"
-			};
-			
-			drivers.getSecret(options, function(error, secret){
-				assert.ok(error);
-				done();
-			});
-		});
-		
-		it("success - will list secrets", function(done) {
-			
-			
-			drivers.listSecrets(options, function(error, secrets){
-				assert.ok(secrets);
-				assert.equal(secrets.length, 2);
-				done();
-			});
-		});
-		
-		it("success - will delete string secret", function(done) {
-			options.params = {
-				"name": "string-secret"
-			};
-			
-			drivers.deleteSecret(options, function(error, secret){
-				assert.ok(secret);
-				
-				done();
-			});
-		});
-		
-		it("success - will delete secret object", function(done) {
-			options.params = {
-				"name": "object-secret"
-			};
-			
-			drivers.deleteSecret(options, function(error, secret){
-				assert.ok(secret);
-				done();
-			});
-		});
-		
-		it("fail - will delete secret string", function(done) {
-			options.params = {
-				"name": "nothing"
-			};
-			
-			drivers.deleteSecret(options, function(error, secret){
-				assert.ok(error);
-				done();
-			});
-		});
-		
-		
-		
-	});
 
 	describe("Testing getDeployer()", function() {
 

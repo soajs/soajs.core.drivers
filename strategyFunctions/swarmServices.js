@@ -125,6 +125,7 @@ var engine = {
 		
 		//append secrets to the service template being created if any
 		if(options.params.secrets && Array.isArray(options.params.secrets) && options.params.secrets.length > 0){
+			payload.TaskTemplate.ContainerSpec.secrets = [];
 			options.params.secrets.forEach((oneSecret) => {
 				payload.TaskTemplate.ContainerSpec.secrets.push({
 					SecretID: oneSecret.id,
