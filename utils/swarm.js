@@ -305,6 +305,10 @@ const lib = {
                 if (options.service.Spec.TaskTemplate && options.service.Spec.TaskTemplate.ContainerSpec && options.service.Spec.TaskTemplate.ContainerSpec.Env) {
                     record.env = options.service.Spec.TaskTemplate.ContainerSpec.Env;
                 }
+	
+	            if (options.service.Spec.TaskTemplate && options.service.Spec.TaskTemplate.ContainerSpec && options.service.Spec.TaskTemplate.ContainerSpec.Secrets) {
+		            record.secrets = options.service.Spec.TaskTemplate.ContainerSpec.Secrets;
+	            }
             }
 
             if (options.service.Endpoint && options.service.Endpoint.Ports && options.service.Endpoint.Ports.length > 0) {
