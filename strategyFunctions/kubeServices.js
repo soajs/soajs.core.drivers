@@ -289,6 +289,8 @@ var engine = {
 			payload = utils.cloneObj(require(daemonsetSchemaPath));
 			options.params.type = 'daemonset';
 		}
+		
+		if(!payload.metadata){ payload.metadata = {}; }
 		payload.metadata.name = cleanLabel(options.params.name);
 		payload.metadata.labels = options.params.labels;
 		payload.metadata.labels['soajs.service.label'] = cleanLabel(payload.metadata.labels['soajs.service.label']);
