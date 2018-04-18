@@ -49,7 +49,7 @@ const kubeLib = {
             });
         });
     },
-	
+
 	getService(options, deployer, deployment, cb) {
 		let namespace = kubeLib.buildNameSpace(options);
 		let filter = {};
@@ -62,11 +62,16 @@ const kubeLib = {
 				filter.labelSelector = kubeLib.buildLabelSelector(deployment.spec.selector);
 			}
 		}
-		deployer.core.namespaces(namespace).services.get({qs: filter}, (error, service) => {
+		deployer.core.namespaces(namespace).services.get({qs: filter}, (error, serviceList) => {
 			if (error) {
 				return cb(error);
 			}
-			
+
+      let service = {};
+      if (serviceList && serviceList.items && Array.isArray(serviceList.items) && serviceList.items.length > 0) {
+        service = serviceList.items[0];
+      }
+
 			if (!service || !service.metadata || !service.metadata.name) {
 				return cb(null, null);
 			}
@@ -75,7 +80,7 @@ const kubeLib = {
 			}
 		});
 	},
-			
+
     getDeployer(options, cb) {
         let kubeURL = '';
 
@@ -218,7 +223,7 @@ const kubeLib = {
             resources: getResources(options.deployment.spec.template.spec),
             tasks: []
         };
-        
+
         let publishedService = false;
         let loadBalancer = false;
 		if (options.service){
@@ -227,7 +232,7 @@ const kubeLib = {
 				record.ip = ip
 			}
 		}
-		
+
 		//has to run after checking loadBalancer
 		record.ports = getPorts(options.service);
 	    if (!loadBalancer){
@@ -235,11 +240,11 @@ const kubeLib = {
 		        record.ip = deployerObject.deployerConfig.nodes;
 		    }
 	    }
-	    
+
 	    if(!publishedService){
 	    	delete record.ip;
 	    }
-		
+
         return record;
 
         function getEnvVariables(podSpec) {
@@ -276,15 +281,15 @@ const kubeLib = {
                     target: onePortConfig.targetPort || onePortConfig.port,
                     published: onePortConfig.nodePort || null
                 };
-                
+
                 if(loadBalancer){
                 	port.published = port.target;
                 }
-	            
+
                 if(port.published){
                 	publishedService = true;
                 }
-                
+
                 if(service.spec && service.spec.externalTrafficPolicy === 'Local') {
                     port.preserveClientIP = true;
                 }
@@ -308,7 +313,7 @@ const kubeLib = {
 
             return resources;
         }
-	
+
 	    function getLoadBalancerIp (service) {
 		    if (service && service.status && service.status.loadBalancer && service.status.loadBalancer.ingress
 		    && service.status.loadBalancer.ingress[0] && service.status.loadBalancer.ingress[0].ip) {
@@ -428,7 +433,7 @@ const kubeLib = {
 
         return labelSelector;
     },
-	
+
 	buildSecretRecord (options){
 		let response = [];
 		if (options.items && options.items.length > 0){
@@ -444,7 +449,7 @@ const kubeLib = {
 		}
 		return response;
 	},
-	
+
 	checkNameSpace(deployer, options, mainCb, call) {
 		if (options.params.namespace) {
 			deployer.core.namespaces.get({}, function (error, namespacesList) {
