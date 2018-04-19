@@ -38,8 +38,8 @@ const lib = {
         }
 
         let protocol = (options.deployerConfig && options.deployerConfig.apiProtocol) ? options.deployerConfig.apiProtocol + '://' : 'https://',
-            domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`,
-            port = (options.deployerConfig && options.deployerConfig.apiPort) ? options.deployerConfig.apiPort : '2376';
+        domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`,
+        port = (options.deployerConfig && options.deployerConfig.apiPort) ? options.deployerConfig.apiPort : '2376';
 
         //if manager node ip is set in deployer config, use it instead of environment domain
         if(options.deployerConfig && options.deployerConfig.nodes) {
@@ -282,11 +282,12 @@ const lib = {
             labels: {},
             env: [],
             ports: [],
-            tasks: []
+            tasks: [],
+            voluming: getVolumes(options.service)
         };
-	    if (record.ports && record.ports.length > 0 ){
-		    record.ip = options.deployerConfig.nodes;
-	    }
+        if (record.ports && record.ports.length > 0 ){
+            record.ip = options.deployerConfig.nodes;
+        }
         if (options && options.service) {
             if (options.service.ID) {
                 record.id = options.service.ID;
@@ -305,10 +306,10 @@ const lib = {
                 if (options.service.Spec.TaskTemplate && options.service.Spec.TaskTemplate.ContainerSpec && options.service.Spec.TaskTemplate.ContainerSpec.Env) {
                     record.env = options.service.Spec.TaskTemplate.ContainerSpec.Env;
                 }
-	
-	            if (options.service.Spec.TaskTemplate && options.service.Spec.TaskTemplate.ContainerSpec && options.service.Spec.TaskTemplate.ContainerSpec.Secrets) {
-		            record.secrets = options.service.Spec.TaskTemplate.ContainerSpec.Secrets;
-	            }
+
+                if (options.service.Spec.TaskTemplate && options.service.Spec.TaskTemplate.ContainerSpec && options.service.Spec.TaskTemplate.ContainerSpec.Secrets) {
+                    record.secrets = options.service.Spec.TaskTemplate.ContainerSpec.Secrets;
+                }
             }
 
             if (options.service.Endpoint && options.service.Endpoint.Ports && options.service.Endpoint.Ports.length > 0) {
@@ -326,29 +327,38 @@ const lib = {
                     record.ports.push(port);
                 });
             }
-            
-	        if (options.service.Endpoint && options.service.Endpoint.Spec && options.service.Endpoint.Spec.Ports && options.service.Endpoint.Spec.Ports.length > 0) {
-		        options.service.Endpoint.Spec.Ports.forEach((onePortConfig) => {
-			        if (onePortConfig.PublishedPort){
-				        record.servicePortType = "nodePort";
-			        }
-		        });
-		        if (!record.servicePortType){
 
-			        record.servicePortType = "loadBalancer"
-		        }
-	        }
-	        if (record.ports && record.ports.length > 0 ){
-		        if (deployerObject.driver === "docker.local"){
-			        record.ip = "127.0.0.1";
-		        }
-		        else {
-			        record.ip = deployerObject.deployerConfig.nodes;
-		        }
-	        }
+            if (options.service.Endpoint && options.service.Endpoint.Spec && options.service.Endpoint.Spec.Ports && options.service.Endpoint.Spec.Ports.length > 0) {
+                options.service.Endpoint.Spec.Ports.forEach((onePortConfig) => {
+                    if (onePortConfig.PublishedPort){
+                        record.servicePortType = "nodePort";
+                    }
+                });
+                if (!record.servicePortType){
+
+                    record.servicePortType = "loadBalancer"
+                }
+            }
+            if (record.ports && record.ports.length > 0 ){
+                if (deployerObject.driver === "docker.local"){
+                    record.ip = "127.0.0.1";
+                }
+                else {
+                    record.ip = deployerObject.deployerConfig.nodes;
+                }
+            }
         }
 
         return record;
+
+        function getVolumes(service) {
+            let voluming = {};
+            if(service && service.Spec && service.Spec.TaskTemplate && service.Spec.TaskTemplate.ContainerSpec && service.Spec.TaskTemplate.ContainerSpec.Mounts && Array.isArray(service.Spec.TaskTemplate.ContainerSpec.Mounts)) {
+                voluming.volumes = service.Spec.TaskTemplate.ContainerSpec.Mounts;
+            }
+
+            return voluming;
+        }
     },
 
     buildTaskRecord (options) {
@@ -418,17 +428,17 @@ const lib = {
                     }
 
                     if(options.task.Status.PortStatus && options.task.Status.PortStatus.Ports && Array.isArray(options.task.Status.PortStatus.Ports) && options.task.Status.PortStatus.Ports.length > 0){
-	                    if(options.service && options.service.ports && Array.isArray(options.service.ports) && options.service.ports.length > 0){
-	                        options.service.ports.forEach((oneServicePort) => {
-	                            if(!oneServicePort.published){
-				                    options.task.Status.PortStatus.Ports.forEach((oneTaskPort) => {
-				                        if(oneTaskPort.TargetPort === oneServicePort.target){
-				                        	oneServicePort.published = oneTaskPort.PublishedPort;
-				                        }
-				                    });
-	                            }
-	                        });
-	                    }
+                        if(options.service && options.service.ports && Array.isArray(options.service.ports) && options.service.ports.length > 0){
+                            options.service.ports.forEach((oneServicePort) => {
+                                if(!oneServicePort.published){
+                                    options.task.Status.PortStatus.Ports.forEach((oneTaskPort) => {
+                                        if(oneTaskPort.TargetPort === oneServicePort.target){
+                                            oneServicePort.published = oneTaskPort.PublishedPort;
+                                        }
+                                    });
+                                }
+                            });
+                        }
                     }
                 }
 
@@ -442,17 +452,17 @@ const lib = {
     },
 
     buildSecretRecord (options) {
-		let response = [];
-		if (options && options.length > 0) {
-			options.forEach((oneSecret) => {
-				response.push({
-					name: oneSecret.Spec.Name,
-					uid: oneSecret.ID
-				});
-			});
-		}
-		return response;
-	}
+        let response = [];
+        if (options && options.length > 0) {
+            options.forEach((oneSecret) => {
+                response.push({
+                    name: oneSecret.Spec.Name,
+                    uid: oneSecret.ID
+                });
+            });
+        }
+        return response;
+    }
 };
 
 module.exports = lib;

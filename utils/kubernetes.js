@@ -50,36 +50,36 @@ const kubeLib = {
         });
     },
 
-	getService(options, deployer, deployment, cb) {
-		let namespace = kubeLib.buildNameSpace(options);
-		let filter = {};
-		filter.labelSelector = 'soajs.service.label= ' + deployment.metadata.name;
-		if (options.params && options.params.env && !options.params.custom) {
-			filter.labelSelector = 'soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.label= ' + deployment.metadata.name;
-		}
-		else if (options.params && options.params.custom) {
-			if (deployment.spec && deployment.spec.selector && deployment.spec.selector.matchLabels) {
-				filter.labelSelector = kubeLib.buildLabelSelector(deployment.spec.selector);
-			}
-		}
-		deployer.core.namespaces(namespace).services.get({qs: filter}, (error, serviceList) => {
-			if (error) {
-				return cb(error);
-			}
+    getService(options, deployer, deployment, cb) {
+        let namespace = kubeLib.buildNameSpace(options);
+        let filter = {};
+        filter.labelSelector = 'soajs.service.label= ' + deployment.metadata.name;
+        if (options.params && options.params.env && !options.params.custom) {
+            filter.labelSelector = 'soajs.env.code=' + options.params.env.toLowerCase() + ', soajs.service.label= ' + deployment.metadata.name;
+        }
+        else if (options.params && options.params.custom) {
+            if (deployment.spec && deployment.spec.selector && deployment.spec.selector.matchLabels) {
+                filter.labelSelector = kubeLib.buildLabelSelector(deployment.spec.selector);
+            }
+        }
+        deployer.core.namespaces(namespace).services.get({qs: filter}, (error, serviceList) => {
+            if (error) {
+                return cb(error);
+            }
 
-      let service = {};
-      if (serviceList && serviceList.items && Array.isArray(serviceList.items) && serviceList.items.length > 0) {
-        service = serviceList.items[0];
-      }
+            let service = {};
+            if (serviceList && serviceList.items && Array.isArray(serviceList.items) && serviceList.items.length > 0) {
+                service = serviceList.items[0];
+            }
 
-			if (!service || !service.metadata || !service.metadata.name) {
-				return cb(null, null);
-			}
-			else {
-				return cb(null, service);
-			}
-		});
-	},
+            if (!service || !service.metadata || !service.metadata.name) {
+                return cb(null, null);
+            }
+            else {
+                return cb(null, service);
+            }
+        });
+    },
 
     getDeployer(options, cb) {
         let kubeURL = '';
@@ -93,8 +93,8 @@ const kubeLib = {
         }
         else {
             let protocol = 'https://',
-                domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`,
-                port = (options.deployerConfig && options.deployerConfig.apiPort) ? options.deployerConfig.apiPort : '6443'
+            domain = `${options.soajs.registry.apiPrefix}.${options.soajs.registry.domain}`,
+            port = (options.deployerConfig && options.deployerConfig.apiPort) ? options.deployerConfig.apiPort : '6443'
 
             //if master node ip is set in deployer config, use it instead of environment domain
             if(options.deployerConfig && options.deployerConfig.nodes) {
@@ -134,8 +134,8 @@ const kubeLib = {
         kubeConfig.version = 'v1';
         kubernetes.autoscaling = new K8Api.Autoscaling(kubeConfig);
 
-	    kubeConfig.version = 'v1alpha1';
-	    kubernetes.metrics = new K8Api.Metrics(kubeConfig);
+        kubeConfig.version = 'v1alpha1';
+        kubernetes.metrics = new K8Api.Metrics(kubeConfig);
 
         delete kubeConfig.version;
         kubernetes.api = new K8Api.Api(kubeConfig);
@@ -221,36 +221,37 @@ const kubeLib = {
             labels: options.deployment.metadata.labels,
             env: getEnvVariables(options.deployment.spec.template.spec),
             resources: getResources(options.deployment.spec.template.spec),
-            tasks: []
+            tasks: [],
+            voluming: getVolumes(options.deployment)
         };
 
         let publishedService = false;
         let loadBalancer = false;
-		if (options.service){
-			let ip = getLoadBalancerIp(options.service);
-			if (ip){
-				record.ip = ip
-			}
-		}
-
-		//has to run after checking loadBalancer
-		record.ports = getPorts(options.service);
-	    if (!loadBalancer){
-	    	if(options.nodeList && options.nodeList.items && Array.isArray(options.nodeList.items) && options.nodeList.items.length === 1){
-		        record.ip = deployerObject.deployerConfig.nodes;
-		    }
-
-        if(publishedService) {
-          record.servicePortType = 'nodePort';
+        if (options.service){
+            let ip = getLoadBalancerIp(options.service);
+            if (ip){
+                record.ip = ip
+            }
         }
-	    }
-	    else {
-		    record.servicePortType = 'LoadBalancer';
-	    }
 
-	    if(!publishedService){
-	    	delete record.ip;
-	    }
+        //has to run after checking loadBalancer
+        record.ports = getPorts(options.service);
+        if (!loadBalancer){
+            if(options.nodeList && options.nodeList.items && Array.isArray(options.nodeList.items) && options.nodeList.items.length === 1){
+                record.ip = deployerObject.deployerConfig.nodes;
+            }
+
+            if(publishedService) {
+                record.servicePortType = 'nodePort';
+            }
+        }
+        else {
+            record.servicePortType = 'LoadBalancer';
+        }
+
+        if(!publishedService){
+            delete record.ip;
+        }
 
         return record;
 
@@ -290,11 +291,11 @@ const kubeLib = {
                 };
 
                 if(loadBalancer){
-                	port.published = port.target;
+                    port.published = port.target;
                 }
 
                 if(port.published){
-                	publishedService = true;
+                    publishedService = true;
                 }
 
                 if(service.spec && service.spec.externalTrafficPolicy === 'Local') {
@@ -321,160 +322,176 @@ const kubeLib = {
             return resources;
         }
 
-	    function getLoadBalancerIp (service) {
-		    if (service && service.status && service.status.loadBalancer && service.status.loadBalancer.ingress
-		    && service.status.loadBalancer.ingress[0] && service.status.loadBalancer.ingress[0].ip) {
-			    loadBalancer = true;
-		    	return service.status.loadBalancer.ingress[0].ip; //NOTE: not sure about this, need access to a gke deployment to verify it
-		    }
-		    else {
-			    return null;
-		    }
-	    }
-    },
-
-    buildPodRecord (options) {
-        let serviceName = '';
-        if (!options.pod || !options.pod.metadata || !options.pod.metadata.labels || !options.pod.metadata.labels['soajs.service.label']) {
-            if (options.deployment && options.deployment.metadata && options.deployment.metadata.name) {
-                serviceName = options.deployment.metadata.name;
-            }
-        }
-        else {
-            serviceName = options.pod.metadata.labels['soajs.service.label'];
-        }
-
-        let record = {
-            id: options.pod.metadata.name,
-            version: options.pod.metadata.resourceVersion,
-            name: options.pod.metadata.name,
-            ref: {
-                service: {
-                    name: serviceName,
-                    id: serviceName
-                },
-                node: {
-                    id: options.pod.spec.nodeName
-                },
-                container: { //only one container runs per pod in the current setup
-                    id: ((options.pod.status &&
-                    options.pod.status.containerStatuses &&
-                    options.pod.status.containerStatuses[0] &&
-                    options.pod.status.containerStatuses[0].containerID) ? options.pod.status.containerStatuses[0].containerID.split('//')[1] : null)
+        function getLoadBalancerIp (service) {
+            if (service && service.status && service.status.loadBalancer && service.status.loadBalancer.ingress
+                && service.status.loadBalancer.ingress[0] && service.status.loadBalancer.ingress[0].ip) {
+                    loadBalancer = true;
+                    return service.status.loadBalancer.ingress[0].ip; //NOTE: not sure about this, need access to a gke deployment to verify it
                 }
-            },
-            status: {
-                ts: options.pod.metadata.creationTimestamp,
-                state: options.pod.status.phase.charAt(0).toLowerCase() + options.pod.status.phase.slice(1),
-                message: options.pod.status.message
+                else {
+                    return null;
+                }
             }
-        };
 
-        return record;
-    },
+            function getVolumes (deployment) {
+                let voluming = {};
+                if(deployment && deployment.spec && deployment.spec.template && deployment.spec.template.spec) {
+                    if(deployment.spec.template.spec.volumes && Array.isArray(deployment.spec.template.spec.volumes)) {
+                        voluming.volumes = deployment.spec.template.spec.volumes;
+                    }
+                    if(deployment.spec.template.spec.containers && Array.isArray(deployment.spec.template.spec.containers) && deployment.spec.template.spec.containers[0]) {
+                        if(deployment.spec.template.spec.containers[0].volumeMounts && Array.isArray(deployment.spec.template.spec.containers[0].volumeMounts)) {
+                            voluming.volumeMounts = deployment.spec.template.spec.containers[0].volumeMounts;
+                        }
+                    }
+                }
 
-    buildAutoscalerRecord (options) {
-        let record = { replicas: {}, metrics: {} };
+                return voluming;
+            }
+        },
 
-        if(options.hpa) {
-            if(options.hpa.spec) {
-                if(options.hpa.spec.minReplicas) record.replicas.min = options.hpa.spec.minReplicas;
-                if(options.hpa.spec.maxReplicas) record.replicas.max = options.hpa.spec.maxReplicas;
+        buildPodRecord (options) {
+            let serviceName = '';
+            if (!options.pod || !options.pod.metadata || !options.pod.metadata.labels || !options.pod.metadata.labels['soajs.service.label']) {
+                if (options.deployment && options.deployment.metadata && options.deployment.metadata.name) {
+                    serviceName = options.deployment.metadata.name;
+                }
+            }
+            else {
+                serviceName = options.pod.metadata.labels['soajs.service.label'];
+            }
 
-                if(options.hpa.apiVersion === 'autoscaling/v2alpha1') {
-                    if(options.hpa.spec.metrics) {
-                        options.hpa.spec.metrics.forEach((oneMetric) => {
+            let record = {
+                id: options.pod.metadata.name,
+                version: options.pod.metadata.resourceVersion,
+                name: options.pod.metadata.name,
+                ref: {
+                    service: {
+                        name: serviceName,
+                        id: serviceName
+                    },
+                    node: {
+                        id: options.pod.spec.nodeName
+                    },
+                    container: { //only one container runs per pod in the current setup
+                        id: ((options.pod.status &&
+                            options.pod.status.containerStatuses &&
+                            options.pod.status.containerStatuses[0] &&
+                            options.pod.status.containerStatuses[0].containerID) ? options.pod.status.containerStatuses[0].containerID.split('//')[1] : null)
+                        }
+                    },
+                    status: {
+                        ts: options.pod.metadata.creationTimestamp,
+                        state: options.pod.status.phase.charAt(0).toLowerCase() + options.pod.status.phase.slice(1),
+                        message: options.pod.status.message
+                    }
+                };
+
+                return record;
+            },
+
+            buildAutoscalerRecord (options) {
+                let record = { replicas: {}, metrics: {} };
+
+                if(options.hpa) {
+                    if(options.hpa.spec) {
+                        if(options.hpa.spec.minReplicas) record.replicas.min = options.hpa.spec.minReplicas;
+                        if(options.hpa.spec.maxReplicas) record.replicas.max = options.hpa.spec.maxReplicas;
+
+                        if(options.hpa.apiVersion === 'autoscaling/v2alpha1') {
+                            if(options.hpa.spec.metrics) {
+                                options.hpa.spec.metrics.forEach((oneMetric) => {
+                                    //NOTE: only supported metric for now is CPU
+                                    if(oneMetric.resource && oneMetric.resource.name === 'cpu') {
+                                        record.metrics[oneMetric.resource.name] = { percent: oneMetric.resource.targetAverageUtilization };
+                                    }
+                                });
+                            }
+                        }
+                        else if(options.hpa.apiVersion === 'autoscaling/v1') {
                             //NOTE: only supported metric for now is CPU
-                            if(oneMetric.resource && oneMetric.resource.name === 'cpu') {
-                                record.metrics[oneMetric.resource.name] = { percent: oneMetric.resource.targetAverageUtilization };
+                            if(options.hpa.spec.targetCPUUtilizationPercentage) {
+                                record.metrics['cpu'] = { percent: options.hpa.spec.targetCPUUtilizationPercentage };
+                            }
+                        }
+                    }
+                }
+
+                return record;
+            },
+
+            buildEnvList (options) {
+                let envs = [];
+                options.envs.forEach((oneVar) => {
+
+                    let envVariable = oneVar.split('=');
+                    if(envVariable[1] === '$SOAJS_HA_NAME'){
+                        envs.push({
+                            name: envVariable[0],
+                            valueFrom: {
+                                fieldRef: {
+                                    fieldPath: 'metadata.name'
+                                }
                             }
                         });
                     }
-                }
-                else if(options.hpa.apiVersion === 'autoscaling/v1') {
-                    //NOTE: only supported metric for now is CPU
-                    if(options.hpa.spec.targetCPUUtilizationPercentage) {
-                        record.metrics['cpu'] = { percent: options.hpa.spec.targetCPUUtilizationPercentage };
+                    else{
+                        envs.push({ name: envVariable[0], value: envVariable[1] });
                     }
+                });
+
+                return envs;
+            },
+
+            buildLabelSelector (options) {
+                let labelSelector = '';
+
+                if (!options || !options.matchLabels || Object.keys(options.matchLabels).length === 0) return labelSelector;
+
+                let labels = Object.keys(options.matchLabels);
+
+                for (let i = 0; i < labels.length; i++) {
+                    if (labelSelector.length > 0) labelSelector += ', ';
+                    labelSelector += labels[i] + '=' + options.matchLabels[labels[i]];
+                }
+
+                return labelSelector;
+            },
+
+            buildSecretRecord (options){
+                let response = [];
+                if (options.items && options.items.length > 0){
+                    options.items.forEach(function (oneSecret) {
+                        response.push({
+                            name: oneSecret.metadata.name,
+                            namespace: oneSecret.metadata.namespace,
+                            uid: oneSecret.metadata.uid,
+                            data: oneSecret.data,
+                            type: oneSecret.type
+                        })
+                    });
+                }
+                return response;
+            },
+
+            checkNameSpace(deployer, options, mainCb, call) {
+                if (options.params.namespace) {
+                    deployer.core.namespaces.get({}, function (error, namespacesList) {
+                        utils.checkError(error, 520, mainCb, () => {
+                            async.detect(namespacesList.items, function (oneNamespace, callback) {
+                                return callback(null, oneNamespace.metadata.name === options.params.namespace);
+                            }, function (error, namespace) {
+                                utils.checkError(!namespace, 571, mainCb, () => {
+                                    return call(null, namespace.metadata.name);
+                                });
+                            });
+                        });
+                    });
+                }
+                else {
+                    return call(null, kubeLib.buildNameSpace(options));
                 }
             }
-        }
+        };
 
-        return record;
-    },
-
-    buildEnvList (options) {
-        let envs = [];
-        options.envs.forEach((oneVar) => {
-
-        	let envVariable = oneVar.split('=');
-        	if(envVariable[1] === '$SOAJS_HA_NAME'){
-		        envs.push({
-			        name: envVariable[0],
-			        valueFrom: {
-				        fieldRef: {
-					        fieldPath: 'metadata.name'
-				        }
-			        }
-		        });
-	        }
-	        else{
-                envs.push({ name: envVariable[0], value: envVariable[1] });
-	        }
-        });
-
-        return envs;
-    },
-
-    buildLabelSelector (options) {
-        let labelSelector = '';
-
-        if (!options || !options.matchLabels || Object.keys(options.matchLabels).length === 0) return labelSelector;
-
-        let labels = Object.keys(options.matchLabels);
-
-        for (let i = 0; i < labels.length; i++) {
-            if (labelSelector.length > 0) labelSelector += ', ';
-            labelSelector += labels[i] + '=' + options.matchLabels[labels[i]];
-        }
-
-        return labelSelector;
-    },
-
-	buildSecretRecord (options){
-		let response = [];
-		if (options.items && options.items.length > 0){
-			options.items.forEach(function (oneSecret) {
-				response.push({
-					name: oneSecret.metadata.name,
-					namespace: oneSecret.metadata.namespace,
-					uid: oneSecret.metadata.uid,
-					data: oneSecret.data,
-					type: oneSecret.type
-				})
-			});
-		}
-		return response;
-	},
-
-	checkNameSpace(deployer, options, mainCb, call) {
-		if (options.params.namespace) {
-			deployer.core.namespaces.get({}, function (error, namespacesList) {
-				utils.checkError(error, 520, mainCb, () => {
-					async.detect(namespacesList.items, function (oneNamespace, callback) {
-						return callback(null, oneNamespace.metadata.name === options.params.namespace);
-					}, function (error, namespace) {
-						utils.checkError(!namespace, 571, mainCb, () => {
-							return call(null, namespace.metadata.name);
-						});
-					});
-				});
-			});
-		}
-		else {
-			return call(null, kubeLib.buildNameSpace(options));
-		}
-	}
-};
-
-module.exports = kubeLib;
+        module.exports = kubeLib;
