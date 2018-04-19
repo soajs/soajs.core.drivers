@@ -326,6 +326,18 @@ const lib = {
                     record.ports.push(port);
                 });
             }
+            
+	        if (options.service.Endpoint && options.service.Endpoint.Spec && options.service.Endpoint.Spec.Ports && options.service.Endpoint.Spec.Ports.length > 0) {
+		        options.service.Endpoint.Spec.Ports.forEach((onePortConfig) => {
+			        if (onePortConfig.PublishedPort){
+				        record.servicePortType = "nodePort";
+			        }
+		        });
+		        if (!record.servicePortType){
+
+			        record.servicePortType = "loadBalancer"
+		        }
+	        }
 	        if (record.ports && record.ports.length > 0 ){
 		        if (deployerObject.driver === "docker.local"){
 			        record.ip = "127.0.0.1";
