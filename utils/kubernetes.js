@@ -239,7 +239,10 @@ const kubeLib = {
 	    	if(options.nodeList && options.nodeList.items && Array.isArray(options.nodeList.items) && options.nodeList.items.length === 1){
 		        record.ip = deployerObject.deployerConfig.nodes;
 		    }
-		    record.servicePortType = 'nodePort';
+
+        if(publishedService) {
+          record.servicePortType = 'nodePort';
+        }
 	    }
 	    else {
 		    record.servicePortType = 'LoadBalancer';
