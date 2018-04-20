@@ -8,6 +8,7 @@ module.exports = {
     600: "Generic error",
 
     //common errors
+	517: "Error Loading Kubernetes Template!",
     518: "The chosen strategy does not exist",
     519: "The chosen driver does not support the selected function",
 

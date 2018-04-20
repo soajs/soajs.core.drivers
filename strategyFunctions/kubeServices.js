@@ -290,6 +290,15 @@ var engine = {
 			options.params.type = 'daemonset';
 		}
 		
+		if(!payload || Object.keys(payload).length === 0){
+			return cb({
+				source: 'driver',
+				value: new Error(errorFile[517]),
+				code: 517,
+				msg: errorFile[517]
+			});
+		}
+		
 		if(!payload.metadata){ payload.metadata = {}; }
 		payload.metadata.name = cleanLabel(options.params.name);
 		payload.metadata.labels = options.params.labels;
