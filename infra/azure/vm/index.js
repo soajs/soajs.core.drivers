@@ -438,5 +438,4 @@ const runner = {
     }
 };
 
-// module.exports = runner;
-module.exports = driver;
+module.exports = runner;
