@@ -53,6 +53,7 @@ function getStrategy(options, cb) {
 		            }
 		            else{
 		                cache[strategyName] = require(pathToUse);
+			            return cb(null, cache[strategyName]);
 		            }
 	            });
             }
@@ -60,8 +61,6 @@ function getStrategy(options, cb) {
                 console.log("Error:", e);
                 return cb(e);
             }
-
-            return cb(null, cache[strategyName]);
         });
     });
 
