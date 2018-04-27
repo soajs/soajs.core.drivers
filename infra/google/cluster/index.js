@@ -74,7 +74,8 @@ const driver = {
 			}
 			
 			oneDeployment = {
-				environments: [options.soajs.registry.code.toUpperCase()]
+				environments: [options.soajs.registry.code.toUpperCase()],
+				options: {}
 			};
 			
 			return mCb(null, true);
@@ -98,7 +99,7 @@ const driver = {
 				}
 				
 				//assign network name to deployment entry
-				oneDeployment.network = name;
+				oneDeployment.options.network = name;
 				
 				//check if network is ready then update firewall rules
 				checkVpcNetwork(globalOperationResponse, mCb);
@@ -277,7 +278,7 @@ const driver = {
 				//cluster failed, delete network
 				//Ref: https://cloud.google.com/compute/docs/reference/latest/networks/delete
 				let request = getConnector(options.infra.api);
-				request.network = oneDeployment.network;
+				request.network = oneDeployment.options.network;
 				v1Compute.networks.delete(request, (error) => {
 					if (error) {
 						options.soajs.log.error(error);
@@ -327,11 +328,11 @@ const driver = {
 						return mCb(err);
 					}
 					else {
-						oneDeployment.nodePoolId = template.cluster.nodePools[0].name;
-						oneDeployment.operationId = operation.name;
 						oneDeployment.id = name;
-						oneDeployment.zone = options.params.region;
 						oneDeployment.name = name;
+						oneDeployment.options.nodePoolId = template.cluster.nodePools[0].name;
+						oneDeployment.options.zone = options.params.region;
+						oneDeployment.options.operationId = operation.name;
 						options.infra.deployments.push(oneDeployment);
 						mockedResponse = {
 							"id": name,
@@ -364,8 +365,8 @@ const driver = {
 		let cluster = options.infra.stack;
 		let request = getConnector(options.infra.api);
 		delete request.project;
-		request.zone = cluster.zone;
-		request.operationId = cluster.operationId;
+		request.zone = cluster.options.zone;
+		request.operationId = cluster.options.operationId;
 		
 		function checkIfClusterisReady(miniCB) {
 			setTimeout(function () {
@@ -410,7 +411,7 @@ const driver = {
 						//Ref https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1beta1/projects.locations.clusters/get
 						let request = getConnector(options.infra.api);
 						delete request.project;
-						request.zone = cluster.zone;
+						request.zone = cluster.options.zone;
 						request.clusterId = cluster.id;
 						options.soajs.log.debug("Getting Cluster Information.");
 						v1Container.projects.zones.clusters.get(request, function (err, clusterInformation) {
@@ -634,8 +635,8 @@ const driver = {
 		let request = getConnector(options.infra.api);
 		delete request.project;
 		request.clusterId = cluster.id;
-		request.zone = cluster.zone;
-		request.nodePoolId = cluster.nodePoolId;
+		request.zone = cluster.options.zone;
+		request.nodePoolId = cluster.options.nodePoolId;
 		request.resource = {
 			"nodeCount": options.params.number, // get this from ui
 		};
@@ -655,9 +656,9 @@ const driver = {
 		
 		//Ref: https://cloud.google.com/compute/docs/reference/latest/instances/list
 		let request = getConnector(options.infra.api);
-		request.zone = cluster.zone;
+		request.zone = cluster.options.zone;
 		request.clusterId = cluster.id;
-		request.filter = "name eq gke-" + cluster.id.substring(0, 19) + "-" + cluster.nodePoolId + "-.*";
+		request.filter = "name eq gke-" + cluster.id.substring(0, 19) + "-" + cluster.options.nodePoolId + "-.*";
 		v1Compute.instances.list(request, (error, instances) => {
 			if (error) {
 				return cb(error);
@@ -668,7 +669,7 @@ const driver = {
 				"stackId": cluster.id,
 				"stackName": cluster.id,
 				"templateProperties": {
-					"region": cluster.zone,
+					"region": cluster.options.zone,
 					"keyPair": "keyPair" //todo: what is this for ????
 				},
 				"machines": []
@@ -740,7 +741,7 @@ const driver = {
 		//Ref: https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1beta1/projects.zones.clusters/delete
 		let request = getConnector(options.infra.api);
 		let stack = options.infra.stack;
-		request.zone = stack.zone;
+		request.zone = stack.options.zone;
 		request.clusterId = stack.id;
 		delete request.project;
 		options.soajs.log.debug("Removing Cluster:", request.clusterId);
@@ -787,7 +788,7 @@ const driver = {
 			//Ref: https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.operations/get
 			let request = getConnector(options.infra.api);
 			request.operationId = operation.name;
-			request.zone = stack.zone;
+			request.zone = stack.options.zone;
 			delete request.project;
 			options.soajs.log.debug("Checking if Cluster was removed:", stack.id);
 			v1Container.projects.zones.operations.get(request, function (err, response) {
@@ -836,7 +837,7 @@ const driver = {
 		
 		let project = request.project;
 		delete request.project;
-		request.zone = stack.zone;
+		request.zone = stack.options.zone;
 		request.clusterId = stack.id;
 		options.soajs.log.debug("Getting Cluster network name...");
 		v1Container.projects.zones.clusters.get(request, function (err, clusterInformation) {
