@@ -202,7 +202,7 @@ const driver = {
 
             }, function (error, result) {
                 if(error) return cb(error); //TODO: rollback in case of error?
-                return cb(null, result.createVirtualMachine);
+                return cb(null, helper.buildVMRecord({ vm: result.createVirtualMachine, infra: options.infra }));
             });
         });
     },
