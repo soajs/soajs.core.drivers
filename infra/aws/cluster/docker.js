@@ -1237,7 +1237,6 @@ const driver = {
 	 */
 	"deleteExternalLB": function (options, mCb) {
 		const opts = {
-			listener : options.params.listener,
 			name : options.params.name,
 			ElbName: options.params.ElbName
 		};
