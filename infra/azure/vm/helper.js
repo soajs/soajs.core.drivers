@@ -131,6 +131,52 @@ const helper = {
             }
         };
         return computeClient.virtualMachines.createOrUpdate(opts.resourceGroupName, opts.vmName, params, cb);
+    },
+
+    buildVMRecord: function(opts) {
+        let record = { type: 'vm' };
+
+        if(opts.vm) {
+            if(opts.vm.name) record.name = opts.vm.name;
+            if(opts.vm.location) record.location = opts.vm.location;
+            if(opts.vm.provisioningState) record.status = opts.vm.provisioningState.toLowerCase();
+            if(opts.vm.id) {
+                let idInfo = opts.vm.id.split('/');
+                record.group = idInfo[idInfo.indexOf('resourceGroups') + 1];
+            }
+
+            if(opts.vm.hardwareProfile && opts.vm.hardwareProfile.vmSize) record.size = opts.vm.hardwareProfile.vmSize;
+
+            if(opts.vm.storageProfile) {
+                if(opts.vm.storageProfile.imageReference) {
+                    record.image = {};
+                    if(opts.vm.storageProfile.imageReference.publisher) record.image.prefix = opts.vm.storageProfile.imageReference.publisher;
+                    if(opts.vm.storageProfile.imageReference.offer) record.image.name = opts.vm.storageProfile.imageReference.offer;
+                    if(opts.vm.storageProfile.imageReference.sku) record.image.tag = opts.vm.storageProfile.imageReference.sku;
+                }
+
+                if(opts.vm.storageProfile.osDisk) {
+                    record.os = {};
+                    if(opts.vm.storageProfile.osDisk.name) record.os.diskName = opts.vm.storageProfile.osDisk.name;
+                    if(opts.vm.storageProfile.osDisk.osType) record.os.type = opts.vm.storageProfile.osDisk.osType;
+                    if(opts.vm.storageProfile.osDisk.diskSizeGB) record.os.diskSizeGB = opts.vm.storageProfile.osDisk.diskSizeGB;
+                }
+
+                if(opts.vm.storageProfile.dataDisks) {
+                    record.volumes = [];
+                    //NOTE: not yet supported
+                }
+            }
+        }
+
+        if(opts.infra) {
+            record.infra = {};
+            if(opts.infra.id) {
+                record.infra.id = opts.infra.id;
+            }
+        }
+
+        return record;
     }
 
 };

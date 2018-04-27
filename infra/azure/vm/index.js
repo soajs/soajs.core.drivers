@@ -202,7 +202,7 @@ const driver = {
 
             }, function (error, result) {
                 if(error) return cb(error); //TODO: rollback in case of error?
-                return cb(null, result.createVirtualMachine);
+                return cb(null, helper.buildVMRecord({ vm: result.createVirtualMachine, infra: options.infra }));
             });
         });
     },
@@ -221,7 +221,7 @@ const driver = {
             const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
             computeClient.virtualMachines.get(options.params.resourceGroupName, options.params.vmName, function (error, vmInfo) {
                 if(error) return cb(error);
-                return cb(null, vmInfo);
+                return cb(null, helper.buildVMRecord({ vm: vmInfo, infra: options.infra }));
             });
         });
     },
@@ -278,7 +278,11 @@ const driver = {
             const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
             computeClient.virtualMachines.listAll(function (error, vms) {
                 if(error) return cb(error);
-                return cb(null, vms);
+
+                if(!(vms && Array.isArray(vms))) vms = [];
+                async.map(vms, function(oneVm, callback) {
+                    return callback(null, helper.buildVMRecord({ vm: oneVm, infra: options.infra }));
+                }, cb);
             });
         });
     },
