@@ -3,7 +3,6 @@ const AWS = require('aws-sdk');
 const async = require("async");
 
 const config = require("./config");
-const utils = require("../../../lib/infra/utils.js");
 const randomString = require("randomstring");
 
 const Docker = require('dockerode');
@@ -228,77 +227,88 @@ const driver = {
 		const param = {
 			StackName: stack.name
 		};
-		cloudFormation.describeStacks(param, function (err, response) {
-			if (err) {
-				return cb(err);
-			}
-			else {
-				if (response && response.Stacks && response.Stacks.length > 0 && response.Stacks[0] && response.Stacks[0].StackStatus) {
-					if ((response.Stacks[0].StackStatus === 'CREATE_COMPLETE' || response.Stacks[0].StackStatus === 'UPDATE_COMPLETE') && response.Stacks[0].Outputs && response.Stacks[0].Outputs.length > 0) {
-						let out = {};
-						for (let i = 0; i < response.Stacks[0].Outputs.length; i++) {
-							if (response.Stacks[0].Outputs[i] && response.Stacks[0].Outputs[i].OutputKey === 'DefaultDNSTarget') {
-								out.ip = response.Stacks[0].Outputs[i].OutputValue;
-							}
-							if (response.Stacks[0].Outputs[i] && response.Stacks[0].Outputs[i].OutputKey === 'ElbName') {
-								stack.ElbName = response.Stacks[0].Outputs[i].OutputValue;
+		
+		//get the environment record
+		if (options.soajs.registry.deployer.container.docker.remote.nodes && options.soajs.registry.deployer.container.docker.remote.nodes !== '') {
+			let machineIp = options.soajs.registry.deployer.container.docker.remote.nodes;
+			return cb(null, {
+				"id": cluster.id,
+				"ip": machineIp
+			});
+		}
+		else{
+			cloudFormation.describeStacks(param, function (err, response) {
+				if (err) {
+					return cb(err);
+				}
+				else {
+					if (response && response.Stacks && response.Stacks.length > 0 && response.Stacks[0] && response.Stacks[0].StackStatus) {
+						if ((response.Stacks[0].StackStatus === 'CREATE_COMPLETE' || response.Stacks[0].StackStatus === 'UPDATE_COMPLETE') && response.Stacks[0].Outputs && response.Stacks[0].Outputs.length > 0) {
+							let out = {};
+							for (let i = 0; i < response.Stacks[0].Outputs.length; i++) {
+								if (response.Stacks[0].Outputs[i] && response.Stacks[0].Outputs[i].OutputKey === 'DefaultDNSTarget') {
+									out.ip = response.Stacks[0].Outputs[i].OutputValue;
+								}
+								if (response.Stacks[0].Outputs[i] && response.Stacks[0].Outputs[i].OutputKey === 'ElbName') {
+									stack.ElbName = response.Stacks[0].Outputs[i].OutputValue;
+								}
+								
+								if (response.Stacks[0].Outputs[i] && response.Stacks[0].Outputs[i].OutputKey === 'ExternalLBSecurityGroupID') {
+									stack.ExternalLBSecurityGroupID = response.Stacks[0].Outputs[i].OutputValue;
+								}
+								if (response.Stacks[0].Outputs[i] && response.Stacks[0].Outputs[i].OutputKey === 'ZonesAvailable') {
+									stack.ZonesAvailable = response.Stacks[0].Outputs[i].OutputValue.split("|");
+								}
 							}
 							
-							if (response.Stacks[0].Outputs[i] && response.Stacks[0].Outputs[i].OutputKey === 'ExternalLBSecurityGroupID') {
-								stack.ExternalLBSecurityGroupID = response.Stacks[0].Outputs[i].OutputValue;
+							if (out.ip && stack.ElbName) {
+								options.soajs.registry.deployer.container.docker.remote.nodes = response.ip;
+								
+								
+								options.soajs.log.debug("Creating SOAJS network.");
+								const deployer = new Docker({
+									protocol: options.soajs.registry.deployer.container.docker.remote.apiProtocol,
+									port: options.soajs.registry.deployer.container.docker.remote.apiPort,
+									host: out.ip,
+									headers: {
+										'token': options.soajs.registry.deployer.container.docker.remote.auth.token
+									}
+								});
+								let networkParams = {
+									Name: 'soajsnet',
+									Driver: 'overlay',
+									Internal: false,
+									Attachable: true,
+									CheckDuplicate: true,
+									EnableIPv6: false,
+									IPAM: {
+										Driver: 'default'
+									}
+								};
+								deployer.createNetwork(networkParams, (err) => {
+									if (err && err.statusCode === 403) {
+										return cb(null, true);
+									}
+									return cb(err, true);
+								});
 							}
-							if (response.Stacks[0].Outputs[i] && response.Stacks[0].Outputs[i].OutputKey === 'ZonesAvailable') {
-								stack.ZonesAvailable = response.Stacks[0].Outputs[i].OutputValue.split("|");
+							else {
+								return cb(null, false);
 							}
 						}
-						
-						if (out.ip && stack.ElbName) {
-							options.soajs.registry.deployer.container.docker.remote.nodes = response.ip;
-							
-							
-							options.soajs.log.debug("Creating SOAJS network.");
-							const deployer = new Docker({
-								protocol: options.soajs.registry.deployer.container.docker.remote.apiProtocol,
-								port: options.soajs.registry.deployer.container.docker.remote.apiPort,
-								host: out.ip,
-								headers: {
-									'token': options.soajs.registry.deployer.container.docker.remote.auth.token
-								}
-							});
-							let networkParams = {
-								Name: 'soajsnet',
-								Driver: 'overlay',
-								Internal: false,
-								Attachable: true,
-								CheckDuplicate: true,
-								EnableIPv6: false,
-								IPAM: {
-									Driver: 'default'
-								}
-							};
-							deployer.createNetwork(networkParams, (err) => {
-								if (err && err.statusCode === 403) {
-									return cb(null, true);
-								}
-								return cb(err, true);
-							});
+						else if (response.Stacks[0].StackStatus === 'DELETE_IN_PROGRESS') {
+							return cb(new Error('Error Creating Stack'));
 						}
 						else {
 							return cb(null, false);
 						}
 					}
-					else if (response.Stacks[0].StackStatus === 'DELETE_IN_PROGRESS') {
-						return cb(new Error('Error Creating Stack'));
-					}
 					else {
 						return cb(null, false);
 					}
 				}
-				else {
-					return cb(null, false);
-				}
-			}
-		});
+			});
+		}
 	},
 	
 	/**
@@ -310,29 +320,34 @@ const driver = {
 	 */
 	"getDNSInfo": function (options, mCb) {
 		let stack = options.infra.stack;
-		if (!stack.ElbName) {
+		let ipAddress;
+		if (!stack) {
 			return mCb(null, {"id": stack.id});
 		}
-		//this function is wrong, it should call docker, and return the ip of the nginx to use no the elbname of the stack
 		
-		let ipAddress = stack.ElbName;
-		let response = {
-			"id": stack.id,
-			"dns": {
-				"msg": "<table>" +
-				"<thead>" +
-				"<tr><th>Field Type</th><th>Field Value</th></tr>" +
-				"</thead>" +
-				"<tbody>" +
-				"<tr><td>DNS Type</td><td>CNAME</td></tr>" +
-				"<tr class='even'><td>Domain Value</td><td>%domain%</td></tr>" +
-				"<tr><td>IP Address</td><td>" + ipAddress + "</td></tr>" +
-				"<tr class='even'><td>TTL</td><td>5 minutes</td></tr>" +
-				"</tbody>" +
-				"</table>"
-			}
-		};
-		return mCb(null, response);
+		if (stack.loadBalancers && stack.loadBalancers[options.soajs.registry.code.toLowerCase()] && stack.loadBalancers[options.soajs.registry.code.toLowerCase()][options.soajs.registry.code.toLowerCase() + "-nginx"]) {
+			ipAddress = stack.loadBalancers[options.soajs.registry.code.toLowerCase()][options.soajs.registry.code.toLowerCase() + "-nginx"].name;
+			let response = {
+				"id": stack.id,
+				"dns": {
+					"msg": "<table>" +
+					"<thead>" +
+					"<tr><th>Field Type</th><th>Field Value</th></tr>" +
+					"</thead>" +
+					"<tbody>" +
+					"<tr><td>DNS Type</td><td>CNAME</td></tr>" +
+					"<tr class='even'><td>Domain Value</td><td>%domain%</td></tr>" +
+					"<tr><td>IP Address</td><td>" + ipAddress + "</td></tr>" +
+					"<tr class='even'><td>TTL</td><td>5 minutes</td></tr>" +
+					"</tbody>" +
+					"</table>"
+				}
+			};
+			return mCb(null, response);
+		}
+		else{
+			return mCb(null, {"id": stack.id});
+		}
 	},
 	
 	/**
