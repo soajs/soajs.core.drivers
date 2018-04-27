@@ -25,6 +25,7 @@ function getConnector(opts) {
 
 function runCorrespondingDriver(method, options, cb) {
 	let driverName = (options.infra && options.infra.stack && options.infra.stack.technology) ? options.infra.stack.technology : defaultDriver;
+	driverName = (options.params && options.params.technology) ? options.params.tehcnology : driverName;
 	fs.exists(__dirname + "/" + driverName + ".js", (exists) => {
 		if (!exists) {
 			return cb(new Error("Requested Driver does not exist!"));
