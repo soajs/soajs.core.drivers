@@ -437,6 +437,27 @@ const driver = {
                 return cb(null, vmSizes);
             });
         });
+    },
+
+    /**
+     * List available azure regions (aka locations)
+
+     * @param  {Object}   options  Data passed to function as params
+     * @param  {Function} cb    Callback function
+     * @return {void}
+     */
+    listRegions: function(options, cb) {
+        driver.authenticate(options, (error, authData) => {
+            let opts = {
+                subscriptionId: options.infra.api.subscriptionId,
+                bearerToken: authData.credentials.tokenCache._entries[0].accessToken
+            };
+
+            helper.listRegions(opts, function(error, regions) {
+                if(error) return cb(error);
+                return cb(null, (regions && regions.value) ? regions.value : []);
+            });
+        });
     }
 };
 
