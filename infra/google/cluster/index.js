@@ -1,6 +1,5 @@
 'use strict';
 const config = require('./config');
-const utils = require("../../../lib/infra/utils.js");
 
 const _ = require('lodash');
 const async = require("async");

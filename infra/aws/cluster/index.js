@@ -3,7 +3,6 @@ const AWS = require('aws-sdk');
 const async = require("async");
 
 const config = require("./config");
-const utils = require("../../../lib/infra/utils.js");
 const randomString = require("randomstring");
 
 const Docker = require('dockerode');
