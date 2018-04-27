@@ -2,15 +2,13 @@
 
 const helper = {
 
-    createResourceGroup: function(soajs, resourceClient, opts, cb) {
-        soajs.log.debug(`Creating resource group ${opts.resourceGroupName}`);
+    createResourceGroup: function(resourceClient, opts, cb) {
         let groupParameters = { location: opts.location, tags: opts.tags || {} };
 
         return resourceClient.resourceGroups.createOrUpdate(opts.resourceGroupName, groupParameters, cb);
     },
 
-    createStorageAccount: function(soajs, storageClient, opts, cb) {
-        soajs.log.debug(`Creating storage account ${opts.accountName}`);
+    createStorageAccount: function(storageClient, opts, cb) {
         let params = {
             location: opts.location,
             sku: {
@@ -23,9 +21,7 @@ const helper = {
         return storageClient.storageAccounts.create(opts.resourceGroupName, opts.accountName, params, cb);
     },
 
-    createVirtualNetwork: function(soajs, networkClient, opts, cb) {
-        soajs.log.debug(`Creating virtual network ${opts.vnetName}`);
-
+    createVirtualNetwork: function(networkClient, opts, cb) {
         if(!(opts.addressPrefixes && Array.isArray(opts.addressPrefixes))) {
             opts.addressPrefixes = ['10.0.0.0/16'];
         }
@@ -53,15 +49,11 @@ const helper = {
         return networkClient.virtualNetworks.createOrUpdate(opts.resourceGroupName, opts.vnetName, params, cb);
     },
 
-    getSubnetInfo: function(soajs, networkClient, opts, cb) {
-        soajs.log.debug(`Getting subnet information ${opts.subnetName}`);
-
+    getSubnetInfo: function(networkClient, opts, cb) {
         return networkClient.subnets.get(opts.resourceGroupName, opts.vnetName, opts.subnetName, cb);
     },
 
-    createPublicIP: function(soajs, networkClient, opts, cb) {
-        soajs.log.debug(`Creating public IP address ${opts.publicIPName}`);
-
+    createPublicIP: function(networkClient, opts, cb) {
         let params = {
             location: opts.location,
             publicIPAllocationMethod: opts.publicIPAllocationMethod || 'Dynamic',
@@ -73,9 +65,7 @@ const helper = {
         return networkClient.publicIPAddresses.createOrUpdate(opts.resourceGroupName, opts.publicIPName, params, cb);
     },
 
-    createNetworkInterface: function(soajs, networkClient, opts, cb) {
-        soajs.log.debug(`Creating network interface ${opts.networkInterfaceName}`);
-
+    createNetworkInterface: function(networkClient, opts, cb) {
         let params = {
             location: opts.location,
             ipConfigurations: [
@@ -91,9 +81,7 @@ const helper = {
         return networkClient.networkInterfaces.createOrUpdate(opts.resourceGroupName, opts.networkInterfaceName, params, cb);
     },
 
-    getVMImage: function(soajs, computeClient, opts, cb) { //TODO: check get image instead of list images
-        soajs.log.debug(`Finding VM image ${opts.publisher} - ${opts.offer} - ${opts.sku}`);
-
+    getVMImage: function(computeClient, opts, cb) { //TODO: check get image instead of list images
         return computeClient.virtualMachineImages.list(opts.location, opts.publisher, opts.offer, opts.sku, { top: 1 }, (error, imageList) => {
             if(error) return cb(error);
 
@@ -101,15 +89,11 @@ const helper = {
         });
     },
 
-    getNetworkInterfaceInfo: function(soajs, networkClient, opts, cb) {
-        soajs.log.debug(`Getting network interface information ${opts.networkInterfaceName}`);
-
+    getNetworkInterfaceInfo: function(networkClient, opts, cb) {
         return networkClient.networkInterfaces.get(opts.resourceGroupName, opts.networkInterfaceName, cb);
     },
 
-    createVirtualMachine: function(soajs, computeClient, opts, cb) {
-        soajs.log.debug(`Creating virtual machine ${opts.vmName}`);
-
+    createVirtualMachine: function(computeClient, opts, cb) {
         let params = {
             location: opts.location,
             osProfile: {

@@ -34,13 +34,13 @@ const driver = {
 
     /**
      * Authenticate using the provided credentials
-     * @param  {Object}   soajs SOAJS object
-     * @param  {Object}   data  Data passed to function as params
+
+     * @param  {Object}   options  Data passed to function as params
      * @param  {Function} cb    Callback function
      * @return {void}
      */
-    authenticate: function(soajs, data, cb) {
-        azureApi.loginWithServicePrincipalSecret(data.auth.clientId, data.auth.secret, data.auth.domain, function (error, credentials, subscriptions) {
+    authenticate: function(options, cb) {
+        azureApi.loginWithServicePrincipalSecret(options.infra.api.clientId, options.infra.api.secret, options.infra.api.domain, function (error, credentials, subscriptions) {
             if(error) return cb(error);
 
             return cb(null, { credentials, subscriptions });
@@ -49,56 +49,59 @@ const driver = {
 
     /**
      * Create a virtual machine on MS Azure
-     * @param  {Object}   soajs SOAJS object
-     * @param  {Object}   data  Data passed to function as params
+
+     * @param  {Object}   options  Data passed to function as params
      * @param  {Function} cb    Callback function
      * @return {void}
      */
-    deployVM: function(soajs, data, cb) {
-        driver.authenticate(soajs, data, (error, authData) => {
+    deployVM: function(options, cb) {
+        driver.authenticate(options, (error, authData) => {
             if(error) return cb(error);
 
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: data.auth.subscriptionId });
-            const networkClient = driver.getConnector({ api: 'network', credentials: authData.credentials, subscriptionId: data.auth.subscriptionId });
-            const storageClient = driver.getConnector({ api: 'storage', credentials: authData.credentials, subscriptionId: data.auth.subscriptionId });
-            const resourceClient = driver.getConnector({ api: 'resource', credentials: authData.credentials, subscriptionId: data.auth.subscriptionId });
+            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+            const networkClient = driver.getConnector({ api: 'network', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+            const storageClient = driver.getConnector({ api: 'storage', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+            const resourceClient = driver.getConnector({ api: 'resource', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
 
             async.auto({
 
                 createResourceGroup: function(callback) {
                     let opts = {
-                        resourceGroupName: data.resourceGroupName, //TODO: set name
-                        location: data.location,
-                        // tags: data.resourceGroup.tags || {}
+                        resourceGroupName: options.params.resourceGroupName, //TODO: set name
+                        location: options.params.location,
+                        // tags: options.params.resourceGroup.tags || {}
                     };
-                    return helper.createResourceGroup(soajs, resourceClient, opts, function(error, resourceGroup) {
+                    options.soajs.log.debug(`Creating resource group ${options.params.resourceGroupName}`);
+                    return helper.createResourceGroup(resourceClient, opts, function(error, resourceGroup) {
                         if(error) return callback(error);
                         return callback(null, resourceGroup);
                     });
                 },
                 createStorageAccount: ['createResourceGroup', function(result, callback) {
-                    return callback();
                     //NOTE: if not a managed disk, need to create a storage account manually and link it to vm
-                    let opts = {
-                        resourceGroupName: result.createResourceGroup.name,
-                        location: data.location,
-                        accountName: 'storageaccount', //TODO: make dynamic, must be between 3 and 24 characters in length and use numbers and lower-case letters only
-                        accountType: 'Standard_LRS', //TODO: make dynamic
-                        accountKind: (data.storageAccount && data.storageAccount.accountType) ? data.storageAccount.accountType: 'Storage',
-                        tags: (data.storageAccount && data.storageAccount.tags) ? data.storageAccount.tags : {}
-                    };
-                    return helper.createStorageAccount(soajs, storageClient, opts, callback);
+                    return callback();
+                    // let opts = {
+                    //     resourceGroupName: result.createResourceGroup.name,
+                    //     location: options.params.location,
+                    //     accountName: 'storageaccount', //TODO: make dynamic, must be between 3 and 24 characters in length and use numbers and lower-case letters only
+                    //     accountType: 'Standard_LRS', //TODO: make dynamic
+                    //     accountKind: (options.params.storageAccount && options.params.storageAccount.accountType) ? options.params.storageAccount.accountType: 'Storage',
+                    //     tags: (options.params.storageAccount && options.params.storageAccount.tags) ? options.params.storageAccount.tags : {}
+                    // };
+                    // options.soajs.log.debug(`Creating storage account ${options.params.accountName}`);
+                    // return helper.createStorageAccount(storageClient, opts, callback);
                 }],
                 createVirtualNetwork: ['createResourceGroup', function(result, callback) {
                     let opts = {
                         resourceGroupName: result.createResourceGroup.name,
-                        location: data.location,
+                        location: options.params.location,
                         vnetName: result.createResourceGroup.name,
-                        addressPrefixes: (data.virtualNetwork && data.virtualNetwork.addressPrefixes) ? data.virtualNetwork.addressPrefixes : null,
-                        dhcpServers: (data.virtualNetwork && data.virtualNetwork.dhcpServers) ? data.virtualNetwork.dhcpServers : null,
-                        subnets: (data.virtualNetwork && data.virtualNetwork.subnets) ? data.virtualNetwork.subnets : null
+                        addressPrefixes: (options.params.virtualNetwork && options.params.virtualNetwork.addressPrefixes) ? options.params.virtualNetwork.addressPrefixes : null,
+                        dhcpServers: (options.params.virtualNetwork && options.params.virtualNetwork.dhcpServers) ? options.params.virtualNetwork.dhcpServers : null,
+                        subnets: (options.params.virtualNetwork && options.params.virtualNetwork.subnets) ? options.params.virtualNetwork.subnets : null
                     };
-                    return helper.createVirtualNetwork(soajs, networkClient, opts, function(error, virtualNetwork) {
+                    options.soajs.log.debug(`Creating virtual network ${opts.vnetName}`);
+                    return helper.createVirtualNetwork(networkClient, opts, function(error, virtualNetwork) {
                         if(error) return callback(error);
 
                         return callback(null, virtualNetwork);
@@ -112,7 +115,8 @@ const driver = {
                             result.createVirtualNetwork.subnets[0] &&
                             result.createVirtualNetwork.subnets[0].name) ? result.createVirtualNetwork.subnets[0].name : null
                     };
-                    return helper.getSubnetInfo(soajs, networkClient, opts, function(error, subnetInfo) {
+                    options.soajs.log.debug(`Getting subnet information ${opts.subnetName}`);
+                    return helper.getSubnetInfo(networkClient, opts, function(error, subnetInfo) {
                         if(error) return callback(error);
 
                         return callback(null, subnetInfo);
@@ -121,12 +125,13 @@ const driver = {
                 createPublicIP: ['createResourceGroup', function(result, callback) {
                     let opts = {
                         resourceGroupName: result.createResourceGroup.name,
-                        location: data.location,
+                        location: options.params.location,
                         publicIPName: result.createResourceGroup.name,
-                        publicIPAllocationMethod: (data.publicIP && data.publicIP.allocationMethod) ? data.publicIP.allocationMethod : 'Dynamic',
-                        // domainNameLabel: data.publicIP.domainNameLabel
+                        publicIPAllocationMethod: (options.params.publicIP && options.params.publicIP.allocationMethod) ? options.params.publicIP.allocationMethod : 'Dynamic',
+                        // domainNameLabel: options.params.publicIP.domainNameLabel
                     };
-                    return helper.createPublicIP(soajs, networkClient, opts, function(error, publicIP) {
+                    options.soajs.log.debug(`Creating public IP address ${opts.publicIPName}`);
+                    return helper.createPublicIP(networkClient, opts, function(error, publicIP) {
                         if(error) return callback(error);
 
                         return callback(null, publicIP);
@@ -135,14 +140,15 @@ const driver = {
                 createNetworkInterface: ['createResourceGroup', 'getSubnetInfo', 'createPublicIP', function(result, callback) {
                     let opts = {
                         resourceGroupName: result.createResourceGroup.name,
-                        location: data.location,
+                        location: options.params.location,
                         networkInterfaceName: result.createResourceGroup.name,
                         ipConfigName: result.createResourceGroup.name,
                         subnetInfo: result.getSubnetInfo,
                         publicIPInfo: result.createPublicIP,
                         publicIPAllocationMethod: result.createPublicIP.publicIPAllocationMethod || 'Dynamic'
                     };
-                    return helper.createNetworkInterface(soajs, networkClient, opts, function(error, networkInterface) {
+                    options.soajs.log.debug(`Creating network interface ${opts.networkInterfaceName}`);
+                    return helper.createNetworkInterface(networkClient, opts, function(error, networkInterface) {
                         if(error) return callback(error);
 
                         return callback(null, networkInterface);
@@ -150,45 +156,48 @@ const driver = {
                 }],
                 getVMImage: function(callback) {
                     let opts = {
-                        location: data.location,
-                        publisher: data.image.prefix,
-                        offer: data.image.name,
-                        sku: data.image.tag
+                        location: options.params.location,
+                        publisher: options.params.image.prefix,
+                        offer: options.params.image.name,
+                        sku: options.params.image.tag
                     };
-                    return helper.getVMImage(soajs, computeClient, opts, callback);
+                    options.soajs.log.debug(`Finding VM image ${opts.publisher} - ${opts.offer} - ${opts.sku}`);
+                    return helper.getVMImage(computeClient, opts, callback);
                 },
                 getNetworkInterfaceInfo: ['createResourceGroup', 'createNetworkInterface', function(result, callback) {
-                    return callback();
                     //NOTE: might not be needed
-                    let opts = {
-                        resourceGroupName: result.createResourceGroup.name,
-                        networkInterfaceName: result.createNetworkInterface.name
-                    };
-                    return helper.getNetworkInterfaceInfo(soajs, networkClient, opts, callback);
+                    return callback();
+                    // let opts = {
+                    //     resourceGroupName: result.createResourceGroup.name,
+                    //     networkInterfaceName: result.createNetworkInterface.name
+                    // };
+                    // options.soajs.log.debug(`Getting network interface information ${opts.networkInterfaceName}`);
+                    // return helper.getNetworkInterfaceInfo(networkClient, opts, callback);
                 }],
                 createVirtualMachine: ['createResourceGroup', 'createStorageAccount', 'createVirtualNetwork', 'createPublicIP', 'createNetworkInterface', 'getVMImage', function(result, callback) {
                     let opts = {
                         resourceGroupName: result.createResourceGroup.name,
-                        location: data.location,
-                        vmName: data.instance.name, //TODO: set name
-                        adminUsername: data.instance.admin.username,
-                        adminPassword: data.instance.admin.password,
-                        vmSize: data.instance.size,
+                        location: options.params.location,
+                        vmName: options.params.instance.name, //TODO: set name
+                        adminUsername: options.params.instance.admin.username,
+                        adminPassword: options.params.instance.admin.password,
+                        vmSize: options.params.instance.size,
                         image: {
-                            publisher: data.image.prefix,
-                            offer: data.image.name,
-                            sku: data.image.tag,
+                            publisher: options.params.image.prefix,
+                            offer: options.params.image.name,
+                            sku: options.params.image.tag,
                             version: result.getVMImage.name
                         },
                         disk: {
-                            osDiskName: data.instance.osDiskName, //TODO: check source
-                            storageAccountType: data.instance.storageAccountType || 'Standard_LRS'//result.createStorageAccount.name
+                            osDiskName: options.params.instance.osDiskName, //TODO: check source
+                            storageAccountType: options.params.instance.storageAccountType || 'Standard_LRS'//result.createStorageAccount.name
                         },
                         network: {
                             networkInterfaceId: result.createNetworkInterface.id
                         }
                     };
-                    return helper.createVirtualMachine(soajs, computeClient, opts, callback);
+                    options.soajs.log.debug(`Creating virtual machine ${opts.vmName}`);
+                    return helper.createVirtualMachine(computeClient, opts, callback);
                 }]
 
             }, function (error, result) {
@@ -200,17 +209,17 @@ const driver = {
 
     /**
      * Get information about deployed vitual machine
-     * @param  {Object}   soajs SOAJS object
-     * @param  {Object}   data  Data passed to function as params
+
+     * @param  {Object}   options  Data passed to function as params
      * @param  {Function} cb    Callback function
      * @return {void}
      */
-    inspectVM: function(soajs, data, cb) {
-        driver.authenticate(soajs, data, (error, authData) => {
+    inspectVM: function(options, cb) {
+        driver.authenticate(options, (error, authData) => {
             if(error) return cb(error);
 
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: data.auth.subscriptionId });
-            computeClient.virtualMachines.get(data.resourceGroupName, data.vmName, function (error, vmInfo) {
+            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+            computeClient.virtualMachines.get(options.params.resourceGroupName, options.params.vmName, function (error, vmInfo) {
                 if(error) return cb(error);
                 return cb(null, vmInfo);
             });
@@ -219,17 +228,17 @@ const driver = {
 
     /**
      * Turn off a virtual machine
-     * @param  {Object}   soajs SOAJS object
-     * @param  {Object}   data  Data passed to function as params
+
+     * @param  {Object}   options  Data passed to function as params
      * @param  {Function} cb    Callback function
      * @return {void}
      */
-    powerOffVM: function(soajs, data, cb) {
-        driver.authenticate(soajs, data, (error, authData) => {
+    powerOffVM: function(options, cb) {
+        driver.authenticate(options, (error, authData) => {
             if(error) return cb(error);
 
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: data.auth.subscriptionId });
-            computeClient.virtualMachines.powerOff(data.resourceGroupName, data.vmName, function (error, result) {
+            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+            computeClient.virtualMachines.powerOff(options.params.resourceGroupName, options.params.vmName, function (error, result) {
                 if(error) return cb(error);
                 return cb(null, result);
             });
@@ -238,17 +247,17 @@ const driver = {
 
     /**
      * Start a virtual machine
-     * @param  {Object}   soajs SOAJS object
-     * @param  {Object}   data  Data passed to function as params
+
+     * @param  {Object}   options  Data passed to function as params
      * @param  {Function} cb    Callback function
      * @return {void}
      */
-    startVM: function(soajs, data, cb) {
-        driver.authenticate(soajs, data, (error, authData) => {
+    startVM: function(options, cb) {
+        driver.authenticate(options, (error, authData) => {
             if(error) return cb(error);
 
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: data.auth.subscriptionId });
-            computeClient.virtualMachines.start(data.resourceGroupName, data.vmName, function (error, result) {
+            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+            computeClient.virtualMachines.start(options.params.resourceGroupName, options.params.vmName, function (error, result) {
                 if(error) return cb(error);
                 return cb(null, result);
             });
@@ -257,16 +266,16 @@ const driver = {
 
     /**
      * List available virtual machines by subscription
-     * @param  {Object}   soajs SOAJS object
-     * @param  {Object}   data  Data passed to function as params
+
+     * @param  {Object}   options  Data passed to function as params
      * @param  {Function} cb    Callback function
      * @return {void}
      */
-    listVMs: function(soajs, data, cb) {
-        driver.authenticate(soajs, data, (error, authData) => {
+    listVMs: function(options, cb) {
+        driver.authenticate(options, (error, authData) => {
             if(error) return cb(error);
 
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: data.auth.subscriptionId });
+            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
             computeClient.virtualMachines.listAll(function (error, vms) {
                 if(error) return cb(error);
                 return cb(null, vms);
@@ -276,17 +285,17 @@ const driver = {
 
     /**
      * Delete a virtual machine
-     * @param  {Object}   soajs SOAJS object
-     * @param  {Object}   data  Data passed to function as params
+
+     * @param  {Object}   options  Data passed to function as params
      * @param  {Function} cb    Callback function
      * @return {void}
      */
-    deleteVM: function(soajs, data, cb) {
-        driver.authenticate(soajs, data, (error, authData) => {
+    deleteVM: function(options, cb) {
+        driver.authenticate(options, (error, authData) => {
             if(error) return cb(error);
 
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: data.auth.subscriptionId });
-            computeClient.virtualMachines.deleteMethod(data.resourceGroupName, data.vmName, function (error, result) {
+            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+            computeClient.virtualMachines.deleteMethod(options.params.resourceGroupName, options.params.vmName, function (error, result) {
                 if(error) return cb(error);
                 return cb(null, result);
             });
@@ -295,17 +304,17 @@ const driver = {
 
     /**
      * Restart a virtual machine
-     * @param  {Object}   soajs SOAJS object
-     * @param  {Object}   data  Data passed to function as params
+
+     * @param  {Object}   options  Data passed to function as params
      * @param  {Function} cb    Callback function
      * @return {void}
      */
-    restartVM: function(soajs, data, cb) {
-        driver.authenticate(soajs, data, (error, authData) => {
+    restartVM: function(options, cb) {
+        driver.authenticate(options, (error, authData) => {
             if(error) return cb(error);
 
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: data.auth.subscriptionId });
-            computeClient.virtualMachines.restart(data.resourceGroupName, data.vmName, function (error, result) {
+            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+            computeClient.virtualMachines.restart(options.params.resourceGroupName, options.params.vmName, function (error, result) {
                 if(error) return cb(error);
                 return cb(null, result);
             });
@@ -314,17 +323,17 @@ const driver = {
 
     /**
      * Redeploy a virtual machine
-     * @param  {Object}   soajs SOAJS object
-     * @param  {Object}   data  Data passed to function as params
+
+     * @param  {Object}   options  Data passed to function as params
      * @param  {Function} cb    Callback function
      * @return {void}
      */
-    redeployVM: function(soajs, data, cb) {
-        driver.authenticate(soajs, data, (error, authData) => {
+    redeployVM: function(options, cb) {
+        driver.authenticate(options, (error, authData) => {
             if(error) return cb(error);
 
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: data.auth.subscriptionId });
-            computeClient.virtualMachines.redeploy(data.resourceGroupName, data.vmName, function (error, result) {
+            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+            computeClient.virtualMachines.redeploy(options.params.resourceGroupName, options.params.vmName, function (error, result) {
                 if(error) return cb(error);
                 return cb(null, result);
             });
@@ -333,17 +342,17 @@ const driver = {
 
     /**
      * Delete a resource group
-     * @param  {Object}   soajs SOAJS object
-     * @param  {Object}   data  Data passed to function as params
+
+     * @param  {Object}   options  Data passed to function as params
      * @param  {Function} cb    Callback function
      * @return {void}
      */
-    deleteResourceGroup: function(soajs, data, cb) {
-        driver.authenticate(soajs, data, (error, authData) => {
+    deleteResourceGroup: function(options, cb) {
+        driver.authenticate(options, (error, authData) => {
             if(error) return cb(error);
 
-            const resourceClient = driver.getConnector({ api: 'resource', credentials: authData.credentials, subscriptionId: data.auth.subscriptionId });
-            resourceClient.resourceGroups.deleteMethod(data.resourceGroupName, function (error, result) {
+            const resourceClient = driver.getConnector({ api: 'resource', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+            resourceClient.resourceGroups.deleteMethod(options.params.resourceGroupName, function (error, result) {
                 if(error) return cb(error);
                 return cb(null, result);
             });
@@ -352,17 +361,17 @@ const driver = {
 
     /**
      * List available virtual machine sizes
-     * @param  {Object}   soajs SOAJS object
-     * @param  {Object}   data  Data passed to function as params
+
+     * @param  {Object}   options  Data passed to function as params
      * @param  {Function} cb    Callback function
      * @return {void}
      */
-    listVmSizes: function(soajs, data, cb) {
-        driver.authenticate(soajs, data, (error, authData) => {
+    listVmSizes: function(options, cb) {
+        driver.authenticate(options, (error, authData) => {
             if(error) return cb(error);
 
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: data.auth.subscriptionId });
-            computeClient.virtualMachineSizes.list(data.location, function (error, vmSizes) {
+            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+            computeClient.virtualMachineSizes.list(options.params.location, function (error, vmSizes) {
                 if(error) return cb(error);
                 return cb(null, vmSizes);
             });
@@ -371,17 +380,17 @@ const driver = {
 
     /**
      * List available virtual machine image publishers
-     * @param  {Object}   soajs SOAJS object
-     * @param  {Object}   data  Data passed to function as params
+
+     * @param  {Object}   options  Data passed to function as params
      * @param  {Function} cb    Callback function
      * @return {void}
      */
-    listVmImagePublishers: function(soajs, data, cb) {
-        driver.authenticate(soajs, data, (error, authData) => {
+    listVmImagePublishers: function(options, cb) {
+        driver.authenticate(options, (error, authData) => {
             if(error) return cb(error);
 
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: data.auth.subscriptionId });
-            computeClient.virtualMachineImages.listPublishers(data.location, function (error, vmSizes) {
+            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+            computeClient.virtualMachineImages.listPublishers(options.params.location, function (error, vmSizes) {
                 if(error) return cb(error);
                 return cb(null, vmSizes);
             });
@@ -390,17 +399,17 @@ const driver = {
 
     /**
      * List available virtual machine image publisher images
-     * @param  {Object}   soajs SOAJS object
-     * @param  {Object}   data  Data passed to function as params
+
+     * @param  {Object}   options  Data passed to function as params
      * @param  {Function} cb    Callback function
      * @return {void}
      */
-    listVmImagePublisherOffers: function(soajs, data, cb) {
-        driver.authenticate(soajs, data, (error, authData) => {
+    listVmImagePublisherOffers: function(options, cb) {
+        driver.authenticate(options, (error, authData) => {
             if(error) return cb(error);
 
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: data.auth.subscriptionId });
-            computeClient.virtualMachineImages.listOffers(data.location, data.publisher, function (error, vmSizes) {
+            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+            computeClient.virtualMachineImages.listOffers(options.params.location, options.params.publisher, function (error, vmSizes) {
                 if(error) return cb(error);
                 return cb(null, vmSizes);
             });
@@ -409,17 +418,17 @@ const driver = {
 
     /**
      * List available virtual machine image versions
-     * @param  {Object}   soajs SOAJS object
-     * @param  {Object}   data  Data passed to function as params
+
+     * @param  {Object}   options  Data passed to function as params
      * @param  {Function} cb    Callback function
      * @return {void}
      */
-    listVmImageVersions: function(soajs, data, cb) {
-        driver.authenticate(soajs, data, (error, authData) => {
+    listVmImageVersions: function(options, cb) {
+        driver.authenticate(options, (error, authData) => {
             if(error) return cb(error);
 
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: data.auth.subscriptionId });
-            computeClient.virtualMachineImages.listSkus(data.location, data.publisher, data.offer, function (error, vmSizes) {
+            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+            computeClient.virtualMachineImages.listSkus(options.params.location, options.params.publisher, options.params.offer, function (error, vmSizes) {
                 if(error) return cb(error);
                 return cb(null, vmSizes);
             });
@@ -427,15 +436,4 @@ const driver = {
     }
 };
 
-const runner = {
-    "executeCommand": function (soajs, config, callback) {
-        if (typeof (driver[config.command]) === 'function') {
-            driver[config.command](soajs, config, callback);
-        }
-        else {
-            return callback(new Error("Driver " + config.name + " does not support function " + config.command));
-        }
-    }
-};
-
-module.exports = runner;
+module.exports = driver;
