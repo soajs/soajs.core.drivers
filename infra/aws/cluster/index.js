@@ -63,7 +63,11 @@ const driver = {
 	 */
 	"deployCluster": function (options, cb) {
 		
-		let oneDeployment = {};
+		let oneDeployment = {
+			options: {},
+			environments:[],
+			loadBalancers: {}
+		};
 		
 		function generateToken(mCb) {
 			options.soajs.log.debug("Generating docker token");
@@ -190,7 +194,7 @@ const driver = {
 				else {
 					oneDeployment.id = response.StackId;
 					oneDeployment.environments = [options.env.toUpperCase()];
-					oneDeployment.zone = options.params.region;
+					oneDeployment.options.zone = options.params.region;
 					return mCb(null, true);
 				}
 			});
@@ -220,7 +224,7 @@ const driver = {
 		
 		let cloudFormation = getConnector({
 			api: 'cloudFormation',
-			region: stack.zone,
+			region: stack.options.zone,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
@@ -250,18 +254,18 @@ const driver = {
 									out.ip = response.Stacks[0].Outputs[i].OutputValue;
 								}
 								if (response.Stacks[0].Outputs[i] && response.Stacks[0].Outputs[i].OutputKey === 'ElbName') {
-									stack.ElbName = response.Stacks[0].Outputs[i].OutputValue;
+									stack.options.ElbName = response.Stacks[0].Outputs[i].OutputValue;
 								}
 								
 								if (response.Stacks[0].Outputs[i] && response.Stacks[0].Outputs[i].OutputKey === 'ExternalLBSecurityGroupID') {
-									stack.ExternalLBSecurityGroupID = response.Stacks[0].Outputs[i].OutputValue;
+									stack.options.ExternalLBSecurityGroupID = response.Stacks[0].Outputs[i].OutputValue;
 								}
 								if (response.Stacks[0].Outputs[i] && response.Stacks[0].Outputs[i].OutputKey === 'ZonesAvailable') {
-									stack.ZonesAvailable = response.Stacks[0].Outputs[i].OutputValue.split("|");
+									stack.options.ZonesAvailable = response.Stacks[0].Outputs[i].OutputValue.split("|");
 								}
 							}
 							
-							if (out.ip && stack.ElbName) {
+							if (out.ip && stack.options.ElbName) {
 								options.soajs.registry.deployer.container.docker.remote.nodes = response.ip;
 								
 								
@@ -394,19 +398,19 @@ const driver = {
 		const aws = options.infra.api;
 		const cloudFormation = getConnector({
 			api: 'cloudFormation',
-			region: stack.zone,
+			region: stack.options.zone,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
 		const ec2 = getConnector({
 			api: 'ec2',
-			region: stack.zone,
+			region: stack.options.zone,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
 		const elb = getConnector({
 			api: 'elb',
-			region: stack.zone,
+			region: stack.options.zone,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
@@ -689,7 +693,7 @@ const driver = {
 			"stackId": stack.id,
 			"stackName": stack.name,
 			"templateProperties": {
-				"region": stack.zone,
+				"region": stack.options.zone,
 				"keyPair": "keyPair" //todo what is this for ????
 			},// mock
 			"machines": []
@@ -708,7 +712,7 @@ const driver = {
 			let aws = options.infra.api;
 			let ec2 = getConnector({
 				api: 'ec2',
-				region: stack.zone,
+				region: stack.options.zone,
 				keyId: aws.keyId,
 				secretAccessKey: aws.secretAccessKey
 			});
@@ -854,19 +858,19 @@ const driver = {
 		const aws = options.infra.api;
 		const cloudFormation = getConnector({
 			api: 'cloudFormation',
-			region: stack.zone,
+			region: stack.options.zone,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
 		const acm = getConnector({
 			api: 'acm',
-			region: stack.zone,
+			region: stack.options.zone,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
 		const elb = getConnector({
 			api: 'elb',
-			region: stack.zone,
+			region: stack.options.zone,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
@@ -1022,13 +1026,13 @@ const driver = {
 		const aws = options.infra.api;
 		const elb = getConnector({
 			api: 'elb',
-			region: stack.zone,
+			region: stack.options.zone,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
 		const ec2 = getConnector({
 			api: 'ec2',
-			region: stack.zone,
+			region: stack.options.zone,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
@@ -1147,7 +1151,7 @@ const driver = {
 		let deleted = [];
 		const elb = getConnector({
 			api: 'elb',
-			region: stack.zone,
+			region: stack.options.zone,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
@@ -1303,7 +1307,7 @@ const driver = {
 		const aws = options.infra.api;
 		const elb = getConnector({
 			api: 'elb',
-			region: stack.zone,
+			region: stack.options.zone,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
