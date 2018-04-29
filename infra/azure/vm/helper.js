@@ -1,5 +1,9 @@
 'use strict';
 
+const request = require('request');
+
+const config = require('./config');
+
 const helper = {
 
     createResourceGroup: function(resourceClient, opts, cb) {
@@ -131,6 +135,21 @@ const helper = {
             }
         };
         return computeClient.virtualMachines.createOrUpdate(opts.resourceGroupName, opts.vmName, params, cb);
+    },
+
+    listRegions: function(opts, cb) {
+        let requestOptions = {
+            method: 'GET',
+            uri: `https://management.azure.com/subscriptions/${opts.subscriptionId}/locations?api-version=${config.apiVersion}`,
+            headers: { Authorization: `Bearer ${opts.bearerToken}` },
+            json: true
+        };
+
+        request(requestOptions, function(error, response, body) {
+            if(error) return cb(error);
+
+            return cb(null, body);
+        });
     },
 
     buildVMRecord: function(opts) {
