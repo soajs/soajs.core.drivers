@@ -60,6 +60,10 @@ const driver = {
 		});
 	},
 	
+	"getTechnologies": function(options, cb) {
+		return cb(null, ['docker']);
+	},
+	
 	"deployCluster": function (options, cb) {
 		runCorrespondingDriver('deployCluster', options, cb);
 	},
