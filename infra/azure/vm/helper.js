@@ -102,8 +102,7 @@ const helper = {
             location: opts.location,
             osProfile: {
                 computerName: opts.vmName,
-                adminUsername: opts.adminUsername,
-                adminPassword: opts.adminPassword
+                adminUsername: opts.adminUsername
             },
             hardwareProfile: {
                 vmSize: opts.vmSize
@@ -135,6 +134,25 @@ const helper = {
             },
             tags: opts.tags
         };
+
+        //check if password or SSH token
+        if (opts.adminPassword) {
+            params.osProfile.adminPassword = opts.adminPassword;
+        }
+        else if (opts.adminPublicKey) {
+            params.osProfile.linuxConfiguration = {
+                "ssh": {
+                  "publicKeys": [
+                    {
+                      "path": "/home/" + opts.adminUsername + "/.ssh/authorized_keys",
+                      "keyData": opts.adminPublicKey
+                    }
+                  ]
+                },
+                "disablePasswordAuthentication": true
+            };
+        }
+
         return computeClient.virtualMachines.createOrUpdate(opts.resourceGroupName, opts.vmName, params, cb);
     },
 
@@ -160,43 +178,42 @@ const helper = {
 
         if(opts.vm) {
             if(opts.vm.name) record.name = opts.vm.name;
-            if(opts.vm.location) record.location = opts.vm.location;
-            if(opts.vm.provisioningState) record.status = opts.vm.provisioningState.toLowerCase();
+            if(opts.vm.name) record.id = opts.vm.name;
+
+            record.labels = {};
+            if(opts.vm.tags) record.labels = opts.vm.tags;
+            if(opts.vm.location) record.labels['soajs.service.vm.location'] = opts.vm.location;
             if(opts.vm.id) {
                 let idInfo = opts.vm.id.split('/');
-                record.group = idInfo[idInfo.indexOf('resourceGroups') + 1];
+                record.labels['soajs.service.vm.group'] = idInfo[idInfo.indexOf('resourceGroups') + 1];
             }
+            if(opts.vm.hardwareProfile && opts.vm.hardwareProfile.vmSize) record.labels['soajs.service.vm.size'] = opts.vm.hardwareProfile.vmSize;
 
-            if(opts.vm.hardwareProfile && opts.vm.hardwareProfile.vmSize) record.size = opts.vm.hardwareProfile.vmSize;
+            record.ports = [];
+            record.voluming = {};
 
+            record.tasks = [];
+            record.tasks[0] = {};
+            if(opts.vm.name) record.tasks[0].id = opts.vm.name;
+            if(opts.vm.name) record.tasks[0].name = opts.vm.name;
+
+            record.tasks[0].status = {};
+            if(opts.vm.provisioningState) record.tasks[0].status.state = opts.vm.provisioningState.toLowerCase();
+            if(opts.vm.provisioningState) record.tasks[0].status.ts = new Date().getTime();
+
+            record.tasks[0].ref = { os: {} };
             if(opts.vm.storageProfile) {
-                if(opts.vm.storageProfile.imageReference) {
-                    record.image = {};
-                    if(opts.vm.storageProfile.imageReference.publisher) record.image.prefix = opts.vm.storageProfile.imageReference.publisher;
-                    if(opts.vm.storageProfile.imageReference.offer) record.image.name = opts.vm.storageProfile.imageReference.offer;
-                    if(opts.vm.storageProfile.imageReference.sku) record.image.tag = opts.vm.storageProfile.imageReference.sku;
-                }
-
                 if(opts.vm.storageProfile.osDisk) {
-                    record.os = {};
-                    if(opts.vm.storageProfile.osDisk.name) record.os.diskName = opts.vm.storageProfile.osDisk.name;
-                    if(opts.vm.storageProfile.osDisk.osType) record.os.type = opts.vm.storageProfile.osDisk.osType;
-                    if(opts.vm.storageProfile.osDisk.diskSizeGB) record.os.diskSizeGB = opts.vm.storageProfile.osDisk.diskSizeGB;
-                }
-
-                if(opts.vm.storageProfile.dataDisks) {
-                    record.volumes = [];
-                    //NOTE: not yet supported
+                    if(opts.vm.storageProfile.osDisk.osType) record.tasks[0].ref.os.type = opts.vm.storageProfile.osDisk.osType;
+                    if(opts.vm.storageProfile.osDisk.diskSizeGB) record.tasks[0].ref.os.diskSizeGB = opts.vm.storageProfile.osDisk.diskSizeGB;
                 }
             }
         }
 
-        if(opts.infra) {
-            record.infra = {};
-            if(opts.infra.id) {
-                record.infra.id = opts.infra.id;
-            }
-        }
+        record.env = [];
+
+        record.servicePortType = ""; //TODO: when we support ports
+        record.ip = "";  //TODO: when we support ports
 
         return record;
     },
