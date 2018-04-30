@@ -61,8 +61,8 @@ const driver = {
 		});
 	},
 	
-	"getTechnologies": function(options, cb) {
-		return cb(null, ['kubernetes']);
+	"getExtras": function(options, cb) {
+		return cb(null, {technologies: ['kubernetes'], templates: null });
 	},
 	
 	/**

@@ -43,8 +43,8 @@ const driver = {
 		});
 	},
 	
-	"getTechnologies": function(options, cb) {
-		return cb(null, ['docker']);
+	"getExtras": function(options, cb) {
+		return cb(null, {technologies: ['docker'], templates: null });
 	},
 	
 	/**

@@ -24,8 +24,8 @@ const driver = {
 		runCorrespondingDriver('authenticate', options, cb);
 	},
 	
-	"getTechnologies": function(options, cb) {
-		runCorrespondingDriver('getTechnologies', options, cb);
+	"getExtras": function(options, cb) {
+		runCorrespondingDriver('getExtras', options, cb);
 	},
 	
 	"deployCluster": function (options, cb) {
