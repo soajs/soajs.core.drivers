@@ -9,6 +9,7 @@ const AzureResourceManagementClient = require('azure-arm-resource').ResourceMana
 
 const helper = require('./helper');
 const config = require('./config');
+const utils = require('../../lib/utils/utils.js');
 
 const driver = {
 
@@ -56,180 +57,181 @@ const driver = {
      */
     deployVM: function(options, cb) {
         driver.authenticate(options, (error, authData) => {
-            if(error) return cb(error);
+            utils.checkError(error, 700, cb, () => {
+                const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+                const networkClient = driver.getConnector({ api: 'network', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+                const storageClient = driver.getConnector({ api: 'storage', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+                const resourceClient = driver.getConnector({ api: 'resource', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
 
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-            const networkClient = driver.getConnector({ api: 'network', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-            const storageClient = driver.getConnector({ api: 'storage', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-            const resourceClient = driver.getConnector({ api: 'resource', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+                async.auto({
 
-            async.auto({
+                    createResourceGroup: function(callback) {
+                        let opts = {
+                            resourceGroupName: options.params.resourceGroupName, //TODO: set name
+                            location: options.params.location,
+                            // tags: options.params.resourceGroup.tags || {}
+                        };
+                        options.soajs.log.debug(`Creating resource group ${options.params.resourceGroupName}`);
+                        return helper.createResourceGroup(resourceClient, opts, function(error, resourceGroup) {
+                            if(error) return callback({error, code: 714});
+                            return callback(null, resourceGroup);
+                        });
+                    },
+                    createStorageAccount: ['createResourceGroup', function(result, callback) {
+                        //NOTE: if not a managed disk, need to create a storage account manually and link it to vm
+                        return callback();
+                        // let opts = {
+                        //     resourceGroupName: result.createResourceGroup.name,
+                        //     location: options.params.location,
+                        //     accountName: 'storageaccount', //TODO: make dynamic, must be between 3 and 24 characters in length and use numbers and lower-case letters only
+                        //     accountType: 'Standard_LRS', //TODO: make dynamic
+                        //     accountKind: (options.params.storageAccount && options.params.storageAccount.accountType) ? options.params.storageAccount.accountType: 'Storage',
+                        //     tags: (options.params.storageAccount && options.params.storageAccount.tags) ? options.params.storageAccount.tags : {}
+                        // };
+                        // options.soajs.log.debug(`Creating storage account ${options.params.accountName}`);
+                        // return helper.createStorageAccount(storageClient, opts, callback);
+                    }],
+                    createVirtualNetwork: ['createResourceGroup', function(result, callback) {
+                        let opts = {
+                            resourceGroupName: result.createResourceGroup.name,
+                            location: options.params.location,
+                            vnetName: result.createResourceGroup.name,
+                            addressPrefixes: (options.params.virtualNetwork && options.params.virtualNetwork.addressPrefixes) ? options.params.virtualNetwork.addressPrefixes : null,
+                            dhcpServers: (options.params.virtualNetwork && options.params.virtualNetwork.dhcpServers) ? options.params.virtualNetwork.dhcpServers : null,
+                            subnets: (options.params.virtualNetwork && options.params.virtualNetwork.subnets) ? options.params.virtualNetwork.subnets : null
+                        };
+                        options.soajs.log.debug(`Creating virtual network ${opts.vnetName}`);
+                        return helper.createVirtualNetwork(networkClient, opts, function(error, virtualNetwork) {
+                            if(error) return callback({error, code:715});
 
-                createResourceGroup: function(callback) {
-                    let opts = {
-                        resourceGroupName: options.params.resourceGroupName, //TODO: set name
-                        location: options.params.location,
-                        // tags: options.params.resourceGroup.tags || {}
-                    };
-                    options.soajs.log.debug(`Creating resource group ${options.params.resourceGroupName}`);
-                    return helper.createResourceGroup(resourceClient, opts, function(error, resourceGroup) {
-                        if(error) return callback(error);
-                        return callback(null, resourceGroup);
-                    });
-                },
-                createStorageAccount: ['createResourceGroup', function(result, callback) {
-                    //NOTE: if not a managed disk, need to create a storage account manually and link it to vm
-                    return callback();
-                    // let opts = {
-                    //     resourceGroupName: result.createResourceGroup.name,
-                    //     location: options.params.location,
-                    //     accountName: 'storageaccount', //TODO: make dynamic, must be between 3 and 24 characters in length and use numbers and lower-case letters only
-                    //     accountType: 'Standard_LRS', //TODO: make dynamic
-                    //     accountKind: (options.params.storageAccount && options.params.storageAccount.accountType) ? options.params.storageAccount.accountType: 'Storage',
-                    //     tags: (options.params.storageAccount && options.params.storageAccount.tags) ? options.params.storageAccount.tags : {}
-                    // };
-                    // options.soajs.log.debug(`Creating storage account ${options.params.accountName}`);
-                    // return helper.createStorageAccount(storageClient, opts, callback);
-                }],
-                createVirtualNetwork: ['createResourceGroup', function(result, callback) {
-                    let opts = {
-                        resourceGroupName: result.createResourceGroup.name,
-                        location: options.params.location,
-                        vnetName: result.createResourceGroup.name,
-                        addressPrefixes: (options.params.virtualNetwork && options.params.virtualNetwork.addressPrefixes) ? options.params.virtualNetwork.addressPrefixes : null,
-                        dhcpServers: (options.params.virtualNetwork && options.params.virtualNetwork.dhcpServers) ? options.params.virtualNetwork.dhcpServers : null,
-                        subnets: (options.params.virtualNetwork && options.params.virtualNetwork.subnets) ? options.params.virtualNetwork.subnets : null
-                    };
-                    options.soajs.log.debug(`Creating virtual network ${opts.vnetName}`);
-                    return helper.createVirtualNetwork(networkClient, opts, function(error, virtualNetwork) {
-                        if(error) return callback(error);
+                            return callback(null, virtualNetwork);
+                        });
+                    }],
+                    getSubnetInfo: ['createResourceGroup', 'createVirtualNetwork', function(result, callback) {
+                        let opts = {
+                            resourceGroupName: result.createResourceGroup.name,
+                            vnetName: result.createVirtualNetwork.name,
+                            subnetName: (result.createVirtualNetwork.subnets &&
+                                result.createVirtualNetwork.subnets[0] &&
+                                result.createVirtualNetwork.subnets[0].name) ? result.createVirtualNetwork.subnets[0].name : null
+                            };
+                            options.soajs.log.debug(`Getting subnet information ${opts.subnetName}`);
+                            return helper.getSubnetInfo(networkClient, opts, function(error, subnetInfo) {
+                                if(error) return callback({error, code:716});
 
-                        return callback(null, virtualNetwork);
-                    });
-                }],
-                getSubnetInfo: ['createResourceGroup', 'createVirtualNetwork', function(result, callback) {
-                    let opts = {
-                        resourceGroupName: result.createResourceGroup.name,
-                        vnetName: result.createVirtualNetwork.name,
-                        subnetName: (result.createVirtualNetwork.subnets &&
-                            result.createVirtualNetwork.subnets[0] &&
-                            result.createVirtualNetwork.subnets[0].name) ? result.createVirtualNetwork.subnets[0].name : null
-                    };
-                    options.soajs.log.debug(`Getting subnet information ${opts.subnetName}`);
-                    return helper.getSubnetInfo(networkClient, opts, function(error, subnetInfo) {
-                        if(error) return callback(error);
+                                return callback(null, subnetInfo);
+                            });
+                        }],
+                    createPublicIP: ['createResourceGroup', function(result, callback) {
+                        let opts = {
+                            resourceGroupName: result.createResourceGroup.name,
+                            location: options.params.location,
+                            publicIPName: result.createResourceGroup.name,
+                            publicIPAllocationMethod: (options.params.publicIP && options.params.publicIP.allocationMethod) ? options.params.publicIP.allocationMethod : 'Dynamic',
+                            // domainNameLabel: options.params.publicIP.domainNameLabel
+                        };
+                        options.soajs.log.debug(`Creating public IP address ${opts.publicIPName}`);
+                        return helper.createPublicIP(networkClient, opts, function(error, publicIP) {
+                            if(error) return callback({error, code:717});
 
-                        return callback(null, subnetInfo);
-                    });
-                }],
-                createPublicIP: ['createResourceGroup', function(result, callback) {
-                    let opts = {
-                        resourceGroupName: result.createResourceGroup.name,
-                        location: options.params.location,
-                        publicIPName: result.createResourceGroup.name,
-                        publicIPAllocationMethod: (options.params.publicIP && options.params.publicIP.allocationMethod) ? options.params.publicIP.allocationMethod : 'Dynamic',
-                        // domainNameLabel: options.params.publicIP.domainNameLabel
-                    };
-                    options.soajs.log.debug(`Creating public IP address ${opts.publicIPName}`);
-                    return helper.createPublicIP(networkClient, opts, function(error, publicIP) {
-                        if(error) return callback(error);
+                            return callback(null, publicIP);
+                        });
+                    }],
+                    createNetworkSecurityGroup: ['createResourceGroup', function(result, callback) {
+                        let opts = {
+                            resourceGroupName: result.createResourceGroup.name,
+                            location: options.params.location,
+                            networkSecurityGroupName: result.createResourceGroup.name,
 
-                        return callback(null, publicIP);
-                    });
-                }],
-                createNetworkSecurityGroup: ['createResourceGroup', function(result, callback) {
-                    let opts = {
-                        resourceGroupName: result.createResourceGroup.name,
-                        location: options.params.location,
-                        networkSecurityGroupName: result.createResourceGroup.name,
+                            //NOTE: azure package function not working properly, passing these options to make an api call direclty
+                            bearerToken: authData.credentials.tokenCache._entries[0].accessToken,
+                            subscriptionId: options.infra.api.subscriptionId,
+                        };
+                        options.soajs.log.debug(`Creating network security group ${result.createResourceGroup.name}`);
+                        return helper.createNetworkSecurityGroup(networkClient, opts, function(error, networkSecurityGroup) {
+                            if(error) return callback({error, code:718});
 
-                        //NOTE: azure package function not working properly, passing these options to make an api call direclty
-                        bearerToken: authData.credentials.tokenCache._entries[0].accessToken,
-                        subscriptionId: options.infra.api.subscriptionId,
-                    };
-                    options.soajs.log.debug(`Creating network security group ${result.createResourceGroup.name}`);
-                    return helper.createNetworkSecurityGroup(networkClient, opts, function(error, networkSecurityGroup) {
-                        if(error) return callback(error);
+                            return callback(null, networkSecurityGroup);
+                        });
+                    }],
+                    createNetworkInterface: ['createResourceGroup', 'getSubnetInfo', 'createPublicIP', 'createNetworkSecurityGroup', function(result, callback) {
+                        let opts = {
+                            resourceGroupName: result.createResourceGroup.name,
+                            location: options.params.location,
+                            networkInterfaceName: result.createResourceGroup.name,
+                            ipConfigName: result.createResourceGroup.name,
+                            subnetInfo: result.getSubnetInfo,
+                            publicIPInfo: result.createPublicIP,
+                            publicIPAllocationMethod: result.createPublicIP.publicIPAllocationMethod || 'Dynamic',
+                            networkSecurityGroupName: result.createNetworkSecurityGroup.id
+                        };
+                        options.soajs.log.debug(`Creating network interface ${opts.networkInterfaceName}`);
+                        return helper.createNetworkInterface(networkClient, opts, function(error, networkInterface) {
+                            if(error) return callback({error, code:719});
 
-                        return callback(null, networkSecurityGroup);
-                    });
-                }],
-                createNetworkInterface: ['createResourceGroup', 'getSubnetInfo', 'createPublicIP', 'createNetworkSecurityGroup', function(result, callback) {
-                    let opts = {
-                        resourceGroupName: result.createResourceGroup.name,
-                        location: options.params.location,
-                        networkInterfaceName: result.createResourceGroup.name,
-                        ipConfigName: result.createResourceGroup.name,
-                        subnetInfo: result.getSubnetInfo,
-                        publicIPInfo: result.createPublicIP,
-                        publicIPAllocationMethod: result.createPublicIP.publicIPAllocationMethod || 'Dynamic',
-                        networkSecurityGroupName: result.createNetworkSecurityGroup.id
-                    };
-                    options.soajs.log.debug(`Creating network interface ${opts.networkInterfaceName}`);
-                    return helper.createNetworkInterface(networkClient, opts, function(error, networkInterface) {
-                        if(error) return callback(error);
-
-                        return callback(null, networkInterface);
-                    });
-                }],
-                getVMImage: function(callback) {
-                    let opts = {
-                        location: options.params.location,
-                        publisher: options.params.image.prefix,
-                        offer: options.params.image.name,
-                        sku: options.params.image.tag
-                    };
-                    options.soajs.log.debug(`Finding VM image ${opts.publisher} - ${opts.offer} - ${opts.sku}`);
-                    return helper.getVMImage(computeClient, opts, callback);
-                },
-                getNetworkInterfaceInfo: ['createResourceGroup', 'createNetworkInterface', function(result, callback) {
-                    //NOTE: might not be needed
-                    return callback();
-                    // let opts = {
-                    //     resourceGroupName: result.createResourceGroup.name,
-                    //     networkInterfaceName: result.createNetworkInterface.name
-                    // };
-                    // options.soajs.log.debug(`Getting network interface information ${opts.networkInterfaceName}`);
-                    // return helper.getNetworkInterfaceInfo(networkClient, opts, callback);
-                }],
-                createVirtualMachine: ['createResourceGroup', 'createStorageAccount', 'createVirtualNetwork', 'createPublicIP', 'createNetworkInterface', 'getVMImage', function(result, callback) {
-                    let opts = {
-                        resourceGroupName: result.createResourceGroup.name,
-                        location: options.params.location,
-                        vmName: options.params.instance.name, //TODO: set name
-                        adminUsername: options.params.instance.admin.username,
-                        vmSize: options.params.instance.size,
-                        image: {
+                            return callback(null, networkInterface);
+                        });
+                    }],
+                    getVMImage: function(callback) {
+                        let opts = {
+                            location: options.params.location,
                             publisher: options.params.image.prefix,
                             offer: options.params.image.name,
-                            sku: options.params.image.tag,
-                            version: result.getVMImage.name
-                        },
-                        disk: {
-                            osDiskName: options.params.instance.osDiskName, //TODO: check source
-                            storageAccountType: options.params.instance.storageAccountType || 'Standard_LRS'//result.createStorageAccount.name
-                        },
-                        network: {
-                            networkInterfaceId: result.createNetworkInterface.id
-                        },
-                        tags: options.params.labels
-                    };
+                            sku: options.params.image.tag
+                        };
+                        options.soajs.log.debug(`Finding VM image ${opts.publisher} - ${opts.offer} - ${opts.sku}`);
+                        return helper.getVMImage(computeClient, opts, callback);
+                    },
+                    getNetworkInterfaceInfo: ['createResourceGroup', 'createNetworkInterface', function(result, callback) {
+                        //NOTE: might not be needed
+                        return callback();
+                        // let opts = {
+                        //     resourceGroupName: result.createResourceGroup.name,
+                        //     networkInterfaceName: result.createNetworkInterface.name
+                        // };
+                        // options.soajs.log.debug(`Getting network interface information ${opts.networkInterfaceName}`);
+                        // return helper.getNetworkInterfaceInfo(networkClient, opts, callback);
+                    }],
+                    createVirtualMachine: ['createResourceGroup', 'createStorageAccount', 'createVirtualNetwork', 'createPublicIP', 'createNetworkInterface', 'getVMImage', function(result, callback) {
+                            let opts = {
+                                resourceGroupName: result.createResourceGroup.name,
+                                location: options.params.location,
+                                vmName: options.params.instance.name, //TODO: set name
+                                adminUsername: options.params.instance.admin.username,
+                                vmSize: options.params.instance.size,
+                                image: {
+                                    publisher: options.params.image.prefix,
+                                    offer: options.params.image.name,
+                                    sku: options.params.image.tag,
+                                    version: result.getVMImage.name
+                                },
+                                disk: {
+                                    osDiskName: options.params.instance.osDiskName, //TODO: check source
+                                    storageAccountType: options.params.instance.storageAccountType || 'Standard_LRS'//result.createStorageAccount.name
+                                },
+                                network: {
+                                    networkInterfaceId: result.createNetworkInterface.id
+                                },
+                                tags: options.params.labels
+                            };
 
-                    //check if password or SSH token
-                    if (options.params.instance.admin.password) {
-                        opts.adminPassword = options.params.instance.admin.password;
-                    }
-                    else if (options.params.instance.admin.token) {
-                        opts.adminPublicKey = options.params.instance.admin.token;
-                    }
+                            //check if password or SSH token
+                            if (options.params.instance.admin.password) {
+                                opts.adminPassword = options.params.instance.admin.password;
+                            }
+                            else if (options.params.instance.admin.token) {
+                                opts.adminPublicKey = options.params.instance.admin.token;
+                            }
 
-                    options.soajs.log.debug(`Creating virtual machine ${opts.vmName}`);
-                    return helper.createVirtualMachine(computeClient, opts, callback);
-                }]
+                            options.soajs.log.debug(`Creating virtual machine ${opts.vmName}`);
+                            return helper.createVirtualMachine(computeClient, opts, callback);
+                        }]
 
-            }, function (error, result) {
-                if(error) return cb(error); //TODO: rollback in case of error?
-                return cb(null, helper.buildVMRecord({ vm: result.createVirtualMachine, infra: options.infra }));
+                    }, function (error, result) {
+                        utils.checkError(error.error, error.code, cb, () => {
+                            return cb(null, helper.buildVMRecord({ vm: result.createVirtualMachine, infra: options.infra }));
+                        });
+                    });
             });
         });
     },
@@ -243,12 +245,13 @@ const driver = {
      */
     inspectVM: function(options, cb) {
         driver.authenticate(options, (error, authData) => {
-            if(error) return cb(error);
-
+            utils.checkError(error, 700, cb, () => {
             const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
             computeClient.virtualMachines.get(options.params.resourceGroupName, options.params.vmName, function (error, vmInfo) {
-                if(error) return cb(error);
-                return cb(null, helper.buildVMRecord({ vm: vmInfo, infra: options.infra }));
+                utils.checkError(error, 701, cb, () => {
+                    return cb(null, helper.buildVMRecord({ vm: vmInfo, infra: options.infra }));
+                    });
+                });
             });
         });
     },
@@ -262,12 +265,13 @@ const driver = {
      */
     powerOffVM: function(options, cb) {
         driver.authenticate(options, (error, authData) => {
-            if(error) return cb(error);
-
+            utils.checkError(error, 700, cb, () => {
             const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
             computeClient.virtualMachines.powerOff(options.params.resourceGroupName, options.params.vmName, function (error, result) {
-                if(error) return cb(error);
-                return cb(null, result);
+                utils.checkError(error, 702, cb, () => {
+                    return cb(null, result);
+                    });
+                });
             });
         });
     },
@@ -281,12 +285,13 @@ const driver = {
      */
     startVM: function(options, cb) {
         driver.authenticate(options, (error, authData) => {
-            if(error) return cb(error);
-
+            utils.checkError(error, 700, cb, () => {
             const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
             computeClient.virtualMachines.start(options.params.resourceGroupName, options.params.vmName, function (error, result) {
-                if(error) return cb(error);
+                utils.checkError(error, 703, cb, () => {
                 return cb(null, result);
+                    });
+                });
             });
         });
     },
@@ -300,16 +305,16 @@ const driver = {
      */
     listVMs: function(options, cb) {
         driver.authenticate(options, (error, authData) => {
-            if(error) return cb(error);
-
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-            computeClient.virtualMachines.listAll(function (error, vms) {
-                if(error) return cb(error);
-
-                if(!(vms && Array.isArray(vms))) vms = [];
-                async.map(vms, function(oneVm, callback) {
-                    return callback(null, helper.buildVMRecord({ vm: oneVm, infra: options.infra }));
-                }, cb);
+            utils.checkError(error, 700, cb, () => {
+                const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+                computeClient.virtualMachines.listAll(function (error, vms) {
+                    utils.checkError(error, 704, cb, () => {
+                        if(!(vms && Array.isArray(vms))) vms = [];
+                        async.map(vms, function(oneVm, callback) {
+                            return callback(null, helper.buildVMRecord({ vm: oneVm, infra: options.infra }));
+                        }, cb);
+                    });
+                });
             });
         });
     },
@@ -323,12 +328,13 @@ const driver = {
      */
     deleteVM: function(options, cb) {
         driver.authenticate(options, (error, authData) => {
-            if(error) return cb(error);
-
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-            computeClient.virtualMachines.deleteMethod(options.params.resourceGroupName, options.params.vmName, function (error, result) {
-                if(error) return cb(error);
-                return cb(null, result);
+            utils.checkError(error, 700, cb, () => {
+                const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+                computeClient.virtualMachines.deleteMethod(options.params.resourceGroupName, options.params.vmName, function (error, result) {
+                    utils.checkError(error, 705, cb, () => {
+                        return cb(null, result);
+                    });
+                });
             });
         });
     },
@@ -342,12 +348,13 @@ const driver = {
      */
     restartVM: function(options, cb) {
         driver.authenticate(options, (error, authData) => {
-            if(error) return cb(error);
-
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-            computeClient.virtualMachines.restart(options.params.resourceGroupName, options.params.vmName, function (error, result) {
-                if(error) return cb(error);
-                return cb(null, result);
+            utils.checkError(error, 700, cb, () => {
+                const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+                computeClient.virtualMachines.restart(options.params.resourceGroupName, options.params.vmName, function (error, result) {
+                    utils.checkError(error, 706, cb, () => {
+                        return cb(null, result);
+                    });
+                });
             });
         });
     },
@@ -361,12 +368,13 @@ const driver = {
      */
     redeployVM: function(options, cb) {
         driver.authenticate(options, (error, authData) => {
-            if(error) return cb(error);
-
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-            computeClient.virtualMachines.redeploy(options.params.resourceGroupName, options.params.vmName, function (error, result) {
-                if(error) return cb(error);
-                return cb(null, result);
+            utils.checkError(error, 700, cb, () => {
+                const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+                computeClient.virtualMachines.redeploy(options.params.resourceGroupName, options.params.vmName, function (error, result) {
+                    utils.checkError(error, 706, cb, () => {
+                        return cb(null, result);
+                    });
+                });
             });
         });
     },
@@ -380,12 +388,13 @@ const driver = {
      */
     deleteResourceGroup: function(options, cb) {
         driver.authenticate(options, (error, authData) => {
-            if(error) return cb(error);
-
-            const resourceClient = driver.getConnector({ api: 'resource', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-            resourceClient.resourceGroups.deleteMethod(options.params.resourceGroupName, function (error, result) {
-                if(error) return cb(error);
-                return cb(null, result);
+            utils.checkError(error, 700, cb, () => {
+                const resourceClient = driver.getConnector({ api: 'resource', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+                resourceClient.resourceGroups.deleteMethod(options.params.resourceGroupName, function (error, result) {
+                    utils.checkError(error, 708, cb, () => {
+                        return cb(null, result);
+                    });
+                });
             });
         });
     },
@@ -399,12 +408,13 @@ const driver = {
      */
     listVmSizes: function(options, cb) {
         driver.authenticate(options, (error, authData) => {
-            if(error) return cb(error);
-
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-            computeClient.virtualMachineSizes.list(options.params.location, function (error, vmSizes) {
-                if(error) return cb(error);
-                return cb(null, vmSizes);
+            utils.checkError(error, 700, cb, () => {
+                const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+                computeClient.virtualMachineSizes.list(options.params.location, function (error, vmSizes) {
+                    utils.checkError(error, 709, cb, () => {
+                        return cb(null, vmSizes);
+                    });
+                });
             });
         });
     },
@@ -418,12 +428,13 @@ const driver = {
      */
     listVmImagePublishers: function(options, cb) {
         driver.authenticate(options, (error, authData) => {
-            if(error) return cb(error);
-
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-            computeClient.virtualMachineImages.listPublishers(options.params.location, function (error, vmSizes) {
-                if(error) return cb(error);
-                return cb(null, vmSizes);
+            utils.checkError(error, 700, cb, () => {
+                const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+                computeClient.virtualMachineImages.listPublishers(options.params.location, function (error, imagePublishers) {
+                    utils.checkError(error, 710, cb, () => {
+                        return cb(null, imagePublishers);
+                    });
+                });
             });
         });
     },
@@ -437,12 +448,13 @@ const driver = {
      */
     listVmImagePublisherOffers: function(options, cb) {
         driver.authenticate(options, (error, authData) => {
-            if(error) return cb(error);
-
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-            computeClient.virtualMachineImages.listOffers(options.params.location, options.params.publisher, function (error, vmSizes) {
-                if(error) return cb(error);
-                return cb(null, vmSizes);
+            utils.checkError(error, 700, cb, () => {
+                const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+                computeClient.virtualMachineImages.listOffers(options.params.location, options.params.publisher, function (error, imageOffers) {
+                    utils.checkError(error, 711, cb, () => {
+                        return cb(null, imageOffers);
+                    });
+                });
             });
         });
     },
@@ -456,12 +468,13 @@ const driver = {
      */
     listVmImageVersions: function(options, cb) {
         driver.authenticate(options, (error, authData) => {
-            if(error) return cb(error);
-
-            const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-            computeClient.virtualMachineImages.listSkus(options.params.location, options.params.publisher, options.params.offer, function (error, vmSizes) {
-                if(error) return cb(error);
-                return cb(null, vmSizes);
+            utils.checkError(error, 700, cb, () => {
+                const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+                computeClient.virtualMachineImages.listSkus(options.params.location, options.params.publisher, options.params.offer, function (error, imageVersions) {
+                    utils.checkError(error, 712, cb, () => {
+                        return cb(null, imageVersions);
+                    });
+                });
             });
         });
     },
@@ -475,14 +488,17 @@ const driver = {
      */
     listRegions: function(options, cb) {
         driver.authenticate(options, (error, authData) => {
-            let opts = {
-                subscriptionId: options.infra.api.subscriptionId,
-                bearerToken: authData.credentials.tokenCache._entries[0].accessToken
-            };
+            utils.checkError(error, 700, cb, () => {
+                let opts = {
+                    subscriptionId: options.infra.api.subscriptionId,
+                    bearerToken: authData.credentials.tokenCache._entries[0].accessToken
+                };
 
-            helper.listRegions(opts, function(error, regions) {
-                if(error) return cb(error);
-                return cb(null, (regions) ? regions : []);
+                helper.listRegions(opts, function(error, regions) {
+                    utils.checkError(error, 713, cb, () => {
+                        return cb(null, (regions) ? regions : []);
+                    });
+                });
             });
         });
     }
