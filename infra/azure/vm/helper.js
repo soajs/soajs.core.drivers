@@ -133,7 +133,7 @@ const helper = {
                     }
                 ]
             },
-            tags: opts.labels //TODO: check format
+            tags: opts.tags
         };
         return computeClient.virtualMachines.createOrUpdate(opts.resourceGroupName, opts.vmName, params, cb);
     },
