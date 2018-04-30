@@ -27,11 +27,11 @@ const helper = {
 
     createVirtualNetwork: function(networkClient, opts, cb) {
         if(!(opts.addressPrefixes && Array.isArray(opts.addressPrefixes))) {
-            opts.addressPrefixes = ['10.0.0.0/16'];
+            opts.addressPrefixes = ['10.0.0.0/24'];
         }
 
         if(!(opts.dhcpServers && Array.isArray(opts.dhcpServers))) {
-            opts.dhcpServers = ['10.1.1.1', '10.1.2.4'];
+            // opts.dhcpServers = ['10.1.1.1', '10.1.2.4'];
         }
 
         if(!(opts.subnets && Array.isArray(opts.subnets))) {
@@ -46,7 +46,7 @@ const helper = {
                 addressPrefixes: opts.addressPrefixes
             },
             dhcpOptions: {
-                dnsServers: opts.dhcpServers
+                dnsServers: opts.dhcpServers || []
             },
             subnets: opts.subnets
         };
@@ -69,6 +69,41 @@ const helper = {
         return networkClient.publicIPAddresses.createOrUpdate(opts.resourceGroupName, opts.publicIPName, params, cb);
     },
 
+    createNetworkSecurityGroup: function(networkClient, opts, cb) {
+        let requestOptions = {
+            method: 'PUT',
+            uri: `https://management.azure.com/subscriptions/${opts.subscriptionId}/resourceGroups/${opts.resourceGroupName}/providers/Microsoft.Network/networkSecurityGroups/${opts.networkSecurityGroupName}?api-version=${config.apiVersion2018}`,
+            headers: { Authorization: `Bearer ${opts.bearerToken}` },
+            json: true,
+            body: {
+                location: opts.location,
+                properties: {
+                    securityRules: [
+                        {
+                            name: "default-allow-ssh",
+                            properties: {
+                                priority: 1000,
+                                protocol: "Tcp",
+                                access: "Allow",
+                                direction: "Inbound",
+                                sourceAddressPrefix: "*",
+                                sourcePortRange: "*",
+                                destinationAddressPrefix: "*",
+                                destinationPortRange: "22"
+                            }
+                        }
+                    ]
+                }
+            }
+        };
+
+        request(requestOptions, function(error, response, body) {
+            if(error) return cb(error);
+
+            return cb(null, body);
+        });
+    },
+
     createNetworkInterface: function(networkClient, opts, cb) {
         let params = {
             location: opts.location,
@@ -79,7 +114,10 @@ const helper = {
                     subnet: opts.subnetInfo,
                     publicIPAddress: opts.publicIPInfo
                 }
-            ]
+            ],
+            networkSecurityGroup: {
+                id: opts.networkSecurityGroupName
+            }
         };
 
         return networkClient.networkInterfaces.createOrUpdate(opts.resourceGroupName, opts.networkInterfaceName, params, cb);
@@ -141,7 +179,7 @@ const helper = {
     listRegions: function(opts, cb) {
         let requestOptions = {
             method: 'GET',
-            uri: `https://management.azure.com/subscriptions/${opts.subscriptionId}/locations?api-version=${config.apiVersion}`,
+            uri: `https://management.azure.com/subscriptions/${opts.subscriptionId}/locations?api-version=${config.apiVersion2016}`,
             headers: { Authorization: `Bearer ${opts.bearerToken}` },
             json: true
         };

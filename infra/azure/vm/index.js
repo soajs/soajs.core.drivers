@@ -137,7 +137,24 @@ const driver = {
                         return callback(null, publicIP);
                     });
                 }],
-                createNetworkInterface: ['createResourceGroup', 'getSubnetInfo', 'createPublicIP', function(result, callback) {
+                createNetworkSecurityGroup: ['createResourceGroup', function(result, callback) {
+                    let opts = {
+                        resourceGroupName: result.createResourceGroup.name,
+                        location: options.params.location,
+                        networkSecurityGroupName: result.createResourceGroup.name,
+
+                        //NOTE: azure package function not working properly, passing these options to make an api call direclty
+                        bearerToken: authData.credentials.tokenCache._entries[0].accessToken,
+                        subscriptionId: options.infra.api.subscriptionId,
+                    };
+                    options.soajs.log.debug(`Creating network security group ${result.createResourceGroup.name}`);
+                    return helper.createNetworkSecurityGroup(networkClient, opts, function(error, networkSecurityGroup) {
+                        if(error) return callback(error);
+
+                        return callback(null, networkSecurityGroup);
+                    });
+                }],
+                createNetworkInterface: ['createResourceGroup', 'getSubnetInfo', 'createPublicIP', 'createNetworkSecurityGroup', function(result, callback) {
                     let opts = {
                         resourceGroupName: result.createResourceGroup.name,
                         location: options.params.location,
@@ -145,7 +162,8 @@ const driver = {
                         ipConfigName: result.createResourceGroup.name,
                         subnetInfo: result.getSubnetInfo,
                         publicIPInfo: result.createPublicIP,
-                        publicIPAllocationMethod: result.createPublicIP.publicIPAllocationMethod || 'Dynamic'
+                        publicIPAllocationMethod: result.createPublicIP.publicIPAllocationMethod || 'Dynamic',
+                        networkSecurityGroupName: result.createNetworkSecurityGroup.id
                     };
                     options.soajs.log.debug(`Creating network interface ${opts.networkInterfaceName}`);
                     return helper.createNetworkInterface(networkClient, opts, function(error, networkInterface) {
