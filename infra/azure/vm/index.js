@@ -9,7 +9,7 @@ const AzureResourceManagementClient = require('azure-arm-resource').ResourceMana
 
 const helper = require('./helper');
 const config = require('./config');
-const utils = require('../../lib/utils/utils.js');
+const utils = require('../../../lib/utils/utils.js');
 
 const driver = {
 
@@ -228,7 +228,7 @@ const driver = {
                         }]
 
                     }, function (error, result) {
-                        utils.checkError(error.error, error.code, cb, () => {
+                        utils.checkError(error && error.error, error && error.code, cb, () => {
                             return cb(null, helper.buildVMRecord({ vm: result.createVirtualMachine, infra: options.infra }));
                         });
                     });

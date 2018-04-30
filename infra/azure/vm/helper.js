@@ -99,7 +99,9 @@ const helper = {
 
         request(requestOptions, function(error, response, body) {
             if(error) return cb(error);
-
+            if(body && body.error) return cb(body.error);
+            
+            console.log(JSON.stringify (body, null, 2));
             return cb(null, body);
         });
     },
