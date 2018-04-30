@@ -194,7 +194,8 @@ const driver = {
                         },
                         network: {
                             networkInterfaceId: result.createNetworkInterface.id
-                        }
+                        },
+                        tags: options.params.labels
                     };
                     options.soajs.log.debug(`Creating virtual machine ${opts.vmName}`);
                     return helper.createVirtualMachine(computeClient, opts, callback);
