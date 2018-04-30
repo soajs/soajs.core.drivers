@@ -27,11 +27,11 @@ const helper = {
 
     createVirtualNetwork: function(networkClient, opts, cb) {
         if(!(opts.addressPrefixes && Array.isArray(opts.addressPrefixes))) {
-            opts.addressPrefixes = ['10.0.0.0/16'];
+            opts.addressPrefixes = ['10.0.0.0/24'];
         }
 
         if(!(opts.dhcpServers && Array.isArray(opts.dhcpServers))) {
-            opts.dhcpServers = ['10.1.1.1', '10.1.2.4'];
+            // opts.dhcpServers = ['10.1.1.1', '10.1.2.4'];
         }
 
         if(!(opts.subnets && Array.isArray(opts.subnets))) {
@@ -46,7 +46,7 @@ const helper = {
                 addressPrefixes: opts.addressPrefixes
             },
             dhcpOptions: {
-                dnsServers: opts.dhcpServers
+                dnsServers: opts.dhcpServers || []
             },
             subnets: opts.subnets
         };
@@ -69,6 +69,41 @@ const helper = {
         return networkClient.publicIPAddresses.createOrUpdate(opts.resourceGroupName, opts.publicIPName, params, cb);
     },
 
+    createNetworkSecurityGroup: function(networkClient, opts, cb) {
+        let requestOptions = {
+            method: 'PUT',
+            uri: `https://management.azure.com/subscriptions/${opts.subscriptionId}/resourceGroups/${opts.resourceGroupName}/providers/Microsoft.Network/networkSecurityGroups/${opts.networkSecurityGroupName}?api-version=${config.apiVersion2018}`,
+            headers: { Authorization: `Bearer ${opts.bearerToken}` },
+            json: true,
+            body: {
+                location: opts.location,
+                properties: {
+                    securityRules: [
+                        {
+                            name: "default-allow-ssh",
+                            properties: {
+                                priority: 1000,
+                                protocol: "Tcp",
+                                access: "Allow",
+                                direction: "Inbound",
+                                sourceAddressPrefix: "*",
+                                sourcePortRange: "*",
+                                destinationAddressPrefix: "*",
+                                destinationPortRange: "22"
+                            }
+                        }
+                    ]
+                }
+            }
+        };
+
+        request(requestOptions, function(error, response, body) {
+            if(error) return cb(error);
+
+            return cb(null, body);
+        });
+    },
+
     createNetworkInterface: function(networkClient, opts, cb) {
         let params = {
             location: opts.location,
@@ -79,7 +114,10 @@ const helper = {
                     subnet: opts.subnetInfo,
                     publicIPAddress: opts.publicIPInfo
                 }
-            ]
+            ],
+            networkSecurityGroup: {
+                id: opts.networkSecurityGroupName
+            }
         };
 
         return networkClient.networkInterfaces.createOrUpdate(opts.resourceGroupName, opts.networkInterfaceName, params, cb);
@@ -102,8 +140,7 @@ const helper = {
             location: opts.location,
             osProfile: {
                 computerName: opts.vmName,
-                adminUsername: opts.adminUsername,
-                adminPassword: opts.adminPassword
+                adminUsername: opts.adminUsername
             },
             hardwareProfile: {
                 vmSize: opts.vmSize
@@ -132,15 +169,35 @@ const helper = {
                         primary: true
                     }
                 ]
-            }
+            },
+            tags: opts.tags
         };
+
+        //check if password or SSH token
+        if (opts.adminPassword) {
+            params.osProfile.adminPassword = opts.adminPassword;
+        }
+        else if (opts.adminPublicKey) {
+            params.osProfile.linuxConfiguration = {
+                "ssh": {
+                  "publicKeys": [
+                    {
+                      "path": "/home/" + opts.adminUsername + "/.ssh/authorized_keys",
+                      "keyData": opts.adminPublicKey
+                    }
+                  ]
+                },
+                "disablePasswordAuthentication": true
+            };
+        }
+
         return computeClient.virtualMachines.createOrUpdate(opts.resourceGroupName, opts.vmName, params, cb);
     },
 
     listRegions: function(opts, cb) {
         let requestOptions = {
             method: 'GET',
-            uri: `https://management.azure.com/subscriptions/${opts.subscriptionId}/locations?api-version=${config.apiVersion}`,
+            uri: `https://management.azure.com/subscriptions/${opts.subscriptionId}/locations?api-version=${config.apiVersion2016}`,
             headers: { Authorization: `Bearer ${opts.bearerToken}` },
             json: true
         };
@@ -148,7 +205,9 @@ const helper = {
         request(requestOptions, function(error, response, body) {
             if(error) return cb(error);
 
-            return cb(null, body);
+            let regions = helper.buildRegionsRecord(body.value);
+
+            return cb(null, regions);
         });
     },
 
@@ -157,47 +216,58 @@ const helper = {
 
         if(opts.vm) {
             if(opts.vm.name) record.name = opts.vm.name;
-            if(opts.vm.location) record.location = opts.vm.location;
-            if(opts.vm.provisioningState) record.status = opts.vm.provisioningState.toLowerCase();
+            if(opts.vm.name) record.id = opts.vm.name;
+
+            record.labels = {};
+            if(opts.vm.tags) record.labels = opts.vm.tags;
+            if(opts.vm.location) record.labels['soajs.service.vm.location'] = opts.vm.location;
             if(opts.vm.id) {
                 let idInfo = opts.vm.id.split('/');
-                record.group = idInfo[idInfo.indexOf('resourceGroups') + 1];
+                record.labels['soajs.service.vm.group'] = idInfo[idInfo.indexOf('resourceGroups') + 1];
             }
+            if(opts.vm.hardwareProfile && opts.vm.hardwareProfile.vmSize) record.labels['soajs.service.vm.size'] = opts.vm.hardwareProfile.vmSize;
 
-            if(opts.vm.hardwareProfile && opts.vm.hardwareProfile.vmSize) record.size = opts.vm.hardwareProfile.vmSize;
+            record.ports = [];
+            record.voluming = {};
 
+            record.tasks = [];
+            record.tasks[0] = {};
+            if(opts.vm.name) record.tasks[0].id = opts.vm.name;
+            if(opts.vm.name) record.tasks[0].name = opts.vm.name;
+
+            record.tasks[0].status = {};
+            if(opts.vm.provisioningState) record.tasks[0].status.state = opts.vm.provisioningState.toLowerCase();
+            if(opts.vm.provisioningState) record.tasks[0].status.ts = new Date().getTime();
+
+            record.tasks[0].ref = { os: {} };
             if(opts.vm.storageProfile) {
-                if(opts.vm.storageProfile.imageReference) {
-                    record.image = {};
-                    if(opts.vm.storageProfile.imageReference.publisher) record.image.prefix = opts.vm.storageProfile.imageReference.publisher;
-                    if(opts.vm.storageProfile.imageReference.offer) record.image.name = opts.vm.storageProfile.imageReference.offer;
-                    if(opts.vm.storageProfile.imageReference.sku) record.image.tag = opts.vm.storageProfile.imageReference.sku;
-                }
-
                 if(opts.vm.storageProfile.osDisk) {
-                    record.os = {};
-                    if(opts.vm.storageProfile.osDisk.name) record.os.diskName = opts.vm.storageProfile.osDisk.name;
-                    if(opts.vm.storageProfile.osDisk.osType) record.os.type = opts.vm.storageProfile.osDisk.osType;
-                    if(opts.vm.storageProfile.osDisk.diskSizeGB) record.os.diskSizeGB = opts.vm.storageProfile.osDisk.diskSizeGB;
-                }
-
-                if(opts.vm.storageProfile.dataDisks) {
-                    record.volumes = [];
-                    //NOTE: not yet supported
+                    if(opts.vm.storageProfile.osDisk.osType) record.tasks[0].ref.os.type = opts.vm.storageProfile.osDisk.osType;
+                    if(opts.vm.storageProfile.osDisk.diskSizeGB) record.tasks[0].ref.os.diskSizeGB = opts.vm.storageProfile.osDisk.diskSizeGB;
                 }
             }
         }
 
-        if(opts.infra) {
-            record.infra = {};
-            if(opts.infra.id) {
-                record.infra.id = opts.infra.id;
-            }
-        }
+        record.env = [];
+
+        record.servicePortType = ""; //TODO: when we support ports
+        record.ip = "";  //TODO: when we support ports
 
         return record;
-    }
+    },
 
+    buildRegionsRecord: function(opts) {
+        let regions = [];
+
+        opts.forEach(oneRegion => {
+            regions.push({
+                "v": oneRegion.name,
+                "l": oneRegion.displayName
+            });
+        });
+
+        return regions;
+    }
 };
 
 module.exports = helper;

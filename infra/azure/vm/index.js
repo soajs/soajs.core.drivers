@@ -137,7 +137,24 @@ const driver = {
                         return callback(null, publicIP);
                     });
                 }],
-                createNetworkInterface: ['createResourceGroup', 'getSubnetInfo', 'createPublicIP', function(result, callback) {
+                createNetworkSecurityGroup: ['createResourceGroup', function(result, callback) {
+                    let opts = {
+                        resourceGroupName: result.createResourceGroup.name,
+                        location: options.params.location,
+                        networkSecurityGroupName: result.createResourceGroup.name,
+
+                        //NOTE: azure package function not working properly, passing these options to make an api call direclty
+                        bearerToken: authData.credentials.tokenCache._entries[0].accessToken,
+                        subscriptionId: options.infra.api.subscriptionId,
+                    };
+                    options.soajs.log.debug(`Creating network security group ${result.createResourceGroup.name}`);
+                    return helper.createNetworkSecurityGroup(networkClient, opts, function(error, networkSecurityGroup) {
+                        if(error) return callback(error);
+
+                        return callback(null, networkSecurityGroup);
+                    });
+                }],
+                createNetworkInterface: ['createResourceGroup', 'getSubnetInfo', 'createPublicIP', 'createNetworkSecurityGroup', function(result, callback) {
                     let opts = {
                         resourceGroupName: result.createResourceGroup.name,
                         location: options.params.location,
@@ -145,7 +162,8 @@ const driver = {
                         ipConfigName: result.createResourceGroup.name,
                         subnetInfo: result.getSubnetInfo,
                         publicIPInfo: result.createPublicIP,
-                        publicIPAllocationMethod: result.createPublicIP.publicIPAllocationMethod || 'Dynamic'
+                        publicIPAllocationMethod: result.createPublicIP.publicIPAllocationMethod || 'Dynamic',
+                        networkSecurityGroupName: result.createNetworkSecurityGroup.id
                     };
                     options.soajs.log.debug(`Creating network interface ${opts.networkInterfaceName}`);
                     return helper.createNetworkInterface(networkClient, opts, function(error, networkInterface) {
@@ -180,7 +198,6 @@ const driver = {
                         location: options.params.location,
                         vmName: options.params.instance.name, //TODO: set name
                         adminUsername: options.params.instance.admin.username,
-                        adminPassword: options.params.instance.admin.password,
                         vmSize: options.params.instance.size,
                         image: {
                             publisher: options.params.image.prefix,
@@ -194,8 +211,18 @@ const driver = {
                         },
                         network: {
                             networkInterfaceId: result.createNetworkInterface.id
-                        }
+                        },
+                        tags: options.params.labels
                     };
+
+                    //check if password or SSH token
+                    if (options.params.instance.admin.password) {
+                        opts.adminPassword = options.params.instance.admin.password;
+                    }
+                    else if (options.params.instance.admin.token) {
+                        opts.adminPublicKey = options.params.instance.admin.token;
+                    }
+
                     options.soajs.log.debug(`Creating virtual machine ${opts.vmName}`);
                     return helper.createVirtualMachine(computeClient, opts, callback);
                 }]
@@ -455,7 +482,7 @@ const driver = {
 
             helper.listRegions(opts, function(error, regions) {
                 if(error) return cb(error);
-                return cb(null, (regions && regions.value) ? regions.value : []);
+                return cb(null, (regions) ? regions : []);
             });
         });
     }
