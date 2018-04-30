@@ -149,7 +149,9 @@ const helper = {
         request(requestOptions, function(error, response, body) {
             if(error) return cb(error);
 
-            return cb(null, body);
+            let regions = helper.buildRegionsRecord(body.value);
+
+            return cb(null, regions);
         });
     },
 
@@ -197,8 +199,20 @@ const helper = {
         }
 
         return record;
-    }
+    },
 
+    buildRegionsRecord: function(opts) {
+        let regions = [];
+
+        opts.forEach(oneRegion => {
+            regions.push({
+                "v": oneRegion.name,
+                "l": oneRegion.displayName
+            });
+        });
+
+        return regions;
+    }
 };
 
 module.exports = helper;

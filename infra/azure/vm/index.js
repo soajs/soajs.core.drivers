@@ -456,7 +456,7 @@ const driver = {
 
             helper.listRegions(opts, function(error, regions) {
                 if(error) return cb(error);
-                return cb(null, (regions && regions.value) ? regions.value : []);
+                return cb(null, (regions) ? regions : []);
             });
         });
     }
