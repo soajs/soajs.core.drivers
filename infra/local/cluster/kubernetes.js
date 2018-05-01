@@ -83,7 +83,7 @@ const driver = {
 		
 		options.soajs.registry.deployer.container.kubernetes.remote.apiProtocol = options.infra.api.protocol;
 		options.soajs.registry.deployer.container.kubernetes.remote.apiPort = options.infra.api.port;
-		options.soajs.registry.deployer.container.kubernetes.remote.auth = options.infra.api.token;
+		options.soajs.registry.deployer.container.kubernetes.remote.auth.token = options.infra.api.token;
 		
 		let oneDeployment = {
 			technology: "kubernetes",
@@ -112,7 +112,7 @@ const driver = {
 	 */
 	"getDeployClusterStatus": function (options, cb) {
 		options.soajs.registry.deployer.container.kubernetes.remote.nodes = options.infra.api.ipaddress;
-		return cb(null, true);
+		return cb(null, options.infra.api.ipaddress);
 	},
 	
 	/**
