@@ -371,10 +371,7 @@ const driver = {
 		//get the environment record
 		if (options.soajs.registry.deployer.container.kubernetes.remote.nodes && options.soajs.registry.deployer.container.kubernetes.remote.nodes !== '') {
 			let machineIp = options.soajs.registry.deployer.container.kubernetes.remote.nodes;
-			return cb(null, {
-				"id": cluster.id,
-				"ip": machineIp
-			});
+			return cb(null, machineIp);
 		}
 		else {
 			checkIfClusterisReady(function (err, response) {
@@ -384,10 +381,7 @@ const driver = {
 				else {
 					if (!response) {
 						options.soajs.log.debug("Cluster Not Ready Yet.");
-						return cb(null, {
-							"id": cluster.id,
-							"ip": false
-						});
+						return cb(null, false);
 					}
 					else {
 						//trigger get cluster & store the end point ip in the environment nodes entry
@@ -404,10 +398,7 @@ const driver = {
 							
 							if (!clusterInformation || clusterInformation === '' || typeof clusterInformation !== 'object' || Object.keys(clusterInformation).length === 0) {
 								options.soajs.log.debug("Cluster Not Ready Yet.");
-								return cb(null, {
-									"id": cluster.id,
-									"ip": false
-								});
+								return cb(null, false);
 							}
 							
 							let machineIp = clusterInformation.endpoint;
@@ -490,10 +481,7 @@ const driver = {
 									return cb(error);
 								}
 								options.soajs.log.debug("Cluster " + cluster.id + " is now ready to use at:", machineIp);
-								return cb(null, {
-									"id": cluster.id,
-									"ip": machineIp
-								});
+								return cb(null, machineIp);
 							});
 						});
 					}

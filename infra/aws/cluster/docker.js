@@ -213,10 +213,7 @@ const driver = {
 		//get the environment record
 		if (options.soajs.registry.deployer.container.docker.remote.nodes && options.soajs.registry.deployer.container.docker.remote.nodes !== '') {
 			let machineIp = options.soajs.registry.deployer.container.docker.remote.nodes;
-			return cb(null, {
-				"id": cluster.id,
-				"ip": machineIp
-			});
+			return cb(null, machineIp);
 		}
 		else{
 			cloudFormation.describeStacks(param, function (err, response) {
@@ -244,7 +241,7 @@ const driver = {
 							}
 							
 							if (out.ip && stack.options.ElbName) {
-								options.soajs.registry.deployer.container.docker.remote.nodes = response.ip;
+								options.soajs.registry.deployer.container.docker.remote.nodes = out.ip;
 								
 								
 								options.soajs.log.debug("Creating SOAJS network.");
@@ -267,11 +264,12 @@ const driver = {
 										Driver: 'default'
 									}
 								};
+								
 								deployer.createNetwork(networkParams, (err) => {
 									if (err && err.statusCode === 403) {
-										return cb(null, true);
+										return cb(null, out.ip);
 									}
-									return cb(err, true);
+									return cb(err, out.ip);
 								});
 							}
 							else {
@@ -819,7 +817,7 @@ const driver = {
 		const param = {
 			StackName: stack.name
 		};
-		let elasticLoadBalancers = [stack.ElbName];
+		let elasticLoadBalancers = [stack.options.ElbName];
 		for (let env in stack.loadBalancers) {
 			for (let service in stack.loadBalancers[env]) {
 				elasticLoadBalancers.push(stack.loadBalancers[env][service].name);
@@ -877,7 +875,7 @@ const driver = {
 		
 		let stack = options.infra.stack;
 		//service is found in project record
-		if (stack.loadBalancers && stack.loadBalancers[options.params.envCode.toUpperCase()] && stack.loadBalancers[options.params.envCode.toUpperCase()][service]) {
+		if (stack.options.loadBalancers && stack.options.loadBalancers[options.params.envCode.toUpperCase()] && stack.options.loadBalancers[options.params.envCode.toUpperCase()][service]) {
 			//service have ports to be exposed
 			//update listeners
 			if (ports[0].published) {
@@ -898,7 +896,7 @@ const driver = {
 				}
 				options.params.name = service;
 				options.params.listener = listeners;
-				options.params.ElbName = stack.loadBalancers[options.params.envCode.toUpperCase()][service].name;
+				options.params.ElbName = stack.options.loadBalancers[options.params.envCode.toUpperCase()][service].name;
 				
 				driver.updateExternalLB(options, function (err) {
 					return cb(err, true);
@@ -908,7 +906,7 @@ const driver = {
 			//delete load balancer
 			else {
 				options.params.name = service;
-				options.params.ElbName = stack.loadBalancers[options.params.envCode.toUpperCase()][service].name;
+				options.params.ElbName = stack.options.loadBalancers[options.params.envCode.toUpperCase()][service].name;
 				driver.deleteExternalLB(options, function (err) {
 					return cb(err, true);
 				});
@@ -988,9 +986,9 @@ const driver = {
 			Listeners: opts.listener,
 			LoadBalancerName: name,
 			SecurityGroups: [
-				stack.ExternalLBSecurityGroupID
+				stack.options.ExternalLBSecurityGroupID
 			],
-			Subnets: stack.ZonesAvailable,
+			Subnets: stack.options.ZonesAvailable,
 			Tags: [
 				{
 					Key: 'ht:cloudformation:stack-name', /* required */
@@ -1063,7 +1061,7 @@ const driver = {
 							DNSName: loadBalancer.DNSName,
 							ports: options.params.ports
 						};
-						infra.deployments = deployment;
+						options.infra.deployments = deployment;
 						return mCb(null, true);
 					});
 				}
