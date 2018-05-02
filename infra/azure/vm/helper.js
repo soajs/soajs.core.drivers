@@ -78,21 +78,7 @@ const helper = {
             body: {
                 location: opts.location,
                 properties: {
-                    securityRules: [
-                        {
-                            name: "default-allow-ssh",
-                            properties: {
-                                priority: 1000,
-                                protocol: "Tcp",
-                                access: "Allow",
-                                direction: "Inbound",
-                                sourceAddressPrefix: "*",
-                                sourcePortRange: "*",
-                                destinationAddressPrefix: "*",
-                                destinationPortRange: "22"
-                            }
-                        }
-                    ]
+                    securityRules: helper.buildSecurityRules(opts.ports)
                 }
             }
         };
@@ -242,6 +228,32 @@ const helper = {
         record.ip = "";  //TODO: when we support ports
 
         return record;
+    },
+
+    buildSecurityRules: function(ports) {
+        let securityRules = [];
+        let priority = 100;
+
+        if(Array.isArray(ports)) {
+            ports.forEach(onePort => {
+                securityRules.push({
+                    name: onePort.name,
+                    properties: {
+                        priority: priority,
+                        protocol: "*",
+                        access: "Allow",
+                        direction: "Inbound",
+                        sourceAddressPrefix: "*",
+                        sourcePortRange: "*",
+                        destinationAddressPrefix: "*",
+                        destinationPortRange: (onePort.published) ? onePort.published : (Math.floor(Math.random() * 2768) + 30000)
+                    }
+                });
+                priority += 10;
+            });
+        }
+
+        return securityRules;
     }
 
 };
