@@ -875,7 +875,7 @@ const driver = {
 		
 		let stack = options.infra.stack;
 		//service is found in project record
-		if (stack.options.loadBalancers && stack.options.loadBalancers[options.params.envCode.toUpperCase()] && stack.options.loadBalancers[options.params.envCode.toUpperCase()][service]) {
+		if (stack.loadBalancers && stack.loadBalancers[options.params.envCode.toUpperCase()] && stack.loadBalancers[options.params.envCode.toUpperCase()][service]) {
 			//service have ports to be exposed
 			//update listeners
 			if (ports[0].published) {
@@ -896,7 +896,7 @@ const driver = {
 				}
 				options.params.name = service;
 				options.params.listener = listeners;
-				options.params.ElbName = stack.options.loadBalancers[options.params.envCode.toUpperCase()][service].name;
+				options.params.ElbName = stack.loadBalancers[options.params.envCode.toUpperCase()][service].name;
 				
 				driver.updateExternalLB(options, function (err) {
 					return cb(err, true);
@@ -906,7 +906,7 @@ const driver = {
 			//delete load balancer
 			else {
 				options.params.name = service;
-				options.params.ElbName = stack.options.loadBalancers[options.params.envCode.toUpperCase()][service].name;
+				options.params.ElbName = stack.loadBalancers[options.params.envCode.toUpperCase()][service].name;
 				driver.deleteExternalLB(options, function (err) {
 					return cb(err, true);
 				});
