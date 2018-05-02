@@ -681,7 +681,7 @@ const driver = {
 						for (let y = 0; y < data.Reservations[i].Instances.length; y++) {
 							machinesList.push({
 								"name": data.Reservations[i].Instances[y].PrivateDnsName,
-								"ip": data.Reservations[i].Instances[y].PrivateIpAddress
+								"ip": data.Reservations[i].Instances[y].PublicIpAddress
 							});
 						}
 					}
