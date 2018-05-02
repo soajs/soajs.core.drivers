@@ -42,8 +42,6 @@ const driver = {
 			capitalization: 'lowercase'
 		})}`;
 		
-		let mockedResponse = {};
-		
 		let oneDeployment = {};
 		
 		function prepareDeploymentConfiguration(mCb) {
@@ -121,7 +119,7 @@ const driver = {
 								"kind": "compute#firewall",
 								"name": name + "-allow-icmp",
 								"description": "Allow ICMP Connections",
-								"network": "projects/" + options.params.soajs_project + "/global/networks/" + name,
+								"network": "projects/" + options.infra.api.project + "/global/networks/" + name,
 								"priority": 65534,
 								"sourceRanges": "0.0.0.0/0",
 								"allowed": [
@@ -136,7 +134,7 @@ const driver = {
 								"kind": "compute#firewall",
 								"name": name + "-allow-ssh",
 								"description": "Allow SSH Connections",
-								"network": "projects/" + options.params.soajs_project + "/global/networks/" + name,
+								"network": "projects/" + options.infra.api.project + "/global/networks/" + name,
 								"priority": 65534,
 								"sourceRanges": "0.0.0.0/0",
 								"allowed": [
@@ -151,7 +149,7 @@ const driver = {
 								"kind": "compute#firewall",
 								"name": name + "-allow-rdp",
 								"description": "Allow RDP Connections",
-								"network": "projects/" + options.params.soajs_project + "/global/networks/" + name,
+								"network": "projects/" + options.infra.api.project + "/global/networks/" + name,
 								"priority": 65534,
 								"sourceRanges": "0.0.0.0/0",
 								"allowed": [
@@ -165,7 +163,7 @@ const driver = {
 								"kind": "compute#firewall",
 								"name": name + "-allow-http",
 								"description": "Allow HTTP Connections",
-								"network": "projects/" + options.params.soajs_project + "/global/networks/" + name,
+								"network": "projects/" + options.infra.api.project + "/global/networks/" + name,
 								"priority": 65534,
 								"sourceRanges": "0.0.0.0/0",
 								"allowed": [
@@ -179,7 +177,7 @@ const driver = {
 								"kind": "compute#firewall",
 								"name": name + "-allow-https",
 								"description": "Allow HTTPS Connections",
-								"network": "projects/" + options.params.soajs_project + "/global/networks/" + name,
+								"network": "projects/" + options.infra.api.project + "/global/networks/" + name,
 								"priority": 65534,
 								"sourceRanges": "0.0.0.0/0",
 								"allowed": [
@@ -194,7 +192,7 @@ const driver = {
 								"kind": "compute#firewall",
 								"name": name + "-allow-internal",
 								"description": "Allow All Internal Connections",
-								"network": "projects/" + options.params.soajs_project + "/global/networks/" + name,
+								"network": "projects/" + options.infra.api.project + "/global/networks/" + name,
 								"priority": 65534,
 								"sourceRanges": "10.128.0.0/9",
 								"allowed": [
@@ -289,6 +287,7 @@ const driver = {
 			let request = getConnector(options.infra.api);
 			request.zone = options.params.region;
 			
+			options.soajs.log.debug("Retrieving cluster version to use from google");
 			getClusterVersion(request, function (err, version) {
 				if (err) {
 					options.soajs.log.debug("Deleting VPC network...");
@@ -314,12 +313,6 @@ const driver = {
 						oneDeployment.options.nodePoolId = template.cluster.nodePools[0].name;
 						oneDeployment.options.zone = options.params.region;
 						oneDeployment.options.operationId = operation.name;
-						options.infra.deployments.push(oneDeployment);
-						mockedResponse = {
-							"id": name,
-							"name": name
-						};
-						
 						return mCb(null, true);
 					}
 				});
@@ -330,11 +323,11 @@ const driver = {
 		stages.push(createVpcNetwork);
 		stages.push(createTemplate);
 		
-		async.series(stages, (error, response) => {
+		async.series(stages, (error) => {
 			if (error) {
 				return cb(error);
 			}
-			return cb(null, mockedResponse);
+			return cb(null, oneDeployment);
 		});
 	},
 	
@@ -786,7 +779,7 @@ const driver = {
 				return cb(new Error(`Failed to find ${ stack.id} cluster!`));
 			}
 			else {
-				request.filter = "network eq " + "https://www.googleapis.com/compute/v1/projects/" + options.params.soajs_project + "/global/networks/" + clusterInformation.network;
+				request.filter = "network eq " + "https://www.googleapis.com/compute/v1/projects/" + options.infra.api.project + "/global/networks/" + clusterInformation.network;
 				request.project = project;
 				v1Compute.firewalls.list(request, (err, firewalls) => {
 					if (err) {
@@ -794,22 +787,21 @@ const driver = {
 						return cb(new Error(`Failed to find ${stack.name} network!`));
 					}
 					let name = stack.name + "-allow-tcp-";
-					if (options.params.serviceId) {
-						name += options.params.serviceId;
+					if (options.params.name) {
+						name += options.params.name;
 					}
 					else {
-						if (options.params.deployOptions.custom) {
-							if (options.params.deployOptions.custom.type === 'nginx') {
-								name += options.params.envCode.toLowerCase() + "-" + options.params.deployOptions.custom.type;
-							}
-							else if (options.params.deployOptions.custom.name) {
-								name += options.params.envCode.toLowerCase() + "-" + options.params.deployOptions.custom.name;
-								name += (options.params.deployOptions.custom.version) ? "-v" + options.params.deployOptions.custom.version : "";
-							}
-							else {
-								name += options.params.envCode.toLowerCase() + "-" + options.params.deployOptions.custom.type;
-								name += (options.params.deployOptions.custom.version) ? "-v" + options.params.deployOptions.custom.version : "";
-							}
+						console.log(options);
+						if (options.params.name === 'nginx') {
+							name += options.params.envCode.toLowerCase() + "-" + options.params.name;
+						}
+						else if (options.params.name && options.params.version) {
+							name += options.params.envCode.toLowerCase() + "-" + options.params.name;
+							name += "-v" + options.params.version;
+						}
+						else {
+							name += options.params.envCode.toLowerCase() + "-" + options.params.type;
+							name += (options.params.version) ? "-v" + options.params.version : "";
 						}
 					}
 					
@@ -836,7 +828,7 @@ const driver = {
 								"kind": "compute#firewall",
 								"name": name,
 								"description": "Allow tcp Connections for " + name,
-								"network": "projects/" + options.params.soajs_project + "/global/networks/" + clusterInformation.network,
+								"network": "projects/" + options.infra.api.project + "/global/networks/" + clusterInformation.network,
 								"priority": 65534,
 								"sourceRanges": "0.0.0.0/0",
 								"allowed": [

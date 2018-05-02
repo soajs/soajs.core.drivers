@@ -304,8 +304,8 @@ const driver = {
 			return mCb(null, {"id": stack.id});
 		}
 		
-		if (stack.loadBalancers && stack.loadBalancers[options.soajs.registry.code.toLowerCase()] && stack.loadBalancers[options.soajs.registry.code.toLowerCase()][options.soajs.registry.code.toLowerCase() + "-nginx"]) {
-			ipAddress = stack.loadBalancers[options.soajs.registry.code.toLowerCase()][options.soajs.registry.code.toLowerCase() + "-nginx"].name;
+		if (stack.loadBalancers && stack.loadBalancers[options.soajs.registry.code.toUpperCase()] && stack.loadBalancers[options.soajs.registry.code.toUpperCase()]["nginx"]) {
+			ipAddress = stack.loadBalancers[options.soajs.registry.code.toUpperCase()]["nginx"].name;
 			let response = {
 				"id": stack.id,
 				"dns": {
