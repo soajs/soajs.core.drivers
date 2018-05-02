@@ -100,8 +100,7 @@ const helper = {
         request(requestOptions, function(error, response, body) {
             if(error) return cb(error);
             if(body && body.error) return cb(body.error);
-            
-            console.log(JSON.stringify (body, null, 2));
+
             return cb(null, body);
         });
     },
@@ -175,42 +174,29 @@ const helper = {
             tags: opts.tags
         };
 
-        //check if password or SSH token
+        //check if password or SSH public key
         if (opts.adminPassword) {
             params.osProfile.adminPassword = opts.adminPassword;
         }
         else if (opts.adminPublicKey) {
             params.osProfile.linuxConfiguration = {
                 "ssh": {
-                  "publicKeys": [
-                    {
-                      "path": "/home/" + opts.adminUsername + "/.ssh/authorized_keys",
-                      "keyData": opts.adminPublicKey
-                    }
-                  ]
+                    "publicKeys": [
+                        {
+                            "path": "/home/" + opts.adminUsername + "/.ssh/authorized_keys",
+                            "keyData": opts.adminPublicKey
+                        }
+                    ]
                 },
                 "disablePasswordAuthentication": true
             };
         }
 
+        // if(opts.command) {
+        //     params.osProfile.customData = Buffer.from(opts.command).toString('base64');
+        // }
+
         return computeClient.virtualMachines.createOrUpdate(opts.resourceGroupName, opts.vmName, params, cb);
-    },
-
-    listRegions: function(opts, cb) {
-        let requestOptions = {
-            method: 'GET',
-            uri: `https://management.azure.com/subscriptions/${opts.subscriptionId}/locations?api-version=${config.apiVersion2016}`,
-            headers: { Authorization: `Bearer ${opts.bearerToken}` },
-            json: true
-        };
-
-        request(requestOptions, function(error, response, body) {
-            if(error) return cb(error);
-
-            let regions = helper.buildRegionsRecord(body.value);
-
-            return cb(null, regions);
-        });
     },
 
     buildVMRecord: function(opts) {
@@ -256,20 +242,8 @@ const helper = {
         record.ip = "";  //TODO: when we support ports
 
         return record;
-    },
-
-    buildRegionsRecord: function(opts) {
-        let regions = [];
-
-        opts.forEach(oneRegion => {
-            regions.push({
-                "v": oneRegion.name,
-                "l": oneRegion.displayName
-            });
-        });
-
-        return regions;
     }
+
 };
 
 module.exports = helper;
