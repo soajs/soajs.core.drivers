@@ -78,21 +78,7 @@ const helper = {
             body: {
                 location: opts.location,
                 properties: {
-                    securityRules: [
-                        {
-                            name: "default-allow-ssh",
-                            properties: {
-                                priority: 1000,
-                                protocol: "Tcp",
-                                access: "Allow",
-                                direction: "Inbound",
-                                sourceAddressPrefix: "*",
-                                sourcePortRange: "*",
-                                destinationAddressPrefix: "*",
-                                destinationPortRange: "22"
-                            }
-                        }
-                    ]
+                    securityRules: helper.buildSecurityRules(opts.ports)
                 }
             }
         };
@@ -192,11 +178,41 @@ const helper = {
             };
         }
 
-        // if(opts.command) {
-        //     params.osProfile.customData = Buffer.from(opts.command).toString('base64');
-        // }
+        if(opts.command) {
+            let commandOutput = helper.buildCommands(opts.command, opts.envs || []);
+            params.osProfile.customData = Buffer.from(commandOutput).toString('base64');
+        }
 
         return computeClient.virtualMachines.createOrUpdate(opts.resourceGroupName, opts.vmName, params, cb);
+    },
+
+    buildCommands: function(command, envs) {
+        let output = '';
+
+        if(command.command) {
+            output += command.command.join(' ');
+            output += '\n';
+        }
+
+        output += helper.buildEnvVars(envs);
+
+        if(command.args) {
+            output += command.args.join('\n');
+        }
+
+        return output;
+    },
+
+    buildEnvVars: function(envs) {
+        let output = '';
+
+        if(envs && Array.isArray(envs) && envs.length > 0) {
+            envs.forEach((oneEnv) => {
+                output += `export ${oneEnv};\n`;
+            });
+        }
+
+        return output;
     },
 
     buildVMRecord: function(opts) {
@@ -242,6 +258,32 @@ const helper = {
         record.ip = "";  //TODO: when we support ports
 
         return record;
+    },
+
+    buildSecurityRules: function(ports) {
+        let securityRules = [];
+        let priority = 100;
+
+        if(Array.isArray(ports)) {
+            ports.forEach(onePort => {
+                securityRules.push({
+                    name: onePort.name,
+                    properties: {
+                        priority: priority,
+                        protocol: "*",
+                        access: "Allow",
+                        direction: "Inbound",
+                        sourceAddressPrefix: "*",
+                        sourcePortRange: "*",
+                        destinationAddressPrefix: "*",
+                        destinationPortRange: (onePort.published) ? onePort.published : (Math.floor(Math.random() * 2768) + 30000)
+                    }
+                });
+                priority += 10;
+            });
+        }
+
+        return securityRules;
     }
 
 };
