@@ -71,7 +71,7 @@ const driver = {
                             location: options.params.location,
                             // tags: options.params.resourceGroup.tags || {}
                         };
-                        options.soajs.log.debug(`Creating resource group ${options.params.resourceGroupName}`);
+                        options.soajs.log.debug(`Creating resource group ${opts.resourceGroupName}`);
                         return helper.createResourceGroup(resourceClient, opts, function(error, resourceGroup) {
                             if(error) return callback({error, code: 714});
                             return callback(null, resourceGroup);
