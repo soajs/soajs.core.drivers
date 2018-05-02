@@ -72,7 +72,7 @@ const driver = {
 		return cb(null, true);
 	},
 
-	"listRegions": function (options, cb) {
+	"getRegions": function (options, cb) {
 		options.returnCredentials = true;
         driver.authenticate(options, (error, authData) => {
             utils.checkError(error, 700, cb, () => {
