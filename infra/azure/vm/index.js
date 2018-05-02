@@ -67,7 +67,7 @@ const driver = {
 
                     createResourceGroup: function(callback) {
                         let opts = {
-                            resourceGroupName: options.params.resourceGroupName, //TODO: set name
+                            resourceGroupName: options.env,
                             location: options.params.location,
                             // tags: options.params.resourceGroup.tags || {}
                         };
@@ -95,7 +95,7 @@ const driver = {
                         let opts = {
                             resourceGroupName: result.createResourceGroup.name,
                             location: options.params.location,
-                            vnetName: result.createResourceGroup.name + '-vnet',
+                            vnetName: `${result.createResourceGroup.name}-${options.params.instance.name}-vnet`,
                             addressPrefixes: (options.params.virtualNetwork && options.params.virtualNetwork.addressPrefixes) ? options.params.virtualNetwork.addressPrefixes : null,
                             dhcpServers: (options.params.virtualNetwork && options.params.virtualNetwork.dhcpServers) ? options.params.virtualNetwork.dhcpServers : null,
                             subnets: (options.params.virtualNetwork && options.params.virtualNetwork.subnets) ? options.params.virtualNetwork.subnets : null
@@ -126,7 +126,7 @@ const driver = {
                             let opts = {
                                 resourceGroupName: result.createResourceGroup.name,
                                 location: options.params.location,
-                                publicIPName: result.createResourceGroup.name + '-ip',
+                                publicIPName: `${result.createResourceGroup.name}-${options.params.instance.name}-ip`,
                                 publicIPAllocationMethod: (options.params.publicIP && options.params.publicIP.allocationMethod) ? options.params.publicIP.allocationMethod : 'Dynamic',
                                 // domainNameLabel: options.params.publicIP.domainNameLabel
                             };
@@ -141,7 +141,7 @@ const driver = {
                             let opts = {
                                 resourceGroupName: result.createResourceGroup.name,
                                 location: options.params.location,
-                                networkSecurityGroupName: result.createResourceGroup.name + '-nsg',
+                                networkSecurityGroupName: `${result.createResourceGroup.name}-${options.params.instance.name}-nsg`,
 
                                 //NOTE: azure package function not working properly, passing these options to make an api call direclty
                                 bearerToken: authData.credentials.tokenCache._entries[0].accessToken,
@@ -163,8 +163,8 @@ const driver = {
                             let opts = {
                                 resourceGroupName: result.createResourceGroup.name,
                                 location: options.params.location,
-                                networkInterfaceName: result.createResourceGroup.name + '-ni',
-                                ipConfigName: result.createResourceGroup.name,
+                                networkInterfaceName: `${result.createResourceGroup.name}-${options.params.instance.name}-ni`,
+                                ipConfigName: `${result.createResourceGroup.name}-${options.params.instance.name}-ipConfig`,
                                 subnetInfo: result.getSubnetInfo,
                                 publicIPInfo: result.createPublicIP,
                                 publicIPAllocationMethod: result.createPublicIP.publicIPAllocationMethod || 'Dynamic',
