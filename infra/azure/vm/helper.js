@@ -192,11 +192,41 @@ const helper = {
             };
         }
 
-        // if(opts.command) {
-        //     params.osProfile.customData = Buffer.from(opts.command).toString('base64');
-        // }
+        if(opts.command) {
+            let commandOutput = helper.buildCommands(opts.command, opts.envs || []);
+            params.osProfile.customData = Buffer.from(commandOutput).toString('base64');
+        }
 
         return computeClient.virtualMachines.createOrUpdate(opts.resourceGroupName, opts.vmName, params, cb);
+    },
+
+    buildCommands: function(command, envs) {
+        let output = '';
+
+        if(command.command) {
+            output += command.command.join(' ');
+            output += '\n';
+        }
+
+        output += helper.buildEnvVars(envs);
+
+        if(command.args) {
+            output += command.args.join('\n');
+        }
+
+        return output;
+    },
+
+    buildEnvVars: function(envs) {
+        let output = '';
+
+        if(envs && Array.isArray(envs) && envs.length > 0) {
+            envs.forEach((oneEnv) => {
+                output += `export ${oneEnv};\n`;
+            });
+        }
+
+        return output;
     },
 
     buildVMRecord: function(opts) {

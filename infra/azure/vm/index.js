@@ -229,7 +229,7 @@ const driver = {
                             }
 
                             if(options.params.instance && options.params.instance.env) {
-                                opts.env = options.params.instance.env;
+                                opts.envs = options.params.instance.env;
                             }
 
                             if(options.params.instance && options.params.instance.command) {
