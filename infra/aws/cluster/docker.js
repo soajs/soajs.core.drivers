@@ -65,6 +65,7 @@ const driver = {
 		
 		function callAPI(mCb) {
 			options.soajs.log.debug("Creating AWS Stack");
+			//undefined://api./bridge
 			let domain = options.params.protocol + "://" + options.params.apiPrefix + "." + options.params.domain + "/bridge";
 			
 			let aws = options.infra.api;
@@ -164,8 +165,9 @@ const driver = {
 						ParameterValue: options.params.workerstoragetype
 					}
 				],
-				TemplateURL: config.templateUrl
+				TemplateURL: config.templateUrl + options.params.infraCodeTemplate
 			};
+			
 			cloudFormation.createStack(params, function (err, response) {
 				if (err) {
 					return mCb(err);
