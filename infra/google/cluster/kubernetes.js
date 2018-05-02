@@ -34,7 +34,6 @@ const driver = {
 	"deployCluster": function (options, cb) {
 		options.soajs.log.debug("Deploying new Cluster");
 		let request = getConnector(options.infra.api);
-		
 		//no create a name made from ht + deployment type + random string
 		let name = `ht${options.params.soajs_project.toLowerCase()}${randomstring.generate({
 			length: 13,
@@ -271,8 +270,13 @@ const driver = {
 		}
 		
 		function createTemplate(mCb) {
+			
 			//Ref: https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters#Cluster
-			let template = JSON.parse(JSON.stringify(config.template));
+			let template = JSON.parse(JSON.stringify(options.params.template));
+			if(!template){
+				return mCb(new Error("Invalid or Cluster Template detected to create the cluster from!"));
+			}
+			
 			template.cluster.name = name; //same name as network
 			template.cluster.description = "Kubernetes Worker Node: " + options.params.workerflavor;
 			template.cluster.zone = options.params.region;
@@ -791,7 +795,6 @@ const driver = {
 						name += options.params.name;
 					}
 					else {
-						console.log(options);
 						if (options.params.name === 'nginx') {
 							name += options.params.envCode.toLowerCase() + "-" + options.params.name;
 						}
