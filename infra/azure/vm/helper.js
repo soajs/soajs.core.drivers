@@ -199,23 +199,6 @@ const helper = {
         return computeClient.virtualMachines.createOrUpdate(opts.resourceGroupName, opts.vmName, params, cb);
     },
 
-    listRegions: function(opts, cb) {
-        let requestOptions = {
-            method: 'GET',
-            uri: `https://management.azure.com/subscriptions/${opts.subscriptionId}/locations?api-version=${config.apiVersion2016}`,
-            headers: { Authorization: `Bearer ${opts.bearerToken}` },
-            json: true
-        };
-
-        request(requestOptions, function(error, response, body) {
-            if(error) return cb(error);
-
-            let regions = helper.buildRegionsRecord(body.value);
-
-            return cb(null, regions);
-        });
-    },
-
     buildVMRecord: function(opts) {
         let record = { type: 'vm' };
 
@@ -259,20 +242,8 @@ const helper = {
         record.ip = "";  //TODO: when we support ports
 
         return record;
-    },
-
-    buildRegionsRecord: function(opts) {
-        let regions = [];
-
-        opts.forEach(oneRegion => {
-            regions.push({
-                "v": oneRegion.name,
-                "l": oneRegion.displayName
-            });
-        });
-
-        return regions;
     }
+
 };
 
 module.exports = helper;

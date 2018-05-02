@@ -490,31 +490,8 @@ const driver = {
                     });
                 });
             });
-        },
-
-        /**
-        * List available azure regions (aka locations)
-
-        * @param  {Object}   options  Data passed to function as params
-        * @param  {Function} cb    Callback function
-        * @return {void}
-        */
-        listRegions: function(options, cb) {
-            driver.authenticate(options, (error, authData) => {
-                utils.checkError(error, 700, cb, () => {
-                    let opts = {
-                        subscriptionId: options.infra.api.subscriptionId,
-                        bearerToken: authData.credentials.tokenCache._entries[0].accessToken
-                    };
-
-                    helper.listRegions(opts, function(error, regions) {
-                        utils.checkError(error, 713, cb, () => {
-                            return cb(null, (regions) ? regions : []);
-                        });
-                    });
-                });
-            });
         }
-    };
+
+};
 
     module.exports = driver;
