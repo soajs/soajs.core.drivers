@@ -83,7 +83,7 @@ const driver = {
 
                 helper.listRegions(opts, function(error, regions) {
                     utils.checkError(error, 713, cb, () => {
-                        return cb(null, (regions) ? regions : []);
+                        return cb(null, (regions) ? {"regions": regions }  : []);
                     });
                 });
             });
