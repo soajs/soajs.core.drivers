@@ -81,6 +81,10 @@ const driver = {
 				capitalization: 'lowercase'
 			})}`;
 			
+			if(!options.params.infraCodeTemplate){
+				return mCb(new Error("Invalid or Cluster Template detected to create the cluster from!"));
+			}
+			
 			const params = {
 				StackName: oneDeployment.name,
 				Capabilities: [
@@ -176,6 +180,7 @@ const driver = {
 					oneDeployment.id = response.StackId;
 					oneDeployment.environments = [options.env.toUpperCase()];
 					oneDeployment.options.zone = options.params.region;
+					oneDeployment.options.template = options.params.infraCodeTemplate;
 					return mCb(null, true);
 				}
 			});
@@ -442,7 +447,7 @@ const driver = {
 					UsePreviousValue: true
 				}
 			],
-			TemplateURL: config.templateUrl
+			TemplateURL: config.templateUrl + stack.options.template
 		};
 		// get instance before update
 		getInstances(function (err, instanceBefore) {
