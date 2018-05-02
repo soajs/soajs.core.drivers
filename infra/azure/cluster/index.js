@@ -57,7 +57,7 @@ const driver = {
     },
 
 	"getExtras": function (options, cb) {
-		return cb(null, {technologies: ['vm'], templates: ['local']});  //TODO: confirm templates array
+		return cb(null, {technologies: ['vm'], templates: null});  //TODO: confirm templates array
 	},
 
 	"deployCluster": function (options, cb) {

@@ -65,6 +65,7 @@ const driver = {
 		
 		function callAPI(mCb) {
 			options.soajs.log.debug("Creating AWS Stack");
+			//undefined://api./bridge
 			let domain = options.params.protocol + "://" + options.params.apiPrefix + "." + options.params.domain + "/bridge";
 			
 			let aws = options.infra.api;
@@ -79,6 +80,10 @@ const driver = {
 				charset: 'alphanumeric',
 				capitalization: 'lowercase'
 			})}`;
+			
+			if(!options.params.infraCodeTemplate){
+				return mCb(new Error("Invalid or Cluster Template detected to create the cluster from!"));
+			}
 			
 			const params = {
 				StackName: oneDeployment.name,
@@ -164,8 +169,9 @@ const driver = {
 						ParameterValue: options.params.workerstoragetype
 					}
 				],
-				TemplateURL: config.templateUrl
+				TemplateURL: config.templateUrl + options.params.infraCodeTemplate
 			};
+			
 			cloudFormation.createStack(params, function (err, response) {
 				if (err) {
 					return mCb(err);
@@ -174,6 +180,7 @@ const driver = {
 					oneDeployment.id = response.StackId;
 					oneDeployment.environments = [options.env.toUpperCase()];
 					oneDeployment.options.zone = options.params.region;
+					oneDeployment.options.template = options.params.infraCodeTemplate;
 					return mCb(null, true);
 				}
 			});
@@ -440,7 +447,7 @@ const driver = {
 					UsePreviousValue: true
 				}
 			],
-			TemplateURL: config.templateUrl
+			TemplateURL: config.templateUrl + stack.options.template
 		};
 		// get instance before update
 		getInstances(function (err, instanceBefore) {
