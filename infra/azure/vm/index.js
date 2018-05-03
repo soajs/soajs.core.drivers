@@ -201,7 +201,7 @@ const driver = {
                             let opts = {
                                 resourceGroupName: result.createResourceGroup.name,
                                 location: options.params.location,
-                                vmName: options.params.instance.name, //TODO: set name
+                                vmName: options.params.instance.name,
                                 adminUsername: options.params.instance.admin.username,
                                 vmSize: options.params.instance.size,
                                 image: {
@@ -211,7 +211,7 @@ const driver = {
                                     version: result.getVMImage.name
                                 },
                                 disk: {
-                                    osDiskName: options.params.instance.osDiskName, //TODO: check source
+                                    osDiskName: options.params.instance.osDiskName,
                                     storageAccountType: options.params.instance.storageAccountType || 'Standard_LRS'//result.createStorageAccount.name
                                 },
                                 network: {
@@ -320,11 +320,74 @@ const driver = {
             driver.authenticate(options, (error, authData) => {
                 utils.checkError(error, 700, cb, () => {
                     const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+                    const networkClient = driver.getConnector({ api: 'network', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+
                     computeClient.virtualMachines.listAll(function (error, vms) {
                         utils.checkError(error, 704, cb, () => {
-                            if(!(vms && Array.isArray(vms))) vms = [];
+                            if(!(vms && Array.isArray(vms))) {
+                                return cb(null, []);
+                            }
+
                             async.map(vms, function(oneVm, callback) {
-                                return callback(null, helper.buildVMRecord({ vm: oneVm }));
+                                let idInfo, resourceGroupName, networkInterfaceName, networkSecurityGroupName, ipName;
+                                if(oneVm.id) {
+                                    idInfo = oneVm.id.split('/');
+                                    resourceGroupName = idInfo[idInfo.indexOf('resourceGroups') + 1];
+                                }
+
+                                if(oneVm.networkProfile && oneVm.networkProfile.networkInterfaces && Array.isArray(oneVm.networkProfile.networkInterfaces)) {
+                                    for(let i = 0; i < oneVm.networkProfile.networkInterfaces.length; i++) {
+                                        if(oneVm.networkProfile.networkInterfaces[i].primary) {
+                                            networkInterfaceName = oneVm.networkProfile.networkInterfaces[i].id.split('/').pop();
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                networkClient.networkInterfaces.get(resourceGroupName, networkInterfaceName, function(error, networkInterface) {
+                                    if(error) {
+                                        options.soajs.log.error(`Unable to get network interface for ${oneVm.name} while listing`);
+                                        options.soajs.log.error(error);
+
+                                        //skip the rest (they depend on networkInterface info), build vm record with available data only
+                                        return callback(null, helper.buildVMRecord({ vm: oneVm }));
+                                    }
+
+                                    if(networkInterface && networkInterface.networkSecurityGroup && networkInterface.networkSecurityGroup.id) {
+                                        networkSecurityGroupName = networkInterface.networkSecurityGroup.id.split('/').pop();
+                                    }
+
+                                    if(networkInterface && networkInterface.ipConfigurations && Array.isArray(networkInterface.ipConfigurations)) {
+                                        for(let i = 0; i < networkInterface.ipConfigurations.length; i++) {
+                                            if(networkInterface.ipConfigurations[i].primary && networkInterface.ipConfigurations[i].publicIPAddress) {
+                                                ipName = networkInterface.ipConfigurations[i].publicIPAddress.id.split('/').pop();
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    networkClient.networkSecurityGroups.get(resourceGroupName, networkSecurityGroupName, function(error, securityGroup) {
+                                        if(error) {
+                                            options.soajs.log.error(`Unable to get network security group for ${oneVm.name} while listing`);
+                                            options.soajs.log.error(error);
+
+                                            //skip the rest, build vm record with available data only
+                                            return callback(null, helper.buildVMRecord({ vm: oneVm }));
+                                        }
+
+                                        networkClient.publicIPAddresses.get(resourceGroupName, ipName, function(error, publicIp) {
+                                            if(error) {
+                                                options.soajs.log.error(`Unable to get public ip address for ${oneVm.name} while listing`);
+                                                options.soajs.log.error(error);
+
+                                                //skip the rest, build vm record with available data only
+                                                return callback(null, helper.buildVMRecord({ vm: oneVm, securityGroup }));
+                                            }
+
+                                            return callback(null, helper.buildVMRecord({ vm: oneVm, securityGroup, publicIp }));
+                                        });
+                                    });
+                                });
                             }, cb);
                         });
                     });

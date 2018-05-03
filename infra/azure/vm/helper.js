@@ -254,8 +254,15 @@ const helper = {
 
         record.env = [];
 
-        record.servicePortType = ""; //TODO: when we support ports
-        record.ip = "";  //TODO: when we support ports
+        if(opts.publicIp && opts.publicIp.ipAddress) {
+            record.ip = opts.publicIp.ipAddress;
+        }
+
+        if(opts.securityGroup && opts.securityGroup.securityRules) {
+            record.ports = helper.buildPortsArray(opts.securityGroup.securityRules);
+        }
+
+        // record.servicePortType = "";
 
         return record;
     },
@@ -274,7 +281,7 @@ const helper = {
                         access: "Allow",
                         direction: "Inbound",
                         sourceAddressPrefix: "*",
-                        sourcePortRange: "*",
+                        sourcePortRange: (onePort.target) ? onePort.target : "*",
                         destinationAddressPrefix: "*",
                         destinationPortRange: (onePort.published) ? onePort.published : (Math.floor(Math.random() * 2768) + 30000)
                     }
@@ -284,6 +291,21 @@ const helper = {
         }
 
         return securityRules;
+    },
+
+    buildPortsArray: function(securityRules) {
+        let output = [];
+
+        securityRules.forEach(function(oneSecurityRule) {
+            output.push({
+                protocol: (oneSecurityRule.protocol && oneSecurityRule.protocol === '*') ? 'tcp/udp' : oneSecurityRule.protocol,
+                target: oneSecurityRule.sourcePortRange,
+                published: oneSecurityRule.destinationPortRange,
+                isPublished: (oneSecurityRule.destinationPortRange) ? true : false
+            });
+        });
+
+        return output;
     }
 
 };
