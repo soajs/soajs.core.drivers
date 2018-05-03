@@ -216,7 +216,7 @@ const helper = {
     },
 
     buildVMRecord: function(opts) {
-        let record = { type: 'vm' };
+        let record = {};
 
         if(opts.vm) {
             if(opts.vm.name) record.name = opts.vm.name;
