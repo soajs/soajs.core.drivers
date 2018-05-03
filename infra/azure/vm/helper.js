@@ -281,7 +281,7 @@ const helper = {
                         access: "Allow",
                         direction: "Inbound",
                         sourceAddressPrefix: "*",
-                        sourcePortRange: (onePort.target) ? onePort.target : "*",
+                        sourcePortRange: "*",
                         destinationAddressPrefix: "*",
                         destinationPortRange: (onePort.published) ? onePort.published : (Math.floor(Math.random() * 2768) + 30000)
                     }
