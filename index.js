@@ -20,28 +20,34 @@ function checkIfSupported(options, cb, fcb) {
 
 function getStrategy(options, cb) {
 	let strategyName = options.type.toLowerCase();
-	
+
 	if(!strategyName){
 		return cb(new Error(`No driver type specified!`));
 	}
-	
+
 	if(options.driver){
 		strategyName += "_" + options.driver.toLowerCase();
 	}
-	
+
 	if(options.technology){
 		strategyName += "_" + options.technology.toLowerCase();
 	}
-	
+
     checkCache((strategy) => {
         if (strategy) return cb(null, strategy);
-	
+
 	    let onePath = [];
 	    onePath.push(__dirname);
 	    for(let i in options){ onePath.push(options[i]); }
 	    onePath.push("index.js");
-	
-        let pathToUse = path.join.apply(null, onePath);
+        let pathToUse = '';
+
+        try {
+            pathToUse = path.join.apply(null, onePath);
+        }
+        catch (e) {
+            return cb(new Error("Invalid Driver Path detected!"));
+        }
 
         checkStrategy(pathToUse, (error) => {
             if (error) return cb(error);
@@ -106,7 +112,7 @@ function getStrategy(options, cb) {
 */
 
 module.exports = {
-	
+
 	/**
 	 * Generic method that loads the requested driver and execute the method requested in it
 	 * @param driverOptions
