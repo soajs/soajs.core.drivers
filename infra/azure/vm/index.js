@@ -185,7 +185,11 @@ const driver = {
                                 sku: options.params.image.tag
                             };
                             options.soajs.log.debug(`Finding VM image ${opts.publisher} - ${opts.offer} - ${opts.sku}`);
-                            return helper.getVMImage(computeClient, opts, callback);
+                            return helper.getVMImage(computeClient, opts, function(error, image) {
+                                if(error) return callback({error, code: 720});
+
+                                return callback(null, image);
+                            });
                         },
                         getNetworkInterfaceInfo: ['createResourceGroup', 'createNetworkInterface', function(result, callback) {
                             //NOTE: might not be needed
@@ -237,7 +241,10 @@ const driver = {
                             }
 
                             options.soajs.log.debug(`Creating virtual machine ${opts.vmName}`);
-                            return helper.createVirtualMachine(computeClient, opts, callback);
+                            return helper.createVirtualMachine(computeClient, opts, function(error, vmInfo) {
+                                if(error) return callback({error, code: 721});
+                                return callback(null, vmInfo);
+                            });
                         }]
 
                     }, function (error, result) {
