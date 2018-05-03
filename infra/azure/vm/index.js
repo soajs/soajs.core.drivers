@@ -328,78 +328,87 @@ const driver = {
                 utils.checkError(error, 700, cb, () => {
                     const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
                     const networkClient = driver.getConnector({ api: 'network', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+                    const resourceClient = driver.getConnector({ api: 'resource', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
 
-                    computeClient.virtualMachines.list(options.env, function (error, vms) {
+                    resourceClient.resourceGroups.checkExistence(options.env, function (error, exists) {
                         utils.checkError(error, 704, cb, () => {
-                            if(!(vms && Array.isArray(vms))) {
+                            if(!exists) {
                                 return cb(null, []);
                             }
 
-                            async.map(vms, function(oneVm, callback) {
-                                let idInfo, resourceGroupName, networkInterfaceName, networkSecurityGroupName, ipName;
-                                if(oneVm.id) {
-                                    idInfo = oneVm.id.split('/');
-                                    resourceGroupName = idInfo[idInfo.indexOf('resourceGroups') + 1];
-                                }
+                            computeClient.virtualMachines.list(options.env, function (error, vms) {
+                                utils.checkError(error, 704, cb, () => {
+                                    if(!(vms && Array.isArray(vms))) {
+                                        return cb(null, []);
+                                    }
 
-                                if(oneVm.networkProfile && oneVm.networkProfile.networkInterfaces && Array.isArray(oneVm.networkProfile.networkInterfaces)) {
-                                    for(let i = 0; i < oneVm.networkProfile.networkInterfaces.length; i++) {
-                                        if(oneVm.networkProfile.networkInterfaces[i].primary) {
-                                            networkInterfaceName = oneVm.networkProfile.networkInterfaces[i].id.split('/').pop();
-                                            break;
+                                    async.map(vms, function(oneVm, callback) {
+                                        let idInfo, resourceGroupName, networkInterfaceName, networkSecurityGroupName, ipName;
+                                        if(oneVm.id) {
+                                            idInfo = oneVm.id.split('/');
+                                            resourceGroupName = idInfo[idInfo.indexOf('resourceGroups') + 1];
                                         }
-                                    }
-                                    //if no primary interface was found, use the first in the array
-                                    if(!networkInterfaceName && oneVm.networkProfile.networkInterfaces[0] && oneVm.networkProfile.networkInterfaces[0].id) {
-                                        networkInterfaceName = oneVm.networkProfile.networkInterfaces[0].id.split('/').pop();
-                                    }
-                                }
 
-                                networkClient.networkInterfaces.get(resourceGroupName, networkInterfaceName, function(error, networkInterface) {
-                                    if(error) {
-                                        options.soajs.log.error(`Unable to get network interface for ${oneVm.name} while listing`);
-                                        options.soajs.log.error(error);
-
-                                        //skip the rest (they depend on networkInterface info), build vm record with available data only
-                                        return callback(null, helper.buildVMRecord({ vm: oneVm }));
-                                    }
-
-                                    if(networkInterface && networkInterface.networkSecurityGroup && networkInterface.networkSecurityGroup.id) {
-                                        networkSecurityGroupName = networkInterface.networkSecurityGroup.id.split('/').pop();
-                                    }
-
-                                    if(networkInterface && networkInterface.ipConfigurations && Array.isArray(networkInterface.ipConfigurations)) {
-                                        for(let i = 0; i < networkInterface.ipConfigurations.length; i++) {
-                                            if(networkInterface.ipConfigurations[i].primary && networkInterface.ipConfigurations[i].publicIPAddress) {
-                                                ipName = networkInterface.ipConfigurations[i].publicIPAddress.id.split('/').pop();
-                                                break;
+                                        if(oneVm.networkProfile && oneVm.networkProfile.networkInterfaces && Array.isArray(oneVm.networkProfile.networkInterfaces)) {
+                                            for(let i = 0; i < oneVm.networkProfile.networkInterfaces.length; i++) {
+                                                if(oneVm.networkProfile.networkInterfaces[i].primary) {
+                                                    networkInterfaceName = oneVm.networkProfile.networkInterfaces[i].id.split('/').pop();
+                                                    break;
+                                                }
+                                            }
+                                            //if no primary interface was found, use the first in the array
+                                            if(!networkInterfaceName && oneVm.networkProfile.networkInterfaces[0] && oneVm.networkProfile.networkInterfaces[0].id) {
+                                                networkInterfaceName = oneVm.networkProfile.networkInterfaces[0].id.split('/').pop();
                                             }
                                         }
-                                    }
 
-                                    networkClient.networkSecurityGroups.get(resourceGroupName, networkSecurityGroupName, function(error, securityGroup) {
-                                        if(error) {
-                                            options.soajs.log.error(`Unable to get network security group for ${oneVm.name} while listing`);
-                                            options.soajs.log.error(error);
-
-                                            //skip the rest, build vm record with available data only
-                                            return callback(null, helper.buildVMRecord({ vm: oneVm }));
-                                        }
-
-                                        networkClient.publicIPAddresses.get(resourceGroupName, ipName, function(error, publicIp) {
+                                        networkClient.networkInterfaces.get(resourceGroupName, networkInterfaceName, function(error, networkInterface) {
                                             if(error) {
-                                                options.soajs.log.error(`Unable to get public ip address for ${oneVm.name} while listing`);
+                                                options.soajs.log.error(`Unable to get network interface for ${oneVm.name} while listing`);
                                                 options.soajs.log.error(error);
 
-                                                //skip the rest, build vm record with available data only
-                                                return callback(null, helper.buildVMRecord({ vm: oneVm, securityGroup }));
+                                                //skip the rest (they depend on networkInterface info), build vm record with available data only
+                                                return callback(null, helper.buildVMRecord({ vm: oneVm }));
                                             }
 
-                                            return callback(null, helper.buildVMRecord({ vm: oneVm, securityGroup, publicIp }));
+                                            if(networkInterface && networkInterface.networkSecurityGroup && networkInterface.networkSecurityGroup.id) {
+                                                networkSecurityGroupName = networkInterface.networkSecurityGroup.id.split('/').pop();
+                                            }
+
+                                            if(networkInterface && networkInterface.ipConfigurations && Array.isArray(networkInterface.ipConfigurations)) {
+                                                for(let i = 0; i < networkInterface.ipConfigurations.length; i++) {
+                                                    if(networkInterface.ipConfigurations[i].primary && networkInterface.ipConfigurations[i].publicIPAddress) {
+                                                        ipName = networkInterface.ipConfigurations[i].publicIPAddress.id.split('/').pop();
+                                                        break;
+                                                    }
+                                                }
+                                            }
+
+                                            networkClient.networkSecurityGroups.get(resourceGroupName, networkSecurityGroupName, function(error, securityGroup) {
+                                                if(error) {
+                                                    options.soajs.log.error(`Unable to get network security group for ${oneVm.name} while listing`);
+                                                    options.soajs.log.error(error);
+
+                                                    //skip the rest, build vm record with available data only
+                                                    return callback(null, helper.buildVMRecord({ vm: oneVm }));
+                                                }
+
+                                                networkClient.publicIPAddresses.get(resourceGroupName, ipName, function(error, publicIp) {
+                                                    if(error) {
+                                                        options.soajs.log.error(`Unable to get public ip address for ${oneVm.name} while listing`);
+                                                        options.soajs.log.error(error);
+
+                                                        //skip the rest, build vm record with available data only
+                                                        return callback(null, helper.buildVMRecord({ vm: oneVm, securityGroup }));
+                                                    }
+
+                                                    return callback(null, helper.buildVMRecord({ vm: oneVm, securityGroup, publicIp }));
+                                                });
+                                            });
                                         });
-                                    });
+                                    }, cb);
                                 });
-                            }, cb);
+                            });
                         });
                     });
                 });
