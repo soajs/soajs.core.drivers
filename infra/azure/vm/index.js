@@ -260,7 +260,7 @@ const driver = {
             driver.authenticate(options, (error, authData) => {
                 utils.checkError(error, 700, cb, () => {
                     const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-                    computeClient.virtualMachines.get(options.params.env, options.params.vmName, function (error, vmInfo) {
+                    computeClient.virtualMachines.get(options.env, options.params.vmName, function (error, vmInfo) {
                         utils.checkError(error, 701, cb, () => {
                             return cb(null, helper.buildVMRecord({ vm: vmInfo, infra: options.infra }));
                         });
@@ -280,7 +280,7 @@ const driver = {
             driver.authenticate(options, (error, authData) => {
                 utils.checkError(error, 700, cb, () => {
                     const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-                    computeClient.virtualMachines.powerOff(options.params.env, options.params.vmName, function (error, result) {
+                    computeClient.virtualMachines.powerOff(options.env, options.params.vmName, function (error, result) {
                         utils.checkError(error, 702, cb, () => {
                             return cb(null, result);
                         });
@@ -300,7 +300,7 @@ const driver = {
             driver.authenticate(options, (error, authData) => {
                 utils.checkError(error, 700, cb, () => {
                     const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-                    computeClient.virtualMachines.start(options.params.env, options.params.vmName, function (error, result) {
+                    computeClient.virtualMachines.start(options.env, options.params.vmName, function (error, result) {
                         utils.checkError(error, 703, cb, () => {
                             return cb(null, result);
                         });
@@ -406,7 +406,7 @@ const driver = {
             driver.authenticate(options, (error, authData) => {
                 utils.checkError(error, 700, cb, () => {
                     const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-                    computeClient.virtualMachines.deleteMethod(options.params.env, options.params.vmName, function (error, result) {
+                    computeClient.virtualMachines.deleteMethod(options.env, options.params.vmName, function (error, result) {
                         utils.checkError(error, 705, cb, () => {
                             return cb(null, result);
                         });
@@ -426,7 +426,7 @@ const driver = {
             driver.authenticate(options, (error, authData) => {
                 utils.checkError(error, 700, cb, () => {
                     const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-                    computeClient.virtualMachines.restart(options.params.env, options.params.vmName, function (error, result) {
+                    computeClient.virtualMachines.restart(options.env, options.params.vmName, function (error, result) {
                         utils.checkError(error, 706, cb, () => {
                             return cb(null, result);
                         });
@@ -446,7 +446,7 @@ const driver = {
             driver.authenticate(options, (error, authData) => {
                 utils.checkError(error, 700, cb, () => {
                     const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-                    computeClient.virtualMachines.redeploy(options.params.env, options.params.vmName, function (error, result) {
+                    computeClient.virtualMachines.redeploy(options.env, options.params.vmName, function (error, result) {
                         utils.checkError(error, 706, cb, () => {
                             return cb(null, result);
                         });
@@ -466,7 +466,7 @@ const driver = {
             driver.authenticate(options, (error, authData) => {
                 utils.checkError(error, 700, cb, () => {
                     const resourceClient = driver.getConnector({ api: 'resource', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
-                    resourceClient.resourceGroups.deleteMethod(options.params.env, function (error, result) {
+                    resourceClient.resourceGroups.deleteMethod(options.env, function (error, result) {
                         utils.checkError(error, 708, cb, () => {
                             return cb(null, result);
                         });
