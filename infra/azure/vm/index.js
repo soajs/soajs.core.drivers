@@ -329,7 +329,7 @@ const driver = {
                     const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
                     const networkClient = driver.getConnector({ api: 'network', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
 
-                    computeClient.virtualMachines.listAll(function (error, vms) {
+                    computeClient.virtualMachines.list(options.env, function (error, vms) {
                         utils.checkError(error, 704, cb, () => {
                             if(!(vms && Array.isArray(vms))) {
                                 return cb(null, []);
