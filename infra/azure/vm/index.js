@@ -349,6 +349,10 @@ const driver = {
                                             break;
                                         }
                                     }
+                                    //if no primary interface was found, use the first in the array
+                                    if(!networkInterfaceName && oneVm.networkProfile.networkInterfaces[0] && oneVm.networkProfile.networkInterfaces[0].id) {
+                                        networkInterfaceName = oneVm.networkProfile.networkInterfaces[0].id.split('/').pop();
+                                    }
                                 }
 
                                 networkClient.networkInterfaces.get(resourceGroupName, networkInterfaceName, function(error, networkInterface) {
