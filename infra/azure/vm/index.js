@@ -152,7 +152,7 @@ const driver = {
                                 opts.ports = options.params.instance.ports;
                             }
 
-                            options.soajs.log.debug(`Creating network security group ${result.createResourceGroup.name}`);
+                            options.soajs.log.debug(`Creating network security group ${opts.networkSecurityGroupName}`);
                             return helper.createNetworkSecurityGroup(networkClient, opts, function(error, networkSecurityGroup) {
                                 if(error) return callback({error, code:718});
 
