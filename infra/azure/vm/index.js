@@ -373,7 +373,7 @@ const driver = {
                                                     vmRecordOptions.publicIp = networkInfo.publicIp;
                                                 }
 
-                                                return cb(null, helper.buildVMRecord(vmRecordOptions));
+                                                return callback(null, helper.buildVMRecord(vmRecordOptions));
                                             });
                                         }, cb);
                                     });
