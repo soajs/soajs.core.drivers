@@ -318,6 +318,54 @@ const helper = {
 
             return callback(null, valid);
         }, cb);
+    },
+
+    getVmNetworkInfo: function(networkClient, opts, cb) {
+        let idInfo, resourceGroupName, networkInterfaceName, networkSecurityGroupName, ipName;
+        if(opts.vm.id) {
+            idInfo = opts.vm.id.split('/');
+            resourceGroupName = idInfo[idInfo.indexOf('resourceGroups') + 1];
+        }
+
+        if(opts.vm.networkProfile && opts.vm.networkProfile.networkInterfaces && Array.isArray(opts.vm.networkProfile.networkInterfaces)) {
+            for(let i = 0; i < opts.vm.networkProfile.networkInterfaces.length; i++) {
+                if(opts.vm.networkProfile.networkInterfaces[i].primary) {
+                    networkInterfaceName = opts.vm.networkProfile.networkInterfaces[i].id.split('/').pop();
+                    break;
+                }
+            }
+            //if no primary interface was found, use the first in the array
+            if(!networkInterfaceName && opts.vm.networkProfile.networkInterfaces[0] && opts.vm.networkProfile.networkInterfaces[0].id) {
+                networkInterfaceName = opts.vm.networkProfile.networkInterfaces[0].id.split('/').pop();
+            }
+        }
+
+        networkClient.networkInterfaces.get(resourceGroupName, networkInterfaceName, function(error, networkInterface) {
+            if(error) return cb(error);
+
+            if(networkInterface && networkInterface.networkSecurityGroup && networkInterface.networkSecurityGroup.id) {
+                networkSecurityGroupName = networkInterface.networkSecurityGroup.id.split('/').pop();
+            }
+
+            if(networkInterface && networkInterface.ipConfigurations && Array.isArray(networkInterface.ipConfigurations)) {
+                for(let i = 0; i < networkInterface.ipConfigurations.length; i++) {
+                    if(networkInterface.ipConfigurations[i].primary && networkInterface.ipConfigurations[i].publicIPAddress) {
+                        ipName = networkInterface.ipConfigurations[i].publicIPAddress.id.split('/').pop();
+                        break;
+                    }
+                }
+            }
+
+            networkClient.networkSecurityGroups.get(resourceGroupName, networkSecurityGroupName, function(error, securityGroup) {
+                if(error) return cb(error);
+
+                networkClient.publicIPAddresses.get(resourceGroupName, ipName, function(error, publicIp) {
+                    if(error) return cb(error);
+
+                    return cb(null, { networkInterface, securityGroup, publicIp });
+                });
+            });
+        });
     }
 
 };

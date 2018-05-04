@@ -268,9 +268,22 @@ const driver = {
             driver.authenticate(options, (error, authData) => {
                 utils.checkError(error, 700, cb, () => {
                     const computeClient = driver.getConnector({ api: 'compute', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
+                    const networkClient = driver.getConnector({ api: 'network', credentials: authData.credentials, subscriptionId: options.infra.api.subscriptionId });
                     computeClient.virtualMachines.get(options.env, options.params.vmName, function (error, vmInfo) {
                         utils.checkError(error, 701, cb, () => {
-                            return cb(null, helper.buildVMRecord({ vm: vmInfo, infra: options.infra }));
+                            let vmRecordOptions = { vm: vmInfo };
+                            helper.getVmNetworkInfo(networkClient, { vm: vmInfo }, function(error, networkInfo) {
+                                if(error) {
+                                    options.soajs.log.error(`Unable to get network information for ${vmInfo.name} while inspecting`);
+                                    options.soajs.log.error(error);
+                                }
+                                else {
+                                    vmRecordOptions.securityGroup = networkInfo.securityGroup;
+                                    vmRecordOptions.publicIp = networkInfo.publicIp;
+                                }
+
+                                return cb(null, helper.buildVMRecord(vmRecordOptions));
+                            });
                         });
                     });
                 });
@@ -349,68 +362,18 @@ const driver = {
                                     helper.filterVMs(options.env, vms, function(error, filteredVms) {
                                         //no error is returned by function
                                         async.map(filteredVms, function(oneVm, callback) {
-                                            let idInfo, resourceGroupName, networkInterfaceName, networkSecurityGroupName, ipName;
-                                            if(oneVm.id) {
-                                                idInfo = oneVm.id.split('/');
-                                                resourceGroupName = idInfo[idInfo.indexOf('resourceGroups') + 1];
-                                            }
-
-                                            if(oneVm.networkProfile && oneVm.networkProfile.networkInterfaces && Array.isArray(oneVm.networkProfile.networkInterfaces)) {
-                                                for(let i = 0; i < oneVm.networkProfile.networkInterfaces.length; i++) {
-                                                    if(oneVm.networkProfile.networkInterfaces[i].primary) {
-                                                        networkInterfaceName = oneVm.networkProfile.networkInterfaces[i].id.split('/').pop();
-                                                        break;
-                                                    }
-                                                }
-                                                //if no primary interface was found, use the first in the array
-                                                if(!networkInterfaceName && oneVm.networkProfile.networkInterfaces[0] && oneVm.networkProfile.networkInterfaces[0].id) {
-                                                    networkInterfaceName = oneVm.networkProfile.networkInterfaces[0].id.split('/').pop();
-                                                }
-                                            }
-
-                                            networkClient.networkInterfaces.get(resourceGroupName, networkInterfaceName, function(error, networkInterface) {
+                                            let vmRecordOptions = { vm: oneVm };
+                                            helper.getVmNetworkInfo(networkClient, { vm: oneVm }, function(error, networkInfo) {
                                                 if(error) {
-                                                    options.soajs.log.error(`Unable to get network interface for ${oneVm.name} while listing`);
+                                                    options.soajs.log.error(`Unable to get network information for ${oneVm.name} while inspecting`);
                                                     options.soajs.log.error(error);
-
-                                                    //skip the rest (they depend on networkInterface info), build vm record with available data only
-                                                    return callback(null, helper.buildVMRecord({ vm: oneVm }));
+                                                }
+                                                else {
+                                                    vmRecordOptions.securityGroup = networkInfo.securityGroup;
+                                                    vmRecordOptions.publicIp = networkInfo.publicIp;
                                                 }
 
-                                                if(networkInterface && networkInterface.networkSecurityGroup && networkInterface.networkSecurityGroup.id) {
-                                                    networkSecurityGroupName = networkInterface.networkSecurityGroup.id.split('/').pop();
-                                                }
-
-                                                if(networkInterface && networkInterface.ipConfigurations && Array.isArray(networkInterface.ipConfigurations)) {
-                                                    for(let i = 0; i < networkInterface.ipConfigurations.length; i++) {
-                                                        if(networkInterface.ipConfigurations[i].primary && networkInterface.ipConfigurations[i].publicIPAddress) {
-                                                            ipName = networkInterface.ipConfigurations[i].publicIPAddress.id.split('/').pop();
-                                                            break;
-                                                        }
-                                                    }
-                                                }
-
-                                                networkClient.networkSecurityGroups.get(resourceGroupName, networkSecurityGroupName, function(error, securityGroup) {
-                                                    if(error) {
-                                                        options.soajs.log.error(`Unable to get network security group for ${oneVm.name} while listing`);
-                                                        options.soajs.log.error(error);
-
-                                                        //skip the rest, build vm record with available data only
-                                                        return callback(null, helper.buildVMRecord({ vm: oneVm }));
-                                                    }
-
-                                                    networkClient.publicIPAddresses.get(resourceGroupName, ipName, function(error, publicIp) {
-                                                        if(error) {
-                                                            options.soajs.log.error(`Unable to get public ip address for ${oneVm.name} while listing`);
-                                                            options.soajs.log.error(error);
-
-                                                            //skip the rest, build vm record with available data only
-                                                            return callback(null, helper.buildVMRecord({ vm: oneVm, securityGroup }));
-                                                        }
-
-                                                        return callback(null, helper.buildVMRecord({ vm: oneVm, securityGroup, publicIp }));
-                                                    });
-                                                });
+                                                return cb(null, helper.buildVMRecord(vmRecordOptions));
                                             });
                                         }, cb);
                                     });
