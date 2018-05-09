@@ -1,7 +1,5 @@
 'use strict';
 
-const fs = require('fs');
-
 const azureApi = require('ms-rest-azure');
 
 const utils = require('../../lib/utils/utils.js');
@@ -10,21 +8,7 @@ const helper = require('./helper.js');
 const defaultDriver = 'vm';
 
 function runCorrespondingDriver(method, options, cb) {
-	let driverName = (options.infra && options.infra.stack && options.infra.stack.technology) ? options.infra.stack.technology : defaultDriver;
-	if(!driverName){
-		driverName = (options.params && options.params.technology) ? options.params.technology : driverName;
-	}
-	if(driverName === 'dockerlocal'){
-		driverName = 'docker';
-	}
-	fs.exists(__dirname + "/" + driverName + "/index.js", (exists) => {
-		if (!exists) {
-			return cb(new Error("Requested driver does not exist!"));
-		}
-		
-		let driver = require(__dirname + "/" + driverName + "/index.js");
-		driver[method](options, cb);
-	});
+	utils.runCorrespondingDriver(method, options, defaultDriver, cb);
 }
 
 const driver = {

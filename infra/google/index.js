@@ -1,6 +1,5 @@
 'use strict';
 
-const fs = require('fs');
 const google = require('googleapis');
 const v1Compute = google.compute('v1');
 
@@ -9,23 +8,10 @@ const config = require('./config');
 
 const LBDriver = require("./cluster/lb.js");
 const ClusterDriver = require("./cluster/cluster.js");
+const utils = require('../../lib/utils/utils.js');
 
 function runCorrespondingDriver(method, options, cb) {
-	let driverName = (options.infra && options.infra.stack && options.infra.stack.technology) ? options.infra.stack.technology : defaultDriver;
-	if (!driverName){
-		driverName = (options.params && options.params.technology) ? options.params.technology : driverName;
-	}
-	if(driverName === 'dockerlocal'){
-		driverName = 'docker';
-	}
-	fs.exists(__dirname + "/" + driverName + "/index.js", (exists) => {
-		if (!exists) {
-			return cb(new Error("Requested Driver does not exist!"));
-		}
-		
-		let driver = require(__dirname + "/" + driverName + "/index.js");
-		driver[method](options, cb);
-	});
+	utils.runCorrespondingDriver(method, options, defaultDriver, cb);
 }
 
 function getConnector(opts) {
