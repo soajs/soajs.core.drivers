@@ -103,24 +103,24 @@ Object.assign(driver, dockerDriver);
  * @param options
  * @param cb
  */
-driver.deleteService = function(options, cb){
+driver.deleteService = function (options, cb) {
 	dockerDriver.inspectService(options, (error, deployedServiceDetails) => {
-		if(error){
+		if (error) {
 			return cb(error);
 		}
 		
-		if(!deployedServiceDetails){
+		if (!deployedServiceDetails) {
 			return cb(null, true);
 		}
 		
 		options.params.id = options.params.serviceId;
 		dockerDriver.deleteService(options, (error) => {
-			if(error){
+			if (error) {
 				return cb(error);
 			}
 			
 			let info = helper.getDeploymentFromInfra(options.infra, options.env);
-			if(!info){
+			if (!info) {
 				return cb(null, true);
 			}
 			
@@ -142,6 +142,39 @@ driver.deleteService = function(options, cb){
 				return cb(null, true);
 			}
 		});
+	});
+};
+
+driver.listServices = function (options, cb) {
+	dockerDriver.listServices(options, (error, services) => {
+		if (error) {
+			return cb(error);
+		}
+		
+		let deployment = options.infra.stack;
+		let env = options.env.toUpperCase();
+		
+		services.forEach(function (oneService) {
+			if (oneService.env) {
+				if(deployment && oneService.labels && oneService.labels['soajs.service.type'] === 'server' && oneService.labels['soajs.service.subtype'] === 'nginx'){
+					if (deployment.loadBalancers && deployment.loadBalancers[env] && deployment.loadBalancers[env][oneService.labels['soajs.service.name']]) {
+						oneService.ip = deployment.loadBalancers[env][oneService.labels['soajs.service.name']].DNSName;
+						//fix the ports
+						if(oneService.ports && oneService.servicePortType === 'loadBalancer'){
+							oneService.ports.forEach((onePort) => {
+								deployment.loadBalancers[env][oneService.labels['soajs.service.name']].ports.forEach((lbPorts) => {
+									if(lbPorts.published === onePort.published){
+										onePort.published = lbPorts.target
+									}
+								});
+							});
+						}
+					}
+				}
+			}
+		});
+		
+		return cb(null, services);
 	});
 };
 

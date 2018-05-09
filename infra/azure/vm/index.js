@@ -371,7 +371,7 @@ const driver = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	listVMs: function (options, cb) {
+	listServices: function (options, cb) {
 		options.soajs.log.debug(`Listing all virtual machines in ${options.env} and all custom vms`);
 		driver.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
