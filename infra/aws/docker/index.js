@@ -104,7 +104,6 @@ Object.assign(driver, dockerDriver);
  * @param cb
  */
 driver.deleteService = function(options, cb){
-	console.log(options.params);
 	dockerDriver.inspectService(options, (error, deployedServiceDetails) => {
 		if(error){
 			return cb(error);
@@ -115,7 +114,6 @@ driver.deleteService = function(options, cb){
 		}
 		
 		options.params.id = options.params.serviceId;
-		console.log(options.params);
 		dockerDriver.deleteService(options, (error) => {
 			if(error){
 				return cb(error);
@@ -128,7 +126,6 @@ driver.deleteService = function(options, cb){
 			
 			//if there is a load balancer for this service make a call to drivers to delete it
 			let infraStack = info[0];
-			console.log(infraStack);
 			if (infraStack.loadBalancers && infraStack.loadBalancers[options.env.toUpperCase()]
 				&& infraStack.loadBalancers[options.env.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']]
 				&& infraStack.loadBalancers[options.env.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']].name) {
