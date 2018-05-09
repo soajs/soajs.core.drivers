@@ -5,6 +5,9 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 const dockerDriver = require("../../../lib/container/docker/index.js");
 
+const LBDriver = require("../cluster/lb.js");
+const helper = require("./helper.js");
+
 let driver = {
 	
 	/**
@@ -94,5 +97,55 @@ let driver = {
 };
 
 Object.assign(driver, dockerDriver);
+
+/**
+ * Override default dockerDriver.deleteService, add extra Logic to clean up load balancer if any
+ * @param options
+ * @param cb
+ */
+driver.deleteService = function(options, cb){
+	console.log(options.params);
+	dockerDriver.inspectService(options, (error, deployedServiceDetails) => {
+		if(error){
+			return cb(error);
+		}
+		
+		if(!deployedServiceDetails){
+			return cb(null, true);
+		}
+		
+		options.params.id = options.params.serviceId;
+		console.log(options.params);
+		dockerDriver.deleteService(options, (error) => {
+			if(error){
+				return cb(error);
+			}
+			
+			let info = helper.getDeploymentFromInfra(options.infra, options.env);
+			if(!info){
+				return cb(null, true);
+			}
+			
+			//if there is a load balancer for this service make a call to drivers to delete it
+			let infraStack = info[0];
+			console.log(infraStack);
+			if (infraStack.loadBalancers && infraStack.loadBalancers[options.env.toUpperCase()]
+				&& infraStack.loadBalancers[options.env.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']]
+				&& infraStack.loadBalancers[options.env.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']].name) {
+				options.params = {
+					envCode: options.env.toLowerCase(),
+					info: info,
+					name: deployedServiceDetails.service.labels['soajs.service.name'],
+					ElbName: infraStack.loadBalancers[options.env.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']].name
+				};
+				options.infra.stack = infraStack;
+				LBDriver.deployExternalLb(options, cb);
+			}
+			else {
+				return cb(null, true);
+			}
+		});
+	});
+};
 
 module.exports = driver;

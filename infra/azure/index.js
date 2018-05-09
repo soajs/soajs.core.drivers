@@ -101,58 +101,6 @@ const driver = {
 		return cb(null, true);
 	},
 	
-	"deployVM": function (options, cb) {
-		runCorrespondingDriver('deployVM', options, cb);
-	},
-	
-	"inspectVM": function (options, cb) {
-		runCorrespondingDriver('inspectVM', options, cb);
-	},
-	
-	"powerOffVM": function (options, cb) {
-		runCorrespondingDriver('powerOffVM', options, cb);
-	},
-	
-	"startVM": function (options, cb) {
-		runCorrespondingDriver('startVM', options, cb);
-	},
-	
-	"listVMs": function (options, cb) {
-		runCorrespondingDriver('listVMs', options, cb);
-	},
-	
-	"deleteVM": function (options, cb) {
-		runCorrespondingDriver('deleteVM', options, cb);
-	},
-	
-	"restartVM": function (options, cb) {
-		runCorrespondingDriver('restartVM', options, cb);
-	},
-	
-	"redeployVM": function (options, cb) {
-		runCorrespondingDriver('redeployVM', options, cb);
-	},
-	
-	"deleteResourceGroup": function (options, cb) {
-		runCorrespondingDriver('deleteResourceGroup', options, cb);
-	},
-	
-	"listVmSizes": function (options, cb) {
-		runCorrespondingDriver('listVmSizes', options, cb);
-	},
-	
-	"listVmImagePublishers": function (options, cb) {
-		runCorrespondingDriver('listVmImagePublishers', options, cb);
-	},
-	
-	"listVmImagePublisherOffers": function (options, cb) {
-		runCorrespondingDriver('listVmImagePublisherOffers', options, cb);
-	},
-	
-	"listVmImageVersions": function (options, cb) {
-		runCorrespondingDriver('listVmImageVersions', options, cb);
-	},
-	
 	"executeDriver": function(method, options, cb){
 		runCorrespondingDriver(method, options, cb);
 	}

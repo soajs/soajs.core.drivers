@@ -6,16 +6,18 @@ const errorFile = require('./lib/utils/errors.js');
 const utils = require('./lib/utils/utils.js');
 let cache = {};
 
-function checkIfSupported(options, cb, fcb) {
+function checkIfSupported(options, cb) {
     let isSupported = ((options.strategy[options.function] && typeof (options.strategy[options.function]) === 'function') ? true : false);
-
-    if (isSupported) return fcb();
-    else return cb({
-        "source": "driver",
-        "error": "error",
-        "code": 519,
-        "msg": errorFile[519]
-    });
+    if (!isSupported) {
+	    return cb({
+		    "source": "driver",
+		    "error": "error",
+		    "code": 519,
+		    "msg": errorFile[519]
+	    });
+    }
+	
+	return cb(null, true);
 }
 
 function getStrategy(options, cb) {
@@ -39,6 +41,7 @@ function getStrategy(options, cb) {
 	}
 
 	onePath.push("index.js");
+	
     checkCache((strategy) => {
         if (strategy) return cb(null, strategy);
         
@@ -129,12 +132,12 @@ module.exports = {
 	"execute": function(driverOptions, method, methodOptions, cb){
 		getStrategy(driverOptions, (error, strategy) => {
 			utils.checkError(error, 518, cb, () => {
-				checkIfSupported({strategy: strategy, function: method }, cb, () => {
-					if(strategy[method]){
-						strategy[method](methodOptions, cb);
-					}
-					else if(strategy.executeDriver){
+				checkIfSupported({strategy: strategy, function: method }, (error) => {
+					if(error && error.code === 519){
 						strategy.executeDriver(method, methodOptions, cb);
+					}
+					else if(strategy && strategy[method]){
+						strategy[method](methodOptions, cb);
 					}
 					else{
 						return cb({
