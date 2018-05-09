@@ -10,12 +10,12 @@ function runCorrespondingDriver(method, options, cb) {
 		driverName = 'docker';
 	}
 	
-	fs.exists(__dirname + "/" + driverName + ".js", (exists) => {
+	fs.exists(__dirname + "/" + driverName + "/index.js", (exists) => {
 		if (!exists) {
 			return cb(new Error("Requested Driver does not exist!"));
 		}
 		
-		let driver = require("./" + driverName);
+		let driver = require("./" + driverName + "/index.js");
 		driver[method](options, cb);
 	});
 }
@@ -75,6 +75,10 @@ const driver = {
 	
 	"deleteExternalLB": function (options, cb) {
 		runCorrespondingDriver('deleteExternalLB', options, cb);
+	},
+	
+	"executeDriver": function(method, options, cb){
+		runCorrespondingDriver(method, options, cb);
 	}
 };
 

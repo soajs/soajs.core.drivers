@@ -7,15 +7,18 @@ const v1Compute = google.compute('v1');
 const defaultDriver = 'kubernetes';
 const config = require('./config');
 
+const LBDriver = require("./cluster/lb.js");
+const ClusterDriver = require("./cluster/cluster.js");
+
 function runCorrespondingDriver(method, options, cb) {
 	let driverName = (options.infra && options.infra.stack && options.infra.stack.technology) ? options.infra.stack.technology : defaultDriver;
 	driverName = (options.params && options.params.technology) ? options.params.technology : driverName;
-	fs.exists(__dirname + "/" + driverName + ".js", (exists) => {
+	fs.exists(__dirname + "/" + driverName + "/index.js", (exists) => {
 		if (!exists) {
 			return cb(new Error("Requested Driver does not exist!"));
 		}
 		
-		let driver = require("./" + driverName);
+		let driver = require(__dirname + "/" + driverName + "/index.js");
 		driver[method](options, cb);
 	});
 }
@@ -58,15 +61,15 @@ const driver = {
 	},
 	
 	"deployCluster": function (options, cb) {
-		runCorrespondingDriver('deployCluster', options, cb);
+		ClusterDriver.deployCluster(options, cb);
 	},
 	
 	"getDeployClusterStatus": function (options, cb) {
-		runCorrespondingDriver('getDeployClusterStatus', options, cb);
+		ClusterDriver.getDeployClusterStatus(options, cb);
 	},
 	
 	"getDNSInfo": function (options, cb) {
-		runCorrespondingDriver('getDNSInfo', options, cb);
+		ClusterDriver.getDNSInfo(options, cb);
 	},
 	
 	/**
@@ -98,35 +101,39 @@ const driver = {
 	},
 	
 	"scaleCluster": function (options, cb) {
-		runCorrespondingDriver('scaleCluster', options, cb);
+		ClusterDriver.scaleCluster(options, cb);
 	},
 	
 	"getCluster": function (options, cb) {
-		runCorrespondingDriver('getCluster', options, cb);
+		ClusterDriver.getCluster(options, cb);
 	},
 	
 	"updateCluster": function (options, cb) {
-		runCorrespondingDriver('updateCluster', options, cb);
+		ClusterDriver.updateCluster(options, cb);
 	},
 	
 	"deleteCluster": function (options, cb) {
-		runCorrespondingDriver('deleteCluster', options, cb);
+		ClusterDriver.deleteCluster(options, cb);
 	},
 	
 	"publishPorts": function (options, cb) {
-		runCorrespondingDriver('publishPorts', options, cb);
+		LBDriver.publishPorts(options, cb);
 	},
 	
 	"deployExternalLb": function (options, cb) {
-		runCorrespondingDriver('deployExternalLb', options, cb);
+		LBDriver.deployExternalLb(options, cb);
 	},
 	
 	"updateExternalLB": function (options, cb) {
-		runCorrespondingDriver('updateExternalLB', options, cb);
+		LBDriver.updateExternalLB(options, cb);
 	},
 	
 	"deleteExternalLB": function (options, cb) {
-		runCorrespondingDriver('deleteExternalLB', options, cb);
+		LBDriver.deleteExternalLB(options, cb);
+	},
+	
+	"executeDriver": function(method, options, cb){
+		runCorrespondingDriver(method, options, cb);
 	}
 };
 

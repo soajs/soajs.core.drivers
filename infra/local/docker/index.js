@@ -1,68 +1,53 @@
 'use strict';
-const async = require("async");
+
 const randomString = require("randomstring");
-const K8Api = require('kubernetes-client');
+const dockerode = require('dockerode');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
-const driver = {
+const dockerDriver = require("../../../lib/container/docker/index.js");
+
+let driver = {
 	/**
 	 * @param options
 	 * @param cb
 	 * @returns {*}
 	 */
 	"authenticate": function(options, cb){
+		const deployer = new dockerode({
+			protocol: "https",
+			port: 443,
+			host: options.infra.api.ipaddress,
+			headers: {
+				'token': options.infra.api.token
+			}
+		});
 		
-		let deployerConfig = {
-			url: `https://${options.infra.api.ipaddress}:${options.infra.api.port}`,
-			auth: {
-				bearer: options.infra.api.token
-			},
-			request: {strictSSL: false},
-			version : 'v1'
-		};
-		let deployer = new K8Api.Core(deployerConfig);
-		
-		let namespace = {
-			kind: 'Namespace',
-			apiVersion: 'v1',
-			metadata: {
-				name: "soajs",
-				labels: {'soajs.content': 'true'}
+		let networkParams = {
+			Name: 'soajsnet',
+			Driver: 'overlay',
+			Internal: false,
+			Attachable: true,
+			CheckDuplicate: true,
+			EnableIPv6: false,
+			IPAM: {
+				Driver: 'default'
 			}
 		};
-		deployer.namespaces.get({}, function (error, namespacesList) {
-			if (error) {
-				return cb(error);
+		
+		deployer.createNetwork(networkParams, (err) => {
+			if (err && err.statusCode !== 409) {
+				return cb(err);
 			}
 			
-			async.detect(namespacesList.items, function (oneNamespace, mCb) {
-				return mCb(null, oneNamespace.metadata.name === namespace.metadata.name);
-			}, function (error, foundNamespace) {
-				if (foundNamespace) {
-					options.infra.api.namespace = {
-						'default': namespace.metadata.name,
-						'perService': false
-					};
-					return cb(null, true);
-				}
-				
-				deployer.namespace.post({body: namespace}, (error, response) => {
-					if (error) {
-						return cb(error);
-					}
-					
-					options.infra.api.namespace = {
-						'default': namespace.metadata.name,
-						'perService': false
-					};
-					return cb(null, true);
-				});
-			});
+			options.infra.api.network = 'soajsnet';
+			options.infra.api.port = 443;
+			options.infra.api.protocol = 'https';
+			return cb(null, true);
 		});
 	},
 	
 	"getExtras": function(options, cb) {
-		return cb(null, {technologies: ['kubernetes'], templates: null });
+		return cb(null, {technologies: ['docker'], templates: null });
 	},
 	
 	/**
@@ -81,12 +66,12 @@ const driver = {
 	 */
 	"deployCluster": function (options, cb) {
 		
-		options.soajs.registry.deployer.container.kubernetes.remote.apiProtocol = options.infra.api.protocol;
-		options.soajs.registry.deployer.container.kubernetes.remote.apiPort = options.infra.api.port;
-		options.soajs.registry.deployer.container.kubernetes.remote.auth.token = options.infra.api.token;
+		options.soajs.registry.deployer.container.docker.remote.apiProtocol = options.infra.api.protocol;
+		options.soajs.registry.deployer.container.docker.remote.apiPort = options.infra.api.port;
+		options.soajs.registry.deployer.container.docker.remote.auth.token = options.infra.api.token;
 		
 		let oneDeployment = {
-			technology: "kubernetes",
+			technology: "docker",
 			options: {},
 			environments:[],
 			loadBalancers: {}
@@ -111,7 +96,7 @@ const driver = {
 	 * @returns {*}
 	 */
 	"getDeployClusterStatus": function (options, cb) {
-		options.soajs.registry.deployer.container.kubernetes.remote.nodes = options.infra.api.ipaddress;
+		options.soajs.registry.deployer.container.docker.remote.nodes = options.infra.api.ipaddress;
 		return cb(null, options.infra.api.ipaddress);
 	},
 	
@@ -167,7 +152,7 @@ const driver = {
 		 */
 		let machinesList = [];
 		machinesList.push({
-			"name": 'kubemachine',
+			"name": 'dockermachine',
 			"ip": options.infra.api.ipaddress
 		});
 		
@@ -229,5 +214,7 @@ const driver = {
 		return cb(null, true);
 	}
 };
+
+Object.assign(driver, dockerDriver);
 
 module.exports = driver;

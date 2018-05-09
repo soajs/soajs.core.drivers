@@ -20,26 +20,28 @@ function checkIfSupported(options, cb, fcb) {
 
 function getStrategy(options, cb) {
 	let strategyName = options.type.toLowerCase();
-
 	if(!strategyName){
 		return cb(new Error(`No driver type specified!`));
 	}
-
+	
+	let onePath = [];
+	onePath.push(__dirname);
+	onePath.push(options.type);
+	
+	//added fallback support
+	if(!options.driver && options.name){
+		options.driver = options.name;
+	}
+	
 	if(options.driver){
 		strategyName += "_" + options.driver.toLowerCase();
+		onePath.push(options.driver);
 	}
 
-	if(options.technology){
-		strategyName += "_" + options.technology.toLowerCase();
-	}
-
+	onePath.push("index.js");
     checkCache((strategy) => {
         if (strategy) return cb(null, strategy);
-
-	    let onePath = [];
-	    onePath.push(__dirname);
-	    for(let i in options){ onePath.push(options[i]); }
-	    onePath.push("index.js");
+        
         let pathToUse = '';
 
         try {
@@ -128,7 +130,20 @@ module.exports = {
 		getStrategy(driverOptions, (error, strategy) => {
 			utils.checkError(error, 518, cb, () => {
 				checkIfSupported({strategy: strategy, function: method }, cb, () => {
-					strategy[method](methodOptions, cb);
+					if(strategy[method]){
+						strategy[method](methodOptions, cb);
+					}
+					else if(strategy.executeDriver){
+						strategy.executeDriver(method, methodOptions, cb);
+					}
+					else{
+						return cb({
+							"source": "driver",
+							"error": "error",
+							"code": 500,
+							"msg": errorFile[500]
+						})
+					}
 				});
 			});
 		});
