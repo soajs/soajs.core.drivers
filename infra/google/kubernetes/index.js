@@ -747,4 +747,32 @@ let driver = {
 
 Object.assign(driver, kubeDriver);
 
+driver.listNodes = function (options, cb) {
+	async.auto({
+		"getCluster": (mCb) => {
+			if(!options.params){
+				options.params = {};
+			}
+			options.params.env = options.env;
+			driver.getCluster(options, mCb);
+		},
+		"listNodes": (mCb) => {
+			kubeDriver.listNodes(options, mCb);
+		},
+	}, (error, results) => {
+		if (error) {
+			return cb(error);
+		}
+		
+		results.getCluster.machines.forEach((oneMachine) => {
+			results.listNodes.forEach((oneNode) => {
+				if (oneMachine.name === oneNode.hostname) {
+					oneNode.ip = oneMachine.ip;
+				}
+			});
+		});
+		return cb(null, results.listNodes);
+	});
+};
+
 module.exports = driver;

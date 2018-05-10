@@ -1,10 +1,12 @@
 "use strict";
+const async = require('async');
 const crypto = require('crypto');
 const Docker = require('dockerode');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 const dockerDriver = require("../../../lib/container/docker/index.js");
 
+const ClusterDriver = require("../cluster/cluster.js");
 const LBDriver = require("../cluster/lb.js");
 const helper = require("./helper.js");
 
@@ -145,6 +147,34 @@ driver.deleteService = function (options, cb) {
 	});
 };
 
+driver.listNodes = function (options, cb) {
+	async.auto({
+		"getCluster": (mCb) => {
+			if(!options.params){
+				options.params = {};
+			}
+			options.params.env = options.env;
+			ClusterDriver.getCluster(options, mCb);
+		},
+		"listNodes": (mCb) => {
+			dockerDriver.listNodes(options, mCb);
+		},
+	}, (error, results) => {
+		if (error) {
+			return cb(error);
+		}
+		
+		results.getCluster.machines.forEach((oneMachine) => {
+			results.listNodes.forEach((oneNode) => {
+				if (oneMachine.name === oneNode.hostname) {
+					oneNode.ip = oneMachine.ip;
+				}
+			});
+		});
+		return cb(null, results.listNodes);
+	});
+};
+
 driver.listServices = function (options, cb) {
 	dockerDriver.listServices(options, (error, services) => {
 		if (error) {
@@ -156,14 +186,14 @@ driver.listServices = function (options, cb) {
 		
 		services.forEach(function (oneService) {
 			if (oneService.env) {
-				if(deployment && oneService.labels && oneService.labels['soajs.service.type'] === 'server' && oneService.labels['soajs.service.subtype'] === 'nginx'){
+				if (deployment && oneService.labels && oneService.labels['soajs.service.type'] === 'server' && oneService.labels['soajs.service.subtype'] === 'nginx') {
 					if (deployment.loadBalancers && deployment.loadBalancers[env] && deployment.loadBalancers[env][oneService.labels['soajs.service.name']]) {
 						oneService.ip = deployment.loadBalancers[env][oneService.labels['soajs.service.name']].DNSName;
 						//fix the ports
-						if(oneService.ports && oneService.servicePortType === 'loadBalancer'){
+						if (oneService.ports && oneService.servicePortType === 'loadBalancer') {
 							oneService.ports.forEach((onePort) => {
 								deployment.loadBalancers[env][oneService.labels['soajs.service.name']].ports.forEach((lbPorts) => {
-									if(lbPorts.published === onePort.published){
+									if (lbPorts.published === onePort.published) {
 										onePort.published = lbPorts.target
 									}
 								});
