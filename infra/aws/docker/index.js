@@ -115,7 +115,7 @@ driver.deleteService = function (options, cb) {
 			return cb(null, true);
 		}
 		
-		options.params.id = options.params.serviceId;
+		options.params.id = options.params.id;
 		dockerDriver.deleteService(options, (error) => {
 			if (error) {
 				return cb(error);
@@ -185,20 +185,18 @@ driver.listServices = function (options, cb) {
 		let env = options.env.toUpperCase();
 		
 		services.forEach(function (oneService) {
-			if (oneService.env) {
-				if (deployment && oneService.labels && oneService.labels['soajs.service.type'] === 'server' && oneService.labels['soajs.service.subtype'] === 'nginx') {
-					if (deployment.loadBalancers && deployment.loadBalancers[env] && deployment.loadBalancers[env][oneService.labels['soajs.service.name']]) {
-						oneService.ip = deployment.loadBalancers[env][oneService.labels['soajs.service.name']].DNSName;
-						//fix the ports
-						if (oneService.ports && oneService.servicePortType === 'loadBalancer') {
-							oneService.ports.forEach((onePort) => {
-								deployment.loadBalancers[env][oneService.labels['soajs.service.name']].ports.forEach((lbPorts) => {
-									if (lbPorts.published === onePort.published) {
-										onePort.published = lbPorts.target
-									}
-								});
+			if (deployment && oneService.labels && oneService.labels['soajs.service.type'] === 'server' && oneService.labels['soajs.service.subtype'] === 'nginx') {
+				if (deployment.loadBalancers && deployment.loadBalancers[env] && deployment.loadBalancers[env][oneService.labels['soajs.service.name']]) {
+					oneService.ip = deployment.loadBalancers[env][oneService.labels['soajs.service.name']].DNSName;
+					//fix the ports
+					if (oneService.ports && oneService.servicePortType === 'loadBalancer') {
+						oneService.ports.forEach((onePort) => {
+							deployment.loadBalancers[env][oneService.labels['soajs.service.name']].ports.forEach((lbPorts) => {
+								if (lbPorts.published === onePort.published) {
+									onePort.published = lbPorts.target
+								}
 							});
-						}
+						});
 					}
 				}
 			}
