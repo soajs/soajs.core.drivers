@@ -115,7 +115,6 @@ driver.deleteService = function (options, cb) {
 			return cb(null, true);
 		}
 		
-		options.params.id = options.params.id;
 		dockerDriver.deleteService(options, (error) => {
 			if (error) {
 				return cb(error);
@@ -138,7 +137,7 @@ driver.deleteService = function (options, cb) {
 					ElbName: infraStack.loadBalancers[options.env.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']].name
 				};
 				options.infra.stack = infraStack;
-				LBDriver.deployExternalLb(options, cb);
+				LBDriver.deleteExternalLB(options, cb);
 			}
 			else {
 				return cb(null, true);
