@@ -55,7 +55,7 @@ const driver = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	deployVM: function (options, cb) {
+	deployService: function (options, cb) {
 		driver.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const computeClient = driver.getConnector({
@@ -315,56 +315,6 @@ const driver = {
 	},
 	
 	/**
-	 * Turn off a virtual machine
-	 
-	 * @param  {Object}   options  Data passed to function as params
-	 * @param  {Function} cb    Callback function
-	 * @return {void}
-	 */
-	powerOffVM: function (options, cb) {
-		options.soajs.log.debug(`Powering Off virtual machine ${options.params.vmName} in resource group ${options.env}`);
-		driver.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const computeClient = driver.getConnector({
-					api: 'compute',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				computeClient.virtualMachines.powerOff(options.env, options.params.vmName, function (error, result) {
-					utils.checkError(error, 702, cb, () => {
-						return cb(null, result);
-					});
-				});
-			});
-		});
-	},
-	
-	/**
-	 * Start a virtual machine
-	 
-	 * @param  {Object}   options  Data passed to function as params
-	 * @param  {Function} cb    Callback function
-	 * @return {void}
-	 */
-	startVM: function (options, cb) {
-		options.soajs.log.debug(`Starting virtual machine ${options.params.vmName} in resource group ${options.env}`);
-		driver.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const computeClient = driver.getConnector({
-					api: 'compute',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				computeClient.virtualMachines.start(options.env, options.params.vmName, function (error, result) {
-					utils.checkError(error, 703, cb, () => {
-						return cb(null, result);
-					});
-				});
-			});
-		});
-	},
-	
-	/**
 	 * List available virtual machines by subscription
 	 
 	 * @param  {Object}   options  Data passed to function as params
@@ -473,7 +423,7 @@ const driver = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	restartVM: function (options, cb) {
+	restartService: function (options, cb) {
 		options.soajs.log.debug(`Restarting virtual machine ${options.params.vmName} in resource group ${options.env}`);
 		driver.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
@@ -498,7 +448,7 @@ const driver = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	redeployVM: function (options, cb) {
+	redeployService: function (options, cb) {
 		options.soajs.log.debug(`Redeploying virtual machine ${options.params.vmName} in resource group ${options.env}`);
 		driver.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
@@ -509,6 +459,56 @@ const driver = {
 				});
 				computeClient.virtualMachines.redeploy(options.env, options.params.vmName, function (error, result) {
 					utils.checkError(error, 706, cb, () => {
+						return cb(null, result);
+					});
+				});
+			});
+		});
+	},
+	
+	/**
+	 * Turn off a virtual machine
+	 
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	powerOffVM: function (options, cb) {
+		options.soajs.log.debug(`Powering Off virtual machine ${options.params.vmName} in resource group ${options.env}`);
+		driver.authenticate(options, (error, authData) => {
+			utils.checkError(error, 700, cb, () => {
+				const computeClient = driver.getConnector({
+					api: 'compute',
+					credentials: authData.credentials,
+					subscriptionId: options.infra.api.subscriptionId
+				});
+				computeClient.virtualMachines.powerOff(options.env, options.params.vmName, function (error, result) {
+					utils.checkError(error, 702, cb, () => {
+						return cb(null, result);
+					});
+				});
+			});
+		});
+	},
+	
+	/**
+	 * Start a virtual machine
+	 
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	startVM: function (options, cb) {
+		options.soajs.log.debug(`Starting virtual machine ${options.params.vmName} in resource group ${options.env}`);
+		driver.authenticate(options, (error, authData) => {
+			utils.checkError(error, 700, cb, () => {
+				const computeClient = driver.getConnector({
+					api: 'compute',
+					credentials: authData.credentials,
+					subscriptionId: options.infra.api.subscriptionId
+				});
+				computeClient.virtualMachines.start(options.env, options.params.vmName, function (error, result) {
+					utils.checkError(error, 703, cb, () => {
 						return cb(null, result);
 					});
 				});
