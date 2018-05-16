@@ -10,6 +10,8 @@ const ClusterDriver = require("../cluster/cluster.js");
 const LBDriver = require("../cluster/lb.js");
 const helper = require("./helper.js");
 
+const infraUtils = require("../../utils");
+
 let driver = {
 	
 	/**
@@ -202,6 +204,36 @@ driver.listServices = function (options, cb) {
 		});
 		
 		return cb(null, services);
+	});
+};
+
+driver.deployService = function (options, cb){
+	dockerDriver.deployService(options, (error, response) => {
+		if(error){ return cb(error); }
+		
+		//update env settings
+		//check exposed external ports
+		dockerDriver.inspectService(options, (error, deployedServiceDetails) => {
+			if(error){ return cb(error); }
+			infraUtils.updateEnvSettings(driver, LBDriver, options, deployedServiceDetails, (error) => {
+				return cb(error, response);
+			});
+		});
+	});
+};
+
+driver.redeployService = function (options, cb){
+	dockerDriver.redeployService(options, (error, response) => {
+		if(error){ return cb(error); }
+		
+		//update env settings
+		//check exposed external ports
+		dockerDriver.inspectService(options, (error, deployedServiceDetails) => {
+			if(error){ return cb(error); }
+			infraUtils.updateEnvSettings(driver, LBDriver, options, deployedServiceDetails, (error) => {
+				return cb(error, response);
+			});
+		});
 	});
 };
 

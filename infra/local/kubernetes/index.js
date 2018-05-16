@@ -6,6 +6,8 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 const kubeDriver = require("../../../lib/container/kubernetes/index.js");
 
+const infraUtils = require("../../utils");
+
 let driver = {
 	/**
 	 * @param options
@@ -233,5 +235,35 @@ let driver = {
 };
 
 Object.assign(driver, kubeDriver);
+
+driver.deployService = function (options, cb){
+	kubeDriver.deployService(options, (error, response) => {
+		if(error){ return cb(error); }
+		
+		//update env settings
+		//check exposed external ports
+		kubeDriver.inspectService(options, (error, deployedServiceDetails) => {
+			if(error){ return cb(error); }
+			infraUtils.updateEnvSettings(driver, driver, options, deployedServiceDetails, (error) => {
+				return cb(error, response);
+			});
+		});
+	});
+};
+
+driver.redeployService = function (options, cb){
+	kubeDriver.redeployService(options, (error, response) => {
+		if(error){ return cb(error); }
+		
+		//update env settings
+		//check exposed external ports
+		kubeDriver.inspectService(options, (error, deployedServiceDetails) => {
+			if(error){ return cb(error); }
+			infraUtils.updateEnvSettings(driver, driver, options, deployedServiceDetails, (error) => {
+				return cb(error, response);
+			});
+		});
+	});
+};
 
 module.exports = driver;

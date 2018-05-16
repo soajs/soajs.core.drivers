@@ -25,6 +25,9 @@ function getConnector(opts) {
 }
 
 const kubeDriver = require("../../../lib/container/kubernetes/index.js");
+const LBDriver = require("../cluster/lb.js");
+
+const infraUtils = require("../../utils");
 
 let driver = {
 	/**
@@ -772,6 +775,36 @@ driver.listNodes = function (options, cb) {
 			});
 		});
 		return cb(null, results.listNodes);
+	});
+};
+
+driver.deployService = function (options, cb){
+	kubeDriver.deployService(options, (error, response) => {
+		if(error){ return cb(error); }
+		
+		//update env settings
+		//check exposed external ports
+		kubeDriver.inspectService(options, (error, deployedServiceDetails) => {
+			if(error){ return cb(error); }
+			infraUtils.updateEnvSettings(driver, LBDriver, options, deployedServiceDetails, (error) => {
+				return cb(error, response);
+			});
+		});
+	});
+};
+
+driver.redeployService = function (options, cb){
+	kubeDriver.redeployService(options, (error, response) => {
+		if(error){ return cb(error); }
+		
+		//update env settings
+		//check exposed external ports
+		kubeDriver.inspectService(options, (error, deployedServiceDetails) => {
+			if(error){ return cb(error); }
+			infraUtils.updateEnvSettings(driver, LBDriver, options, deployedServiceDetails, (error) => {
+				return cb(error, response);
+			});
+		});
 	});
 };
 

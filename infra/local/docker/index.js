@@ -6,6 +6,8 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 const dockerDriver = require("../../../lib/container/docker/index.js");
 
+const infraUtils = require("../../utils");
+
 let driver = {
 	/**
 	 * @param options
@@ -216,5 +218,35 @@ let driver = {
 };
 
 Object.assign(driver, dockerDriver);
+
+driver.deployService = function (options, cb){
+	dockerDriver.deployService(options, (error, response) => {
+		if(error){ return cb(error); }
+		
+		//update env settings
+		//check exposed external ports
+		dockerDriver.inspectService(options, (error, deployedServiceDetails) => {
+			if(error){ return cb(error); }
+			infraUtils.updateEnvSettings(driver, driver, options, deployedServiceDetails, (error) => {
+				return cb(error, response);
+			});
+		});
+	});
+};
+
+driver.redeployService = function (options, cb){
+	dockerDriver.redeployService(options, (error, response) => {
+		if(error){ return cb(error); }
+		
+		//update env settings
+		//check exposed external ports
+		dockerDriver.inspectService(options, (error, deployedServiceDetails) => {
+			if(error){ return cb(error); }
+			infraUtils.updateEnvSettings(driver, driver, options, deployedServiceDetails, (error) => {
+				return cb(error, response);
+			});
+		});
+	});
+};
 
 module.exports = driver;
