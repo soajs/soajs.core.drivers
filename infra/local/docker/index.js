@@ -227,12 +227,16 @@ driver.deployService = function (options, cb){
 		//check exposed external ports
 		//need to wait 1500 ms before inspecting
 		options.params.id = options.params.data.id;
-		dockerDriver.inspectService(options, (error, deployedServiceDetails) => {
-			if(error){ return cb(error); }
-			infraUtils.updateEnvSettings(driver, driver, options, deployedServiceDetails, (error) => {
-				return cb(error, response);
+		setTimeout(() => {
+			dockerDriver.inspectService(options, (error, deployedServiceDetails) => {
+				if (error) {
+					return cb(error);
+				}
+				infraUtils.updateEnvSettings(driver, driver, options, deployedServiceDetails, (error) => {
+					return cb(error, response);
+				});
 			});
-		});
+		}, 1500);
 	});
 };
 

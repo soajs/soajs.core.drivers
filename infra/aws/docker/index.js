@@ -213,12 +213,16 @@ driver.deployService = function (options, cb){
 		
 		//update env settings
 		//check exposed external ports
-		dockerDriver.inspectService(options, (error, deployedServiceDetails) => {
-			if(error){ return cb(error); }
-			infraUtils.updateEnvSettings(driver, LBDriver, options, deployedServiceDetails, (error) => {
-				return cb(error, response);
+		setTimeout(() => {
+			dockerDriver.inspectService(options, (error, deployedServiceDetails) => {
+				if (error) {
+					return cb(error);
+				}
+				infraUtils.updateEnvSettings(driver, LBDriver, options, deployedServiceDetails, (error) => {
+					return cb(error, response);
+				});
 			});
-		});
+		}, 1500);
 	});
 };
 

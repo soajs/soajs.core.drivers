@@ -242,12 +242,14 @@ driver.deployService = function (options, cb){
 		
 		//update env settings
 		//check exposed external ports
-		kubeDriver.inspectService(options, (error, deployedServiceDetails) => {
-			if(error){ return cb(error); }
-			infraUtils.updateEnvSettings(driver, driver, options, deployedServiceDetails, (error) => {
-				return cb(error, response);
+		setTimeout(() => {
+			kubeDriver.inspectService(options, (error, deployedServiceDetails) => {
+				if(error){ return cb(error); }
+				infraUtils.updateEnvSettings(driver, driver, options, deployedServiceDetails, (error) => {
+					return cb(error, response);
+				});
 			});
-		});
+		}, 1500);
 	});
 };
 
