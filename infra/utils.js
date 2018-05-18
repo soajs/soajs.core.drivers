@@ -22,7 +22,9 @@ const utils = {
 			if (publishedPort) {
 				computeProtocolAndPortsFromService();
 			}
-			return cb();
+			else{
+				return cb();
+			}
 		}
 		else {
 			//if no ports are set in the recipe, do not perform check
@@ -40,13 +42,15 @@ const utils = {
 			if (publishedPort) {
 				utils.checkWithInfra(cluster, options, deployedServiceDetails, cb)
 			}
-			return cb();
+			else{
+				return cb();
+			}
 		}
 		
 		function computeProtocolAndPortsFromService() {
 			driver.inspectService(options, (error, deployedServiceDetails) => {
 				if (error) {
-					options.soajs.log.error(error);
+					return cb(error);
 				}
 				else {
 					let publishedPort = false;
