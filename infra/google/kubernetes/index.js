@@ -785,12 +785,13 @@ driver.deployService = function (options, cb){
 		//update env settings
 		//check exposed external ports
 		setTimeout(() => {
+			options.params.id = response.id;
 			kubeDriver.inspectService(options, (error, deployedServiceDetails) => {
 				if (error) {
 					return cb(error);
 				}
 				infraUtils.updateEnvSettings(driver, LBDriver, options, deployedServiceDetails, (error) => {
-					return cb(error, response);
+					return cb(error, deployedServiceDetails);
 				});
 			});
 		}, 1500);
@@ -803,12 +804,17 @@ driver.redeployService = function (options, cb){
 		
 		//update env settings
 		//check exposed external ports
-		kubeDriver.inspectService(options, (error, deployedServiceDetails) => {
-			if(error){ return cb(error); }
-			infraUtils.updateEnvSettings(driver, LBDriver, options, deployedServiceDetails, (error) => {
-				return cb(error, response);
+		setTimeout(() => {
+			options.params.id = response.id;
+			kubeDriver.inspectService(options, (error, deployedServiceDetails) => {
+				if (error) {
+					return cb(error);
+				}
+				infraUtils.updateEnvSettings(driver, LBDriver, options, deployedServiceDetails, (error) => {
+					return cb(error, deployedServiceDetails);
+				});
 			});
-		});
+		}, 1500);
 	});
 };
 

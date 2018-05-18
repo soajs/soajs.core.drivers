@@ -226,14 +226,14 @@ driver.deployService = function (options, cb){
 		//update env settings
 		//check exposed external ports
 		//need to wait 1500 ms before inspecting
-		options.params.id = options.params.data.id;
 		setTimeout(() => {
+			options.params.id = response.id;
 			dockerDriver.inspectService(options, (error, deployedServiceDetails) => {
 				if (error) {
 					return cb(error);
 				}
 				infraUtils.updateEnvSettings(driver, driver, options, deployedServiceDetails, (error) => {
-					return cb(error, response);
+					return cb(error, deployedServiceDetails);
 				});
 			});
 		}, 1500);
@@ -246,12 +246,17 @@ driver.redeployService = function (options, cb){
 		
 		//update env settings
 		//check exposed external ports
-		dockerDriver.inspectService(options, (error, deployedServiceDetails) => {
-			if(error){ return cb(error); }
-			infraUtils.updateEnvSettings(driver, driver, options, deployedServiceDetails, (error) => {
-				return cb(error, response);
+		setTimeout(() => {
+			options.params.id = response.id;
+			dockerDriver.inspectService(options, (error, deployedServiceDetails) => {
+				if (error) {
+					return cb(error);
+				}
+				infraUtils.updateEnvSettings(driver, driver, options, deployedServiceDetails, (error) => {
+					return cb(error, deployedServiceDetails);
+				});
 			});
-		});
+		}, 1500);
 	});
 };
 
