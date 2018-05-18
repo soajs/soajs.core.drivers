@@ -113,7 +113,16 @@ const AWSS3 = {
 					ContentType: options.params.contenttype,
 					Tagging: "description=" + options.params.description
 				};
-				
+
+				//parse tags to JSON
+				options.params.tags = JSON.parse(options.params.tags);
+				//check if there are tags and concatenate them to the parameter Tagging
+				if (options.params.tags && Object.keys(options.params.tags).length > 0) {
+					Object.keys(options.params.tags).forEach(oneTag => {
+						params.Tagging += `&${oneTag}=${options.params.tags[oneTag]}`;
+					});
+				}
+
 				s3.putObject(params, mCb);
 			}
 		}, (error) => {
