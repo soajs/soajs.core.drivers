@@ -810,6 +810,11 @@ driver.redeployService = function (options, cb){
 				if (error) {
 					return cb(error);
 				}
+				
+				if(options.params.action === 'redeploy'){
+					return cb(null, deployedServiceDetails);
+				}
+				
 				infraUtils.updateEnvSettings(driver, LBDriver, options, deployedServiceDetails, (error) => {
 					return cb(error, deployedServiceDetails);
 				});

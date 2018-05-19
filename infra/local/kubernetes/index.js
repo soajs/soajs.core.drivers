@@ -266,6 +266,11 @@ driver.redeployService = function (options, cb){
 				if (error) {
 					return cb(error);
 				}
+				
+				if(options.params.action === 'redeploy'){
+					return cb(null, deployedServiceDetails);
+				}
+				
 				infraUtils.updateEnvSettings(driver, driver, options, deployedServiceDetails, (error) => {
 					return cb(error, deployedServiceDetails);
 				});
