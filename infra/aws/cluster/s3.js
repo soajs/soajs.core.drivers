@@ -12,7 +12,7 @@ function getConnector(opts) {
 		},
 		region: opts.region || config.api.region
 	});
-	
+
 	return new AWS.S3({apiVersion: '2006-03-01'});
 }
 
@@ -20,26 +20,36 @@ const AWSS3 = {
 	"getFiles": function(options, cb) {
 		let aws = options.infra.api;
 		let s3 = getConnector({api: 's3', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey});
-		
+
 		s3.listObjectsV2({Bucket: 'soajs'}, (error, data) =>{
 			if(error){ return cb(error); }
-			
+
 			let files =[];
 			async.map(data.Contents, (oneFile, mCb) => {
 				s3.getObjectTagging({Bucket: 'soajs', Key: oneFile.Key}, (error, tags) => {
 					if(error){ return mCb(error); }
-					
+
 					let description = '';
+					let type = '';
+					let template = '';
 					tags.TagSet.forEach((oneTag) => {
 						if(oneTag.Key === 'description'){
 							description = oneTag.Value;
 						}
+						if(oneTag.Key === 'type'){
+							type = oneTag.Value;
+						}
+						if(oneTag.Key === 'template'){
+							template = oneTag.Value;
+						}
 					});
-					
+
 					files.push({
 						id: oneFile.Key,
 						name: oneFile.Key,
-						description: description
+						description: description,
+						type: type,
+						template: template
 					});
 					return mCb(null, true);
 				});
@@ -48,14 +58,14 @@ const AWSS3 = {
 			});
 		});
 	},
-	
+
 	'downloadFile': function(options, cb) {
 		let aws = options.infra.api;
 		let s3 = getConnector({api: 's3', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey});
-		
+
 		s3.getObject({Bucket: 'soajs', Key: options.params.id}, (error, data) => {
 			if(error) { return cb(error); }
-			
+
 			delete data.Body;
 			try{
 				let readStream = s3.getObject({Bucket: 'soajs', Key: options.params.id}).createReadStream();
@@ -65,9 +75,9 @@ const AWSS3 = {
 				return cb(e);
 			}
 		});
-		
+
 	},
-	
+
 	'deleteFile': function(options, cb) {
 		let aws = options.infra.api;
 		let s3 = getConnector({api: 's3', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey});
@@ -75,12 +85,12 @@ const AWSS3 = {
 			return cb(error, true);
 		});
 	},
-	
+
 	"uploadFile": function (options, cb) {
-		
+
 		let aws = options.infra.api;
 		let s3 = getConnector({api: 's3', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey});
-		
+
 		async.series({
 			'assertSoajsBucket': (mCb) => {
 				//list buckets
@@ -90,14 +100,14 @@ const AWSS3 = {
 					if (error) {
 						return mCb(error);
 					}
-					
+
 					let found = false;
 					buckets.Buckets.forEach((oneBucket) => {
 						if (oneBucket.Name === 'soajs') {
 							found = true;
 						}
 					});
-					
+
 					if (!found) {
 						s3.createBucket({ Bucket: "soajs" }, mCb);
 					}
@@ -114,8 +124,13 @@ const AWSS3 = {
 					Tagging: "description=" + options.params.description
 				};
 
-				//parse tags to JSON
-				options.params.tags = JSON.parse(options.params.tags);
+				try {
+					//parse incomming tags to JSON
+					options.params.tags = JSON.parse(options.params.tags);
+				}
+				catch (e) {
+					options.param.tags = {};
+				}
 				//check if there are tags and concatenate them to the parameter Tagging
 				if (options.params.tags && Object.keys(options.params.tags).length > 0) {
 					Object.keys(options.params.tags).forEach(oneTag => {
