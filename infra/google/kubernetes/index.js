@@ -1,6 +1,5 @@
 'use strict';
 const config = require('../config');
-
 const _ = require('lodash');
 const async = require("async");
 const K8Api = require('kubernetes-client');
@@ -9,6 +8,8 @@ const randomstring = require("randomstring");
 const google = require('googleapis');
 const v1Compute = google.compute('v1');
 const v1Container = google.container('v1');
+
+const traverse = require("traverse");
 
 function getConnector(opts) {
 	return {
@@ -277,53 +278,51 @@ let driver = {
 		function createTemplate(mCb) {
 			
 			//Ref: https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters#Cluster
-			let template = JSON.parse(JSON.stringify(options.params.template));
+			let template = JSON.parse(JSON.stringify(options.params.template.content));
 			if(!template){
 				return mCb(new Error("Invalid or Cluster Template detected to create the cluster from!"));
 			}
 			
 			template.cluster.name = name; //same name as network
-			template.cluster.description = "Kubernetes Worker Node: " + options.params.workerflavor;
 			template.cluster.zone = options.params.region;
 			// template.cluster.zoneLocation = data.options.region;
 			template.cluster.network = name;
 			template.cluster.subnetwork = name;
 			
-			// template.cluster.currentNodeCount= data.options.workernumber;
-			template.cluster.nodePools[0].initialNodeCount = options.params.workernumber;
-			template.cluster.nodePools[0].config.machineType = options.params.workerflavor;
-			
-			let request = getConnector(options.infra.api);
-			request.zone = options.params.region;
-			
-			options.soajs.log.debug("Retrieving cluster version to use from google");
-			getClusterVersion(request, function (err, version) {
-				if (err) {
-					options.soajs.log.debug("Deleting VPC network...");
-					deleteNetwork();
-					return mCb(err);
-				}
+			mapTemplateInputsWithValues(options.params.template.inputs, options.params, template.cluster, () => {
 				
-				template.cluster.initialClusterVersion = version;
-				delete request.project;
-				request.resource = template;
+				let request = getConnector(options.infra.api);
+				request.zone = options.params.region;
 				
-				//Ref: https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters/create
-				options.soajs.log.debug("Deploying new Cluster from Template:", name);
-				v1Container.projects.zones.clusters.create(request, function (err, operation) {
+				options.soajs.log.debug("Retrieving cluster version to use from google");
+				getClusterVersion(request, function (err, version) {
 					if (err) {
 						options.soajs.log.debug("Deleting VPC network...");
 						deleteNetwork();
 						return mCb(err);
 					}
-					else {
-						oneDeployment.id = name;
-						oneDeployment.name = name;
-						oneDeployment.options.nodePoolId = template.cluster.nodePools[0].name;
-						oneDeployment.options.zone = options.params.region;
-						oneDeployment.options.operationId = operation.name;
-						return mCb(null, true);
-					}
+					
+					template.cluster.initialClusterVersion = version;
+					delete request.project;
+					request.resource = template;
+					
+					//Ref: https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters/create
+					options.soajs.log.debug("Deploying new Cluster from Template:", name);
+					v1Container.projects.zones.clusters.create(request, function (err, operation) {
+						if (err) {
+							options.soajs.log.debug("Deleting VPC network...");
+							deleteNetwork();
+							return mCb(err);
+						}
+						else {
+							oneDeployment.id = name;
+							oneDeployment.name = name;
+							oneDeployment.options.nodePoolId = template.cluster.nodePools[0].name;
+							oneDeployment.options.zone = options.params.region;
+							oneDeployment.options.operationId = operation.name;
+							return mCb(null, true);
+						}
+					});
 				});
 			});
 		}
@@ -338,6 +337,33 @@ let driver = {
 			}
 			return cb(null, oneDeployment);
 		});
+		
+		function mapTemplateInputsWithValues(inputs, params, template, mapCb){
+			let templateInputs= {};
+			async.each(inputs, (oneInput, iCb) => {
+				if(oneInput.entries){
+					mapTemplateInputsWithValues(oneInput.entries, params, template, iCb);
+				}
+				else{
+					let paramValue = params[oneInput.name].toString();
+					if(!paramValue){
+						paramValue = oneInput.value.toString();
+					}
+					templateInputs[oneInput.name] = paramValue;
+					return iCb();
+				}
+			}, () =>{
+				//loop in template recursively till you find a match, replace value of found matches
+				for(let property in templateInputs){
+					traverse(template).forEach(function (x) {
+						if(this.key === property){
+							this.update( templateInputs[property]);
+						}
+					});
+				}
+				return mapCb();
+			});
+		}
 	},
 	
 	/**
