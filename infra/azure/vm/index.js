@@ -405,7 +405,7 @@ const driver = {
 					//todo: missing delete network interface
 					//todo: missing delete network security group
 					//todo: missing delete virtual network
-					// todo: missing delete disk
+					//todo: missing delete disk
 				}, (error) => {
 					if(error){
 						options.soajs.log.error(error);
