@@ -48,9 +48,8 @@ const AWSS3 = {
 						else if(oneTag.Key === 'technology'){
 							tempFile.technology = oneTag.Value;
 						}
-						else {
-							tempFile.tags[oneTag.Key] = oneTag.Value
-						}
+						
+						tempFile.tags[oneTag.Key] = oneTag.Value
 					});
 
 					files.push(tempFile);
