@@ -32,6 +32,7 @@ const AWSS3 = {
 					let description = '';
 					let type = '';
 					let template = '';
+					let fileTags = {};
 					tags.TagSet.forEach((oneTag) => {
 						if(oneTag.Key === 'description'){
 							description = oneTag.Value;
@@ -42,6 +43,7 @@ const AWSS3 = {
 						if(oneTag.Key === 'template'){
 							template = oneTag.Value;
 						}
+						fileTags[oneTag.Key] = oneTag.Value;
 					});
 
 					files.push({
@@ -50,7 +52,7 @@ const AWSS3 = {
 						description: description,
 						type: type,
 						template: template,
-						tags: tags.TagSet
+						tags: fileTags
 					});
 					return mCb(null, true);
 				});
