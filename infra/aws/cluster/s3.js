@@ -29,31 +29,31 @@ const AWSS3 = {
 				s3.getObjectTagging({Bucket: 'soajs', Key: oneFile.Key}, (error, tags) => {
 					if(error){ return mCb(error); }
 
-					let description = '';
-					let type = '';
-					let template = '';
-					let fileTags = {};
-					tags.TagSet.forEach((oneTag) => {
-						if(oneTag.Key === 'description'){
-							description = oneTag.Value;
-						}
-						if(oneTag.Key === 'type'){
-							type = oneTag.Value;
-						}
-						if(oneTag.Key === 'template'){
-							template = oneTag.Value;
-						}
-						fileTags[oneTag.Key] = oneTag.Value;
-					});
-
-					files.push({
+					let tempFile = {
 						id: oneFile.Key,
 						name: oneFile.Key,
-						description: description,
-						type: type,
-						template: template,
-						tags: fileTags
+						tags: {}
+					};
+
+					tags.TagSet.forEach((oneTag) => {
+						if(oneTag.Key === 'description'){
+							tempFile.description = oneTag.Value;
+						}
+						else if(oneTag.Key === 'type'){
+							tempFile.type = oneTag.Value;
+						}
+						else if(oneTag.Key === 'template'){
+							tempFile.template = oneTag.Value;
+						}
+						else if(oneTag.Key === 'technology'){
+							tempFile.technology = oneTag.Value;
+						}
+						else {
+							tempFile.tags[oneTag.Key] = oneTag.Value
+						}
 					});
+
+					files.push(tempFile);
 					return mCb(null, true);
 				});
 			}, (error) => {
