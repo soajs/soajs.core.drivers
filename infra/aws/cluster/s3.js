@@ -49,7 +49,8 @@ const AWSS3 = {
 						name: oneFile.Key,
 						description: description,
 						type: type,
-						template: template
+						template: template,
+						tags: tags.TagSet
 					});
 					return mCb(null, true);
 				});
