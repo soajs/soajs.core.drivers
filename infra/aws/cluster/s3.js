@@ -213,7 +213,7 @@ const AWSS3 = {
 					Body: options.params.stream,
 					ContentLength: options.params.size,
 					ContentType: options.params.contenttype,
-					Tagging: "description=" + options.params.description
+					Tagging: []
 				};
 
 				try {
@@ -226,10 +226,10 @@ const AWSS3 = {
 				//check if there are tags and concatenate them to the parameter Tagging
 				if (options.params.tags && Object.keys(options.params.tags).length > 0) {
 					Object.keys(options.params.tags).forEach(oneTag => {
-						params.Tagging += `&${oneTag}=${options.params.tags[oneTag]}`;
+						params.Tagging.push(`${oneTag}=${options.params.tags[oneTag]}`);
 					});
 				}
-
+				params.Tagging = params.Tagging.join("&");
 				s3.putObject(params, mCb);
 			}
 		}, (error) => {
