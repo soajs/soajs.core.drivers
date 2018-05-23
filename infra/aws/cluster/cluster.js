@@ -4,6 +4,7 @@ const fs = require('fs');
 const AWS = require('aws-sdk');
 const randomString = require("randomstring");
 const config = require("../config");
+const S3Driver = require("./s3.js");
 
 function getConnector(opts) {
 	AWS.config.update({
@@ -68,104 +69,80 @@ const AWSCluster = {
 			return cb(new Error("Invalid or Cluster Template detected to create the cluster from!"));
 		}
 		
-		const params = {
-			StackName: oneDeployment.name,
-			Capabilities: [
-				'CAPABILITY_IAM'
-			],
-			OnFailure: 'DELETE',
-			Parameters: [
-				{
-					ParameterKey: 'ProjectKey',
-					ParameterValue: options.params.headers.key
-				},
-				{
-					ParameterKey: 'ProjectName',
-					ParameterValue: options.params.soajs_project
-				},
-				{
-					ParameterKey: 'DriverName',
-					ParameterValue: options.params.resource.driver
-				},
-				{
-					ParameterKey: 'ApiDomain',
-					ParameterValue: domain
-				},
-				{
-					ParameterKey: 'ClusterSize',
-					ParameterValue: options.params.workernumber.toString()
-				},
-				{
-					ParameterKey: 'EnableCloudStorEfs',
-					ParameterValue: (options.params.EnableCloudStorEfs) ? ' yes' : 'no'
-				},
-				{
-					ParameterKey: 'EnableCloudWatchDetailedMonitoring',
-					ParameterValue: (options.params.cloudwatchContainerMonitoring) ? ' yes' : 'no'
-				},
-				{
-					ParameterKey: 'EnableCloudWatchLogs',
-					ParameterValue: (options.params.cloudwatchContainerLogging) ? ' yes' : 'no'
-				},
-				{
-					ParameterKey: 'EnableEbsOptimized',
-					ParameterValue: (options.params.ebsIO) ? ' yes' : 'no'
-				},
-				{
-					ParameterKey: 'EnableSystemPrune',
-					ParameterValue: (options.params.enableDailyResourceCleanup) ? ' yes' : 'no'
-				},
-				{
-					ParameterKey: 'InstanceType',
-					ParameterValue: options.params.workerflavor
-				},
-				{
-					ParameterKey: 'KeyName',
-					ParameterValue: options.params.keyPair
-				},
-				{
-					ParameterKey: 'ManagerDiskSize',
-					ParameterValue: options.params.masterstorage.toString()
-				},
-				{
-					ParameterKey: 'ManagerDiskType',
-					ParameterValue: options.params.masterstoragetype
-				},
-				{
-					ParameterKey: 'ManagerInstanceType',
-					ParameterValue: options.params.masterflavor
-				},
-				{
-					ParameterKey: 'ManagerSize',
-					ParameterValue: options.params.masternumber.toString()
-				},
-				{
-					ParameterKey: 'SwarmApiToken',
-					ParameterValue: options.soajs.registry.deployer.container[options.params.technology].remote.auth.token,
-				},
-				{
-					ParameterKey: 'WorkerDiskSize',
-					ParameterValue: options.params.workerstorage.toString()
-				},
-				{
-					ParameterKey: 'WorkerDiskType',
-					ParameterValue: options.params.workerstoragetype
-				}
-			],
-			TemplateURL: config.templateUrl + options.params.infraCodeTemplate
-		};
-		
-		cloudFormation.createStack(params, function (err, response) {
-			if (err) {
-				return cb(err);
+		options.templateName = options.params.infraCodeTemplate;
+		S3Driver.getTemplateInputs(options, (error, templateInputsToUse) => {
+			if(error){
+				return cb(error);
 			}
 			
-			oneDeployment.id = response.StackId;
-			oneDeployment.environments = [options.env.toUpperCase()];
-			oneDeployment.options.zone = options.params.region;
-			oneDeployment.options.template = options.params.infraCodeTemplate;
-			return cb(null, oneDeployment);
+			let inputs = templateInputsToUse.inputs;
+			
+			const params = {
+				StackName: oneDeployment.name,
+				Capabilities: [
+					'CAPABILITY_IAM'
+				],
+				OnFailure: 'DELETE',
+				Parameters: [
+					{
+						ParameterKey: 'ProjectKey',
+						ParameterValue: options.params.headers.key
+					},
+					{
+						ParameterKey: 'ProjectName',
+						ParameterValue: options.params.soajs_project
+					},
+					{
+						ParameterKey: 'DriverName',
+						ParameterValue: options.params.resource.driver
+					},
+					{
+						ParameterKey: 'ApiDomain',
+						ParameterValue: domain
+					},
+					{
+						ParameterKey: 'SwarmApiToken',
+						ParameterValue: options.soajs.registry.deployer.container[options.params.technology].remote.auth.token,
+					}
+					
+				],
+				TemplateURL: config.templateUrl + options.params.infraCodeTemplate
+			};
+			
+			mapTemplateInputsWithValues(inputs, options.params, params, () => {
+				cloudFormation.createStack(params, function (err, response) {
+					if (err) {
+						return cb(err);
+					}
+					
+					oneDeployment.id = response.StackId;
+					oneDeployment.environments = [options.env.toUpperCase()];
+					oneDeployment.options.zone = options.params.region;
+					oneDeployment.options.template = options.params.infraCodeTemplate;
+					return cb(null, oneDeployment);
+				});
+			});
 		});
+		
+		function mapTemplateInputsWithValues(inputs, params, template, mapCb){
+			async.each(inputs, (oneInput, iCb) => {
+				if(oneInput.entries){
+					mapTemplateInputsWithValues(oneInput.entries, params, template, iCb);
+				}
+				else{
+					let paramValue = params[oneInput.name].toString();
+					if(!paramValue){
+						paramValue = oneInput.value.toString();
+					}
+					template.Parameters.push({
+						ParameterKey: oneInput.name,
+						ParameterValue: paramValue
+					});
+					
+					return iCb();
+				}
+			}, mapCb);
+		}
 	},
 	
 	/**

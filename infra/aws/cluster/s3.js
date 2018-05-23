@@ -61,6 +61,97 @@ const AWSS3 = {
 		});
 	},
 
+	"getTemplateInputs": function(options, cb){
+		let aws = options.infra.api;
+		let s3 = getConnector({api: 's3', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey});
+		
+		s3.listObjectsV2({Bucket: 'soajs'}, (error, data) =>{
+			if(error){ return cb(error); }
+			
+			let files =[];
+			async.map(data.Contents, (oneFile, mCb) => {
+				s3.getObjectTagging({Bucket: 'soajs', Key: oneFile.Key}, (error, tags) => {
+					if(error){ return mCb(error); }
+					
+					let tempFile = {
+						id: oneFile.Key,
+						name: oneFile.Key,
+						tags: {}
+					};
+					
+					tags.TagSet.forEach((oneTag) => {
+						if(oneTag.Key === 'description'){
+							tempFile.description = oneTag.Value;
+						}
+						else if(oneTag.Key === 'type'){
+							tempFile.type = oneTag.Value;
+						}
+						else if(oneTag.Key === 'template'){
+							tempFile.template = oneTag.Value;
+						}
+						else if(oneTag.Key === 'technology'){
+							tempFile.technology = oneTag.Value;
+						}
+						
+						tempFile.tags[oneTag.Key] = oneTag.Value
+					});
+					
+					files.push(tempFile);
+					return mCb(null, true);
+				});
+			}, (error) => {
+				if(error){
+					return cb(error);
+				}
+				
+				let templateToUse;
+				files.forEach((oneFile) => {
+					if(oneFile.tags.template === options.templateName){
+						templateToUse = oneFile;
+					}
+				});
+				
+				if(!templateToUse){ return cb(null, null); }
+				
+				options.params.id = templateToUse.name;
+				AWSS3.downloadFile(options, (error, response) => {
+					if(error){
+						return cb(error);
+					}
+					
+					let tempFilePath = __dirname + options.templateName + new Date().getTime();
+					if(tempFilePath.indexOf(".json") === -1){
+						tempFilePath += ".json";
+					}
+					
+					let tempFile = fs.createWriteStream(tempFilePath, {"encoding": "utf8"});
+					response.stream.pipe(tempFile);
+					
+					tempFile.on('error', (error) => {
+						return cb(error);
+					});
+					
+					tempFile.on('close', () => {
+						try {
+							let inputs = require(tempFilePath);
+							
+							//clean up
+							fs.unlink(tempFilePath, (error) => {
+								if(error){
+									options.soajs.log.error(error);
+								}
+							});
+							return cb(null, inputs);
+						}
+						catch (e) {
+							return cb(e);
+						}
+					});
+				});
+			});
+		});
+	},
+	
 	'downloadFile': function(options, cb) {
 		let aws = options.infra.api;
 		let s3 = getConnector({api: 's3', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey});
