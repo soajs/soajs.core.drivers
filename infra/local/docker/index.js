@@ -35,16 +35,36 @@ let driver = {
 				Driver: 'default'
 			}
 		};
-		
-		deployer.createNetwork(networkParams, (err) => {
-			if (err && err.statusCode !== 409) {
+		deployer.listNetworks({}, (err, networks) => {
+			if(err){
 				return cb(err);
 			}
 			
-			options.infra.api.network = 'soajsnet';
-			options.infra.api.port = 443;
-			options.infra.api.protocol = 'https';
-			return cb(null, true);
+			let found = false;
+			networks.forEach((oneNetwork) => {
+				if(oneNetwork.Name === 'soajsnet'){
+					found = true;
+				}
+			});
+			
+			if(found){
+				options.infra.api.network = 'soajsnet';
+				options.infra.api.port = 443;
+				options.infra.api.protocol = 'https';
+				return cb(null, true);
+			}
+			else{
+				deployer.createNetwork(networkParams, (err) => {
+					if (err) {
+						return cb(err);
+					}
+					
+					options.infra.api.network = 'soajsnet';
+					options.infra.api.port = 443;
+					options.infra.api.protocol = 'https';
+					return cb(null, true);
+				});
+			}
 		});
 	},
 	
