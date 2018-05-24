@@ -183,6 +183,11 @@ const AWSLB = {
 		};
 		const stack = options.infra.stack;
 		const envCode = options.params.envCode.toUpperCase();
+		
+		if(!options.params.info || options.params.info.length === 0){
+			return mCb(new Error("Did not find any deployment information in infra details provided!"));
+		}
+		
 		const aws = options.infra.api;
 		const elb = getConnector({
 			api: 'elb',
