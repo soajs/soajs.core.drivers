@@ -46,23 +46,23 @@ const driver = {
 			return cb(null, true);
 		});
 	},
-	
+
 	"getExtras": function(options, cb) {
-		return cb(null, {technologies: ['kubernetes'], templates: ['local'] });
+		return cb(null, {technologies: ['kubernetes'], templates: ['local'], drivers: ['GKE']});
 	},
-	
+
 	"deployCluster": function (options, cb) {
 		ClusterDriver.deployCluster(options, cb);
 	},
-	
+
 	"getDeployClusterStatus": function (options, cb) {
 		ClusterDriver.getDeployClusterStatus(options, cb);
 	},
-	
+
 	"getDNSInfo": function (options, cb) {
 		ClusterDriver.getDNSInfo(options, cb);
 	},
-	
+
 	/**
 	 * This method returns the available deployment zones at google
 	 * @param options

@@ -12,34 +12,34 @@ function runCorrespondingDriver(method, options, cb) {
 }
 
 const driver = {
-	
+
 	"authenticate": function (options, cb) {
 		azureApi.loginWithServicePrincipalSecret(options.infra.api.clientId, options.infra.api.secret, options.infra.api.domain, function (error, credentials, subscriptions) {
 			if(error) return cb(error);
-			
+
 			if (options.returnCredentials) {
 				return cb(null, { credentials, subscriptions });
 			}
 			return cb(null, true);
 		});
 	},
-	
+
 	"getExtras": function (options, cb) {
-		return cb(null, {technologies: ['vm'], templates: null});  //TODO: confirm templates array
+		return cb(null, {technologies: ['vm'], templates: null, drivers: ['Native']});  //TODO: confirm templates array
 	},
-	
+
 	"deployCluster": function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	"getDeployClusterStatus": function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	"getDNSInfo": function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	"getRegions": function (options, cb) {
 		options.returnCredentials = true;
 		driver.authenticate(options, (error, authData) => {

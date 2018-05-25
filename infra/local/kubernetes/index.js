@@ -64,11 +64,11 @@ let driver = {
 			});
 		});
 	},
-	
+
 	"getExtras": function(options, cb) {
-		return cb(null, {technologies: ['kubernetes'], templates: null });
+		return cb(null, {technologies: ['kubernetes'], templates: null, drivers: ['Native']});
 	},
-	
+
 	/**
 	 * @param options
 	 * @param cb

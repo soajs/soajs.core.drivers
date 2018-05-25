@@ -67,11 +67,11 @@ let driver = {
 			}
 		});
 	},
-	
+
 	"getExtras": function(options, cb) {
-		return cb(null, {technologies: ['docker'], templates: null });
+		return cb(null, {technologies: ['docker'], templates: null, drivers: ['Native'] });
 	},
-	
+
 	/**
 	 * @param options
 	 * @param cb

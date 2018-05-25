@@ -60,11 +60,11 @@ const driver = {
 			return cb(null, true);
 		});
 	},
-	
+
 	"getExtras": function (options, cb) {
-		return cb(null, {technologies: ['docker'], templates: ['external']});
+		return cb(null, {technologies: ['docker'], templates: ['external'], drivers: ['Cloud Formation'] });
 	},
-	
+
 	/**
 	 * method used to invoke aws api and deploy instances, security groups, configure load balancer & ip addresses
 	 * @param options
