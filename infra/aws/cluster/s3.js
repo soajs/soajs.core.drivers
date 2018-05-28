@@ -221,7 +221,7 @@ const AWSS3 = {
 					options.params.tags = JSON.parse(options.params.tags);
 				}
 				catch (e) {
-					options.param.tags = {};
+					options.params.tags = {};
 				}
 				//check if there are tags and concatenate them to the parameter Tagging
 				if (options.params.tags && Object.keys(options.params.tags).length > 0) {
