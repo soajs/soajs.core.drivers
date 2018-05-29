@@ -63,21 +63,21 @@ const AWSS3 = {
 	"getTemplateInputs": function(options, cb){
 		let aws = options.infra.api;
 		let s3 = getConnector({api: 's3', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey});
-		
+
 		s3.listObjectsV2({Bucket: 'soajs'}, (error, data) =>{
 			if(error){ return cb(error); }
-			
+
 			let files =[];
 			async.map(data.Contents, (oneFile, mCb) => {
 				s3.getObjectTagging({Bucket: 'soajs', Key: oneFile.Key}, (error, tags) => {
 					if(error){ return mCb(error); }
-					
+
 					let tempFile = {
 						id: oneFile.Key,
 						name: oneFile.Key,
 						tags: {}
 					};
-					
+
 					tags.TagSet.forEach((oneTag) => {
 						if(oneTag.Key === 'description'){
 							tempFile.description = oneTag.Value;
@@ -91,10 +91,10 @@ const AWSS3 = {
 						else if(oneTag.Key === 'technology'){
 							tempFile.technology = oneTag.Value;
 						}
-						
+
 						tempFile.tags[oneTag.Key] = oneTag.Value
 					});
-					
+
 					files.push(tempFile);
 					return mCb(null, true);
 				});
@@ -102,38 +102,38 @@ const AWSS3 = {
 				if(error){
 					return cb(error);
 				}
-				
+
 				let templateToUse;
 				files.forEach((oneFile) => {
 					if(oneFile.tags.template === options.templateName){
 						templateToUse = oneFile;
 					}
 				});
-				
+
 				if(!templateToUse){ return cb(null, null); }
-				
+
 				options.params.id = templateToUse.name;
 				AWSS3.downloadFile(options, (error, response) => {
 					if(error){
 						return cb(error);
 					}
-					
+
 					let tempFilePath = __dirname + options.templateName + new Date().getTime();
 					if(tempFilePath.indexOf(".json") === -1){
 						tempFilePath += ".json";
 					}
-					
+
 					let tempFile = fs.createWriteStream(tempFilePath, {"encoding": "utf8"});
 					response.stream.pipe(tempFile);
-					
+
 					tempFile.on('error', (error) => {
 						return cb(error);
 					});
-					
+
 					tempFile.on('close', () => {
 						try {
 							let inputs = require(tempFilePath);
-							
+
 							//clean up
 							fs.unlink(tempFilePath, (error) => {
 								if(error){
@@ -150,7 +150,7 @@ const AWSS3 = {
 			});
 		});
 	},
-	
+
 	'downloadFile': function(options, cb) {
 		let aws = options.infra.api;
 		let s3 = getConnector({api: 's3', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey});
@@ -228,6 +228,10 @@ const AWSS3 = {
 					Object.keys(options.params.tags).forEach(oneTag => {
 						params.Tagging.push(`${oneTag}=${options.params.tags[oneTag]}`);
 					});
+				}
+				//check if there is a description and add it to the tags
+				if (options.params.description.length > 0) {
+					params.Tagging.push(`description=${options.params.description}`);
 				}
 				params.Tagging = params.Tagging.join("&");
 				s3.putObject(params, mCb);
