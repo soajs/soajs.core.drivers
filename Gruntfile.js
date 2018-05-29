@@ -123,8 +123,7 @@ module.exports = function (grunt) {
 		},
 
 		instrument: {
-			files: ['*.js', 'schemas/**/*.js', 'strategies/*.js', 'utils/*.js', 'strategyFunctions/*.js', 'resources/**/**/**.js', 'models/*.js'],
-			//files: ['**/*.js'],
+			files: ['*.js', 'container/**/*.js', 'infra/*.js', 'infra/**/*.js', 'infra/***/**/*.js', 'lib/*.js', 'lib/**/*.js', 'lib/***/**/*.js', 'lib/****/***/**/*.js'],
 			options: {
 				lazy: false,
 				basePath: 'test/coverage/instrument/'
@@ -147,27 +146,13 @@ module.exports = function (grunt) {
 		},
 
 		mochaTest: {
-			unitDocker: {
+			unitTest: {
 				options: {
 					reporter: 'spec',
 					timeout: 90000
 				},
-				src: ['test/unit/_serversDocker.test.js']
-			},
-			unitKubernetes: {
-				options: {
-					reporter: 'spec',
-					timeout: 120000
-				},
-				src: ['test/unit/_serversKubernetes.test.js']
-			},
-            cleanUp: {
-                options: {
-                    reporter: 'spec',
-                    timeout: 90000
-                },
-                src: ['test/unit/_cleanUpTest.test.js']
-            }
+				src: ['test/unit/*.js', 'test/unit/**/*.js', 'test/unit/***/**/*.js']
+			}
 		},
 
 		coveralls: {
@@ -193,7 +178,7 @@ module.exports = function (grunt) {
 	grunt.registerTask("unit", ['env:mochaTest', 'instrument', 'mochaTest:unit']);
 	//grunt.registerTask("test", ['unit','integration']);
 	grunt.registerTask("test", ['clean', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration']);
-	grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:unitDocker', 'mochaTest:unitKubernetes', 'mochaTest:cleanUp', 'storeCoverage', 'makeReport', 'coveralls']);
+	grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:unitTest', 'storeCoverage', 'makeReport', 'coveralls']);
 	//grunt.registerTask("coverage", ['clean', 'env:coverage', 'instrument', 'mochaTest:unit', 'mochaTest:integration', 'storeCoverage', 'makeReport']);
 
 };
