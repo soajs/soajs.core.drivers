@@ -45,8 +45,8 @@ const AWSS3 = {
 						else if(oneTag.Key === 'template'){
 							tempFile.template = oneTag.Value;
 						}
-						else if(oneTag.Key === 'technology'){
-							tempFile.technology = oneTag.Value;
+						else if(oneTag.Key === 'driver'){
+							tempFile.driver = oneTag.Value;
 						}
 						tempFile.tags[oneTag.Key] = oneTag.Value;
 					});
