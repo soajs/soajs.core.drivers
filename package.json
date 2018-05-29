@@ -30,10 +30,8 @@
     "kubernetes-client": "soajs/kubernetes-client.git",
     "lodash": "^4.17.4",
     "ms-rest-azure": "^2.5.5",
-    "nock": "^9.0.13",
     "randomstring": "^1.1.5",
     "request": "2.82.0",
-    "sinon": "^1.17.6",
     "soajs.core.libs": "1.0.2",
     "soajs.core.modules": "2.0.3",
     "stdio": "0.2.7",
@@ -50,9 +48,11 @@
     "grunt-env": "0.4.4",
     "grunt-istanbul": "0.7.2",
     "grunt-coveralls": "1.0.1",
+    "nock": "^9.0.13",
     "http-proxy": "1.16.2",
     "jshint": "2.9.4",
     "mocha": "3.2.0",
+    "sinon": "^1.17.6",
     "shelljs": "0.7.5",
     "traverse": "0.6.6"
   }
