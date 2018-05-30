@@ -1,19 +1,20 @@
 const async = require('async');
 const fs = require('fs');
 const AWS = require('aws-sdk');
-
 const config = require("../config");
+const utils = require("../utils/utils");
 
 function getConnector(opts) {
-	AWS.config.update({
-		credentials: {
-			accessKeyId: opts.keyId,
-			secretAccessKey: opts.secretAccessKey
-		},
-		region: opts.region || config.api.region
-	});
-
-	return new AWS.S3({apiVersion: '2006-03-01'});
+	return utils.getConnector(opts, config);
+	// AWS.config.update({
+	// 	credentials: {
+	// 		accessKeyId: opts.keyId,
+	// 		secretAccessKey: opts.secretAccessKey
+	// 	},
+	// 	region: opts.region || config.api.region
+	// });
+	//
+	// return new AWS.S3({apiVersion: '2006-03-01'});
 }
 
 const AWSS3 = {

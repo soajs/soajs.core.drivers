@@ -2,26 +2,27 @@ const async = require('async');
 const fs = require('fs');
 const AWS = require('aws-sdk');
 const randomString = require("randomstring");
-
 const config = require("../config");
+const utils = require("../utils/utils");
 
 function getConnector(opts) {
-	AWS.config.update({
-		credentials: {
-			accessKeyId: opts.keyId,
-			secretAccessKey: opts.secretAccessKey
-		},
-		region: opts.region || config.api.region
-	});
-	
-	switch (opts.api) {
-		case 'ec2':
-			return new AWS.EC2({apiVersion: '2016-11-15'});
-		case 'elb':
-			return new AWS.ELB({apiVersion: '2015-12-01'});
-		default:
-			return new AWS.EC2({apiVersion: '2016-11-15'});
-	}
+	return utils.getConnector(opts, config);
+	// AWS.config.update({
+	// 	credentials: {
+	// 		accessKeyId: opts.keyId,
+	// 		secretAccessKey: opts.secretAccessKey
+	// 	},
+	// 	region: opts.region || config.api.region
+	// });
+	//
+	// switch (opts.api) {
+	// 	case 'ec2':
+	// 		return new AWS.EC2({apiVersion: '2016-11-15'});
+	// 	case 'elb':
+	// 		return new AWS.ELB({apiVersion: '2015-12-01'});
+	// 	default:
+	// 		return new AWS.EC2({apiVersion: '2016-11-15'});
+	// }
 }
 
 
