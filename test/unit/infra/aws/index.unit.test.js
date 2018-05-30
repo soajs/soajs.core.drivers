@@ -20,7 +20,7 @@ describe("testing /infra/aws/index.js", function () {
 	});
 
 	afterEach((done) => {
-		sinon.restore(utils);
+		sinon.restore();
 		done();
 	});
 
