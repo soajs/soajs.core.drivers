@@ -12,7 +12,7 @@ describe("testing /lib/container/docker/nodes.js", function () {
 	
 	describe("calling inspectCluster", function () {
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			done();
 		});
 		let dockerData = dD();
@@ -40,7 +40,7 @@ describe("testing /lib/container/docker/nodes.js", function () {
 		let dockerData = dD();
 		let options = dockerData.mongoDeploy;
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			nock.cleanAll();
 			done();
 		});
@@ -75,7 +75,7 @@ describe("testing /lib/container/docker/nodes.js", function () {
 		let dockerData = dD();
 		let options = dockerData.mongoReDeploy;
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			nock.cleanAll();
 			done();
 		});
@@ -119,7 +119,7 @@ describe("testing /lib/container/docker/nodes.js", function () {
 			
 		};
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			done();
 		});
 		beforeEach((done) => {
@@ -154,7 +154,7 @@ describe("testing /lib/container/docker/nodes.js", function () {
 			"id": "mwdhuz0wfj6e9d40175g8kpge"
 		};
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			done();
 		});
 		beforeEach((done) => {
@@ -186,7 +186,7 @@ describe("testing /lib/container/docker/nodes.js", function () {
 			env: "bloooom"
 		};
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			done();
 		});
 		beforeEach((done) => {

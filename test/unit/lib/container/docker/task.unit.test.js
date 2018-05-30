@@ -14,7 +14,7 @@ describe("testing /lib/container/docker/tasks.js", function () {
 	
 	describe("calling inspectTask", function () {
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			done();
 		});
 		let dockerData = dD();
@@ -54,7 +54,7 @@ describe("testing /lib/container/docker/tasks.js", function () {
 		let dockerData = dD();
 		let options = dockerData.mongoDeploy;
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			nock.cleanAll();
 			done();
 		});
@@ -161,7 +161,7 @@ describe("testing /lib/container/docker/tasks.js", function () {
 		let dockerData = dD();
 		let options = dockerData.deployer;
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			nock.cleanAll();
 			done();
 		});

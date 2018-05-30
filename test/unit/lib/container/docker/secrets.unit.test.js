@@ -11,7 +11,7 @@ describe("testing /lib/container/docker/secrets.js", function () {
 	
 	describe("calling getSecret", function () {
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			done();
 		});
 		let dockerData = dD();
@@ -44,7 +44,7 @@ describe("testing /lib/container/docker/secrets.js", function () {
 		let options = dockerData.mongoDeploy;
 		
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			done();
 		});
 		beforeEach((done) => {
@@ -100,7 +100,7 @@ describe("testing /lib/container/docker/secrets.js", function () {
 	describe("calling deleteSecret", function () {
 		
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			done();
 		});
 		let dockerData = dD();

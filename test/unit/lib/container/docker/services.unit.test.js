@@ -12,7 +12,7 @@ describe("testing /lib/container/docker/services.js", function () {
 	
 	describe("calling listServices", function () {
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			done();
 		});
 		let dockerData = dD();
@@ -118,7 +118,7 @@ describe("testing /lib/container/docker/services.js", function () {
 		let dockerData = dD();
 		let options = dockerData.mongoDeploy;
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			nock.cleanAll();
 			done();
 		});
@@ -356,7 +356,7 @@ describe("testing /lib/container/docker/services.js", function () {
 		let dockerData = dD();
 		let options = dockerData.mongoReDeploy;
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			nock.cleanAll();
 			done();
 		});
@@ -647,7 +647,7 @@ describe("testing /lib/container/docker/services.js", function () {
 			"scale": 2
 		};
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			done();
 		});
 		beforeEach((done) => {
@@ -682,7 +682,7 @@ describe("testing /lib/container/docker/services.js", function () {
 			"id": "9xabk0pf9wdfdul8vh913jvqs"
 		};
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			done();
 		});
 		beforeEach((done) => {
@@ -748,7 +748,7 @@ describe("testing /lib/container/docker/services.js", function () {
 			version : "1"
 		};
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			done();
 		});
 		beforeEach((done) => {
@@ -783,7 +783,7 @@ describe("testing /lib/container/docker/services.js", function () {
 			"id": "9xabk0pf9wdfdul8vh913jvqs"
 		};
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			done();
 		});
 		beforeEach((done) => {
@@ -817,7 +817,7 @@ describe("testing /lib/container/docker/services.js", function () {
 			serviceName : "controller"
 		};
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			done();
 		});
 		beforeEach((done) => {
@@ -856,7 +856,7 @@ describe("testing /lib/container/docker/services.js", function () {
 			version : "1"
 		};
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			done();
 		});
 		beforeEach((done) => {

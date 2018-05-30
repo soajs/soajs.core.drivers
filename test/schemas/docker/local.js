@@ -399,7 +399,8 @@ module.exports = function () {
 			},
 			"params": {
 				"env": "docker"
-			}
+			},
+			"soajs": soajs
 		},
 		'serviceList': [
 			{

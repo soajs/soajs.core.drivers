@@ -14,7 +14,7 @@ describe("testing /lib/container/docker/metrics.js", function () {
 		let dockerData = dD();
 		let options = dockerData.deployer;
 		afterEach((done) => {
-			sinon.restore(utils);
+			sinon.restore();
 			nock.cleanAll();
 			done();
 		});
