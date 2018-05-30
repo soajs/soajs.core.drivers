@@ -1,24 +1,19 @@
 "use strict";
 const async = require("async");
 
-const google = require('googleapis');
-const v1Compute = google.compute('v1');
-const v1Container = google.container('v1');
-
-const config = require('../config');
+/**
+ * appended code for testing
+ */
+const googleApi = require('../utils/utils.js');
+const v1Compute = function () {
+	return googleApi.compute();
+};
+const v1Container = function () {
+	return googleApi.container();
+};
 
 function getConnector(opts) {
-	return {
-		project: opts.project,
-		projectId: opts.project,
-		auth: new google.auth.JWT(
-			opts.token.client_email,
-			null,
-			opts.token.private_key,
-			config.scopes, // an array of auth scopes
-			null
-		)
-	};
+	return require('../utils/utils.js').connector(opts);
 }
 
 const GCLB = {
@@ -54,7 +49,7 @@ const GCLB = {
 		request.zone = stack.options.zone;
 		request.clusterId = stack.id;
 		options.soajs.log.debug("Getting Cluster network name...");
-		v1Container.projects.zones.clusters.get(request, function (err, clusterInformation) {
+		v1Container().projects.zones.clusters.get(request, function (err, clusterInformation) {
 			if (err) {
 				options.soajs.log.error(err);
 				return cb(new Error(`Failed to find ${stack.id} cluster!`));
@@ -66,7 +61,7 @@ const GCLB = {
 			else {
 				request.filter = "network eq " + "https://www.googleapis.com/compute/v1/projects/" + options.infra.api.project + "/global/networks/" + clusterInformation.network;
 				request.project = project;
-				v1Compute.firewalls.list(request, (err, firewalls) => {
+				v1Compute().firewalls.list(request, (err, firewalls) => {
 					if (err) {
 						options.soajs.log.error(err);
 						return cb(new Error(`Failed to find ${stack.name} network!`));
@@ -122,7 +117,7 @@ const GCLB = {
 									}
 								]
 							};
-							v1Compute.firewalls[method](request, function (err) {
+							v1Compute().firewalls[method](request, function (err) {
 								if (err) {
 									options.soajs.log.error(err);
 									return cb(new Error(`Failed to add ${ports} to Firewall Rules!`));

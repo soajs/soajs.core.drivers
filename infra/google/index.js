@@ -1,10 +1,13 @@
 'use strict';
 
-const google = require('googleapis');
-const v1Compute = google.compute('v1');
-
+/**
+ * appended code for testing
+ */
+const googleApi = require('./utils/utils.js');
+const v1Compute = function () {
+	return googleApi.compute();
+};
 const defaultDriver = 'kubernetes';
-const config = require('./config');
 
 const LBDriver = require("./cluster/lb.js");
 const ClusterDriver = require("./cluster/cluster.js");
@@ -15,17 +18,7 @@ function runCorrespondingDriver(method, options, cb) {
 }
 
 function getConnector(opts) {
-	return {
-		project: opts.project,
-		projectId: opts.project,
-		auth: new google.auth.JWT(
-			opts.token.client_email,
-			null,
-			opts.token.private_key,
-			config.scopes, // an array of auth scopes
-			null
-		)
-	};
+	return require('./utils/utils.js').connector(opts);
 }
 
 const driver = {
@@ -39,7 +32,7 @@ const driver = {
 		options.soajs.log.debug("Authenticating Google Credentials");
 		//Ref: https://cloud.google.com/compute/docs/reference/latest/zones/list
 		let request = getConnector(options.infra.api);
-		v1Compute.zones.list(request, function (err) {
+		v1Compute().zones.list(request, function (err) {
 			if (err) {
 				return cb(err);
 			}
@@ -72,7 +65,7 @@ const driver = {
 	"getRegions": function (options, cb) {
 		//Ref: https://cloud.google.com/compute/docs/reference/latest/zones/list
 		let request = getConnector(options.infra.api);
-		v1Compute.zones.list(request, function (err, response) {
+		v1Compute().zones.list(request, function (err, response) {
 			if (err) {
 				return cb(err);
 			}

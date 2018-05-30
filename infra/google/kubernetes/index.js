@@ -4,26 +4,21 @@ const _ = require('lodash');
 const async = require("async");
 const K8Api = require('kubernetes-client');
 const randomstring = require("randomstring");
-
-const google = require('googleapis');
-const v1Compute = google.compute('v1');
-const v1Container = google.container('v1');
-
 const traverse = require("traverse");
 
+/**
+ * appended code for testing
+ */
+const googleApi = require('../utils/utils.js');
+const v1Compute = function () {
+	return googleApi.compute();
+};
+const v1Container = function () {
+	return googleApi.container();
+};
 
 function getConnector(opts) {
-	return {
-		project: opts.project,
-		projectId: opts.project,
-		auth: new google.auth.JWT(
-			opts.token.client_email,
-			null,
-			opts.token.private_key,
-			config.scopes, // an array of auth scopes
-			null
-		)
-	};
+	return require('../utils/utils.js').connector(opts);
 }
 
 const kubeDriver = require("../../../lib/container/kubernetes/index.js");
@@ -78,7 +73,7 @@ let driver = {
 				autoCreateSubnetworks: config.vpc.autoCreateSubnetworks
 			};
 			options.soajs.log.debug("Creating new Network:", name);
-			v1Compute.networks.insert(request, function (err, globalOperationResponse) {
+			v1Compute().networks.insert(request, function (err, globalOperationResponse) {
 				if (err) {
 					return cb(err);
 				}
@@ -98,7 +93,7 @@ let driver = {
 					let request = getConnector(options.infra.api);
 					delete request.projectId;
 					request.operation = globalOperationResponse.name;
-					v1Compute.globalOperations.get(request, (error, response) => {
+					v1Compute().globalOperations.get(request, (error, response) => {
 						if (error) {
 							return miniCB(error);
 						}
@@ -214,7 +209,7 @@ let driver = {
 						async.each(firewallRules, (oneRule, vCb) => {
 							options.soajs.log.debug("Registering new firewall rule:", oneRule.name);
 							request.resource = oneRule;
-							v1Compute.firewalls.insert(request, vCb);
+							v1Compute().firewalls.insert(request, vCb);
 						}, mCb);
 					}
 				});
@@ -228,7 +223,7 @@ let driver = {
 		 */
 		function getClusterVersion(request, mCb) {
 			delete request.project;
-			v1Container.projects.zones.getServerconfig(request, function (err, response) {
+			v1Container().projects.zones.getServerconfig(request, function (err, response) {
 				if (err) {
 					return mCb(err);
 				}
@@ -264,7 +259,7 @@ let driver = {
 				//Ref: https://cloud.google.com/compute/docs/reference/latest/networks/delete
 				let request = getConnector(options.infra.api);
 				request.network = oneDeployment.options.network;
-				v1Compute.networks.delete(request, (error) => {
+				v1Compute().networks.delete(request, (error) => {
 					if (error) {
 						options.soajs.log.error(error);
 					}
@@ -309,7 +304,7 @@ let driver = {
 					
 					//Ref: https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters/create
 					options.soajs.log.debug("Deploying new Cluster from Template:", name);
-					v1Container.projects.zones.clusters.create(request, function (err, operation) {
+					v1Container().projects.zones.clusters.create(request, function (err, operation) {
 						if (err) {
 							options.soajs.log.debug("Deleting VPC network...");
 							deleteNetwork();
@@ -384,7 +379,7 @@ let driver = {
 			setTimeout(function () {
 				options.soajs.log.debug("Checking if Cluster is Ready.");
 				//Ref: https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.operations/get
-				v1Container.projects.zones.operations.get(request, function (err, response) {
+				v1Container().projects.zones.operations.get(request, function (err, response) {
 					if (err) {
 						return miniCB(err);
 					}
@@ -420,7 +415,7 @@ let driver = {
 						request.zone = cluster.options.zone;
 						request.clusterId = cluster.id;
 						options.soajs.log.debug("Getting Cluster Information.");
-						v1Container.projects.zones.clusters.get(request, function (err, clusterInformation) {
+						v1Container().projects.zones.clusters.get(request, function (err, clusterInformation) {
 							if (err) {
 								return cb(err);
 							}
@@ -609,7 +604,7 @@ let driver = {
 		request.resource = {
 			"nodeCount": options.params.number, // get this from ui
 		};
-		v1Container.projects.zones.clusters.nodePools.setSize(request, cb);
+		v1Container().projects.zones.clusters.nodePools.setSize(request, cb);
 	},
 	
 	/**
@@ -627,7 +622,7 @@ let driver = {
 		request.zone = cluster.options.zone;
 		request.clusterId = cluster.id;
 		request.filter = "name eq gke-" + cluster.id.substring(0, 19) + "-" + cluster.options.nodePoolId + "-.*";
-		v1Compute.instances.list(request, (error, instances) => {
+		v1Compute().instances.list(request, (error, instances) => {
 			if (error) {
 				return cb(error);
 			}
@@ -692,7 +687,7 @@ let driver = {
 		// 		"desiredImageType": ""
 		// 	}
 		// };
-		// v1Container.projects.zones.clusters.update(request, function(err){
+		// v1Container().projects.zones.clusters.update(request, function(err){
 		// 	return cb(err, true);
 		// });
 	},
@@ -711,11 +706,11 @@ let driver = {
 		request.clusterId = stack.id;
 		delete request.project;
 		options.soajs.log.debug("Removing Cluster:", request.clusterId);
-		v1Container.projects.zones.clusters.get(request, function (err, clusterInformation) {
+		v1Container().projects.zones.clusters.get(request, function (err, clusterInformation) {
 			if (err) {
 				return cb(err);
 			}
-			v1Container.projects.zones.clusters.delete(request, function (err, operation) {
+			v1Container().projects.zones.clusters.delete(request, function (err, operation) {
 				if (err) {
 					return cb(err);
 				}
@@ -733,7 +728,7 @@ let driver = {
 								let request = getConnector(options.infra.api);
 								request.network = clusterInformation.network;
 								options.soajs.log.debug("Removing Network:", clusterInformation.network);
-								v1Compute.networks.delete(request, (error) => {
+								v1Compute().networks.delete(request, (error) => {
 									if (error) {
 										options.soajs.log.error(error);
 									}
@@ -757,7 +752,7 @@ let driver = {
 			request.zone = stack.options.zone;
 			delete request.project;
 			options.soajs.log.debug("Checking if Cluster was removed:", stack.id);
-			v1Container.projects.zones.operations.get(request, function (err, response) {
+			v1Container().projects.zones.operations.get(request, function (err, response) {
 				if (err) {
 					return vCb(err);
 				}
