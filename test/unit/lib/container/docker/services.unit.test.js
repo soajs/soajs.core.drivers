@@ -405,7 +405,7 @@ describe("testing /lib/container/docker/services.js", function () {
 				.reply(200, response);
 			done();
 		});
-		it("Success with action 'rebuild'", function (done) {
+		it("Success with action 'rebuild' mongo", function (done) {
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
@@ -424,6 +424,64 @@ describe("testing /lib/container/docker/services.js", function () {
 						};
 					}
 				});
+			options.params.action = 'rebuild';
+			options.params.inputmaskData.action = 'rebuild';
+			services.redeployService(options, function (error, res) {
+				assert.equal(res.id, "9xabk0pf9wdfdul8vh913jvqs");
+				done();
+			});
+		});
+		
+		it("Success with action 'rebuild' mongo no Spec", function (done) {
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					listSecrets: (cb) => {
+						return cb(null, dockerData.secretList)
+					},
+					getService: (params) => {
+						return {
+							inspect: (cb) => {
+								dockerData.inspectService.Spec = {};
+								return cb(null, dockerData.inspectService);
+							},
+							update: (param, cb) => {
+								return cb(null, true);
+							},
+							id: params
+						};
+					}
+				});
+			options.params.action = 'rebuild';
+			options.params.inputmaskData.action = 'rebuild';
+			services.redeployService(options, function (error, res) {
+				assert.equal(res.id, "9xabk0pf9wdfdul8vh913jvqs");
+				done();
+			});
+		});
+		
+		it("Success with action 'redeploy' no Spec", function (done) {
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					listSecrets: (cb) => {
+						return cb(null, dockerData.secretList)
+					},
+					getService: (params) => {
+						return {
+							inspect: (cb) => {
+								dockerData.inspectService.Spec = {};
+								return cb(null, dockerData.inspectService);
+							},
+							update: (param, cb) => {
+								return cb(null, true);
+							},
+							id: params
+						};
+					}
+				});
+			options.params.action = 'redeploy';
+			options.params.inputmaskData.action = 'redeploy';
 			services.redeployService(options, function (error, res) {
 				assert.equal(res.id, "9xabk0pf9wdfdul8vh913jvqs");
 				done();
@@ -431,6 +489,8 @@ describe("testing /lib/container/docker/services.js", function () {
 		});
 		
 		it("Success with action 'redeploy'", function (done) {
+			let dockerData = dD();
+			let options = dockerData.mongoReDeploy;
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
@@ -457,7 +517,100 @@ describe("testing /lib/container/docker/services.js", function () {
 			});
 		});
 		
-		it("Success with action 'redeploy'", function (done) {
+		it("Success with action 'rebuild' controller", function (done) {
+			let response = {
+				"statusCode": 200,
+				"body": {
+					"name": "latest",
+					"full_size": 244020253,
+					"images": [
+						{
+							"size": 244020253,
+							"architecture": "amd64",
+							"variant": null,
+							"features": null,
+							"os": "linux",
+							"os_version": null,
+							"os_features": null
+						}
+					],
+					"id": 169967,
+					"repository": 192252,
+					"creator": 274272,
+					"last_updater": 216113,
+					"last_updated": "2018-03-28T13:32:32.636155Z",
+					"image_id": null,
+					"v2": true
+				},
+				"headers": {
+					"date": "Tue, 29 May 2018 14:50:32 GMT",
+					"content-type": "application/json",
+					"transfer-encoding": "chunked",
+					"connection": "close",
+					"vary": "Cookie",
+					"x-frame-options": "deny",
+					"allow": "GET, DELETE, HEAD, OPTIONS",
+					"server": "nginx",
+					"x-content-type-options": "nosniff",
+					"x-xss-protection": "1; mode=block",
+					"strict-transport-security": "max-age=31536000"
+				},
+				"request": {
+					"uri": {
+						"protocol": "https:",
+						"slashes": true,
+						"auth": null,
+						"host": "hub.docker.com",
+						"port": 443,
+						"hostname": "hub.docker.com",
+						"hash": null,
+						"search": null,
+						"query": null,
+						"pathname": "/v2/repositories/soajsorg/soajs/tags/latest/",
+						"path": "/v2/repositories/soajsorg/soajs/tags/latest/",
+						"href": "https://hub.docker.com/v2/repositories/soajsorg/soajs/tags/latest/"
+					},
+					"method": "GET",
+					"headers": {
+						"cache-control": "no-cache",
+						"accept": "application/json",
+						"referer": "https://hub.docker.com/v2/repositories/soajsorg/soajs/tags/latest"
+					}
+				}
+			};
+			let nocks = nock('https://hub.docker.com', {'cache-control': 'no-cache'})
+				.get('/v2/repositories/soajsorg/soajs/tags/latest')
+				.reply(200, response);
+			let dockerData = dD();
+			let options = dockerData.controllerRedeploy;
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					listSecrets: (cb) => {
+						return cb(null, dockerData.secretList)
+					},
+					getService: (params) => {
+						return {
+							inspect: (cb) => {
+								return cb(null, dockerData.inspectController);
+							},
+							update: (param, cb) => {
+								return cb(null, true);
+							},
+							id: params
+						};
+					}
+				});
+			options.params.action = 'rebuild';
+			options.params.inputmaskData.action = 'rebuild';
+			services.redeployService(options, function (error, res) {
+				assert.equal(res.id, "5aornksipp1ulqs0ojcebamcd");
+				done();
+			});
+		});
+		
+		it("Success with action 'test'", function (done) {
+		
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
@@ -485,7 +638,7 @@ describe("testing /lib/container/docker/services.js", function () {
 		});
 	});
 	
-	describe("calling  scaleService", function () {
+	describe("calling scaleService", function () {
 		
 		let dockerData = dD();
 		let options = dockerData.mongoDeploy;
@@ -522,7 +675,7 @@ describe("testing /lib/container/docker/services.js", function () {
 		});
 	});
 	
-	describe("calling  inspectService", function () {
+	describe("calling inspectService", function () {
 		let dockerData = dD();
 		let options = dockerData.mongoDeploy;
 		options.params = {
@@ -586,7 +739,7 @@ describe("testing /lib/container/docker/services.js", function () {
 		});
 	});
 	
-	describe("calling  findService", function () {
+	describe("calling findService", function () {
 		let dockerData = dD();
 		let options = dockerData.mongoDeploy;
 		options.params = {
