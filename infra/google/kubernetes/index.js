@@ -100,7 +100,7 @@ let driver = {
 						if (!response || response.status !== "DONE") {
 							setTimeout(function () {
 								globalOperations(miniCB);
-							}, 5000);
+							}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 5000);
 						}
 						else {
 							return miniCB(null, response);
@@ -243,7 +243,7 @@ let driver = {
 					options.soajs.log.debug("Initial Cluster version set to default version :", version);
 				}
 				else {
-					return mCb({"code": 410, "msg": config.errors[410]})
+					return mCb({"code": 410, "msg": "Invalid or no kubernetes cluster version found!"})
 				}
 				return mCb(null, version);
 			});
@@ -268,7 +268,7 @@ let driver = {
 					}
 					
 				});
-			}, 5 * 60 * 1000);
+			}, (process.env.SOAJS_CLOOSTRO_TEST)? 1 : 5 * 60 * 1000);
 		}
 		
 		function createTemplate(mCb) {
@@ -387,7 +387,7 @@ let driver = {
 						return miniCB(null, (response && response.operationType === "CREATE_CLUSTER" && response.status === "DONE"));
 					}
 				});
-			}, 5000);
+			}, (process.env.SOAJS_CLOOSTRO_TEST)? 1 : 5 * 1000);
 		}
 		
 		options.soajs.log.debug("Getting Environment Record:", options.soajs.registry.code.toUpperCase());
@@ -628,7 +628,7 @@ let driver = {
 			}
 			
 			let mockedResponse = {
-				"env": options.params.env,
+				"env": options.registry.code,
 				"stackId": cluster.id,
 				"stackName": cluster.id,
 				"templateProperties": {
@@ -736,7 +736,7 @@ let driver = {
 										options.soajs.log.debug("Cluster and Network Deleted Successfully.");
 									}
 								});
-							}, 10 * 60 * 1000);
+							}, (process.env.SOAJS_CLOOSTRO_TEST)? 1 : 10 * 60 * 1000);
 						}
 					});
 				}
@@ -763,7 +763,7 @@ let driver = {
 				else {
 					setTimeout(function () {
 						checkIfDeleteIsDone(operation, vCb);
-					}, 60 * 1000);
+					}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 60 * 1000);
 				}
 			});
 		}
@@ -816,7 +816,7 @@ driver.deployService = function (options, cb){
 					return cb(error, deployedServiceDetails);
 				});
 			});
-		}, 1500);
+		}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 1500);
 	});
 };
 
@@ -841,7 +841,7 @@ driver.redeployService = function (options, cb){
 					return cb(error, deployedServiceDetails);
 				});
 			});
-		}, 1500);
+		}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 1500);
 	});
 };
 
