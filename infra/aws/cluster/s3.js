@@ -118,35 +118,7 @@ const AWSS3 = {
 					if(error){
 						return cb(error);
 					}
-
-					let tempFilePath = __dirname + options.templateName + new Date().getTime();
-					if(tempFilePath.indexOf(".json") === -1){
-						tempFilePath += ".json";
-					}
-
-					let tempFile = fs.createWriteStream(tempFilePath, {"encoding": "utf8"});
-					response.stream.pipe(tempFile);
-
-					tempFile.on('error', (error) => {
-						return cb(error);
-					});
-
-					tempFile.on('close', () => {
-						try {
-							let inputs = require(tempFilePath);
-
-							//clean up
-							fs.unlink(tempFilePath, (error) => {
-								if(error){
-									options.soajs.log.error(error);
-								}
-							});
-							return cb(null, inputs);
-						}
-						catch (e) {
-							return cb(e);
-						}
-					});
+					return cb(null, response.content);
 				});
 			});
 		});
@@ -158,15 +130,7 @@ const AWSS3 = {
 
 		s3.getObject({Bucket: 'soajs', Key: options.params.id}, (error, data) => {
 			if(error) { return cb(error); }
-
-			delete data.Body;
-			try{
-				let readStream = s3.getObject({Bucket: 'soajs', Key: options.params.id}).createReadStream();
-				return cb(null, {'info': {'contenttype': data.ContentType, size: data.ContentLength }, 'stream': readStream});
-			}
-			catch(e){
-				return cb(e);
-			}
+			return cb(null, {'info': {'contenttype': data.ContentType, size: data.ContentLength }, 'content': data.Body.toString()});
 		});
 
 	},
