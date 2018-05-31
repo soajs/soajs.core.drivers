@@ -51,34 +51,16 @@ let infra = {
 		0
 	],
 	"stack": {
-		"_id": "5b044a4df920c675412f82e3",
-		"api": {
-			"ipaddress": "192.168.61.51",
-			"token": "",
-			"network": "soajsnet",
-			"port": 443,
-			"protocol": "https"
+		"technology": "docker",
+		"options": {
+			"zone": "local"
 		},
-		"name": "local",
-		"technologies": [
-			"docker"
+		"environments": [
+			"BLOOOOM"
 		],
-		"templates": null,
-		"label": "Local Docker Machine",
-		"deployments": [
-			{
-				"technology": "docker",
-				"options": {
-					"zone": "local"
-				},
-				"environments": [
-					"BLOOOOM"
-				],
-				"loadBalancers": {},
-				"name": "htlocal091o3vvyh3z82",
-				"id": "htlocal091o3vvyh3z82"
-			}
-		]
+		"loadBalancers": {},
+		"name": "htlocal091o3vvyh3z82",
+		"id": "htlocal091o3vvyh3z82"
 	}
 };
 let registry = {
@@ -738,6 +720,7 @@ module.exports = function () {
 								"network": "soajsnet",
 								"workingDir": "/opt/soajs/deployer/"
 							},
+							"certificates": 'maybe',
 							"ports": [
 								{
 									"name": "http",
@@ -949,7 +932,8 @@ module.exports = function () {
 						"secrets": [{
 							"id": "!231",
 							"name": "test-secret-1",
-							"mountPath": "secretPath"
+							"mountPath": "secretPath",
+							"type": 'certificate'
 						}],
 						"sourceCode": {},
 						"version": 1
