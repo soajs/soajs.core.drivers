@@ -4,109 +4,44 @@ const assert = require("assert");
 const nock = require("nock");
 const sinon = require('sinon');
 const helper = require("../../../../helper.js");
-const services = helper.requireModule('./lib/container/docker/services.js');
-const utils = helper.requireModule('./lib/container/docker/utils.js');
-let dD = require('../../../../schemas/docker/local.js');
+const services = helper.requireModule('./lib/container/kubernetes/services.js');
+const utils = helper.requireModule('./lib/container/kubernetes/utils.js');
+let dD = require('../../../../schemas/kubernetes/local.js');
 
-describe("testing /lib/container/docker/services.js", function () {
+describe("testing /lib/container/kubernetes/services.js", function () {
 	
-	describe("calling listServices", function () {
+	describe.skip("calling listServices", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
-		let dockerData = dD();
-		let options = dockerData.deployer;
-		let servicesList = dockerData.serviceList;
-		let servicesTasks = dockerData.servicesTasks;
+		let kubeData = dD();
+		let options = kubeData.listServices;
 		
 		it("Success", function (done) {
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
-					listServices: (params, cb) => {
-						return cb(null, servicesList)
+					core : {
+						nodes : {
+							get : (params, cb) => {
+								return cb(null, [])
+							}
+						}
 					},
-					listTasks: (params, cb) => {
-						return cb(null, servicesTasks)
+					extensions : {
+						deployments : {
+							get : (params, cb) => {
+								return cb(null, [])
+							}
+						},
+						daemonsets : {
+							get : (params, cb) => {
+								return cb(null, [])
+							}
+						}
 					}
 				});
-			services.listServices(options, function (error, res) {
-				assert.equal(res.length, 1);
-				assert.equal(res[0].id, '2z3amlp3y2gg67f83rfrrznf9');
-				done();
-			});
-		});
-		
-		it("Success with no tasks", function (done) {
-			sinon
-				.stub(utils, 'getDeployer')
-				.yields(null, {
-					listServices: (params, cb) => {
-						return cb(null, servicesList)
-					}
-				});
-			options.params.excludeTasks = true;
-			services.listServices(options, function (error, res) {
-				assert.equal(res.length, 1);
-				assert.equal(res[0].id, '2z3amlp3y2gg67f83rfrrznf9');
-				done();
-			});
-		});
-		
-		it("Success with no labels", function (done) {
-			sinon
-				.stub(utils, 'getDeployer')
-				.yields(null, {
-					listServices: (params, cb) => {
-						return cb(null, servicesList)
-					}
-				});
-			options.params.excludeTasks = true;
-			delete servicesList[0].Spec.Labels['soajs.env.code'];
-			services.listServices(options, function (error, res) {
-				assert.equal(res.length, 1);
-				assert.equal(res[0].id, '2z3amlp3y2gg67f83rfrrznf9');
-				done();
-			});
-		});
-		
-		it("Success with no custom and no 'soajs.env.code' label", function (done) {
-			
-			sinon
-				.stub(utils, 'getDeployer')
-				.yields(null, {
-					listServices: (params, cb) => {
-						return cb(null, servicesList)
-					},
-					listTasks: (params, cb) => {
-						return cb(null, [])
-					}
-				});
-			options.params.custom = {};
-			options.params.excludeTasks = true;
-			services.listServices(options, function (error, res) {
-				assert.equal(res.length, 1);
-				done();
-			});
-		});
-		
-		it("Success with custom only", function (done) {
-			let dockerData = dD();
-			let options = dockerData.deployer;
-			let servicesList = dockerData.serviceList;
-			sinon
-				.stub(utils, 'getDeployer')
-				.yields(null, {
-					listServices: (params, cb) => {
-						return cb(null, servicesList)
-					},
-					listTasks: (params, cb) => {
-						return cb(null, [])
-					}
-				});
-			options.params.custom = {};
-			options.params.excludeTasks = true;
 			services.listServices(options, function (error, res) {
 				assert.equal(res.length, 0);
 				done();
@@ -114,16 +49,16 @@ describe("testing /lib/container/docker/services.js", function () {
 		});
 	});
 	
-	describe("calling deployService", function () {
-		let dockerData = dD();
-		let options = dockerData.mongoDeploy;
+	describe.skip("calling deployService", function () {
+		let kubeData = dD();
+		let options = kubeData.mongoDeploy;
 		afterEach((done) => {
 			sinon.restore();
 			nock.cleanAll();
 			done();
 		});
 		beforeEach((done) => {
-			
+
 			done();
 		});
 		it("Success deploy mongo", function (done) {
@@ -176,351 +111,20 @@ describe("testing /lib/container/docker/services.js", function () {
 						return cb(null, {id: "serviceId"})
 					},
 					listSecrets: (cb) => {
-						return cb(null, dockerData.secretList)
+						return cb(null, kubeData.secretList)
 					}
 				});
 			services.deployService(options, function (error, res) {
 				assert.equal(res.id, "serviceId");
-				done();
-			});
-		});
-		
-		it("Success deploy service", function (done) {
-			options = dockerData.constrollerDeploy;
-			let response = {
-				"statusCode": 200,
-				"body": {
-					"name": "latest",
-					"full_size": 244020253,
-					"images": [
-						{
-							"size": 244020253,
-							"architecture": "amd64",
-							"variant": null,
-							"features": null,
-							"os": "linux",
-							"os_version": null,
-							"os_features": null
-						}
-					],
-					"id": 169967,
-					"repository": 192252,
-					"creator": 274272,
-					"last_updater": 216113,
-					"last_updated": "2018-03-28T13:32:32.636155Z",
-					"image_id": null,
-					"v2": true
-				},
-				"headers": {
-					"date": "Tue, 29 May 2018 14:50:32 GMT",
-					"content-type": "application/json",
-					"transfer-encoding": "chunked",
-					"connection": "close",
-					"vary": "Cookie",
-					"x-frame-options": "deny",
-					"allow": "GET, DELETE, HEAD, OPTIONS",
-					"server": "nginx",
-					"x-content-type-options": "nosniff",
-					"x-xss-protection": "1; mode=block",
-					"strict-transport-security": "max-age=31536000"
-				},
-				"request": {
-					"uri": {
-						"protocol": "https:",
-						"slashes": true,
-						"auth": null,
-						"host": "hub.docker.com",
-						"port": 443,
-						"hostname": "hub.docker.com",
-						"hash": null,
-						"search": null,
-						"query": null,
-						"pathname": "/v2/repositories/soajsorg/soajs/tags/latest/",
-						"path": "/v2/repositories/soajsorg/soajs/tags/latest/",
-						"href": "https://hub.docker.com/v2/repositories/soajsorg/soajs/tags/latest/"
-					},
-					"method": "GET",
-					"headers": {
-						"cache-control": "no-cache",
-						"accept": "application/json",
-						"referer": "https://hub.docker.com/v2/repositories/soajsorg/soajs/tags/latest"
-					}
-				}
-			};
-			let nocks = nock('https://hub.docker.com', {'cache-control': 'no-cache'})
-				.get('/v2/repositories/soajsorg/soajs/tags/latest')
-				.reply(200, response);
-			sinon
-				.stub(utils, 'getDeployer')
-				.yields(null, {
-					createService: (params, cb) => {
-						return cb(null, {id: "serviceId"})
-					},
-					listSecrets: (cb) => {
-						return cb(null, dockerData.secretList)
-					}
-				});
-			services.deployService(options, function (error, res) {
-				assert.equal(res.id, "serviceId");
-				done();
-			});
-		});
-		
-		it("Success deploy service without command", function (done) {
-			options = dockerData.constrollerDeploy;
-			options.params.catalog.recipe.buildOptions.cmd.deploy.command = [];
-			options.params.catalog.recipe.buildOptions.cmd.deploy.args = [];
-			
-			let response = {
-				"statusCode": 200,
-				"body": {
-					"name": "latest",
-					"full_size": 244020253,
-					"images": [
-						{
-							"size": 244020253,
-							"architecture": "amd64",
-							"variant": null,
-							"features": null,
-							"os": "linux",
-							"os_version": null,
-							"os_features": null
-						}
-					],
-					"id": 169967,
-					"repository": 192252,
-					"creator": 274272,
-					"last_updater": 216113,
-					"last_updated": "2018-03-28T13:32:32.636155Z",
-					"image_id": null,
-					"v2": true
-				},
-				"headers": {
-					"date": "Tue, 29 May 2018 14:50:32 GMT",
-					"content-type": "application/json",
-					"transfer-encoding": "chunked",
-					"connection": "close",
-					"vary": "Cookie",
-					"x-frame-options": "deny",
-					"allow": "GET, DELETE, HEAD, OPTIONS",
-					"server": "nginx",
-					"x-content-type-options": "nosniff",
-					"x-xss-protection": "1; mode=block",
-					"strict-transport-security": "max-age=31536000"
-				},
-				"request": {
-					"uri": {
-						"protocol": "https:",
-						"slashes": true,
-						"auth": null,
-						"host": "hub.docker.com",
-						"port": 443,
-						"hostname": "hub.docker.com",
-						"hash": null,
-						"search": null,
-						"query": null,
-						"pathname": "/v2/repositories/soajsorg/soajs/tags/latest/",
-						"path": "/v2/repositories/soajsorg/soajs/tags/latest/",
-						"href": "https://hub.docker.com/v2/repositories/soajsorg/soajs/tags/latest/"
-					},
-					"method": "GET",
-					"headers": {
-						"cache-control": "no-cache",
-						"accept": "application/json",
-						"referer": "https://hub.docker.com/v2/repositories/soajsorg/soajs/tags/latest"
-					}
-				}
-			};
-			let nocks = nock('https://hub.docker.com', {'cache-control': 'no-cache'})
-				.get('/v2/repositories/soajsorg/soajs/tags/latest')
-				.reply(200, response);
-			sinon
-				.stub(utils, 'getDeployer')
-				.yields(null, {
-					createService: (params, cb) => {
-						return cb(null, {id: "serviceId"})
-					},
-					listSecrets: (cb) => {
-						return cb(null, dockerData.secretList)
-					}
-				});
-			services.deployService(options, function (error, res) {
-				assert.equal(res.id, "serviceId");
-				done();
-			});
-		});
-		
-		it("error deploy service no secrets found", function (done) {
-			options = dockerData.constrollerDeploy;
-			options.params.catalog.recipe.buildOptions.cmd.deploy.command = [];
-			options.params.catalog.recipe.buildOptions.cmd.deploy.args = [];
-			
-			let response = {
-				"statusCode": 200,
-				"body": {
-					"name": "latest",
-					"full_size": 244020253,
-					"images": [
-						{
-							"size": 244020253,
-							"architecture": "amd64",
-							"variant": null,
-							"features": null,
-							"os": "linux",
-							"os_version": null,
-							"os_features": null
-						}
-					],
-					"id": 169967,
-					"repository": 192252,
-					"creator": 274272,
-					"last_updater": 216113,
-					"last_updated": "2018-03-28T13:32:32.636155Z",
-					"image_id": null,
-					"v2": true
-				},
-				"headers": {
-					"date": "Tue, 29 May 2018 14:50:32 GMT",
-					"content-type": "application/json",
-					"transfer-encoding": "chunked",
-					"connection": "close",
-					"vary": "Cookie",
-					"x-frame-options": "deny",
-					"allow": "GET, DELETE, HEAD, OPTIONS",
-					"server": "nginx",
-					"x-content-type-options": "nosniff",
-					"x-xss-protection": "1; mode=block",
-					"strict-transport-security": "max-age=31536000"
-				},
-				"request": {
-					"uri": {
-						"protocol": "https:",
-						"slashes": true,
-						"auth": null,
-						"host": "hub.docker.com",
-						"port": 443,
-						"hostname": "hub.docker.com",
-						"hash": null,
-						"search": null,
-						"query": null,
-						"pathname": "/v2/repositories/soajsorg/soajs/tags/latest/",
-						"path": "/v2/repositories/soajsorg/soajs/tags/latest/",
-						"href": "https://hub.docker.com/v2/repositories/soajsorg/soajs/tags/latest/"
-					},
-					"method": "GET",
-					"headers": {
-						"cache-control": "no-cache",
-						"accept": "application/json",
-						"referer": "https://hub.docker.com/v2/repositories/soajsorg/soajs/tags/latest"
-					}
-				}
-			};
-			let nocks = nock('https://hub.docker.com', {'cache-control': 'no-cache'})
-				.get('/v2/repositories/soajsorg/soajs/tags/latest')
-				.reply(200, response);
-			sinon
-				.stub(utils, 'getDeployer')
-				.yields(null, {
-					createService: (params, cb) => {
-						return cb(null, {id: "serviceId"})
-					},
-					listSecrets: (cb) => {
-						return cb(null, [])
-					}
-				});
-			services.deployService(options, function (error, res) {
-				assert.equal(error.code, 725);
-				done();
-			});
-		});
-		
-		it("error deploy service without secrets", function (done) {
-			options = dockerData.constrollerDeploy;
-			options.params.inputmaskData.custom.secrets = [];
-			let response = {
-				"statusCode": 200,
-				"body": {
-					"name": "latest",
-					"full_size": 244020253,
-					"images": [
-						{
-							"size": 244020253,
-							"architecture": "amd64",
-							"variant": null,
-							"features": null,
-							"os": "linux",
-							"os_version": null,
-							"os_features": null
-						}
-					],
-					"id": 169967,
-					"repository": 192252,
-					"creator": 274272,
-					"last_updater": 216113,
-					"last_updated": "2018-03-28T13:32:32.636155Z",
-					"image_id": null,
-					"v2": true
-				},
-				"headers": {
-					"date": "Tue, 29 May 2018 14:50:32 GMT",
-					"content-type": "application/json",
-					"transfer-encoding": "chunked",
-					"connection": "close",
-					"vary": "Cookie",
-					"x-frame-options": "deny",
-					"allow": "GET, DELETE, HEAD, OPTIONS",
-					"server": "nginx",
-					"x-content-type-options": "nosniff",
-					"x-xss-protection": "1; mode=block",
-					"strict-transport-security": "max-age=31536000"
-				},
-				"request": {
-					"uri": {
-						"protocol": "https:",
-						"slashes": true,
-						"auth": null,
-						"host": "hub.docker.com",
-						"port": 443,
-						"hostname": "hub.docker.com",
-						"hash": null,
-						"search": null,
-						"query": null,
-						"pathname": "/v2/repositories/soajsorg/soajs/tags/latest/",
-						"path": "/v2/repositories/soajsorg/soajs/tags/latest/",
-						"href": "https://hub.docker.com/v2/repositories/soajsorg/soajs/tags/latest/"
-					},
-					"method": "GET",
-					"headers": {
-						"cache-control": "no-cache",
-						"accept": "application/json",
-						"referer": "https://hub.docker.com/v2/repositories/soajsorg/soajs/tags/latest"
-					}
-				}
-			};
-			let nocks = nock('https://hub.docker.com', {'cache-control': 'no-cache'})
-				.get('/v2/repositories/soajsorg/soajs/tags/latest')
-				.reply(200, response);
-			sinon
-				.stub(utils, 'getDeployer')
-				.yields(null, {
-					createService: (params, cb) => {
-						return cb(null, {id: "serviceId"})
-					},
-					listSecrets: (cb) => {
-						return cb(null, [])
-					}
-				});
-			services.deployService(options, function (error, res) {
-				assert.equal(res.id, 'serviceId');
 				done();
 			});
 		});
 	});
-	
-	describe("calling redeployService", function () {
-		
-		let dockerData = dD();
-		let options = dockerData.mongoReDeploy;
+
+	/*describe.skip("calling redeployService", function () {
+
+		let kubeData = dD();
+		let options = kubeData.mongoReDeploy;
 		afterEach((done) => {
 			sinon.restore();
 			nock.cleanAll();
@@ -576,12 +180,12 @@ describe("testing /lib/container/docker/services.js", function () {
 				.stub(utils, 'getDeployer')
 				.yields(null, {
 					listSecrets: (cb) => {
-						return cb(null, dockerData.secretList)
+						return cb(null, kubeData.secretList)
 					},
 					getService: (params) => {
 						return {
 							inspect: (cb) => {
-								return cb(null, dockerData.inspectService);
+								return cb(null, kubeData.inspectService);
 							},
 							update: (param, cb) => {
 								return cb(null, true);
@@ -597,19 +201,19 @@ describe("testing /lib/container/docker/services.js", function () {
 				done();
 			});
 		});
-		
+
 		it("Success with action 'rebuild' mongo no Spec", function (done) {
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
 					listSecrets: (cb) => {
-						return cb(null, dockerData.secretList)
+						return cb(null, kubeData.secretList)
 					},
 					getService: (params) => {
 						return {
 							inspect: (cb) => {
-								dockerData.inspectService.Spec = {};
-								return cb(null, dockerData.inspectService);
+								kubeData.inspectService.Spec = {};
+								return cb(null, kubeData.inspectService);
 							},
 							update: (param, cb) => {
 								return cb(null, true);
@@ -625,19 +229,19 @@ describe("testing /lib/container/docker/services.js", function () {
 				done();
 			});
 		});
-		
+
 		it("Success with action 'redeploy' no Spec", function (done) {
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
 					listSecrets: (cb) => {
-						return cb(null, dockerData.secretList)
+						return cb(null, kubeData.secretList)
 					},
 					getService: (params) => {
 						return {
 							inspect: (cb) => {
-								dockerData.inspectService.Spec = {};
-								return cb(null, dockerData.inspectService);
+								kubeData.inspectService.Spec = {};
+								return cb(null, kubeData.inspectService);
 							},
 							update: (param, cb) => {
 								return cb(null, true);
@@ -653,20 +257,20 @@ describe("testing /lib/container/docker/services.js", function () {
 				done();
 			});
 		});
-		
+
 		it("Success with action 'redeploy'", function (done) {
-			let dockerData = dD();
-			let options = dockerData.mongoReDeploy;
+			let kubeData = dD();
+			let options = kubeData.mongoReDeploy;
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
 					listSecrets: (cb) => {
-						return cb(null, dockerData.secretList)
+						return cb(null, kubeData.secretList)
 					},
 					getService: (params) => {
 						return {
 							inspect: (cb) => {
-								return cb(null, dockerData.inspectService);
+								return cb(null, kubeData.inspectService);
 							},
 							update: (param, cb) => {
 								return cb(null, true);
@@ -682,7 +286,7 @@ describe("testing /lib/container/docker/services.js", function () {
 				done();
 			});
 		});
-		
+
 		it("Success with action 'rebuild' controller", function (done) {
 			let response = {
 				"statusCode": 200,
@@ -747,18 +351,18 @@ describe("testing /lib/container/docker/services.js", function () {
 			let nocks = nock('https://hub.docker.com', {'cache-control': 'no-cache'})
 				.get('/v2/repositories/soajsorg/soajs/tags/latest')
 				.reply(200, response);
-			let dockerData = dD();
-			let options = dockerData.controllerRedeploy;
+			let kubeData = dD();
+			let options = kubeData.controllerRedeploy;
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
 					listSecrets: (cb) => {
-						return cb(null, dockerData.secretList)
+						return cb(null, kubeData.secretList)
 					},
 					getService: (params) => {
 						return {
 							inspect: (cb) => {
-								return cb(null, dockerData.inspectController);
+								return cb(null, kubeData.inspectController);
 							},
 							update: (param, cb) => {
 								return cb(null, true);
@@ -774,7 +378,7 @@ describe("testing /lib/container/docker/services.js", function () {
 				done();
 			});
 		});
-		
+
 		it("Error no secrets found", function (done) {
 			let response = {
 				"statusCode": 200,
@@ -839,19 +443,19 @@ describe("testing /lib/container/docker/services.js", function () {
 			let nocks = nock('https://hub.docker.com', {'cache-control': 'no-cache'})
 				.get('/v2/repositories/soajsorg/soajs/tags/latest')
 				.reply(200, response);
-			let dockerData = dD();
-			let options = dockerData.controllerRedeploy;
+			let kubeData = dD();
+			let options = kubeData.controllerRedeploy;
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
 					listSecrets: (cb) => {
-						dockerData.secretList[0].Spec.Name = "notFound";
-						return cb(null, dockerData.secretList)
+						kubeData.secretList[0].Spec.Name = "notFound";
+						return cb(null, kubeData.secretList)
 					},
 					getService: (params) => {
 						return {
 							inspect: (cb) => {
-								return cb(null, dockerData.inspectController);
+								return cb(null, kubeData.inspectController);
 							},
 							update: (param, cb) => {
 								return cb(null, true);
@@ -867,19 +471,19 @@ describe("testing /lib/container/docker/services.js", function () {
 				done();
 			});
 		});
-		
+
 		it("Success with action 'test'", function (done) {
-		
+
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
 					listSecrets: (cb) => {
-						return cb(null, dockerData.secretList)
+						return cb(null, kubeData.secretList)
 					},
 					getService: (params) => {
 						return {
 							inspect: (cb) => {
-								return cb(null, dockerData.inspectService);
+								return cb(null, kubeData.inspectService);
 							},
 							update: (param, cb) => {
 								return cb(null, true);
@@ -896,11 +500,11 @@ describe("testing /lib/container/docker/services.js", function () {
 			});
 		});
 	});
-	
-	describe("calling scaleService", function () {
-		
-		let dockerData = dD();
-		let options = dockerData.mongoDeploy;
+
+	describe.skip("calling scaleService", function () {
+
+		let kubeData = dD();
+		let options = kubeData.mongoDeploy;
 		options.params = {
 			"id": "9xabk0pf9wdfdul8vh913jvqs",
 			"scale": 2
@@ -919,7 +523,7 @@ describe("testing /lib/container/docker/services.js", function () {
 					getService: () => {
 						return {
 							inspect: (cb) => {
-								return cb(null, dockerData.inspectService);
+								return cb(null, kubeData.inspectService);
 							},
 							update: (param, cb) => {
 								return cb(null, true);
@@ -933,10 +537,10 @@ describe("testing /lib/container/docker/services.js", function () {
 			});
 		});
 	});
-	
-	describe("calling inspectService", function () {
-		let dockerData = dD();
-		let options = dockerData.mongoDeploy;
+
+	describe.skip("calling inspectService", function () {
+		let kubeData = dD();
+		let options = kubeData.mongoDeploy;
 		options.params = {
 			"id": "9xabk0pf9wdfdul8vh913jvqs"
 		};
@@ -951,16 +555,16 @@ describe("testing /lib/container/docker/services.js", function () {
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
-					
+
 					getService: () => {
 						return {
 							inspect: (cb) => {
-								return cb(null, dockerData.inspectService);
+								return cb(null, kubeData.inspectService);
 							}
 						};
 					},
 					listTasks: (params, cb) => {
-						return cb(null, dockerData.servicesTasks)
+						return cb(null, kubeData.servicesTasks)
 					}
 				});
 			services.inspectService(options, function (error, res) {
@@ -969,23 +573,23 @@ describe("testing /lib/container/docker/services.js", function () {
 				done();
 			});
 		});
-		
+
 		it("Success", function (done) {
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
-					
+
 					getService: () => {
 						return {
 							inspect: (cb) => {
-								delete dockerData.inspectService.Endpoint.Spec.Ports[0].PublishedPort;
-								delete dockerData.inspectService.Endpoint.Ports[0].PublishedPort;
-								return cb(null, dockerData.inspectService);
+								delete kubeData.inspectService.Endpoint.Spec.Ports[0].PublishedPort;
+								delete kubeData.inspectService.Endpoint.Ports[0].PublishedPort;
+								return cb(null, kubeData.inspectService);
 							}
 						};
 					},
 					listTasks: (params, cb) => {
-						return cb(null, dockerData.servicesTasks)
+						return cb(null, kubeData.servicesTasks)
 					}
 				});
 			services.inspectService(options, function (error, res) {
@@ -994,7 +598,7 @@ describe("testing /lib/container/docker/services.js", function () {
 				done();
 			});
 		});
-		
+
 		it("Success excludeTask on", function (done) {
 			sinon
 				.stub(utils, 'getDeployer')
@@ -1002,7 +606,7 @@ describe("testing /lib/container/docker/services.js", function () {
 					getService: () => {
 						return {
 							inspect: (cb) => {
-								return cb(null, dockerData.inspectService);
+								return cb(null, kubeData.inspectService);
 							},
 							update: (param, cb) => {
 								return cb(null, true);
@@ -1010,7 +614,7 @@ describe("testing /lib/container/docker/services.js", function () {
 						};
 					},
 					listTasks: (params, cb) => {
-						return cb(null, dockerData.servicesTasks)
+						return cb(null, kubeData.servicesTasks)
 					}
 				});
 			options.params.excludeTasks = true;
@@ -1022,10 +626,10 @@ describe("testing /lib/container/docker/services.js", function () {
 			});
 		});
 	});
-	
-	describe("calling findService", function () {
-		let dockerData = dD();
-		let options = dockerData.mongoDeploy;
+
+	describe.skip("calling findService", function () {
+		let kubeData = dD();
+		let options = kubeData.mongoDeploy;
 		options.params = {
 			env : "bloooom",
 			serviceName : "controller",
@@ -1042,9 +646,9 @@ describe("testing /lib/container/docker/services.js", function () {
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
-					
+
 					listServices: (params, cb) => {
-						return cb(null, dockerData.serviceList)
+						return cb(null, kubeData.serviceList)
 					}
 				});
 			services.findService(options, function (error, res) {
@@ -1052,17 +656,17 @@ describe("testing /lib/container/docker/services.js", function () {
 				done();
 			});
 		});
-		
+
 		it.skip("Success", function (done) {
-			
+
 			//increase branches
 			done();
 		});
 	});
-	
-	describe("calling  deleteService", function () {
-		let dockerData = dD();
-		let options = dockerData.mongoDeploy;
+
+	describe.skip("calling  deleteService", function () {
+		let kubeData = dD();
+		let options = kubeData.mongoDeploy;
 		options.params = {
 			"id": "9xabk0pf9wdfdul8vh913jvqs"
 		};
@@ -1091,11 +695,11 @@ describe("testing /lib/container/docker/services.js", function () {
 			});
 		});
 	});
-	
-	describe("calling  getLatestVersion", function () {
-		
-		let dockerData = dD();
-		let options = dockerData.mongoDeploy;
+
+	describe.skip("calling  getLatestVersion", function () {
+
+		let kubeData = dD();
+		let options = kubeData.mongoDeploy;
 		options.params = {
 			env : "bloooom",
 			serviceName : "controller"
@@ -1107,14 +711,14 @@ describe("testing /lib/container/docker/services.js", function () {
 		beforeEach((done) => {
 			done();
 		});
-		
+
 		it("Success", function (done) {
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
-					
+
 					listServices: (params, cb) => {
-						return cb(null, dockerData.serviceList)
+						return cb(null, kubeData.serviceList)
 					}
 				});
 			services.getLatestVersion(options, function (error, res) {
@@ -1122,18 +726,18 @@ describe("testing /lib/container/docker/services.js", function () {
 				done();
 			});
 		});
-		
+
 		it.skip("Success", function (done) {
-			
+
 			//increase branches
 			done();
 		});
 	});
-	
-	describe("calling  getServiceHost", function () {
-		
-		let dockerData = dD();
-		let options = dockerData.mongoDeploy;
+
+	describe.skip("calling  getServiceHost", function () {
+
+		let kubeData = dD();
+		let options = kubeData.mongoDeploy;
 		options.params = {
 			env : "bloooom",
 			serviceName : "controller",
@@ -1150,9 +754,9 @@ describe("testing /lib/container/docker/services.js", function () {
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
-					
+
 					listServices: (params, cb) => {
-						return cb(null, dockerData.serviceList)
+						return cb(null, kubeData.serviceList)
 					}
 				});
 			services.getServiceHost(options, function (error, res) {
@@ -1160,12 +764,12 @@ describe("testing /lib/container/docker/services.js", function () {
 				done();
 			});
 		});
-		
+
 		it("Success", function (done) {
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
-					
+
 					listServices: (params, cb) => {
 						return cb(null, [])
 					}
@@ -1175,11 +779,11 @@ describe("testing /lib/container/docker/services.js", function () {
 				done();
 			});
 		});
-		
+
 		it.skip("Success", function (done) {
-			
+
 			//increase branches
 			done();
 		});
-	});
+	});*/
 });
