@@ -7,6 +7,7 @@ const utils = helper.requireModule('./infra/utils.js');
 const dockerDriver = helper.requireModule("./container/docker/index.js");
 const kubernetesDriver = helper.requireModule("./container/kubernetes/index.js");
 const dockerUtils = helper.requireModule("./lib/container/docker/utils.js");
+const kubeUtils = helper.requireModule("./lib/container/kubernetes/utils.js");
 
 const options = require('../schemas/docker/local');
 
@@ -22,21 +23,82 @@ let kuberOptions = JSON.parse(JSON.stringify(methodOptions));
 describe("testing index.js -- Calling docker local", function () {
 
     describe("calling execute authenticate", function () {
-        sinon
-            .stub(dockerUtils, "getDeployer")
-            .yields(null , {
-                listNetworks : function ({},cb) {
-                    return cb(null, [{
-                        "name" : 'soajsnet'
-                    }])
-                },
-                createNetwork : function ({}, cb) {
-                    return cb(null, true)
-                }
-            });
 
         let method = 'authenticate';
         it("Success", function (done) {
+            sinon
+                .stub(dockerUtils, "getDeployer")
+                .yields(null , {
+                    listNetworks : function ({},cb) {
+                        return cb(null, [{
+                            "Name" : 'soajsnet'
+                        }])
+                    },
+                    createNetwork : function ({}, cb) {
+                        return cb(null, true)
+                    }
+                });
+            index.execute(driverOptions, method, methodOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+        it("Fail", function (done) {
+            sinon
+                .stub(dockerUtils, "getDeployer")
+                .yields(null , {
+                    listNetworks : function ({},cb) {
+                        return cb(null, [{
+                            "test" : 'test'
+                        }])
+                    },
+                    createNetwork : function ({}, cb) {
+                        return cb(null, true)
+                    }
+                });
+            index.execute(driverOptions, method, methodOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+        it("Fail in deployer", function (done) {
+            sinon
+                .stub(dockerUtils, "getDeployer")
+                .yields("error" , null);
+            index.execute(driverOptions, method, methodOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("Fail in listNetworks", function (done) {
+            sinon
+                .stub(dockerUtils, "getDeployer")
+                .yields(null , {
+                    listNetworks : function ({},cb) {
+                        return cb("errorrr", null)
+                    },
+                    createNetwork : function ({}, cb) {
+                        return cb("eroor", null)
+                    }
+                });
+            index.execute(driverOptions, method, methodOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("Fail in createNetwork", function (done) {
+            sinon
+                .stub(dockerUtils, "getDeployer")
+                .yields(null , {
+                    listNetworks : function ({},cb) {
+                        return cb(null, [])
+                    },
+                    createNetwork : function ({}, cb) {
+                        return cb("eroor", null)
+                    }
+                });
             index.execute(driverOptions, method, methodOptions, function () {
                 sinon.restore();
                 done();
@@ -178,6 +240,54 @@ describe("testing index.js -- Calling docker local", function () {
                 done();
             })
         });
+
+        it("Fail deployService", function (done) {
+            sinon
+                .stub(dockerDriver, 'deployService')
+                .yields("errro", null);
+            sinon
+                .stub(dockerDriver, 'inspectService')
+                .yields(null, true);
+            sinon
+                .stub(utils, 'updateEnvSettings')
+                .yields(null, true);
+            index.execute(driverOptions, method, methodOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("Fail inspect", function (done) {
+            sinon
+                .stub(dockerDriver, 'deployService')
+                .yields(null, true);
+            sinon
+                .stub(dockerDriver, 'inspectService')
+                .yields("eroooor", []);
+            sinon
+                .stub(utils, 'updateEnvSettings')
+                .yields(null, true);
+            index.execute(driverOptions, method, methodOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("Fail update", function (done) {
+            sinon
+                .stub(dockerDriver, 'deployService')
+                .yields(null, true);
+            sinon
+                .stub(dockerDriver, 'inspectService')
+                .yields(null, []);
+            sinon
+                .stub(utils, 'updateEnvSettings')
+                .yields("erooorr", null);
+            index.execute(driverOptions, method, methodOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
     });
 
     describe("calling execute redeployService", function () {
@@ -209,6 +319,123 @@ describe("testing index.js -- Calling kubernetes local", function () {
     describe("calling execute authenticate", function () {
         let method = 'authenticate';
         it("Success", function (done) {
+            sinon
+                .stub(kubeUtils, "getDeployer")
+                .yields(null , {
+                    core :{
+                        namespaces : {
+                            get : function ({},cb) {
+                                return cb(null, {
+                                    "items" : [{
+                                    "metadata" : {
+                                        "name": 'soajs'
+                                    }
+                                }
+                                ]})
+                            },
+                        },
+                        namespace : {
+                            post : function ({},cb) {
+                                return cb(null, true)
+                            },
+                        }
+                    },
+
+                    createNetwork : function ({}, cb) {
+                        return cb(null, true)
+                    }
+                });
+            index.execute(kuberDriver, method, kuberOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("Success ", function (done) {
+            sinon
+                .stub(kubeUtils, "getDeployer")
+                .yields(null , {
+                    core :{
+                        namespaces : {
+                            get : function ({},cb) {
+                                return cb(null, [])
+                            },
+                        },
+                        namespace : {
+                            post : function ({},cb) {
+                                return cb(null, true)
+                            },
+                        }
+                    },
+
+                    createNetwork : function ({}, cb) {
+                        return cb(null, true)
+                    }
+                });
+            index.execute(kuberDriver, method, kuberOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("fails getDeployer ", function (done) {
+            sinon
+                .stub(kubeUtils, "getDeployer")
+                .yields("errorr" , null);
+            index.execute(kuberDriver, method, kuberOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("fail namespace get ", function (done) {
+            sinon
+                .stub(kubeUtils, "getDeployer")
+                .yields(null , {
+                    core :{
+                        namespaces : {
+                            get : function ({},cb) {
+                                return cb("errr", null)
+                            },
+                        },
+                        namespace : {
+                            post : function ({},cb) {
+                                return cb(null, true)
+                            },
+                        }
+                    },
+
+                    createNetwork : function ({}, cb) {
+                        return cb(null, true)
+                    }
+                });
+            index.execute(kuberDriver, method, kuberOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("fail namespace post ", function (done) {
+            sinon
+                .stub(kubeUtils, "getDeployer")
+                .yields(null , {
+                    core :{
+                        namespaces : {
+                            get : function ({},cb) {
+                                return cb(null, [])
+                            },
+                        },
+                        namespace : {
+                            post : function ({},cb) {
+                                return cb("errror", null)
+                            },
+                        }
+                    },
+
+                    createNetwork : function ({}, cb) {
+                        return cb(null, true)
+                    }
+                });
             index.execute(kuberDriver, method, kuberOptions, function () {
                 sinon.restore();
                 done();
@@ -345,6 +572,54 @@ describe("testing index.js -- Calling kubernetes local", function () {
             sinon
                 .stub(utils, 'updateEnvSettings')
                 .yields(null, true);
+            index.execute(kuberDriver, method, kuberOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("fail deployService", function (done) {
+            sinon
+                .stub(kubernetesDriver, 'deployService')
+                .yields("errror", null);
+            sinon
+                .stub(kubernetesDriver, 'inspectService')
+                .yields(null, true);
+            sinon
+                .stub(utils, 'updateEnvSettings')
+                .yields(null, true);
+            index.execute(kuberDriver, method, kuberOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("fail deployService", function (done) {
+            sinon
+                .stub(kubernetesDriver, 'deployService')
+                .yields(null, true);
+            sinon
+                .stub(kubernetesDriver, 'inspectService')
+                .yields("error", null);
+            sinon
+                .stub(utils, 'updateEnvSettings')
+                .yields(null, true);
+            index.execute(kuberDriver, method, kuberOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("fail deployService", function (done) {
+            sinon
+                .stub(kubernetesDriver, 'deployService')
+                .yields(null, true);
+            sinon
+                .stub(kubernetesDriver, 'inspectService')
+                .yields(null, true);
+            sinon
+                .stub(utils, 'updateEnvSettings')
+                .yields("error", null);
             index.execute(kuberDriver, method, kuberOptions, function () {
                 sinon.restore();
                 done();
