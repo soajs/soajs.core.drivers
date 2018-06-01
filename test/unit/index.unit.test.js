@@ -7,6 +7,7 @@ const utils = helper.requireModule('./infra/utils.js');
 const dockerDriver = helper.requireModule("./container/docker/index.js");
 const kubernetesDriver = helper.requireModule("./container/kubernetes/index.js");
 const dockerUtils = helper.requireModule("./lib/container/docker/utils.js");
+const kubeUtils = helper.requireModule("./lib/container/kubernetes/utils.js");
 
 const options = require('../schemas/docker/local');
 
@@ -318,10 +319,127 @@ describe("testing index.js -- Calling kubernetes local", function () {
     describe("calling execute authenticate", function () {
         let method = 'authenticate';
         it("Success", function (done) {
-            //index.execute(kuberDriver, method, kuberOptions, function () {
+            sinon
+                .stub(kubeUtils, "getDeployer")
+                .yields(null , {
+                    core :{
+                        namespaces : {
+                            get : function ({},cb) {
+                                return cb(null, {
+                                    "items" : [{
+                                    "metadata" : {
+                                        "name": 'soajs'
+                                    }
+                                }
+                                ]})
+                            },
+                        },
+                        namespace : {
+                            post : function ({},cb) {
+                                return cb(null, true)
+                            },
+                        }
+                    },
+
+                    createNetwork : function ({}, cb) {
+                        return cb(null, true)
+                    }
+                });
+            index.execute(kuberDriver, method, kuberOptions, function () {
                 sinon.restore();
                 done();
-           // })
+            })
+        });
+
+        it("Success ", function (done) {
+            sinon
+                .stub(kubeUtils, "getDeployer")
+                .yields(null , {
+                    core :{
+                        namespaces : {
+                            get : function ({},cb) {
+                                return cb(null, [])
+                            },
+                        },
+                        namespace : {
+                            post : function ({},cb) {
+                                return cb(null, true)
+                            },
+                        }
+                    },
+
+                    createNetwork : function ({}, cb) {
+                        return cb(null, true)
+                    }
+                });
+            index.execute(kuberDriver, method, kuberOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("fails getDeployer ", function (done) {
+            sinon
+                .stub(kubeUtils, "getDeployer")
+                .yields("errorr" , null);
+            index.execute(kuberDriver, method, kuberOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("fail namespace get ", function (done) {
+            sinon
+                .stub(kubeUtils, "getDeployer")
+                .yields(null , {
+                    core :{
+                        namespaces : {
+                            get : function ({},cb) {
+                                return cb("errr", null)
+                            },
+                        },
+                        namespace : {
+                            post : function ({},cb) {
+                                return cb(null, true)
+                            },
+                        }
+                    },
+
+                    createNetwork : function ({}, cb) {
+                        return cb(null, true)
+                    }
+                });
+            index.execute(kuberDriver, method, kuberOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("fail namespace post ", function (done) {
+            sinon
+                .stub(kubeUtils, "getDeployer")
+                .yields(null , {
+                    core :{
+                        namespaces : {
+                            get : function ({},cb) {
+                                return cb(null, [])
+                            },
+                        },
+                        namespace : {
+                            post : function ({},cb) {
+                                return cb("errror", null)
+                            },
+                        }
+                    },
+
+                    createNetwork : function ({}, cb) {
+                        return cb(null, true)
+                    }
+                });
+            index.execute(kuberDriver, method, kuberOptions, function () {
+                sinon.restore();
+                done();
+            })
         });
     });
 
@@ -454,6 +572,54 @@ describe("testing index.js -- Calling kubernetes local", function () {
             sinon
                 .stub(utils, 'updateEnvSettings')
                 .yields(null, true);
+            index.execute(kuberDriver, method, kuberOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("fail deployService", function (done) {
+            sinon
+                .stub(kubernetesDriver, 'deployService')
+                .yields("errror", null);
+            sinon
+                .stub(kubernetesDriver, 'inspectService')
+                .yields(null, true);
+            sinon
+                .stub(utils, 'updateEnvSettings')
+                .yields(null, true);
+            index.execute(kuberDriver, method, kuberOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("fail deployService", function (done) {
+            sinon
+                .stub(kubernetesDriver, 'deployService')
+                .yields(null, true);
+            sinon
+                .stub(kubernetesDriver, 'inspectService')
+                .yields("error", null);
+            sinon
+                .stub(utils, 'updateEnvSettings')
+                .yields(null, true);
+            index.execute(kuberDriver, method, kuberOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("fail deployService", function (done) {
+            sinon
+                .stub(kubernetesDriver, 'deployService')
+                .yields(null, true);
+            sinon
+                .stub(kubernetesDriver, 'inspectService')
+                .yields(null, true);
+            sinon
+                .stub(utils, 'updateEnvSettings')
+                .yields("error", null);
             index.execute(kuberDriver, method, kuberOptions, function () {
                 sinon.restore();
                 done();
