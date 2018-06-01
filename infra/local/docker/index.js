@@ -1,11 +1,10 @@
 'use strict';
 
 const randomString = require("randomstring");
-const dockerode = require('dockerode');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 const dockerDriver = require("../../../lib/container/docker/index.js");
-
+const dockerUtils = require("../../../lib/container/docker/utils.js");
 const infraUtils = require("../../utils");
 
 let driver = {
@@ -15,57 +14,54 @@ let driver = {
 	 * @returns {*}
 	 */
 	"authenticate": function(options, cb){
-		const deployer = new dockerode({
-			protocol: "https",
-			port: 443,
-			host: options.infra.api.ipaddress,
-			headers: {
-				'token': options.infra.api.token
+		dockerUtils.getDeployer(options, (error, deployer) => {
+			if (error) {
+				return cb(error);
 			}
-		});
-		
-		let networkParams = {
-			Name: 'soajsnet',
-			Driver: 'overlay',
-			Internal: false,
-			Attachable: true,
-			CheckDuplicate: true,
-			EnableIPv6: false,
-			IPAM: {
-				Driver: 'default'
-			}
-		};
-		deployer.listNetworks({}, (err, networks) => {
-			if(err){
-				return cb(err);
-			}
-			
-			let found = false;
-			networks.forEach((oneNetwork) => {
-				if(oneNetwork.Name === 'soajsnet'){
-					found = true;
+			let networkParams = {
+				Name: 'soajsnet',
+				Driver: 'overlay',
+				Internal: false,
+				Attachable: true,
+				CheckDuplicate: true,
+				EnableIPv6: false,
+				IPAM: {
+					Driver: 'default'
 				}
-			});
-			
-			if(found){
-				options.infra.api.network = 'soajsnet';
-				options.infra.api.port = 443;
-				options.infra.api.protocol = 'https';
-				return cb(null, true);
-			}
-			else{
-				deployer.createNetwork(networkParams, (err) => {
-					if (err) {
-						return cb(err);
+			};
+			deployer.listNetworks({}, (err, networks) => {
+				if(err){
+					return cb(err);
+				}
+				
+				let found = false;
+				networks.forEach((oneNetwork) => {
+					if(oneNetwork.Name === 'soajsnet'){
+						found = true;
 					}
-					
+				});
+				
+				if(found){
 					options.infra.api.network = 'soajsnet';
 					options.infra.api.port = 443;
 					options.infra.api.protocol = 'https';
 					return cb(null, true);
-				});
-			}
+				}
+				else{
+					deployer.createNetwork(networkParams, (err) => {
+						if (err) {
+							return cb(err);
+						}
+						
+						options.infra.api.network = 'soajsnet';
+						options.infra.api.port = 443;
+						options.infra.api.protocol = 'https';
+						return cb(null, true);
+					});
+				}
+			});
 		});
+		
 	},
 
 	"getExtras": function(options, cb) {
