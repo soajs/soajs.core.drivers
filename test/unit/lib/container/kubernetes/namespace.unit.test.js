@@ -68,10 +68,7 @@ describe("testing /lib/container/kubernetes/namespace.js", function () {
 					},
 				});
 			secrets.listNameSpaces(options, function (error, res) {
-				// assert.equal(res.name, "test-secret-2");
-				// assert.equal(res.uid, "secretID");
-				console.log(error)
-				console.log(res)
+				assert.equal(res.length, 5);
 				done();
 			});
 		});
@@ -91,7 +88,7 @@ describe("testing /lib/container/kubernetes/namespace.js", function () {
 		
 		it("Success", function (done) {
 			kubeData = dD();
-			options = kubeData.deleteSecret;
+			options = kubeData.deployer;
 			options.namespace = 'test';
 			sinon
 				.stub(utils, 'getDeployer')

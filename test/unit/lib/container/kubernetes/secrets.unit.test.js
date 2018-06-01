@@ -18,7 +18,7 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 		
 		it("Success", function (done) {
 			kubeData = dD();
-			options = kubeData.deleteSecret;
+			options = kubeData.deployer;
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
@@ -45,7 +45,6 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 		});
 		
 		it("Success with namespace provided", function (done) {
-			options = kubeData.deleteSecret;
 			let namespaces = () => {
 				return {
 					secrets: {
@@ -87,8 +86,14 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 		});
 		it("Success 1 secret", function (done) {
 			kubeData = dD();
-			options = kubeData.createSecret;
-			console.log(options.params)
+			options = kubeData.deployer;
+			options.params = {
+				"name": "test-secret-1",
+				"data": {
+					"test-secret-1": "123456"
+				},
+				"type": "Opaque"
+			};
 			let namespaces = () => {
 				return {
 					secrets: {
@@ -161,7 +166,10 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 		});
 		it("Success", function (done) {
 			kubeData = dD();
-			options = kubeData.deleteSecret;
+			options = kubeData.deployer;
+			options.params = {
+				"name": "test-secret-1"
+			};
 			let namespaces = () => {
 				return {
 					secrets: {
@@ -196,7 +204,7 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 		});
 		it("Success", function (done) {
 			kubeData = dD();
-			options = kubeData.deleteSecret;
+			options = kubeData.deployer;
 			let namespaces = () => {
 				return {
 					secrets: {
@@ -232,7 +240,10 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 		});
 		it("Success with namespace", function (done) {
 			kubeData = dD();
-			options = kubeData.deleteSecret;
+			options = kubeData.deployer;
+			options.params = {
+				"name": "test-secret-1"
+			};
 			options.params.namespace = 'soajs';
 			let namespaces = () => {
 				return {

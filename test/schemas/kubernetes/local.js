@@ -474,20 +474,6 @@ module.exports = function () {
 				}
 			]
 		},
-		"createSecret": Object.assign({
-			"params": {
-				"name": "test-secret-1",
-				"data": {
-					"test-secret-1": "123456"
-				},
-				"type": "Opaque"
-			}
-		}, deployer),
-		"deleteSecret": Object.assign({
-			"params": {
-				"name": "test-secret-1"
-			}
-		}, deployer),
 		"secret": {
 			"kind": "Secret",
 			"apiVersion": "v1",

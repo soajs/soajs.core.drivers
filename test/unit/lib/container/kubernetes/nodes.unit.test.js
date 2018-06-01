@@ -19,6 +19,9 @@ describe("testing /lib/container/kubernetes/nodes.js", function () {
 		it("Success", function (done) {
 			kubeData = dD();
 			options = kubeData.deployer;
+			options.params = {
+				id: "docker-for-desktop"
+			};
 			options.namespace = 'test';
 			sinon
 				.stub(utils, 'getDeployer')
@@ -63,16 +66,13 @@ describe("testing /lib/container/kubernetes/nodes.js", function () {
 					},
 				});
 			secrets.listNodes(options, function (error, res) {
-				// assert.equal(res.name, "test-secret-2");
-				// assert.equal(res.uid, "secretID");
-				console.log(error)
-				console.log(res)
+				assert.equal(res[0].id, "docker-for-desktop");
 				done();
 			});
 		});
 	});
 	
-	describe.skip("calling removeNode", function () {
+	describe("calling removeNode", function () {
 		
 		let kubeData;
 		let options;
@@ -86,20 +86,22 @@ describe("testing /lib/container/kubernetes/nodes.js", function () {
 		
 		it("Success", function (done) {
 			kubeData = dD();
-			options = kubeData.deleteSecret;
-			options.namespace = 'test';
+			options = kubeData.deployer;
+			options.params = {
+				id: 'test'
+			};
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
 					core: {
-						namespaces: {
+						node: {
 							delete: (params, cb)=>{
-								return cb(null, kubeData.namespaces);
+								return cb(null, true);
 							}
 						}
 					},
 				});
-			secrets.deleteNameSpace(options, function (error, res) {
+			secrets.removeNode(options, function (error, res) {
 				assert.ok(res);
 				done();
 			});
@@ -109,7 +111,7 @@ describe("testing /lib/container/kubernetes/nodes.js", function () {
 	});
 	
 	
-	describe.skip("calling updateNode", function () {
+	describe("calling updateNode", function () {
 		
 		let kubeData;
 		let options;
@@ -121,17 +123,52 @@ describe("testing /lib/container/kubernetes/nodes.js", function () {
 			done();
 		});
 		
-		it("Success", function (done) {
+		it("Success availability active", function (done) {
 			kubeData = dD();
-			options = kubeData.deleteSecret;
-			options.namespace = 'test';
+			options = kubeData.deployer;
+			options.params = {
+				availability: 'active'
+			};
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
 					core: {
-						namespaces: {
-							delete: (params, cb)=>{
-								return cb(null, kubeData.namespaces);
+						node: {
+							get: (params, cb)=>{
+								return cb(null, kubeData.nodeList.items[0]);
+							}
+						},
+						nodes: {
+							put: (params, cb)=>{
+								return cb(null, true);
+							}
+						}
+					},
+				});
+			secrets.updateNode(options, function (error, res) {
+				assert.ok(res);
+				done();
+			});
+		});
+		
+		it("Success availability drain", function (done) {
+			kubeData = dD();
+			options = kubeData.deployer;
+			options.params = {
+				availability: 'drain'
+			};
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					core: {
+						node: {
+							get: (params, cb)=>{
+								return cb(null, kubeData.nodeList.items[0]);
+							}
+						},
+						nodes: {
+							put: (params, cb)=>{
+								return cb(null, true);
 							}
 						}
 					},
