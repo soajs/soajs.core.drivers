@@ -252,7 +252,7 @@ driver.deployService = function (options, cb){
 					return cb(error, deployedServiceDetails);
 				});
 			});
-		}, 1500);
+		}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 1500);
 	});
 };
 
@@ -277,7 +277,7 @@ driver.redeployService = function (options, cb){
 					return cb(error, deployedServiceDetails);
 				});
 			});
-		}, 1500);
+		},(process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 1500);
 	});
 };
 
