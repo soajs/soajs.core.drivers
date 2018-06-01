@@ -19,7 +19,7 @@ describe("testing /lib/container/docker/tasks.js", function () {
 		});
 		let dockerData = dD();
 		let options = dockerData.deployer;
-		
+		options.driver = "docker.local";
 		it("Success", function (done) {
 			options.params.env = "bloooom";
 			options.params.id = "kryfpx1uuj33t4z31mvkzvjod";
