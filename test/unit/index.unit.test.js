@@ -6,7 +6,7 @@ const index = helper.requireModule('./index.js');
 const utils = helper.requireModule('./infra/utils.js');
 const dockerDriver = helper.requireModule("./container/docker/index.js");
 const kubernetesDriver = helper.requireModule("./container/kubernetes/index.js");
-const dockerrode = require('dockerode');
+const dockerUtils = helper.requireModule("./lib/container/docker/utils.js");
 
 const options = require('../schemas/docker/local');
 
@@ -17,21 +17,21 @@ let driverOptions = {
 };
 let methodOptions = JSON.parse(JSON.stringify(options().deployer)) ;
 
-methodOptions.deployerConfig.nodes = '192.168.60.69';
-methodOptions.infra["_id"] = '5b044a4df920c675412f82e3';
-methodOptions.infra.api.ipaddress = '192.168.60.69';
-methodOptions.soajs.registry.deployer.container.docker.remote.nodes = '192.168.60.69';
-
 let kuberOptions = JSON.parse(JSON.stringify(methodOptions));
 
 describe("testing index.js -- Calling docker local", function () {
 
     describe("calling execute authenticate", function () {
         sinon
-            .stub(dockerrode, "Node")
-            .returns({
-                'listNetworks': (params, cb) => {
-                    return cb(null, [])
+            .stub(dockerUtils, "getDeployer")
+            .yields(null , {
+                listNetworks : function ({},cb) {
+                    return cb(null, [{
+                        "name" : 'soajsnet'
+                    }])
+                },
+                createNetwork : function ({}, cb) {
+                    return cb(null, true)
                 }
             });
 
