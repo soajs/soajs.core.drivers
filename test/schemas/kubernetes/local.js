@@ -29,8 +29,8 @@ let infra = {
 				"TESTENV"
 			],
 			"loadBalancers": {},
-			"name": "htlocalndwdqhrhe78tw",
-			"id": "htlocalndwdqhrhe78tw"
+			"name": "Htlocal2yaapwyth4wf5",
+			"id": "Htlocal2yaapwyth4wf5"
 		}
 	],
 	"stack": {
@@ -42,8 +42,8 @@ let infra = {
 			"TESTENV"
 		],
 		"loadBalancers": {},
-		"name": "htlocalndwdqhrhe78tw",
-		"id": "htlocalndwdqhrhe78tw"
+		"name": "Htlocal2yaapwyth4wf5",
+		"id": "Htlocal2yaapwyth4wf5"
 	}
 };
 let registry = {
@@ -331,6 +331,138 @@ module.exports = function () {
 		"listSecrets": Object.assign({
 			"params": {}, deployer
 		}),
+		"deployServiceParams": {
+			"data": {
+				"variables": {
+					"$SOAJS_NX_DOMAIN": "",
+					"$SOAJS_NX_SITE_DOMAIN": "site.",
+					"$SOAJS_NX_API_DOMAIN": "api.",
+					"$SOAJS_PROFILE": "/opt/soajs/FILES/profiles/profile.js",
+					"$SOAJS_EXTKEY": "9b96ba56ce934ded56c3f21ac9bdaddc8ba4782b7753cf07576bfabcace8632eba1749ff1187239ef1f56dd74377aa1e5d0a1113de2ed18368af4b808ad245bc7da986e101caddb7b75992b14d6a866db884ea8aee5ab02786886ecf9f25e974",
+					"$SOAJS_MONGO_NB": 1,
+					"$SOAJS_MONGO_IP_1": "192.168.61.51",
+					"$SOAJS_MONGO_PORT_1": 27017,
+					"$SOAJS_MONGO_PREFIX": "local_"
+				}
+			},
+			"catalog": {
+				"_id": "5ad9cab35c967d35b871065c",
+				"name": "Mongo Recipe",
+				"type": "cluster",
+				"subtype": "mongo",
+				"description": "This recipe allows you to deploy a mongo server",
+				"locked": true,
+				"recipe": {
+					"deployOptions": {
+						"image": {
+							"prefix": "",
+							"name": "mongo",
+							"tag": "3.4.10",
+							"pullPolicy": "IfNotPresent"
+						},
+						"sourceCode": {
+							"configuration": {
+								"label": "Attach Custom Configuration",
+								"repo": "",
+								"branch": "",
+								"required": false
+							}
+						},
+						"readinessProbe": {
+							"httpGet": {
+								"path": "/",
+								"port": 27017
+							},
+							"initialDelaySeconds": 5,
+							"timeoutSeconds": 2,
+							"periodSeconds": 5,
+							"successThreshold": 1,
+							"failureThreshold": 3
+						},
+						"restartPolicy": {
+							"condition": "any",
+							"maxAttempts": 5
+						},
+						"container": {
+							"network": "soajsnet",
+							"workingDir": ""
+						},
+						"voluming": [
+							{
+								"docker": {
+									"volume": {
+										"Type": "volume",
+										"Source": "custom-mongo-volume",
+										"Target": "/data/db/"
+									}
+								},
+								"kubernetes": {
+									"volume": {
+										"name": "custom-mongo-volume",
+										"hostPath": {
+											"path": "/data/custom/db/"
+										}
+									},
+									"volumeMount": {
+										"mountPath": "/data/db/",
+										"name": "custom-mongo-volume"
+									}
+								}
+							}
+						],
+						"ports": [
+							{
+								"name": "mongo",
+								"target": 27017,
+								"isPublished": true,
+								"published": 2017
+							}
+						],
+						"certificates": "optional"
+					},
+					"buildOptions": {
+						"env": {},
+						"cmd": {
+							"deploy": {
+								"command": [
+									"mongod"
+								],
+								"args": [
+									"--smallfiles"
+								]
+							}
+						}
+					}
+				}
+			},
+			"inputmaskData": {
+				"custom": {
+					"name": "mongo",
+					"ports": [
+						{
+							"name": "mongo",
+							"target": 27017,
+							"isPublished": true,
+							"published": 2017
+						}
+					],
+					"loadBalancer": false,
+					"type": "resource",
+					"sourceCode": {}
+				},
+				"recipe": "5ad9cab35c967d35b871065c",
+				"deployConfig": {
+					"region": "",
+					"memoryLimit": 524288000,
+					"replication": {
+						"mode": "deployment",
+						"replicas": 1
+					}
+				},
+				"env": "TESTENV"
+			},
+			"action": "deploy"
+		},
 		"namespaces": {
 			"kind": "NamespaceList",
 			"apiVersion": "v1",
@@ -1332,6 +1464,251 @@ module.exports = function () {
 					}
 				}
 			]
+		},
+		"serviceMetrics": {
+			"kind": "PodMetricsList",
+			"apiVersion": "metrics/v1alpha1",
+			"metadata": {
+				"selfLink": "/apis/metrics/v1alpha1/pods"
+			},
+			"items": [
+				{
+					"metadata": {
+						"name": "heapster-c6b78778d-ws9vw",
+						"namespace": "kube-system",
+						"selfLink": "/apis/metrics/v1alpha1/namespaces/kube-system/pods/heapster-c6b78778d-ws9vw",
+						"creationTimestamp": "2018-06-01T15:32:19Z"
+					},
+					"timestamp": "2018-06-01T15:32:00Z",
+					"window": "1m0s",
+					"containers": [
+						{
+							"name": "heapster",
+							"usage": {
+								"cpu": "0",
+								"memory": "13964Ki"
+							}
+						}
+					]
+				},
+				{
+					"metadata": {
+						"name": "kube-controller-manager-docker-for-desktop",
+						"namespace": "kube-system",
+						"selfLink": "/apis/metrics/v1alpha1/namespaces/kube-system/pods/kube-controller-manager-docker-for-desktop",
+						"creationTimestamp": "2018-06-01T15:32:19Z"
+					},
+					"timestamp": "2018-06-01T15:32:00Z",
+					"window": "1m0s",
+					"containers": [
+						{
+							"name": "kube-controller-manager",
+							"usage": {
+								"cpu": "46m",
+								"memory": "41392Ki"
+							}
+						}
+					]
+				},
+				{
+					"metadata": {
+						"name": "kube-dns-6f4fd4bdf-vb8f5",
+						"namespace": "kube-system",
+						"selfLink": "/apis/metrics/v1alpha1/namespaces/kube-system/pods/kube-dns-6f4fd4bdf-vb8f5",
+						"creationTimestamp": "2018-06-01T15:32:19Z"
+					},
+					"timestamp": "2018-06-01T15:32:00Z",
+					"window": "1m0s",
+					"containers": [
+						{
+							"name": "kubedns",
+							"usage": {
+								"cpu": "0",
+								"memory": "8240Ki"
+							}
+						},
+						{
+							"name": "dnsmasq",
+							"usage": {
+								"cpu": "0",
+								"memory": "6248Ki"
+							}
+						},
+						{
+							"name": "sidecar",
+							"usage": {
+								"cpu": "1m",
+								"memory": "11836Ki"
+							}
+						}
+					]
+				},
+				{
+					"metadata": {
+						"name": "compose-api-7bb7b5968f-tn75x",
+						"namespace": "docker",
+						"selfLink": "/apis/metrics/v1alpha1/namespaces/docker/pods/compose-api-7bb7b5968f-tn75x",
+						"creationTimestamp": "2018-06-01T15:32:19Z"
+					},
+					"timestamp": "2018-06-01T15:32:00Z",
+					"window": "1m0s",
+					"containers": [
+						{
+							"name": "compose",
+							"usage": {
+								"cpu": "0",
+								"memory": "11304Ki"
+							}
+						}
+					]
+				},
+				{
+					"metadata": {
+						"name": "etcd-docker-for-desktop",
+						"namespace": "kube-system",
+						"selfLink": "/apis/metrics/v1alpha1/namespaces/kube-system/pods/etcd-docker-for-desktop",
+						"creationTimestamp": "2018-06-01T15:32:19Z"
+					},
+					"timestamp": "2018-06-01T15:32:00Z",
+					"window": "1m0s",
+					"containers": [
+						{
+							"name": "etcd",
+							"usage": {
+								"cpu": "14m",
+								"memory": "42848Ki"
+							}
+						}
+					]
+				},
+				{
+					"metadata": {
+						"name": "kube-apiserver-docker-for-desktop",
+						"namespace": "kube-system",
+						"selfLink": "/apis/metrics/v1alpha1/namespaces/kube-system/pods/kube-apiserver-docker-for-desktop",
+						"creationTimestamp": "2018-06-01T15:32:19Z"
+					},
+					"timestamp": "2018-06-01T15:32:00Z",
+					"window": "1m0s",
+					"containers": [
+						{
+							"name": "kube-apiserver",
+							"usage": {
+								"cpu": "43m",
+								"memory": "383760Ki"
+							}
+						}
+					]
+				},
+				{
+					"metadata": {
+						"name": "kube-proxy-tclrs",
+						"namespace": "kube-system",
+						"selfLink": "/apis/metrics/v1alpha1/namespaces/kube-system/pods/kube-proxy-tclrs",
+						"creationTimestamp": "2018-06-01T15:32:19Z"
+					},
+					"timestamp": "2018-06-01T15:32:00Z",
+					"window": "1m0s",
+					"containers": [
+						{
+							"name": "kube-proxy",
+							"usage": {
+								"cpu": "3m",
+								"memory": "15584Ki"
+							}
+						}
+					]
+				},
+				{
+					"metadata": {
+						"name": "metrics-server-6966bc44b5-b7rkn",
+						"namespace": "kube-system",
+						"selfLink": "/apis/metrics/v1alpha1/namespaces/kube-system/pods/metrics-server-6966bc44b5-b7rkn",
+						"creationTimestamp": "2018-06-01T15:32:19Z"
+					},
+					"timestamp": "2018-06-01T15:32:00Z",
+					"window": "1m0s",
+					"containers": [
+						{
+							"name": "metrics-server",
+							"usage": {
+								"cpu": "0",
+								"memory": "12012Ki"
+							}
+						}
+					]
+				},
+				{
+					"metadata": {
+						"name": "kube-scheduler-docker-for-desktop",
+						"namespace": "kube-system",
+						"selfLink": "/apis/metrics/v1alpha1/namespaces/kube-system/pods/kube-scheduler-docker-for-desktop",
+						"creationTimestamp": "2018-06-01T15:32:19Z"
+					},
+					"timestamp": "2018-06-01T15:32:00Z",
+					"window": "1m0s",
+					"containers": [
+						{
+							"name": "kube-scheduler",
+							"usage": {
+								"cpu": "13m",
+								"memory": "12924Ki"
+							}
+						}
+					]
+				},
+				{
+					"metadata": {
+						"name": "compose-5d4f4d67b6-wb2vx",
+						"namespace": "docker",
+						"selfLink": "/apis/metrics/v1alpha1/namespaces/docker/pods/compose-5d4f4d67b6-wb2vx",
+						"creationTimestamp": "2018-06-01T15:32:19Z"
+					},
+					"timestamp": "2018-06-01T15:32:00Z",
+					"window": "1m0s",
+					"containers": [
+						{
+							"name": "compose",
+							"usage": {
+								"cpu": "0",
+								"memory": "5768Ki"
+							}
+						}
+					]
+				}
+			]
+		},
+		"nodeMetrics": {
+			"kind": "NodeMetricsList",
+			"apiVersion": "metrics/v1alpha1",
+			"metadata": {
+				"selfLink": "/apis/metrics/v1alpha1/nodes"
+			},
+			"items": [
+				{
+					"metadata": {
+						"name": "docker-for-desktop",
+						"selfLink": "/apis/metrics/v1alpha1/nodes/docker-for-desktop",
+						"creationTimestamp": "2018-06-01T15:32:19Z"
+					},
+					"timestamp": "2018-06-01T15:32:00Z",
+					"window": "1m0s",
+					"usage": {
+						"cpu": "223m",
+						"memory": "1292356Ki"
+					}
+				}
+			]
+		},
+		"autoscale": {},
+		"serviceList" : {
+			"kind": "ServiceList",
+			"apiVersion": "v1",
+			"metadata": {
+				"selfLink": "/api/v1/services",
+				"resourceVersion": "109306"
+			},
+			"items": []
 		}
 	};
 	return data;

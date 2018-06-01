@@ -112,10 +112,7 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 					core : {namespaces}
 				});
 			secrets.createSecret(options, function (error, res) {
-				// assert.equal(res.name, "test-secret-2");
-				// assert.equal(res.uid, "secretID");
-				console.log(error)
-				console.log(res)
+				assert.equal(res.name, "test-secret-1");
 				done();
 			});
 		});

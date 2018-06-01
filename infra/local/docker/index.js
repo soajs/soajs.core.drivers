@@ -14,6 +14,9 @@ let driver = {
 	 * @returns {*}
 	 */
 	"authenticate": function(options, cb){
+		//todo try adding a new infra docker
+		// if this failed then the deployer should be supplied data from data
+		//check kubernetes authenticate for reference
 		dockerUtils.getDeployer(options, (error, deployer) => {
 			if (error) {
 				return cb(error);

@@ -15,6 +15,13 @@ let driver = {
 	 * @returns {*}
 	 */
 	"authenticate": function(options, cb){
+		options.kubeConfig = {
+			url: `https://${options.infra.api.ipaddress}:${options.infra.api.port}`,
+			auth: {
+				bearer: options.infra.api.token
+			},
+			request: {strictSSL: false}
+		};
 		kubeUtils.getDeployer(options, (error, deployer) => {
 			if (error) {
 				return cb(error);
