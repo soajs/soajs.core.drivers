@@ -333,12 +333,10 @@ describe("testing index.js -- Calling kubernetes local", function () {
                                 }
                                 ]})
                             },
-                        },
-                        namespace : {
                             post : function ({},cb) {
                                 return cb(null, true)
                             },
-                        }
+                        },
                     },
 
                     createNetwork : function ({}, cb) {
@@ -360,12 +358,10 @@ describe("testing index.js -- Calling kubernetes local", function () {
                             get : function ({},cb) {
                                 return cb(null, [])
                             },
-                        },
-                        namespace : {
                             post : function ({},cb) {
                                 return cb(null, true)
                             },
-                        }
+                        },
                     },
 
                     createNetwork : function ({}, cb) {
@@ -397,12 +393,10 @@ describe("testing index.js -- Calling kubernetes local", function () {
                             get : function ({},cb) {
                                 return cb("errr", null)
                             },
-                        },
-                        namespace : {
                             post : function ({},cb) {
                                 return cb(null, true)
                             },
-                        }
+                        },
                     },
 
                     createNetwork : function ({}, cb) {
@@ -424,12 +418,10 @@ describe("testing index.js -- Calling kubernetes local", function () {
                             get : function ({},cb) {
                                 return cb(null, [])
                             },
-                        },
-                        namespace : {
                             post : function ({},cb) {
                                 return cb("errror", null)
                             },
-                        }
+                        },
                     },
 
                     createNetwork : function ({}, cb) {
