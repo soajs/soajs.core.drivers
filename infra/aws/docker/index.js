@@ -1,9 +1,9 @@
 "use strict";
 const async = require('async');
 const crypto = require('crypto');
-const Docker = require('dockerode');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
+const dockerUtils = require("../../../lib/container/docker/utils.js");
 const dockerDriver = require("../../../lib/container/docker/index.js");
 
 const ClusterDriver = require("../cluster/cluster.js");
@@ -67,31 +67,45 @@ let driver = {
 		
 		if (out.ip && stack.options.ElbName) {
 			options.soajs.log.debug("Creating SOAJS network.");
-			const deployer = new Docker({
-				protocol: options.soajs.registry.deployer.container.docker.remote.apiProtocol,
-				port: options.soajs.registry.deployer.container.docker.remote.apiPort,
-				host: out.ip,
-				headers: {
-					'token': options.soajs.registry.deployer.container.docker.remote.auth.token
-				}
-			});
-			let networkParams = {
-				Name: 'soajsnet',
-				Driver: 'overlay',
-				Internal: false,
-				Attachable: true,
-				CheckDuplicate: true,
-				EnableIPv6: false,
-				IPAM: {
-					Driver: 'default'
-				}
-			};
 			
-			deployer.createNetwork(networkParams, (err) => {
-				if (err && err.statusCode === 403) {
-					return cb(null, true);
+			dockerUtils.getDeployer(options, (error, deployer) => {
+				if(error){
+					return cb(error);
 				}
-				return cb(err, true);
+				
+				deployer.listNetworks({}, (err, networks) => {
+					if (err) {
+						return cb(err);
+					}
+					
+					let found = false;
+					networks.forEach((oneNetwork) => {
+						if (oneNetwork.Name === 'soajsnet') {
+							found = true;
+						}
+					});
+					
+					if(found){
+						return cb(null, true);
+					}
+					else{
+						let networkParams = {
+							Name: 'soajsnet',
+							Driver: 'overlay',
+							Internal: false,
+							Attachable: true,
+							CheckDuplicate: true,
+							EnableIPv6: false,
+							IPAM: {
+								Driver: 'default'
+							}
+						};
+						
+						deployer.createNetwork(networkParams, (err) => {
+							return cb(err, true);
+						});
+					}
+				});
 			});
 		}
 		else {
@@ -122,21 +136,21 @@ driver.deleteService = function (options, cb) {
 				return cb(error);
 			}
 			
-			let info = helper.getDeploymentFromInfra(options.infra, options.env);
+			let info = helper.getDeploymentFromInfra(options.infra, options.registry.code);
 			if (!info) {
 				return cb(null, true);
 			}
 			
 			//if there is a load balancer for this service make a call to drivers to delete it
 			let infraStack = info[0];
-			if (infraStack.loadBalancers && infraStack.loadBalancers[options.env.toUpperCase()]
-				&& infraStack.loadBalancers[options.env.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']]
-				&& infraStack.loadBalancers[options.env.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']].name) {
+			if (infraStack.loadBalancers && infraStack.loadBalancers[options.registry.code.toUpperCase()]
+				&& infraStack.loadBalancers[options.registry.code.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']]
+				&& infraStack.loadBalancers[options.registry.code.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']].name) {
 				options.params = {
-					envCode: options.env.toLowerCase(),
+					envCode: options.registry.code.toLowerCase(),
 					info: info,
 					name: deployedServiceDetails.service.labels['soajs.service.name'],
-					ElbName: infraStack.loadBalancers[options.env.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']].name
+					ElbName: infraStack.loadBalancers[options.registry.code.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']].name
 				};
 				options.infra.stack = infraStack;
 				LBDriver.deleteExternalLB(options, cb);
@@ -154,7 +168,7 @@ driver.listNodes = function (options, cb) {
 			if(!options.params){
 				options.params = {};
 			}
-			options.params.env = options.env;
+			options.params.env = options.registry.code;
 			ClusterDriver.getCluster(options, mCb);
 		},
 		"listNodes": (mCb) => {
@@ -183,7 +197,7 @@ driver.listServices = function (options, cb) {
 		}
 		
 		let deployment = options.infra.stack;
-		let env = options.env.toUpperCase();
+		let env = options.registry.code.toUpperCase();
 		
 		services.forEach(function (oneService) {
 			if (deployment && oneService.labels && oneService.labels['soajs.service.type'] === 'server' && oneService.labels['soajs.service.subtype'] === 'nginx') {
@@ -223,7 +237,7 @@ driver.deployService = function (options, cb){
 					return cb(error, deployedServiceDetails);
 				});
 			});
-		}, 1500);
+		}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 1500);
 	});
 };
 
@@ -248,7 +262,7 @@ driver.redeployService = function (options, cb){
 					return cb(error, deployedServiceDetails);
 				});
 			});
-		}, 1500);
+		}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 1500);
 	});
 };
 

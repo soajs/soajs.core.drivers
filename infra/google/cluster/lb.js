@@ -68,19 +68,19 @@ const GCLB = {
 					}
 					let name = stack.name + "-allow-tcp-";
 					if (options.params.name) {
-						name += options.params.name;
-					}
-					else {
 						if (options.params.name === 'nginx') {
 							name += options.params.envCode.toLowerCase() + "-" + options.params.name;
 						}
-						else if (options.params.name && options.params.version) {
+						else if (options.params.version) {
 							name += options.params.envCode.toLowerCase() + "-" + options.params.name;
 							name += "-v" + options.params.version;
 						}
-						else {
+						else if(options.params.type){
 							name += options.params.envCode.toLowerCase() + "-" + options.params.type;
 							name += (options.params.version) ? "-v" + options.params.version : "";
+						}
+						else{
+							name += options.params.name;
 						}
 					}
 					

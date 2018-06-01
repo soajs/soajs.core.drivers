@@ -37,11 +37,8 @@ const AWSLB = {
 	"getDNSInfo": function (options, mCb) {
 		let stack = options.infra.stack;
 		let ipAddress;
-		if (!stack) {
-			return mCb(null, {"id": stack.id});
-		}
 		
-		if (stack.loadBalancers && stack.loadBalancers[options.soajs.registry.code.toUpperCase()] && stack.loadBalancers[options.soajs.registry.code.toUpperCase()]["nginx"]) {
+		if (stack && stack.loadBalancers && stack.loadBalancers[options.soajs.registry.code.toUpperCase()] && stack.loadBalancers[options.soajs.registry.code.toUpperCase()]["nginx"]) {
 			ipAddress = stack.loadBalancers[options.soajs.registry.code.toUpperCase()]["nginx"].name;
 			let response = {
 				"id": stack.id,
@@ -92,6 +89,7 @@ const AWSLB = {
 			//get the service
 		let service = options.params.name;
 		let ports = options.params.ports;
+		options.params.info = options.infra.info;
 		if (ports.length === 0) {
 			return cb(null, true);
 		}
@@ -178,6 +176,7 @@ const AWSLB = {
 	 * @returns {*}
 	 */
 	"deployExternalLb": function (options, mCb) {
+		options.params.info = options.infra.info;
 		const opts = {
 			listener : options.params.listener,
 			name : options.params.name
@@ -304,6 +303,7 @@ const AWSLB = {
 	 * @returns {*}
 	 */
 	"updateExternalLB": function (options, mCb) {
+		options.params.info = options.infra.info;
 		const envCode = options.params.envCode.toUpperCase();
 		const opts = {
 			listener : options.params.listener,
@@ -462,6 +462,7 @@ const AWSLB = {
 	 * @returns {*}
 	 */
 	"deleteExternalLB": function (options, mCb) {
+		options.params.info = options.infra.info;
 		const opts = {
 			name : options.params.name,
 			ElbName: options.params.ElbName
