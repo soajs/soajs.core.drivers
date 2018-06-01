@@ -3,12 +3,16 @@ const AWS = require('aws-sdk');
 
 const utils = {
 	getConnector: (opts, config)=> {
+		let region = opts.region;
+		if(!region && config.api){
+			region = config.api.region
+		}
 		AWS.config.update({
 			credentials: {
 				accessKeyId: opts.keyId,
 				secretAccessKey: opts.secretAccessKey
 			},
-			region: opts.region || config.api.region
+			region: region
 		});
 		
 		switch (opts.api) {

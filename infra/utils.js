@@ -5,10 +5,10 @@ const utils = {
 		let maxAttempts = 30;
 		let currentAttempt = 1;
 		
-		if (options.params.catalog.type === 'nginx' || (options.params.catalog.subtype === 'nginx' && options.params.catalog.type === 'server')) {
+		if (options.params.catalog && options.params.catalog.type === 'nginx' || (options.params.catalog && options.params.catalog.subtype === 'nginx' && options.params.catalog.type === 'server')) {
 			
 			//if no ports are set in the recipe, do not perform check
-			if (!options.params.catalog || !options.params.catalog.recipe || !options.params.catalog.recipe.deployOptions || !options.params.catalog.recipe.deployOptions.ports || !Array.isArray(options.params.catalog.recipe.deployOptions.ports)) {
+			if (!options.params.catalog.recipe || !options.params.catalog.recipe.deployOptions || !options.params.catalog.recipe.deployOptions.ports || !Array.isArray(options.params.catalog.recipe.deployOptions.ports)) {
 				return cb();
 			}
 			
@@ -65,16 +65,18 @@ const utils = {
 						currentAttempt++;
 						setTimeout(() => {
 							computeProtocolAndPortsFromService();
-						}, 2000);
+						}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 2000);
 					}
 					else {
 						let protocol = 'http';
 						let port = 80;
 						
-						for (let i = 0; i < deployedServiceDetails.service.env.length; i++) {
-							let oneEnv = deployedServiceDetails.service.env[i].split('=');
-							if (oneEnv[0] === 'SOAJS_NX_API_HTTPS' && ['true', '1'].indexOf(oneEnv[1]) !== -1) {
-								protocol = 'https';
+						if(deployedServiceDetails.service.env){
+							for (let i = 0; i < deployedServiceDetails.service.env.length; i++) {
+								let oneEnv = deployedServiceDetails.service.env[i].split('=');
+								if (oneEnv[0] === 'SOAJS_NX_API_HTTPS' && ['true', '1'].indexOf(oneEnv[1]) !== -1) {
+									protocol = 'https';
+								}
 							}
 						}
 						
@@ -111,7 +113,7 @@ const utils = {
 			version: deployedServiceDetails.service.labels["soajs.service.version"],
 			type: deployedServiceDetails.service.labels["soajs.service.type"],
 			ports: deployedServiceDetails.service.ports,
-			envCode: options.env,
+			envCode: options.soajs.registry.code.toUpperCase(),
 			soajs_project: options.params.inputmaskData.soajs_project || 'local'
 		};
 		

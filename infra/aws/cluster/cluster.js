@@ -79,8 +79,15 @@ const AWSCluster = {
 				return cb(error);
 			}
 			
+			if(typeof(templateInputsToUse) !== 'object'){
+				try{
+					templateInputsToUse = JSON.parse(templateInputsToUse);
+				}
+				catch(e){
+					soajs.log.error(e);
+				}
+			}
 			let inputs = templateInputsToUse.inputs;
-			
 			const params = {
 				StackName: oneDeployment.name,
 				Capabilities: [
@@ -120,7 +127,7 @@ const AWSCluster = {
 					}
 					
 					oneDeployment.id = response.StackId;
-					oneDeployment.environments = [options.env.toUpperCase()];
+					oneDeployment.environments = [options.registry.code.toUpperCase()];
 					oneDeployment.options.zone = options.params.region;
 					oneDeployment.options.template = options.params.infraCodeTemplate;
 					return cb(null, oneDeployment);
@@ -134,13 +141,18 @@ const AWSCluster = {
 					mapTemplateInputsWithValues(oneInput.entries, params, template, iCb);
 				}
 				else{
-					let paramValue = params[oneInput.name].toString();
+					let paramValue = params[oneInput.name];
 					if(!paramValue){
 						paramValue = oneInput.value.toString();
 					}
+					
+					if(!paramValue) {
+						return iCb();
+					}
+					
 					template.Parameters.push({
 						ParameterKey: oneInput.name,
-						ParameterValue: paramValue
+						ParameterValue: paramValue.toString()
 					});
 					
 					return iCb();
@@ -395,7 +407,7 @@ const AWSCluster = {
 						options.soajs.log.debug("UPDATE_IN_PROGRESS");
 						setTimeout(function () {
 							checkStackStatus(stackParams, elbs, instanceBefore);
-						}, 20000);
+						}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 20 * 1000);
 					}
 					else {
 						//log the status and stop

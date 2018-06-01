@@ -181,13 +181,16 @@ const AWSS3 = {
 					Tagging: []
 				};
 
-				try {
-					//parse incomming tags to JSON
-					options.params.tags = JSON.parse(options.params.tags);
+				if(typeof(options.params.tags) !== 'object'){
+					try {
+						//parse incomming tags to JSON
+						options.params.tags = JSON.parse(options.params.tags);
+					}
+					catch (e) {
+						options.params.tags = {};
+					}
 				}
-				catch (e) {
-					options.params.tags = {};
-				}
+				
 				//check if there are tags and concatenate them to the parameter Tagging
 				if (options.params.tags && Object.keys(options.params.tags).length > 0) {
 					Object.keys(options.params.tags).forEach(oneTag => {
