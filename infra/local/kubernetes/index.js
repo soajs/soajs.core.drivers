@@ -44,7 +44,7 @@ let driver = {
 						return cb(null, true);
 					}
 					
-					deployer.core.namespace.post({body: namespace}, (error, response) => {
+					deployer.core.namespaces.post({body: namespace}, (error, response) => {
 						if (error) {
 							return cb(error);
 						}
