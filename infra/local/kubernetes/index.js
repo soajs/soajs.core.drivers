@@ -1,10 +1,10 @@
 'use strict';
 const async = require("async");
 const randomString = require("randomstring");
-const K8Api = require('kubernetes-client');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 const kubeDriver = require("../../../lib/container/kubernetes/index.js");
+const kubeUtils = require("../../../lib/container/kubernetes/utils.js");
 
 const infraUtils = require("../../utils");
 
@@ -15,51 +15,46 @@ let driver = {
 	 * @returns {*}
 	 */
 	"authenticate": function(options, cb){
-		
-		let deployerConfig = {
-			url: `https://${options.infra.api.ipaddress}:${options.infra.api.port}`,
-			auth: {
-				bearer: options.infra.api.token
-			},
-			request: {strictSSL: false},
-			version : 'v1'
-		};
-		let deployer = new K8Api.Core(deployerConfig);
-		
-		let namespace = {
-			kind: 'Namespace',
-			apiVersion: 'v1',
-			metadata: {
-				name: "soajs",
-				labels: {'soajs.content': 'true'}
-			}
-		};
-		deployer.namespaces.get({}, function (error, namespacesList) {
+		kubeUtils.getDeployer(options, (error, deployer) => {
 			if (error) {
 				return cb(error);
 			}
 			
-			async.detect(namespacesList.items, function (oneNamespace, mCb) {
-				return mCb(null, oneNamespace.metadata.name === namespace.metadata.name);
-			}, function (error, foundNamespace) {
-				if (foundNamespace) {
-					options.infra.api.namespace = {
-						'default': namespace.metadata.name,
-						'perService': false
-					};
-					return cb(null, true);
+			let namespace = {
+				kind: 'Namespace',
+				apiVersion: 'v1',
+				metadata: {
+					name: "soajs",
+					labels: {'soajs.content': 'true'}
+				}
+			};
+			deployer.core.namespaces.get({}, function (error, namespacesList) {
+				if (error) {
+					return cb(error);
 				}
 				
-				deployer.namespace.post({body: namespace}, (error, response) => {
-					if (error) {
-						return cb(error);
+				async.detect(namespacesList.items, function (oneNamespace, mCb) {
+					return mCb(null, oneNamespace.metadata.name === namespace.metadata.name);
+				}, function (error, foundNamespace) {
+					if (foundNamespace) {
+						options.infra.api.namespace = {
+							'default': namespace.metadata.name,
+							'perService': false
+						};
+						return cb(null, true);
 					}
 					
-					options.infra.api.namespace = {
-						'default': namespace.metadata.name,
-						'perService': false
-					};
-					return cb(null, true);
+					deployer.core.namespace.post({body: namespace}, (error, response) => {
+						if (error) {
+							return cb(error);
+						}
+						
+						options.infra.api.namespace = {
+							'default': namespace.metadata.name,
+							'perService': false
+						};
+						return cb(null, true);
+					});
 				});
 			});
 		});
