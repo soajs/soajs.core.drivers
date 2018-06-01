@@ -958,7 +958,7 @@ describe("testing /lib/google/index.js", function () {
 				assert.ok(res);
 				setTimeout(()=> {
 					done();
-				}, 100);
+				}, 10);
 			});
 		});
 	});
