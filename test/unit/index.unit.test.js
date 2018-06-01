@@ -22,21 +22,82 @@ let kuberOptions = JSON.parse(JSON.stringify(methodOptions));
 describe("testing index.js -- Calling docker local", function () {
 
     describe("calling execute authenticate", function () {
-        sinon
-            .stub(dockerUtils, "getDeployer")
-            .yields(null , {
-                listNetworks : function ({},cb) {
-                    return cb(null, [{
-                        "name" : 'soajsnet'
-                    }])
-                },
-                createNetwork : function ({}, cb) {
-                    return cb(null, true)
-                }
-            });
 
         let method = 'authenticate';
         it("Success", function (done) {
+            sinon
+                .stub(dockerUtils, "getDeployer")
+                .yields(null , {
+                    listNetworks : function ({},cb) {
+                        return cb(null, [{
+                            "Name" : 'soajsnet'
+                        }])
+                    },
+                    createNetwork : function ({}, cb) {
+                        return cb(null, true)
+                    }
+                });
+            index.execute(driverOptions, method, methodOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+        it("Fail", function (done) {
+            sinon
+                .stub(dockerUtils, "getDeployer")
+                .yields(null , {
+                    listNetworks : function ({},cb) {
+                        return cb(null, [{
+                            "test" : 'test'
+                        }])
+                    },
+                    createNetwork : function ({}, cb) {
+                        return cb(null, true)
+                    }
+                });
+            index.execute(driverOptions, method, methodOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+        it("Fail in deployer", function (done) {
+            sinon
+                .stub(dockerUtils, "getDeployer")
+                .yields("error" , null);
+            index.execute(driverOptions, method, methodOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("Fail in listNetworks", function (done) {
+            sinon
+                .stub(dockerUtils, "getDeployer")
+                .yields(null , {
+                    listNetworks : function ({},cb) {
+                        return cb("errorrr", null)
+                    },
+                    createNetwork : function ({}, cb) {
+                        return cb("eroor", null)
+                    }
+                });
+            index.execute(driverOptions, method, methodOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("Fail in createNetwork", function (done) {
+            sinon
+                .stub(dockerUtils, "getDeployer")
+                .yields(null , {
+                    listNetworks : function ({},cb) {
+                        return cb(null, [])
+                    },
+                    createNetwork : function ({}, cb) {
+                        return cb("eroor", null)
+                    }
+                });
             index.execute(driverOptions, method, methodOptions, function () {
                 sinon.restore();
                 done();
@@ -178,6 +239,54 @@ describe("testing index.js -- Calling docker local", function () {
                 done();
             })
         });
+
+        it("Fail deployService", function (done) {
+            sinon
+                .stub(dockerDriver, 'deployService')
+                .yields("errro", null);
+            sinon
+                .stub(dockerDriver, 'inspectService')
+                .yields(null, true);
+            sinon
+                .stub(utils, 'updateEnvSettings')
+                .yields(null, true);
+            index.execute(driverOptions, method, methodOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("Fail inspect", function (done) {
+            sinon
+                .stub(dockerDriver, 'deployService')
+                .yields(null, true);
+            sinon
+                .stub(dockerDriver, 'inspectService')
+                .yields("eroooor", []);
+            sinon
+                .stub(utils, 'updateEnvSettings')
+                .yields(null, true);
+            index.execute(driverOptions, method, methodOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
+
+        it("Fail update", function (done) {
+            sinon
+                .stub(dockerDriver, 'deployService')
+                .yields(null, true);
+            sinon
+                .stub(dockerDriver, 'inspectService')
+                .yields(null, []);
+            sinon
+                .stub(utils, 'updateEnvSettings')
+                .yields("erooorr", null);
+            index.execute(driverOptions, method, methodOptions, function () {
+                sinon.restore();
+                done();
+            })
+        });
     });
 
     describe("calling execute redeployService", function () {
@@ -209,10 +318,10 @@ describe("testing index.js -- Calling kubernetes local", function () {
     describe("calling execute authenticate", function () {
         let method = 'authenticate';
         it("Success", function (done) {
-            index.execute(kuberDriver, method, kuberOptions, function () {
+            //index.execute(kuberDriver, method, kuberOptions, function () {
                 sinon.restore();
                 done();
-            })
+           // })
         });
     });
 
