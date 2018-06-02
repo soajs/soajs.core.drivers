@@ -17,6 +17,21 @@ let driver = {
 		//todo try adding a new infra docker
 		// if this failed then the deployer should be supplied data from data
 		//check kubernetes authenticate for reference
+		try{
+			options.deployerConfig = {
+				apiProtocol: 'https',
+				apiPort: 443,
+				auth: {
+					token: options.infra.api.token
+				},
+				nodes: options.infra.api.ipaddress
+			};
+		}
+		catch(e){
+			options.soajs.log.error(e);
+			return cb({source: 'driver', value: 'Invalid docker configuration detected', code: 687, msg: errors[687]});
+		}
+		
 		dockerUtils.getDeployer(options, (error, deployer) => {
 			if (error) {
 				return cb(error);
