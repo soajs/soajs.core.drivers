@@ -71,7 +71,7 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 		});
 	});
 	
-	describe("calling deployService", function () {
+	describe.skip("calling deployService", function () {
 		let kubeData ;
 		let options;
 		afterEach((done) => {
