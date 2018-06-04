@@ -184,12 +184,15 @@ describe("testing /lib/container/kubernetes/task.js", function () {
 					core: {
 						namespaces: namespaces,
 					},
-					config : { url: 'https://192.168.61.51:6443',
+					config : { url: 'https://127.0.0.1:80',
 						auth: { bearer: 'eA' },
 						request:
 							{ strictSSL: false,
 								auth: { bearer: 'eA' } } }
 				});
+			nock('http://127.0.0.1:80')
+				.get('/api/v1/namespaces/soajs/pods/testenv-controller-6f8d5cb99f-jvs2k/exec?stdout=1&stdin=1&stderr=1&command=%2Fbin%2Fbash&command=-c&command=curl%20-s%20-X%20GET%20http%3A%2F%2Flocalhost%3A5000%2FloadProvision')
+				.reply(200, {});
 			services.maintenance(options, function (error, res) {
 				assert.ok(res);
 				done();
