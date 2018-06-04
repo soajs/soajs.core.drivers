@@ -8,16 +8,14 @@ const heapsterD = helper.requireModule('./lib/schemas/kubernetes/resources/heaps
 const heapsterS = helper.requireModule('./lib/schemas/kubernetes/resources/heapster/service.js');
 const heapsterSA = helper.requireModule('./lib/schemas/kubernetes/resources/heapster/serviceAccount.js');
 let dD = require('../../../../schemas/kubernetes/local.js');
-
+let kubeData = {};
+let options = {};
 describe("testing /lib/container/kubernetes/manageResources.js", function () {
-	
 	describe("calling manageResources", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
-		let kubeData;
-		let options;
 		
 		it("Success post", function (done) {
 			kubeData = dD();

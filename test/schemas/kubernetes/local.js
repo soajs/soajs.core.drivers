@@ -306,31 +306,28 @@ let soajs = {
 	registry: registry,
 	validator: require('soajs').core.validator,
 };
-let deployer = {
-	"strategy": "kubernetes",
-	"driver": "kubernetes.remote",
-	"env": "testenv",
-	"deployerConfig": {
-		"nodes": "192.168.61.51",
-		"apiPort": "6443",
-		"namespace": {
-			"default": "soajs",
-			"perService": false
-		},
-		"auth": {
-			"token": "1"
-		},
-		"apiProtocol": null
-	},
-	"soajs": soajs,
-	"infra": infra
-};
+
 module.exports = function () {
 	let data = {
-		"deployer": deployer,
-		"listSecrets": Object.assign({
-			"params": {}, deployer
-		}),
+		"deployer": {
+			"strategy": "kubernetes",
+			"driver": "kubernetes.remote",
+			"env": "testenv",
+			"deployerConfig": {
+				"nodes": "192.168.61.51",
+				"apiPort": "6443",
+				"namespace": {
+					"default": "soajs",
+					"perService": false
+				},
+				"auth": {
+					"token": "1"
+				},
+				"apiProtocol": null
+			},
+			"soajs": soajs,
+			"infra": infra
+		},
 		"deployServiceParams": {
 			"data": {
 				"variables": {
@@ -447,21 +444,181 @@ module.exports = function () {
 						}
 					],
 					"loadBalancer": false,
+					"secrets": [
+						{
+							"name": "test-secret-1",
+							"namespace": "soajs",
+							"uid": "0f8ae5ed-67dd-11e8-9dde-025000000001",
+							"data": {
+								"test-secret-1": "MQ=="
+							},
+							"type": "Opaque",
+							"mountPath": "defaultPath"
+						}
+					],
 					"type": "resource",
-					"sourceCode": {}
+					"sourceCode": {},
+					"resourceId": "5b150c52e5efc7143ed4ace2"
 				},
 				"recipe": "5ad9cab35c967d35b871065c",
 				"deployConfig": {
 					"region": "",
-					"memoryLimit": 524288000,
+					"memoryLimit": 581959680,
+					"cpuLimit": "500m",
 					"replication": {
-						"mode": "deployment",
-						"replicas": 1
+						"mode": "deployment"
+					}
+				},
+				"autoScale": {
+					"metrics": {
+						"cpu": {
+							"percent": 80
+						}
+					},
+					"replicas": {
+						"min": 1,
+						"max": 3
 					}
 				},
 				"env": "TESTENV"
 			},
 			"action": "deploy"
+		},
+		"redepolyServiceParams": {
+			"data": {
+				"variables": {
+					"$SOAJS_NX_DOMAIN": "",
+					"$SOAJS_NX_SITE_DOMAIN": "site.",
+					"$SOAJS_NX_API_DOMAIN": "api.",
+					"$SOAJS_PROFILE": "/opt/soajs/FILES/profiles/profile.js",
+					"$SOAJS_EXTKEY": "9b96ba56ce934ded56c3f21ac9bdaddc8ba4782b7753cf07576bfabcace8632eba1749ff1187239ef1f56dd74377aa1e5d0a1113de2ed18368af4b808ad245bc7da986e101caddb7b75992b14d6a866db884ea8aee5ab02786886ecf9f25e974",
+					"$SOAJS_MONGO_NB": 1,
+					"$SOAJS_MONGO_IP_1": "192.168.61.51",
+					"$SOAJS_MONGO_PORT_1": 27017,
+					"$SOAJS_MONGO_PREFIX": "local_"
+				}
+			},
+			"catalog": {
+				"_id": "5ad9cab35c967d35b871065c",
+				"name": "Mongo Recipe",
+				"type": "cluster",
+				"subtype": "mongo",
+				"description": "This recipe allows you to deploy a mongo server",
+				"locked": true,
+				"recipe": {
+					"deployOptions": {
+						"image": {
+							"prefix": "",
+							"name": "mongo",
+							"tag": "3.4.10",
+							"pullPolicy": "IfNotPresent"
+						},
+						"sourceCode": {
+							"configuration": {
+								"label": "Attach Custom Configuration",
+								"repo": "",
+								"branch": "",
+								"required": false
+							}
+						},
+						"readinessProbe": {
+							"httpGet": {
+								"path": "/",
+								"port": 27017
+							},
+							"initialDelaySeconds": 5,
+							"timeoutSeconds": 2,
+							"periodSeconds": 5,
+							"successThreshold": 1,
+							"failureThreshold": 3
+						},
+						"restartPolicy": {
+							"condition": "any",
+							"maxAttempts": 5
+						},
+						"container": {
+							"network": "soajsnet",
+							"workingDir": ""
+						},
+						"voluming": [
+							{
+								"docker": {
+									"volume": {
+										"Type": "volume",
+										"Source": "custom-mongo-volume",
+										"Target": "/data/db/"
+									}
+								},
+								"kubernetes": {
+									"volume": {
+										"name": "custom-mongo-volume",
+										"hostPath": {
+											"path": "/data/custom/db/"
+										}
+									},
+									"volumeMount": {
+										"mountPath": "/data/db/",
+										"name": "custom-mongo-volume"
+									}
+								}
+							}
+						],
+						"ports": [
+							{
+								"name": "mongo",
+								"target": 27017,
+								"isPublished": true,
+								"published": 2017
+							}
+						],
+						"certificates": "optional"
+					},
+					"buildOptions": {
+						"env": {},
+						"cmd": {
+							"deploy": {
+								"command": [
+									"mongod"
+								],
+								"args": [
+									"--smallfiles"
+								]
+							}
+						}
+					}
+				}
+			},
+			"inputmaskData": {
+				"env": "TESTENV",
+				"serviceId": "mongo",
+				"mode": "deployment",
+				"action": "rebuild",
+				"custom": {
+					"image": {},
+					"sourceCode": {},
+					"ports": [
+						{
+							"name": "mongo",
+							"target": 27017,
+							"isPublished": true,
+							"published": 2017
+						}
+					],
+					"name": "mongo",
+					"resourceId": "5b150c52e5efc7143ed4ace2"
+				},
+				"namespace": "soajs",
+				"recipe": "5ad9cab35c967d35b871065c",
+				"imageLastTs": "1515128013261",
+				"deployConfig": {
+					"replication": {
+						"mode": "deployment",
+						"replicas": 1
+					},
+					"memoryLimit": 524288000
+				}
+			},
+			"action": "rebuild"
 		},
 		"namespaces": {
 			"kind": "NamespaceList",
@@ -626,11 +783,6 @@ module.exports = function () {
 			},
 			"type": "Opaque"
 		},
-		"listServices": Object.assign({
-			"params": {
-				"env": "testenv"
-			}
-		}, deployer),
 		"nodeList": {
 			"kind": "NodeList",
 			"apiVersion": "v1",
@@ -1701,14 +1853,862 @@ module.exports = function () {
 			]
 		},
 		"autoscale": {},
-		"serviceList" : {
+		"deploymentMongo": {
+			"kind": "Deployment",
+			"apiVersion": "extensions/v1beta1",
+			"metadata": {
+				"name": "mongo",
+				"namespace": "soajs",
+				"selfLink": "/apis/extensions/v1beta1/namespaces/soajs/deployments/mongo",
+				"uid": "44d4cb01-67dd-11e8-9dde-025000000001",
+				"resourceVersion": "129941",
+				"generation": 1,
+				"creationTimestamp": "2018-06-04T09:54:27Z",
+				"labels": {
+					"memoryLimit": "555",
+					"service.image.name": "mongo",
+					"service.image.tag": "3.4.10",
+					"service.image.ts": "1515128013261",
+					"soajs.catalog.id": "5ad9cab35c967d35b871065c",
+					"soajs.env.code": "testenv",
+					"soajs.resource.id": "5b150c52e5efc7143ed4ace2",
+					"soajs.service.group": "Other",
+					"soajs.service.label": "testenv-mongo",
+					"soajs.service.mode": "deployment",
+					"soajs.service.name": "mongo",
+					"soajs.service.subtype": "mongo",
+					"soajs.service.type": "cluster"
+				}
+			},
+			"spec": {
+				"replicas": 1,
+				"selector": {
+					"matchLabels": {
+						"soajs.service.label": "testenv-mongo"
+					}
+				},
+				"template": {
+					"metadata": {
+						"name": "mongo",
+						"creationTimestamp": null,
+						"labels": {
+							"memoryLimit": "555",
+							"service.image.name": "mongo",
+							"service.image.tag": "3.4.10",
+							"service.image.ts": "1515128013261",
+							"soajs.catalog.id": "5ad9cab35c967d35b871065c",
+							"soajs.env.code": "testenv",
+							"soajs.resource.id": "5b150c52e5efc7143ed4ace2",
+							"soajs.service.group": "Other",
+							"soajs.service.label": "testenv-mongo",
+							"soajs.service.mode": "deployment",
+							"soajs.service.name": "mongo",
+							"soajs.service.subtype": "mongo",
+							"soajs.service.type": "cluster"
+						}
+					},
+					"spec": {
+						"volumes": [
+							{
+								"name": "custom-mongo-volume",
+								"hostPath": {
+									"path": "/data/custom/db/",
+									"type": ""
+								}
+							},
+							{
+								"name": "test-secret-1",
+								"secret": {
+									"secretName": "test-secret-1",
+									"defaultMode": 420
+								}
+							}
+						],
+						"containers": [
+							{
+								"name": "mongo",
+								"image": "mongo:3.4.10",
+								"command": [
+									"mongod"
+								],
+								"args": [
+									"--smallfiles"
+								],
+								"ports": [
+									{
+										"name": "mongo",
+										"containerPort": 27017,
+										"protocol": "TCP"
+									}
+								],
+								"env": [
+									{
+										"name": "SOAJS_NX_API_HTTPS",
+										"value": "true"
+									},
+									{
+										"name": "SOAJS_NX_API_HTTP_REDIRECT",
+										"value": "true"
+									},
+									{
+										"name": "SOAJS_NX_SITE_HTTPS",
+										"value": "true"
+									},
+									{
+										"name": "SOAJS_NX_SITE_HTTP_REDIRECT",
+										"value": "true"
+									}
+								],
+								"resources": {
+									"limits": {
+										"cpu": "500m",
+										"memory": "581959680"
+									}
+								},
+								"volumeMounts": [
+									{
+										"name": "custom-mongo-volume",
+										"mountPath": "/data/db/"
+									},
+									{
+										"name": "test-secret-1",
+										"readOnly": true,
+										"mountPath": "defaultPath"
+									}
+								],
+								"readinessProbe": {
+									"httpGet": {
+										"path": "/",
+										"port": 27017,
+										"scheme": "HTTP"
+									},
+									"initialDelaySeconds": 5,
+									"timeoutSeconds": 2,
+									"periodSeconds": 5,
+									"successThreshold": 1,
+									"failureThreshold": 3
+								},
+								"terminationMessagePath": "/dev/termination-log",
+								"terminationMessagePolicy": "File",
+								"imagePullPolicy": "IfNotPresent"
+							}
+						],
+						"restartPolicy": "Always",
+						"terminationGracePeriodSeconds": 30,
+						"dnsPolicy": "ClusterFirst",
+						"securityContext": {},
+						"schedulerName": "default-scheduler"
+					}
+				},
+				"strategy": {
+					"type": "RollingUpdate",
+					"rollingUpdate": {
+						"maxUnavailable": 1,
+						"maxSurge": 1
+					}
+				},
+				"revisionHistoryLimit": 2
+			},
+			"status": {}
+		},
+		"serviceList": {
 			"kind": "ServiceList",
 			"apiVersion": "v1",
 			"metadata": {
-				"selfLink": "/api/v1/services",
-				"resourceVersion": "109306"
+				"selfLink": "/api/v1/namespaces/soajs/services",
+				"resourceVersion": "133790"
 			},
-			"items": []
+			"items": [
+				{
+					"metadata": {
+						"name": "mongo-service",
+						"namespace": "soajs",
+						"selfLink": "/api/v1/namespaces/soajs/services/mongo-service",
+						"uid": "44c838d8-67dd-11e8-9dde-025000000001",
+						"resourceVersion": "129940",
+						"creationTimestamp": "2018-06-04T09:54:27Z",
+						"labels": {
+							"memoryLimit": "555",
+							"service.image.name": "mongo",
+							"service.image.tag": "3.4.10",
+							"service.image.ts": "1515128013261",
+							"soajs.catalog.id": "5ad9cab35c967d35b871065c",
+							"soajs.env.code": "testenv",
+							"soajs.resource.id": "5b150c52e5efc7143ed4ace2",
+							"soajs.service.group": "Other",
+							"soajs.service.label": "testenv-mongo",
+							"soajs.service.mode": "deployment",
+							"soajs.service.name": "mongo",
+							"soajs.service.subtype": "mongo",
+							"soajs.service.type": "cluster"
+						}
+					},
+					"spec": {
+						"ports": [
+							{
+								"name": "mongo",
+								"protocol": "TCP",
+								"port": 27017,
+								"targetPort": 27017,
+								"nodePort": 32017
+							}
+						],
+						"selector": {
+							"soajs.service.label": "testenv-mongo"
+						},
+						"clusterIP": "10.111.114.115",
+						"type": "NodePort",
+						"sessionAffinity": "None",
+						"externalTrafficPolicy": "Cluster"
+					},
+					"status": {
+						"loadBalancer": {
+							"ingress": [
+								{
+									"hostname": "localhost"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		"autoscalerParams": {
+			min: 1,
+			max: 3,
+			metrics: {cpu: {percent: 80}},
+			id: 'mongo',
+			type: 'deployment'
+		},
+		"daemonsetNginx": {
+			"kind": "Daemonset"
+		},
+		"podList": [
+			{
+			"kind": "PodList",
+			"apiVersion": "v1",
+			"metadata": {
+				"selfLink": "/api/v1/pods",
+				"resourceVersion": "144949"
+			},
+			"items": [
+				{
+					"metadata": {
+						"name": "compose-5d4f4d67b6-wb2vx",
+						"generateName": "compose-5d4f4d67b6-",
+						"namespace": "docker",
+						"selfLink": "/api/v1/namespaces/docker/pods/compose-5d4f4d67b6-wb2vx",
+						"uid": "346c28d5-5d98-11e8-9af0-025000000001",
+						"resourceVersion": "123022",
+						"creationTimestamp": "2018-05-22T08:14:53Z",
+						"labels": {
+							"com.docker.deploy-namespace": "docker",
+							"com.docker.fry": "compose",
+							"com.docker.image-tag": "v0.3.0-rc4",
+							"pod-template-hash": "1809082362"
+						},
+						"ownerReferences": [
+							{
+								"apiVersion": "extensions/v1beta1",
+								"kind": "ReplicaSet",
+								"name": "compose-5d4f4d67b6",
+								"uid": "346bdff2-5d98-11e8-9af0-025000000001",
+								"controller": true,
+								"blockOwnerDeletion": true
+							}
+						]
+					},
+					"spec": {
+						"volumes": [
+							{
+								"name": "compose-token-65hzj",
+								"secret": {
+									"secretName": "compose-token-65hzj",
+									"defaultMode": 420
+								}
+							}
+						],
+						"containers": [
+							{
+								"name": "compose",
+								"image": "docker/kube-compose-controller:v0.3.0-rc4",
+								"args": [
+									"--kubeconfig",
+									"",
+									"--reconciliation-interval",
+									"30s"
+								],
+								"resources": {},
+								"volumeMounts": [
+									{
+										"name": "compose-token-65hzj",
+										"readOnly": true,
+										"mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+									}
+								],
+								"terminationMessagePath": "/dev/termination-log",
+								"terminationMessagePolicy": "File",
+								"imagePullPolicy": "Always"
+							}
+						],
+						"restartPolicy": "Always",
+						"terminationGracePeriodSeconds": 30,
+						"dnsPolicy": "ClusterFirst",
+						"serviceAccountName": "compose",
+						"serviceAccount": "compose",
+						"nodeName": "docker-for-desktop",
+						"securityContext": {},
+						"schedulerName": "default-scheduler",
+						"tolerations": [
+							{
+								"key": "node.kubernetes.io/not-ready",
+								"operator": "Exists",
+								"effect": "NoExecute",
+								"tolerationSeconds": 300
+							},
+							{
+								"key": "node.kubernetes.io/unreachable",
+								"operator": "Exists",
+								"effect": "NoExecute",
+								"tolerationSeconds": 300
+							}
+						]
+					},
+					"status": {
+						"phase": "Running",
+						"conditions": [
+							{
+								"type": "Initialized",
+								"status": "True",
+								"lastProbeTime": null,
+								"lastTransitionTime": "2018-05-22T08:14:53Z"
+							},
+							{
+								"type": "Ready",
+								"status": "True",
+								"lastProbeTime": null,
+								"lastTransitionTime": "2018-06-04T08:13:02Z"
+							},
+							{
+								"type": "PodScheduled",
+								"status": "True",
+								"lastProbeTime": null,
+								"lastTransitionTime": "2018-05-22T08:14:53Z"
+							}
+						],
+						"hostIP": "192.168.65.3",
+						"podIP": "10.1.0.54",
+						"startTime": "2018-05-22T08:14:53Z",
+						"containerStatuses": [
+							{
+								"name": "compose",
+								"state": {
+									"running": {
+										"startedAt": "2018-06-04T08:13:02Z"
+									}
+								},
+								"lastState": {},
+								"ready": true,
+								"restartCount": 0,
+								"image": "docker/kube-compose-controller:v0.3.0-rc4",
+								"imageID": "docker-pullable://docker/kube-compose-controller@sha256:144066d84addbf9de06a47911939c094f4e769476968d00feae17367011ba729",
+								"containerID": "docker://287a030369fb975bf2905635ab4703ad87f15837b4de433850b00f50d547d373"
+							}
+						],
+						"qosClass": "BestEffort"
+					}
+				}
+			]
+		},
+			{
+				"kind": "PodList",
+				"apiVersion": "v1",
+				"metadata": {
+					"selfLink": "/api/v1/pods",
+					"resourceVersion": "144949"
+				},
+				"items": [
+					{
+						"metadata": {
+							"name": "mongo-7548f86496-vt8rw",
+							"generateName": "mongo-7548f86496-",
+							"namespace": "soajs",
+							"selfLink": "/api/v1/namespaces/soajs/pods/mongo-7548f86496-vt8rw",
+							"uid": "47094eda-67e5-11e8-9dde-025000000001",
+							"resourceVersion": "133832",
+							"creationTimestamp": "2018-06-04T10:51:47Z",
+							"labels": {
+								"memoryLimit": "500",
+								"pod-template-hash": "3104942052",
+								"service.image.name": "mongo",
+								"service.image.tag": "3.4.10",
+								"service.image.ts": "1515128013261",
+								"soajs.catalog.id": "5ad9cab35c967d35b871065c",
+								"soajs.env.code": "testenv",
+								"soajs.resource.id": "5b150c52e5efc7143ed4ace2",
+								"soajs.service.group": "Other",
+								"soajs.service.label": "testenv-mongo",
+								"soajs.service.mode": "deployment",
+								"soajs.service.name": "mongo",
+								"soajs.service.replicas": "1",
+								"soajs.service.subtype": "mongo",
+								"soajs.service.type": "cluster"
+							},
+							"ownerReferences": [
+								{
+									"apiVersion": "extensions/v1beta1",
+									"kind": "ReplicaSet",
+									"name": "mongo-7548f86496",
+									"uid": "47084c72-67e5-11e8-9dde-025000000001",
+									"controller": true,
+									"blockOwnerDeletion": true
+								}
+							]
+						},
+						"spec": {
+							"volumes": [
+								{
+									"name": "custom-mongo-volume",
+									"hostPath": {
+										"path": "/data/custom/db/",
+										"type": ""
+									}
+								},
+								{
+									"name": "default-token-xn8w2",
+									"secret": {
+										"secretName": "default-token-xn8w2",
+										"defaultMode": 420
+									}
+								}
+							],
+							"containers": [
+								{
+									"name": "mongo",
+									"image": "mongo:3.4.10",
+									"command": [
+										"mongod"
+									],
+									"args": [
+										"--smallfiles"
+									],
+									"ports": [
+										{
+											"name": "mongo",
+											"containerPort": 27017,
+											"protocol": "TCP"
+										}
+									],
+									"resources": {
+										"limits": {
+											"cpu": "500m",
+											"memory": "524288k"
+										},
+										"requests": {
+											"cpu": "500m",
+											"memory": "524288k"
+										}
+									},
+									"volumeMounts": [
+										{
+											"name": "custom-mongo-volume",
+											"mountPath": "/data/db/"
+										},
+										{
+											"name": "default-token-xn8w2",
+											"readOnly": true,
+											"mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+										}
+									],
+									"readinessProbe": {
+										"httpGet": {
+											"path": "/",
+											"port": 27017,
+											"scheme": "HTTP"
+										},
+										"initialDelaySeconds": 5,
+										"timeoutSeconds": 2,
+										"periodSeconds": 5,
+										"successThreshold": 1,
+										"failureThreshold": 3
+									},
+									"terminationMessagePath": "/dev/termination-log",
+									"terminationMessagePolicy": "File",
+									"imagePullPolicy": "IfNotPresent"
+								}
+							],
+							"restartPolicy": "Always",
+							"terminationGracePeriodSeconds": 30,
+							"dnsPolicy": "ClusterFirst",
+							"serviceAccountName": "default",
+							"serviceAccount": "default",
+							"nodeName": "docker-for-desktop",
+							"securityContext": {},
+							"schedulerName": "default-scheduler",
+							"tolerations": [
+								{
+									"key": "node.kubernetes.io/not-ready",
+									"operator": "Exists",
+									"effect": "NoExecute",
+									"tolerationSeconds": 300
+								},
+								{
+									"key": "node.kubernetes.io/unreachable",
+									"operator": "Exists",
+									"effect": "NoExecute",
+									"tolerationSeconds": 300
+								}
+							]
+						},
+						"status": {
+							"phase": "Running",
+							"conditions": [
+								{
+									"type": "Initialized",
+									"status": "True",
+									"lastProbeTime": null,
+									"lastTransitionTime": "2018-06-04T10:51:47Z"
+								},
+								{
+									"type": "Ready",
+									"status": "True",
+									"lastProbeTime": null,
+									"lastTransitionTime": "2018-06-04T10:51:55Z"
+								},
+								{
+									"type": "PodScheduled",
+									"status": "True",
+									"lastProbeTime": null,
+									"lastTransitionTime": "2018-06-04T10:51:47Z"
+								}
+							],
+							"hostIP": "192.168.65.3",
+							"podIP": "10.1.0.59",
+							"startTime": "2018-06-04T10:51:47Z",
+							"containerStatuses": [
+								{
+									"name": "mongo",
+									"state": {
+										"running": {
+											"startedAt": "2018-06-04T10:51:48Z"
+										}
+									},
+									"lastState": {},
+									"ready": true,
+									"restartCount": 0,
+									"image": "mongo:3.4.10",
+									"imageID": "docker-pullable://mongo@sha256:b84baeffd0f14bebaf057b36de9414ee41584a897351795f4a3889257cf19b6d",
+									"containerID": "docker://49ca3e923935fcbc8144997190fb4a5cfad8f519f090c66df7fc19ef5c10b5ec"
+								}
+							],
+							"qosClass": "Guaranteed"
+						}
+					}
+				]
+			}],
+		"hpa": {
+			"kind": "HorizontalPodAutoscaler",
+			"apiVersion": "autoscaling/v1",
+			"metadata": {
+				"name": "mongo",
+				"namespace": "soajs",
+				"selfLink": "/apis/autoscaling/v1/namespaces/soajs/horizontalpodautoscalers/mongo",
+				"uid": "44d747e7-67dd-11e8-9dde-025000000001",
+				"resourceVersion": "130000",
+				"creationTimestamp": "2018-06-04T09:54:27Z",
+				"annotations": {
+					"autoscaling.alpha.kubernetes.io/conditions": "[{\"type\":\"AbleToScale\",\"status\":\"True\",\"lastTransitionTime\":\"2018-06-04T09:54:57Z\",\"reason\":\"SucceededGetScale\",\"message\":\"the HPA controller was able to get the target's current scale\"},{\"type\":\"ScalingActive\",\"status\":\"False\",\"lastTransitionTime\":\"2018-06-04T09:54:57Z\",\"reason\":\"FailedGetResourceMetric\",\"message\":\"the HPA was unable to compute the replica count: unable to get metrics for resource cpu: unable to fetch metrics from API: the server could not find the requested resource (get pods.metrics.k8s.io)\"}]"
+				}
+			},
+			"spec": {
+				"scaleTargetRef": {
+					"kind": "Deployment",
+					"name": "mongo",
+					"apiVersion": "extensions/v1beta1"
+				},
+				"minReplicas": 1,
+				"maxReplicas": 3,
+				"targetCPUUtilizationPercentage": 80
+			},
+			"status": {
+				"currentReplicas": 1,
+				"desiredReplicas": 0
+			}
+		},
+		"PodListController": {
+			"kind": "PodList",
+			"apiVersion": "v1",
+			"metadata": {
+				"selfLink": "/api/v1/namespaces/soajs/pods",
+				"resourceVersion": "153833"
+			},
+			"items": [
+				{
+					"metadata": {
+						"name": "testenv-controller-6f8d5cb99f-jvs2k",
+						"generateName": "testenv-controller-6f8d5cb99f-",
+						"namespace": "soajs",
+						"selfLink": "/api/v1/namespaces/soajs/pods/testenv-controller-6f8d5cb99f-jvs2k",
+						"uid": "81020837-680e-11e8-9dde-025000000001",
+						"resourceVersion": "153831",
+						"creationTimestamp": "2018-06-04T15:46:53Z",
+						"labels": {
+							"memoryLimit": "500",
+							"pod-template-hash": "2948176559",
+							"service.branch": "master",
+							"service.commit": "468588b0a89e55020f26b805be0ff02e0f31a7d8",
+							"service.image.name": "soajs",
+							"service.image.prefix": "soajsorg",
+							"service.image.tag": "latest",
+							"service.image.ts": "1522243952636",
+							"service.owner": "soajs",
+							"service.repo": "soajs.controller",
+							"soajs.catalog.id": "5ad9cab35c967d35b8710657",
+							"soajs.content": "true",
+							"soajs.env.code": "testenv",
+							"soajs.service.group": "soajs-core-services",
+							"soajs.service.label": "testenv-controller",
+							"soajs.service.mode": "deployment",
+							"soajs.service.name": "controller",
+							"soajs.service.replicas": "1",
+							"soajs.service.repo.name": "soajs-controller",
+							"soajs.service.subtype": "soajs",
+							"soajs.service.type": "service",
+							"soajs.service.version": "1"
+						},
+						"ownerReferences": [
+							{
+								"apiVersion": "extensions/v1beta1",
+								"kind": "ReplicaSet",
+								"name": "testenv-controller-6f8d5cb99f",
+								"uid": "8100f31d-680e-11e8-9dde-025000000001",
+								"controller": true,
+								"blockOwnerDeletion": true
+							}
+						]
+					},
+					"spec": {
+						"volumes": [
+							{
+								"name": "soajs-log-volume",
+								"hostPath": {
+									"path": "/var/log/soajs/",
+									"type": ""
+								}
+							},
+							{
+								"name": "default-token-xn8w2",
+								"secret": {
+									"secretName": "default-token-xn8w2",
+									"defaultMode": 420
+								}
+							}
+						],
+						"containers": [
+							{
+								"name": "controller",
+								"image": "soajsorg/soajs:latest",
+								"command": [
+									"bash"
+								],
+								"args": [
+									"-c",
+									"let registryPort=$(($SOAJS_NX_CONTROLLER_PORT+1000)) && export SOAJS_REGISTRY_API=\"${SOAJS_NX_CONTROLLER_IP_1}:$registryPort\" && node . -T service"
+								],
+								"workingDir": "/opt/soajs/deployer/",
+								"env": [
+									{
+										"name": "NODE_TLS_REJECT_UNAUTHORIZED",
+										"value": "0"
+									},
+									{
+										"name": "NODE_ENV",
+										"value": "production"
+									},
+									{
+										"name": "SOAJS_ENV",
+										"value": "testenv"
+									},
+									{
+										"name": "SOAJS_PROFILE",
+										"value": "/opt/soajs/FILES/profiles/profile.js"
+									},
+									{
+										"name": "SOAJS_SRV_AUTOREGISTERHOST",
+										"value": "true"
+									},
+									{
+										"name": "SOAJS_SRV_MEMORY",
+										"value": "500"
+									},
+									{
+										"name": "SOAJS_DEPLOY_HA",
+										"value": "kubernetes"
+									},
+									{
+										"name": "SOAJS_HA_NAME",
+										"valueFrom": {
+											"fieldRef": {
+												"apiVersion": "v1",
+												"fieldPath": "metadata.name"
+											}
+										}
+									},
+									{
+										"name": "SOAJS_NX_CONTROLLER_NB",
+										"value": "1"
+									},
+									{
+										"name": "SOAJS_NX_CONTROLLER_IP_1",
+										"value": "undefined"
+									},
+									{
+										"name": "SOAJS_NX_CONTROLLER_PORT",
+										"value": "4000"
+									},
+									{
+										"name": "SOAJS_GIT_PROVIDER",
+										"value": "github"
+									},
+									{
+										"name": "SOAJS_GIT_DOMAIN",
+										"value": "github.com"
+									},
+									{
+										"name": "SOAJS_GIT_OWNER",
+										"value": "soajs"
+									},
+									{
+										"name": "SOAJS_GIT_REPO",
+										"value": "soajs.controller"
+									},
+									{
+										"name": "SOAJS_GIT_BRANCH",
+										"value": "master"
+									},
+									{
+										"name": "SOAJS_GIT_COMMIT",
+										"value": "468588b0a89e55020f26b805be0ff02e0f31a7d8"
+									}
+								],
+								"resources": {
+									"limits": {
+										"memory": "524288k"
+									},
+									"requests": {
+										"memory": "524288k"
+									}
+								},
+								"volumeMounts": [
+									{
+										"name": "soajs-log-volume",
+										"mountPath": "/var/log/soajs/"
+									},
+									{
+										"name": "default-token-xn8w2",
+										"readOnly": true,
+										"mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+									}
+								],
+								"readinessProbe": {
+									"httpGet": {
+										"path": "/heartbeat",
+										"port": "maintenance",
+										"scheme": "HTTP"
+									},
+									"initialDelaySeconds": 5,
+									"timeoutSeconds": 2,
+									"periodSeconds": 5,
+									"successThreshold": 1,
+									"failureThreshold": 3
+								},
+								"terminationMessagePath": "/dev/termination-log",
+								"terminationMessagePolicy": "File",
+								"imagePullPolicy": "IfNotPresent"
+							}
+						],
+						"restartPolicy": "Always",
+						"terminationGracePeriodSeconds": 30,
+						"dnsPolicy": "ClusterFirst",
+						"serviceAccountName": "default",
+						"serviceAccount": "default",
+						"nodeName": "docker-for-desktop",
+						"securityContext": {},
+						"schedulerName": "default-scheduler",
+						"tolerations": [
+							{
+								"key": "node.kubernetes.io/not-ready",
+								"operator": "Exists",
+								"effect": "NoExecute",
+								"tolerationSeconds": 300
+							},
+							{
+								"key": "node.kubernetes.io/unreachable",
+								"operator": "Exists",
+								"effect": "NoExecute",
+								"tolerationSeconds": 300
+							}
+						]
+					},
+					"status": {
+						"phase": "Running",
+						"conditions": [
+							{
+								"type": "Initialized",
+								"status": "True",
+								"lastProbeTime": null,
+								"lastTransitionTime": "2018-06-04T15:46:53Z"
+							},
+							{
+								"type": "Ready",
+								"status": "False",
+								"lastProbeTime": null,
+								"lastTransitionTime": "2018-06-04T15:46:53Z",
+								"reason": "ContainersNotReady",
+								"message": "containers with unready status: [controller]"
+							},
+							{
+								"type": "PodScheduled",
+								"status": "True",
+								"lastProbeTime": null,
+								"lastTransitionTime": "2018-06-04T15:46:53Z"
+							}
+						],
+						"hostIP": "192.168.65.3",
+						"podIP": "10.1.0.63",
+						"startTime": "2018-06-04T15:46:53Z",
+						"containerStatuses": [
+							{
+								"name": "controller",
+								"state": {
+									"terminated": {
+										"exitCode": 0,
+										"reason": "Completed",
+										"startedAt": "2018-06-04T15:48:42Z",
+										"finishedAt": "2018-06-04T15:49:03Z",
+										"containerID": "docker://87e4a0ac5d69aa0727e9ab3c9253bf30f07f4ff7961e4577d4c6b2cdb6f89d6b"
+									}
+								},
+								"lastState": {
+									"terminated": {
+										"exitCode": 0,
+										"reason": "Completed",
+										"startedAt": "2018-06-04T15:47:53Z",
+										"finishedAt": "2018-06-04T15:48:14Z",
+										"containerID": "docker://32c111a6552f098d95b2ee02a35490241e02159cfa584a3450c369b8fdd5fdd7"
+									}
+								},
+								"ready": false,
+								"restartCount": 3,
+								"image": "soajsorg/soajs:latest",
+								"imageID": "docker-pullable://soajsorg/soajs@sha256:04c124b1ba99db04605fbb361284ec0e6494031bd0d8456c4f46851fce3caed4",
+								"containerID": "docker://87e4a0ac5d69aa0727e9ab3c9253bf30f07f4ff7961e4577d4c6b2cdb6f89d6b"
+							}
+						],
+						"qosClass": "Burstable"
+					}
+				}
+			]
 		}
 	};
 	return data;

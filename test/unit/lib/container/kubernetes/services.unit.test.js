@@ -7,7 +7,8 @@ const helper = require("../../../../helper.js");
 const services = helper.requireModule('./lib/container/kubernetes/services.js');
 const utils = helper.requireModule('./lib/container/kubernetes/utils.js');
 let dD = require('../../../../schemas/kubernetes/local.js');
-
+let kubeData = {};
+let options = {};
 describe("testing /lib/container/kubernetes/services.js", function () {
 	
 	describe("calling listServices", function () {
@@ -15,11 +16,12 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 			sinon.restore();
 			done();
 		});
-		let kubeData = dD();
-		let options;
-		
 		it("Success", function (done) {
-			options = kubeData.listServices;
+			kubeData = dD();
+			options = kubeData.deployer;
+			options.params = {
+				"env": "testenv"
+			};
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
@@ -36,7 +38,7 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 						},
 						pods : {
 							get : (params, cb) => {
-								return cb(null, kubeData.serviceList)
+								return cb(null, kubeData.podList)
 							}
 						}
 					},
@@ -69,11 +71,67 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 				done();
 			});
 		});
+		
+		it("Success with custom", function (done) {
+			kubeData = dD();
+			options = kubeData.deployer;
+			options.params = {
+				"env": "testenv",
+				"custom": true
+			};
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					core : {
+						nodes : {
+							get : (params, cb) => {
+								return cb(null, kubeData.nodeList)
+							}
+						},
+						services : {
+							get : (params, cb) => {
+								return cb(null, kubeData.serviceList)
+							}
+						},
+						pods : {
+							get : (params, cb) => {
+								return cb(null, kubeData.podList)
+							}
+						}
+					},
+					extensions : {
+						deployments : {
+							get : (params, cb) => {
+								return cb(null, kubeData.deploymentListSys)
+							}
+						},
+						daemonsets : {
+							get : (params, cb) => {
+								return cb(null, kubeData.daemonsetListSys)
+							}
+						}
+					},
+					autoscaling: {
+						namespaces : ()=>{
+							return {
+								hpa: {
+									get : (params, cb) => {
+										return cb(null, {})
+									}
+								}
+							}
+						}
+					}
+				});
+			services.listServices(options, function (error, res) {
+				assert.equal(res.length, 4);
+				done();
+			});
+		});
+		
 	});
 	
-	describe.skip("calling deployService", function () {
-		let kubeData ;
-		let options;
+	describe("calling deployService", function () {
 		afterEach((done) => {
 			sinon.restore();
 			nock.cleanAll();
@@ -132,14 +190,24 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 			
 			let namespaces = () => {
 				return {
-					secrets: {
-						get: (params, cb) => {
-							return cb(null, kubeData.secret)
+					services: {
+						post: (params, cb) => {
+							return cb(null, true)
 						}
 					},
 					hpa: {
 						post: (params, cb) => {
 							return cb(null, true)
+						}
+					},
+					serviceaccounts :{
+						post: (params, cb) => {
+							return cb(null, true)
+						}
+					},
+					deployment :{
+						post: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
 						}
 					}
 				}
@@ -147,695 +215,1001 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 			namespaces.get = (params, cb)=>{
 				return cb(null, kubeData.namespaces)
 			};
-			namespaces.post = (params, cb)=>{
-				return cb(null, true)
-			};
+			
+			//deployer.core.namespaces.get
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
 					core: {
-						namespaces: {namespaces},
+						namespaces: namespaces,
 						secrets : {
 							get: (cb) => {
-								return cb(null, kubeData.secret)
+								return cb(null, kubeData.secrets)
+							}
+						},
+						namespace: {
+							post: (params, cb)=>{
+								return cb(null, true);
 							}
 						}
 					},
 					autoscaling: {
-						namespaces: {namespaces},
+						namespaces: namespaces,
+					},
+					extensions: {
+						namespaces: namespaces,
 					}
 				});
 			services.deployService(options, function (error, res) {
-				console.log(error, res)
-				//assert.ok(res)
+				assert.ok(res);
+				done();
+			});
+		});
+		
+		it("Success deploy mongo no service", function (done) {
+			kubeData = dD();
+			options = kubeData.deployer;
+			options.params = kubeData.deployServiceParams;
+			options.params.serviceAccount = [{
+				metadata: {
+					name: "test"
+				}
+			}];
+			options.params.catalog.recipe.deployOptions.ports = [];
+			let response = {
+				name: '3.4.10',
+				full_size: 131854682,
+				images:
+					[{
+						size: 2926599685,
+						architecture: 'amd64',
+						variant: null,
+						features: null,
+						os: 'windows',
+						os_version: '10.0.16299.125',
+						os_features: null
+					},
+						{
+							size: 5441722307,
+							architecture: 'amd64',
+							variant: null,
+							features: null,
+							os: 'windows',
+							os_version: '10.0.14393.2007',
+							os_features: null
+						},
+						{
+							size: 131854682,
+							architecture: 'amd64',
+							variant: null,
+							features: null,
+							os: 'linux',
+							os_version: null,
+							os_features: null
+						}],
+				id: 17096438,
+				repository: 21412,
+				creator: 1156886,
+				last_updater: 1156886,
+				last_updated: '2018-01-05T04:53:33.261088Z',
+				image_id: null,
+				v2: true
+			};
+			let nocks = nock('https://hub.docker.com', {'cache-control': 'no-cache'})
+				.get('/v2/repositories/library/mongo/tags/3.4.10')
+				.reply(200, response);
+			
+			let namespaces = () => {
+				return {
+					services: {
+						post: (params, cb) => {
+							return cb(null, true)
+						}
+					},
+					hpa: {
+						post: (params, cb) => {
+							return cb(null, true)
+						}
+					},
+					serviceaccounts :{
+						post: (params, cb) => {
+							return cb(null, true)
+						}
+					},
+					deployment :{
+						post: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						}
+					}
+				}
+			};
+			namespaces.get = (params, cb)=>{
+				return cb(null, kubeData.namespaces)
+			};
+			
+			//deployer.core.namespaces.get
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					core: {
+						namespaces: namespaces,
+						secrets : {
+							get: (cb) => {
+								return cb(null, kubeData.secrets)
+							}
+						},
+						namespace: {
+							post: (params, cb)=>{
+								return cb(null, true);
+							}
+						}
+					},
+					autoscaling: {
+						namespaces: namespaces,
+					},
+					extensions: {
+						namespaces: namespaces,
+					}
+				});
+			services.deployService(options, function (error, res) {
+				assert.ok(res);
 				done();
 			});
 		});
 	});
 
-	// describe("calling redeployService", function () {
-	//
-	// 	let kubeData = dD();
-	// 	let options = kubeData.mongoReDeploy;
-	// 	afterEach((done) => {
-	// 		sinon.restore();
-	// 		nock.cleanAll();
-	// 		done();
-	// 	});
-	// 	beforeEach((done) => {
-	// 		let response = {
-	// 			name: '3.4.10',
-	// 			full_size: 131854682,
-	// 			images:
-	// 				[{
-	// 					size: 2926599685,
-	// 					architecture: 'amd64',
-	// 					variant: null,
-	// 					features: null,
-	// 					os: 'windows',
-	// 					os_version: '10.0.16299.125',
-	// 					os_features: null
-	// 				},
-	// 					{
-	// 						size: 5441722307,
-	// 						architecture: 'amd64',
-	// 						variant: null,
-	// 						features: null,
-	// 						os: 'windows',
-	// 						os_version: '10.0.14393.2007',
-	// 						os_features: null
-	// 					},
-	// 					{
-	// 						size: 131854682,
-	// 						architecture: 'amd64',
-	// 						variant: null,
-	// 						features: null,
-	// 						os: 'linux',
-	// 						os_version: null,
-	// 						os_features: null
-	// 					}],
-	// 			id: 17096438,
-	// 			repository: 21412,
-	// 			creator: 1156886,
-	// 			last_updater: 1156886,
-	// 			last_updated: '2018-01-05T04:53:33.261088Z',
-	// 			image_id: null,
-	// 			v2: true
-	// 		};
-	// 		let nocks = nock('https://hub.docker.com', {'cache-control': 'no-cache'})
-	// 			.get('/v2/repositories/library/mongo/tags/3.4.10')
-	// 			.reply(200, response);
-	// 		done();
-	// 	});
-	// 	it("Success with action 'rebuild' mongo", function (done) {
-	// 		sinon
-	// 			.stub(utils, 'getDeployer')
-	// 			.yields(null, {
-	// 				listSecrets: (cb) => {
-	// 					return cb(null, kubeData.secretList)
-	// 				},
-	// 				getService: (params) => {
-	// 					return {
-	// 						inspect: (cb) => {
-	// 							return cb(null, kubeData.inspectService);
-	// 						},
-	// 						update: (param, cb) => {
-	// 							return cb(null, true);
-	// 						},
-	// 						id: params
-	// 					};
-	// 				}
-	// 			});
-	// 		options.params.action = 'rebuild';
-	// 		options.params.inputmaskData.action = 'rebuild';
-	// 		services.redeployService(options, function (error, res) {
-	// 			assert.equal(res.id, "9xabk0pf9wdfdul8vh913jvqs");
-	// 			done();
-	// 		});
-	// 	});
-	//
-	// 	it("Success with action 'rebuild' mongo no Spec", function (done) {
-	// 		sinon
-	// 			.stub(utils, 'getDeployer')
-	// 			.yields(null, {
-	// 				listSecrets: (cb) => {
-	// 					return cb(null, kubeData.secretList)
-	// 				},
-	// 				getService: (params) => {
-	// 					return {
-	// 						inspect: (cb) => {
-	// 							kubeData.inspectService.Spec = {};
-	// 							return cb(null, kubeData.inspectService);
-	// 						},
-	// 						update: (param, cb) => {
-	// 							return cb(null, true);
-	// 						},
-	// 						id: params
-	// 					};
-	// 				}
-	// 			});
-	// 		options.params.action = 'rebuild';
-	// 		options.params.inputmaskData.action = 'rebuild';
-	// 		services.redeployService(options, function (error, res) {
-	// 			assert.equal(res.id, "9xabk0pf9wdfdul8vh913jvqs");
-	// 			done();
-	// 		});
-	// 	});
-	//
-	// 	it("Success with action 'redeploy' no Spec", function (done) {
-	// 		sinon
-	// 			.stub(utils, 'getDeployer')
-	// 			.yields(null, {
-	// 				listSecrets: (cb) => {
-	// 					return cb(null, kubeData.secretList)
-	// 				},
-	// 				getService: (params) => {
-	// 					return {
-	// 						inspect: (cb) => {
-	// 							kubeData.inspectService.Spec = {};
-	// 							return cb(null, kubeData.inspectService);
-	// 						},
-	// 						update: (param, cb) => {
-	// 							return cb(null, true);
-	// 						},
-	// 						id: params
-	// 					};
-	// 				}
-	// 			});
-	// 		options.params.action = 'redeploy';
-	// 		options.params.inputmaskData.action = 'redeploy';
-	// 		services.redeployService(options, function (error, res) {
-	// 			assert.equal(res.id, "9xabk0pf9wdfdul8vh913jvqs");
-	// 			done();
-	// 		});
-	// 	});
-	//
-	// 	it("Success with action 'redeploy'", function (done) {
-	// 		let kubeData = dD();
-	// 		let options = kubeData.mongoReDeploy;
-	// 		sinon
-	// 			.stub(utils, 'getDeployer')
-	// 			.yields(null, {
-	// 				listSecrets: (cb) => {
-	// 					return cb(null, kubeData.secretList)
-	// 				},
-	// 				getService: (params) => {
-	// 					return {
-	// 						inspect: (cb) => {
-	// 							return cb(null, kubeData.inspectService);
-	// 						},
-	// 						update: (param, cb) => {
-	// 							return cb(null, true);
-	// 						},
-	// 						id: params
-	// 					};
-	// 				}
-	// 			});
-	// 		options.params.action = 'redeploy';
-	// 		options.params.inputmaskData.action = 'redeploy';
-	// 		services.redeployService(options, function (error, res) {
-	// 			assert.equal(res.id, "9xabk0pf9wdfdul8vh913jvqs");
-	// 			done();
-	// 		});
-	// 	});
-	//
-	// 	it("Success with action 'rebuild' controller", function (done) {
-	// 		let response = {
-	// 			"statusCode": 200,
-	// 			"body": {
-	// 				"name": "latest",
-	// 				"full_size": 244020253,
-	// 				"images": [
-	// 					{
-	// 						"size": 244020253,
-	// 						"architecture": "amd64",
-	// 						"variant": null,
-	// 						"features": null,
-	// 						"os": "linux",
-	// 						"os_version": null,
-	// 						"os_features": null
-	// 					}
-	// 				],
-	// 				"id": 169967,
-	// 				"repository": 192252,
-	// 				"creator": 274272,
-	// 				"last_updater": 216113,
-	// 				"last_updated": "2018-03-28T13:32:32.636155Z",
-	// 				"image_id": null,
-	// 				"v2": true
-	// 			},
-	// 			"headers": {
-	// 				"date": "Tue, 29 May 2018 14:50:32 GMT",
-	// 				"content-type": "application/json",
-	// 				"transfer-encoding": "chunked",
-	// 				"connection": "close",
-	// 				"vary": "Cookie",
-	// 				"x-frame-options": "deny",
-	// 				"allow": "GET, DELETE, HEAD, OPTIONS",
-	// 				"server": "nginx",
-	// 				"x-content-type-options": "nosniff",
-	// 				"x-xss-protection": "1; mode=block",
-	// 				"strict-transport-security": "max-age=31536000"
-	// 			},
-	// 			"request": {
-	// 				"uri": {
-	// 					"protocol": "https:",
-	// 					"slashes": true,
-	// 					"auth": null,
-	// 					"host": "hub.docker.com",
-	// 					"port": 443,
-	// 					"hostname": "hub.docker.com",
-	// 					"hash": null,
-	// 					"search": null,
-	// 					"query": null,
-	// 					"pathname": "/v2/repositories/soajsorg/soajs/tags/latest/",
-	// 					"path": "/v2/repositories/soajsorg/soajs/tags/latest/",
-	// 					"href": "https://hub.docker.com/v2/repositories/soajsorg/soajs/tags/latest/"
-	// 				},
-	// 				"method": "GET",
-	// 				"headers": {
-	// 					"cache-control": "no-cache",
-	// 					"accept": "application/json",
-	// 					"referer": "https://hub.docker.com/v2/repositories/soajsorg/soajs/tags/latest"
-	// 				}
-	// 			}
-	// 		};
-	// 		let nocks = nock('https://hub.docker.com', {'cache-control': 'no-cache'})
-	// 			.get('/v2/repositories/soajsorg/soajs/tags/latest')
-	// 			.reply(200, response);
-	// 		let kubeData = dD();
-	// 		let options = kubeData.controllerRedeploy;
-	// 		sinon
-	// 			.stub(utils, 'getDeployer')
-	// 			.yields(null, {
-	// 				listSecrets: (cb) => {
-	// 					return cb(null, kubeData.secretList)
-	// 				},
-	// 				getService: (params) => {
-	// 					return {
-	// 						inspect: (cb) => {
-	// 							return cb(null, kubeData.inspectController);
-	// 						},
-	// 						update: (param, cb) => {
-	// 							return cb(null, true);
-	// 						},
-	// 						id: params
-	// 					};
-	// 				}
-	// 			});
-	// 		options.params.action = 'rebuild';
-	// 		options.params.inputmaskData.action = 'rebuild';
-	// 		services.redeployService(options, function (error, res) {
-	// 			assert.equal(res.id, "5aornksipp1ulqs0ojcebamcd");
-	// 			done();
-	// 		});
-	// 	});
-	//
-	// 	it("Error no secrets found", function (done) {
-	// 		let response = {
-	// 			"statusCode": 200,
-	// 			"body": {
-	// 				"name": "latest",
-	// 				"full_size": 244020253,
-	// 				"images": [
-	// 					{
-	// 						"size": 244020253,
-	// 						"architecture": "amd64",
-	// 						"variant": null,
-	// 						"features": null,
-	// 						"os": "linux",
-	// 						"os_version": null,
-	// 						"os_features": null
-	// 					}
-	// 				],
-	// 				"id": 169967,
-	// 				"repository": 192252,
-	// 				"creator": 274272,
-	// 				"last_updater": 216113,
-	// 				"last_updated": "2018-03-28T13:32:32.636155Z",
-	// 				"image_id": null,
-	// 				"v2": true
-	// 			},
-	// 			"headers": {
-	// 				"date": "Tue, 29 May 2018 14:50:32 GMT",
-	// 				"content-type": "application/json",
-	// 				"transfer-encoding": "chunked",
-	// 				"connection": "close",
-	// 				"vary": "Cookie",
-	// 				"x-frame-options": "deny",
-	// 				"allow": "GET, DELETE, HEAD, OPTIONS",
-	// 				"server": "nginx",
-	// 				"x-content-type-options": "nosniff",
-	// 				"x-xss-protection": "1; mode=block",
-	// 				"strict-transport-security": "max-age=31536000"
-	// 			},
-	// 			"request": {
-	// 				"uri": {
-	// 					"protocol": "https:",
-	// 					"slashes": true,
-	// 					"auth": null,
-	// 					"host": "hub.docker.com",
-	// 					"port": 443,
-	// 					"hostname": "hub.docker.com",
-	// 					"hash": null,
-	// 					"search": null,
-	// 					"query": null,
-	// 					"pathname": "/v2/repositories/soajsorg/soajs/tags/latest/",
-	// 					"path": "/v2/repositories/soajsorg/soajs/tags/latest/",
-	// 					"href": "https://hub.docker.com/v2/repositories/soajsorg/soajs/tags/latest/"
-	// 				},
-	// 				"method": "GET",
-	// 				"headers": {
-	// 					"cache-control": "no-cache",
-	// 					"accept": "application/json",
-	// 					"referer": "https://hub.docker.com/v2/repositories/soajsorg/soajs/tags/latest"
-	// 				}
-	// 			}
-	// 		};
-	// 		let nocks = nock('https://hub.docker.com', {'cache-control': 'no-cache'})
-	// 			.get('/v2/repositories/soajsorg/soajs/tags/latest')
-	// 			.reply(200, response);
-	// 		let kubeData = dD();
-	// 		let options = kubeData.controllerRedeploy;
-	// 		sinon
-	// 			.stub(utils, 'getDeployer')
-	// 			.yields(null, {
-	// 				listSecrets: (cb) => {
-	// 					kubeData.secretList[0].Spec.Name = "notFound";
-	// 					return cb(null, kubeData.secretList)
-	// 				},
-	// 				getService: (params) => {
-	// 					return {
-	// 						inspect: (cb) => {
-	// 							return cb(null, kubeData.inspectController);
-	// 						},
-	// 						update: (param, cb) => {
-	// 							return cb(null, true);
-	// 						},
-	// 						id: params
-	// 					};
-	// 				}
-	// 			});
-	// 		options.params.action = 'rebuild';
-	// 		options.params.inputmaskData.action = 'rebuild';
-	// 		services.redeployService(options, function (error, res) {
-	// 			assert.equal(error.code, 726);
-	// 			done();
-	// 		});
-	// 	});
-	//
-	// 	it("Success with action 'test'", function (done) {
-	//
-	// 		sinon
-	// 			.stub(utils, 'getDeployer')
-	// 			.yields(null, {
-	// 				listSecrets: (cb) => {
-	// 					return cb(null, kubeData.secretList)
-	// 				},
-	// 				getService: (params) => {
-	// 					return {
-	// 						inspect: (cb) => {
-	// 							return cb(null, kubeData.inspectService);
-	// 						},
-	// 						update: (param, cb) => {
-	// 							return cb(null, true);
-	// 						},
-	// 						id: params
-	// 					};
-	// 				}
-	// 			});
-	// 		options.params.action = 'test';
-	// 		options.params.inputmaskData.action = 'test';
-	// 		services.redeployService(options, function (error, res) {
-	// 			assert.equal(error.code, 501);
-	// 			done();
-	// 		});
-	// 	});
-	// });
-	//
-	// describe("calling scaleService", function () {
-	//
-	// 	let kubeData = dD();
-	// 	let options = kubeData.mongoDeploy;
-	// 	options.params = {
-	// 		"id": "9xabk0pf9wdfdul8vh913jvqs",
-	// 		"scale": 2
-	// 	};
-	// 	afterEach((done) => {
-	// 		sinon.restore();
-	// 		done();
-	// 	});
-	// 	beforeEach((done) => {
-	// 		done();
-	// 	});
-	// 	it("Success", function (done) {
-	// 		sinon
-	// 			.stub(utils, 'getDeployer')
-	// 			.yields(null, {
-	// 				getService: () => {
-	// 					return {
-	// 						inspect: (cb) => {
-	// 							return cb(null, kubeData.inspectService);
-	// 						},
-	// 						update: (param, cb) => {
-	// 							return cb(null, true);
-	// 						}
-	// 					};
-	// 				}
-	// 			});
-	// 		services.scaleService(options, function (error, res) {
-	// 			assert.ok(res);
-	// 			done();
-	// 		});
-	// 	});
-	// });
-	//
-	// describe("calling inspectService", function () {
-	// 	let kubeData = dD();
-	// 	let options = kubeData.mongoDeploy;
-	// 	options.params = {
-	// 		"id": "9xabk0pf9wdfdul8vh913jvqs"
-	// 	};
-	// 	afterEach((done) => {
-	// 		sinon.restore();
-	// 		done();
-	// 	});
-	// 	beforeEach((done) => {
-	// 		done();
-	// 	});
-	// 	it("Success", function (done) {
-	// 		sinon
-	// 			.stub(utils, 'getDeployer')
-	// 			.yields(null, {
-	//
-	// 				getService: () => {
-	// 					return {
-	// 						inspect: (cb) => {
-	// 							return cb(null, kubeData.inspectService);
-	// 						}
-	// 					};
-	// 				},
-	// 				listTasks: (params, cb) => {
-	// 					return cb(null, kubeData.servicesTasks)
-	// 				}
-	// 			});
-	// 		services.inspectService(options, function (error, res) {
-	// 			assert.equal(res.service.id, "9xabk0pf9wdfdul8vh913jvqs");
-	// 			assert.equal(res.tasks.length, 1);
-	// 			done();
-	// 		});
-	// 	});
-	//
-	// 	it("Success", function (done) {
-	// 		sinon
-	// 			.stub(utils, 'getDeployer')
-	// 			.yields(null, {
-	//
-	// 				getService: () => {
-	// 					return {
-	// 						inspect: (cb) => {
-	// 							delete kubeData.inspectService.Endpoint.Spec.Ports[0].PublishedPort;
-	// 							delete kubeData.inspectService.Endpoint.Ports[0].PublishedPort;
-	// 							return cb(null, kubeData.inspectService);
-	// 						}
-	// 					};
-	// 				},
-	// 				listTasks: (params, cb) => {
-	// 					return cb(null, kubeData.servicesTasks)
-	// 				}
-	// 			});
-	// 		services.inspectService(options, function (error, res) {
-	// 			assert.equal(res.service.id, "9xabk0pf9wdfdul8vh913jvqs");
-	// 			assert.equal(res.tasks.length, 1);
-	// 			done();
-	// 		});
-	// 	});
-	//
-	// 	it("Success excludeTask on", function (done) {
-	// 		sinon
-	// 			.stub(utils, 'getDeployer')
-	// 			.yields(null, {
-	// 				getService: () => {
-	// 					return {
-	// 						inspect: (cb) => {
-	// 							return cb(null, kubeData.inspectService);
-	// 						},
-	// 						update: (param, cb) => {
-	// 							return cb(null, true);
-	// 						}
-	// 					};
-	// 				},
-	// 				listTasks: (params, cb) => {
-	// 					return cb(null, kubeData.servicesTasks)
-	// 				}
-	// 			});
-	// 		options.params.excludeTasks = true;
-	// 		services.inspectService(options, function (error, res) {
-	// 			let assertCheck = !res.tasks;
-	// 			assert.equal(res.service.id, "9xabk0pf9wdfdul8vh913jvqs");
-	// 			assert.ok(assertCheck);
-	// 			done();
-	// 		});
-	// 	});
-	// });
-	//
-	// describe("calling findService", function () {
-	// 	let kubeData = dD();
-	// 	let options = kubeData.mongoDeploy;
-	// 	options.params = {
-	// 		env : "bloooom",
-	// 		serviceName : "controller",
-	// 		version : "1"
-	// 	};
-	// 	afterEach((done) => {
-	// 		sinon.restore();
-	// 		done();
-	// 	});
-	// 	beforeEach((done) => {
-	// 		done();
-	// 	});
-	// 	it("Success", function (done) {
-	// 		sinon
-	// 			.stub(utils, 'getDeployer')
-	// 			.yields(null, {
-	//
-	// 				listServices: (params, cb) => {
-	// 					return cb(null, kubeData.serviceList)
-	// 				}
-	// 			});
-	// 		services.findService(options, function (error, res) {
-	// 			assert.equal(res.id, "2z3amlp3y2gg67f83rfrrznf9");
-	// 			done();
-	// 		});
-	// 	});
-	//
-	// 	it.skip("Success", function (done) {
-	//
-	// 		//increase branches
-	// 		done();
-	// 	});
-	// });
-	//
-	// describe("calling  deleteService", function () {
-	// 	let kubeData = dD();
-	// 	let options = kubeData.mongoDeploy;
-	// 	options.params = {
-	// 		"id": "9xabk0pf9wdfdul8vh913jvqs"
-	// 	};
-	// 	afterEach((done) => {
-	// 		sinon.restore();
-	// 		done();
-	// 	});
-	// 	beforeEach((done) => {
-	// 		done();
-	// 	});
-	// 	it("Success", function (done) {
-	// 		sinon
-	// 			.stub(utils, 'getDeployer')
-	// 			.yields(null, {
-	// 				getService: () => {
-	// 					return {
-	// 						remove: (cb) => {
-	// 							return cb(null, true);
-	// 						}
-	// 					};
-	// 				}
-	// 			});
-	// 		services.deleteService(options, function (error, res) {
-	// 			assert.ok(res);
-	// 			done();
-	// 		});
-	// 	});
-	// });
-	//
-	// describe("calling  getLatestVersion", function () {
-	//
-	// 	let kubeData = dD();
-	// 	let options = kubeData.mongoDeploy;
-	// 	options.params = {
-	// 		env : "bloooom",
-	// 		serviceName : "controller"
-	// 	};
-	// 	afterEach((done) => {
-	// 		sinon.restore();
-	// 		done();
-	// 	});
-	// 	beforeEach((done) => {
-	// 		done();
-	// 	});
-	//
-	// 	it("Success", function (done) {
-	// 		sinon
-	// 			.stub(utils, 'getDeployer')
-	// 			.yields(null, {
-	//
-	// 				listServices: (params, cb) => {
-	// 					return cb(null, kubeData.serviceList)
-	// 				}
-	// 			});
-	// 		services.getLatestVersion(options, function (error, res) {
-	// 			assert.equal(res, "1");
-	// 			done();
-	// 		});
-	// 	});
-	//
-	// 	it.skip("Success", function (done) {
-	//
-	// 		//increase branches
-	// 		done();
-	// 	});
-	// });
-	//
-	// describe("calling  getServiceHost", function () {
-	//
-	// 	let kubeData = dD();
-	// 	let options = kubeData.mongoDeploy;
-	// 	options.params = {
-	// 		env : "bloooom",
-	// 		serviceName : "controller",
-	// 		version : "1"
-	// 	};
-	// 	afterEach((done) => {
-	// 		sinon.restore();
-	// 		done();
-	// 	});
-	// 	beforeEach((done) => {
-	// 		done();
-	// 	});
-	// 	it("Success", function (done) {
-	// 		sinon
-	// 			.stub(utils, 'getDeployer')
-	// 			.yields(null, {
-	//
-	// 				listServices: (params, cb) => {
-	// 					return cb(null, kubeData.serviceList)
-	// 				}
-	// 			});
-	// 		services.getServiceHost(options, function (error, res) {
-	// 			assert.equal(res, "10.0.0.36");
-	// 			done();
-	// 		});
-	// 	});
-	//
-	// 	it("Success", function (done) {
-	// 		sinon
-	// 			.stub(utils, 'getDeployer')
-	// 			.yields(null, {
-	//
-	// 				listServices: (params, cb) => {
-	// 					return cb(null, [])
-	// 				}
-	// 			});
-	// 		services.getServiceHost(options, function (error, res) {
-	// 			assert.equal(error.code, 661);
-	// 			done();
-	// 		});
-	// 	});
-	//
-	// 	it.skip("Success", function (done) {
-	//
-	// 		//increase branches
-	// 		done();
-	// 	});
-	// });
+	describe("calling redeployService", function () {
+
+		
+		afterEach((done) => {
+			sinon.restore();
+			nock.cleanAll();
+			done();
+		});
+		beforeEach((done) => {
+			let response = {
+				name: '3.4.10',
+				full_size: 131854682,
+				images:
+					[{
+						size: 2926599685,
+						architecture: 'amd64',
+						variant: null,
+						features: null,
+						os: 'windows',
+						os_version: '10.0.16299.125',
+						os_features: null
+					},
+						{
+							size: 5441722307,
+							architecture: 'amd64',
+							variant: null,
+							features: null,
+							os: 'windows',
+							os_version: '10.0.14393.2007',
+							os_features: null
+						},
+						{
+							size: 131854682,
+							architecture: 'amd64',
+							variant: null,
+							features: null,
+							os: 'linux',
+							os_version: null,
+							os_features: null
+						}],
+				id: 17096438,
+				repository: 21412,
+				creator: 1156886,
+				last_updater: 1156886,
+				last_updated: '2018-01-05T04:53:33.261088Z',
+				image_id: null,
+				v2: true
+			};
+			let nocks = nock('https://hub.docker.com', {'cache-control': 'no-cache'})
+				.get('/v2/repositories/library/mongo/tags/3.4.10')
+				.reply(200, response);
+			done();
+		});
+		it("Success with action 'rebuild' mongo no service list", function (done) {
+			let kubeData = dD();
+			kubeData = dD();
+			options = kubeData.deployer;
+			options.params = kubeData.redepolyServiceParams;
+			options.params.action = kubeData.redepolyServiceParams.inputmaskData.action;
+			let namespaces = () => {
+				return {
+					services: {
+						post: (params, cb) => {
+							return cb(null, true)
+						},
+						get: (params, cb) => {
+							return cb(null, [])
+						},
+						put: (params, cb) => {
+							return cb(null, true)
+						}
+					},
+					hpa: {
+						post: (params, cb) => {
+							return cb(null, true)
+						}
+					},
+					serviceaccounts :{
+						post: (params, cb) => {
+							return cb(null, true)
+						}
+					},
+					deployment :{
+						post: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						},
+						put: (params, cb) => {
+							return cb(null, true)
+						},
+						get: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						},
+					},
+					daemonset :{
+						post: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						}
+					}
+				}
+			};
+			namespaces.get = (params, cb)=>{
+				return cb(null, kubeData.namespaces)
+			};
+			
+			//deployer.core.namespaces.get
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					core: {
+						namespaces: namespaces,
+						secrets : {
+							get: (cb) => {
+								return cb(null, kubeData.secrets)
+							}
+						},
+						namespace: {
+							post: (params, cb)=>{
+								return cb(null, true);
+							}
+						}
+					},
+					autoscaling: {
+						namespaces: namespaces,
+					},
+					extensions: {
+						namespaces: namespaces,
+					}
+				});
+			
+			services.redeployService(options, function (error, res) {
+				assert.ok(res)
+				done();
+			});
+		});
+		
+		it("Success with action 'rebuild' mongo", function (done) {
+			let kubeData = dD();
+			kubeData = dD();
+			options = kubeData.deployer;
+			options.params = kubeData.redepolyServiceParams;
+			options.params.action = kubeData.redepolyServiceParams.inputmaskData.action;
+			let namespaces = () => {
+				return {
+					services: {
+						post: (params, cb) => {
+							return cb(null, true)
+						},
+						get: (params, cb) => {
+							return cb(null, kubeData.serviceList)
+						},
+						put: (params, cb) => {
+							return cb(null, true)
+						}
+					},
+					hpa: {
+						post: (params, cb) => {
+							return cb(null, true)
+						}
+					},
+					serviceaccounts :{
+						post: (params, cb) => {
+							return cb(null, true)
+						}
+					},
+					deployment :{
+						post: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						},
+						put: (params, cb) => {
+							return cb(null, true)
+						},
+						get: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						},
+					},
+					daemonset :{
+						post: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						}
+					}
+				}
+			};
+			namespaces.get = (params, cb)=>{
+				return cb(null, kubeData.namespaces)
+			};
+			
+			//deployer.core.namespaces.get
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					core: {
+						namespaces: namespaces,
+						secrets : {
+							get: (cb) => {
+								return cb(null, kubeData.secrets)
+							}
+						},
+						namespace: {
+							post: (params, cb)=>{
+								return cb(null, true);
+							}
+						}
+					},
+					autoscaling: {
+						namespaces: namespaces,
+					},
+					extensions: {
+						namespaces: namespaces,
+					}
+				});
+			
+			services.redeployService(options, function (error, res) {
+				assert.ok(res)
+				done();
+			});
+		});
+		
+		it("Success with action 'redeploy' mongo", function (done) {
+			let kubeData = dD();
+			kubeData = dD();
+			options = kubeData.deployer;
+			options.params = kubeData.redepolyServiceParams;
+			kubeData.redepolyServiceParams.inputmaskData.action = 'redeploy';
+			options.params.action = 'redeploy';
+			let namespaces = () => {
+				return {
+					services: {
+						post: (params, cb) => {
+							return cb(null, true)
+						},
+						get: (params, cb) => {
+							return cb(null, kubeData.serviceList)
+						},
+						put: (params, cb) => {
+							return cb(null, true)
+						}
+					},
+					hpa: {
+						post: (params, cb) => {
+							return cb(null, true)
+						}
+					},
+					serviceaccounts :{
+						post: (params, cb) => {
+							return cb(null, true)
+						}
+					},
+					deployment :{
+						post: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						},
+						put: (params, cb) => {
+							return cb(null, true)
+						},
+						get: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						},
+					},
+					daemonset :{
+						post: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						}
+					}
+				}
+			};
+			namespaces.get = (params, cb)=>{
+				return cb(null, kubeData.namespaces)
+			};
+			
+			//deployer.core.namespaces.get
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					core: {
+						namespaces: namespaces,
+						secrets : {
+							get: (cb) => {
+								return cb(null, kubeData.secrets)
+							}
+						},
+						namespace: {
+							post: (params, cb)=>{
+								return cb(null, true);
+							}
+						}
+					},
+					autoscaling: {
+						namespaces: namespaces,
+					},
+					extensions: {
+						namespaces: namespaces,
+					}
+				});
+			
+			services.redeployService(options, function (error, res) {
+				assert.ok(res)
+				done();
+			});
+		});
+	});
+
+	describe("calling scaleService", function () {
+		
+		afterEach((done) => {
+			sinon.restore();
+			done();
+		});
+		beforeEach((done) => {
+			done();
+		});
+		it("Success", function (done) {
+			let kubeData = dD();
+			let options = kubeData.deployer;
+			options.params = {
+				"id": "9xabk0pf9wdfdul8vh913jvqs",
+				"scale": 2
+			};
+			let namespaces = () => {
+				return {
+					deployments :{
+						post: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						},
+						put: (params, cb) => {
+							return cb(null, true)
+						},
+						get: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						},
+					}
+				}
+			};
+			namespaces.get = (params, cb)=>{
+				return cb(null, kubeData.namespaces)
+			};
+			
+			//deployer.core.namespaces.get
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					extensions: {
+						namespaces: namespaces,
+					}
+				});
+			services.scaleService(options, function (error, res) {
+				assert.ok(res);
+				done();
+			});
+		});
+	});
+
+	describe("calling findService", function () {
+		afterEach((done) => {
+			sinon.restore();
+			done();
+		});
+		beforeEach((done) => {
+			done();
+		});
+		it("Success", function (done) {
+			let kubeData = dD();
+			let options = kubeData.deployer;
+			options.params = {
+				env : "kubetest",
+				serviceName : "controller",
+				version : "1"
+			};
+			let namespaces = () => {
+				return {
+					deployments :{
+						get: (params, cb) => {
+							return cb(null, kubeData.deploymentListSys)
+						},
+					},
+					daemonsets :{
+						get: (params, cb) => {
+							return cb(null,  kubeData.daemonsetListSys)
+						},
+					},
+					services :{
+						get: (params, cb) => {
+							return cb(null, kubeData.serviceList)
+						},
+					}
+				}
+			};
+			
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					core: {
+						nodes: {
+							get: (params, cb) => {
+								return cb(null, kubeData.nodeList)
+							},
+						},
+						namespaces: namespaces
+					},
+					extensions: {
+						namespaces: namespaces,
+					}
+				});
+			services.findService(options, function (error, res) {
+				assert.ok(res);
+				done();
+			});
+		});
+
+		it.skip("Success", function (done) {
+
+			//increase branches
+			done();
+		});
+	});
+	
+	describe("calling listKubeServices", function () {
+		afterEach((done) => {
+			sinon.restore();
+			done();
+		});
+		beforeEach((done) => {
+			done();
+		});
+		it("Success", function (done) {
+			let kubeData = dD();
+			let options = kubeData.deployer;
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					core: {
+						services :{
+							get: (params, cb) => {
+								return cb(null, kubeData.serviceList)
+							}
+						}
+					}
+				});
+			services.listKubeServices(options, function (error, res) {
+				assert.ok(res);
+				done();
+			});
+		});
+		
+	});
+
+	describe("calling  deleteService", function () {
+		
+		afterEach((done) => {
+			sinon.restore();
+			done();
+		});
+		beforeEach((done) => {
+			done();
+		});
+		it("Success", function (done) {
+			let kubeData = dD();
+			let options = kubeData.deployer;
+			options.params = {
+				"id": "9xabk0pf9wdfdul8vh913jvqs"
+			};
+			
+			let namespaces = () => {
+				return {
+					deployment :{
+						get: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						},
+						delete: (params, cb) => {
+							return cb(null,  true)
+						},
+					},
+					deployments :{
+						get: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						},
+						put: (params, cb) => {
+							return cb(null,  true)
+						},
+					},
+					daemonset :{
+						get: (params, cb) => {
+							return cb(null,  kubeData.daemonsetNginx)
+						},
+						delete: (params, cb) => {
+							return cb(null,  true)
+						},
+					},
+					services :{
+						get: (params, cb) => {
+							return cb(null, kubeData.serviceList)
+						},
+						delete: (params, cb) => {
+							return cb(null,  true)
+						},
+					},
+					replicasets :{
+						delete: (params, cb) => {
+							return cb(null,  true)
+						},
+					},
+					pods :{
+						delete: (params, cb) => {
+							return cb(null,  true)
+						},
+					},
+					hpa :{
+						get: (params, cb) => {
+							return cb(null, kubeData.autoscale)
+						},
+						delete: (params, cb) => {
+							return cb(null, true)
+						},
+					}
+				}
+			};
+			
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					core: {namespaces},
+					extensions: {namespaces},
+					autoscaling: {namespaces}
+				});
+			services.deleteService(options, function (error, res) {
+				assert.ok(res);
+				done();
+			});
+		});
+		
+		it("Succes nos services", function (done) {
+			let kubeData = dD();
+			let options = kubeData.deployer;
+			options.params = {
+				"id": "9xabk0pf9wdfdul8vh913jvqs"
+			};
+			
+			let namespaces = () => {
+				return {
+					deployment :{
+						get: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						},
+						delete: (params, cb) => {
+							return cb(null,  true)
+						},
+					},
+					deployments :{
+						get: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						},
+						put: (params, cb) => {
+							return cb(null,  true)
+						},
+					},
+					daemonset :{
+						get: (params, cb) => {
+							return cb(null,  kubeData.daemonsetNginx)
+						},
+						delete: (params, cb) => {
+							return cb(null,  true)
+						},
+					},
+					services :{
+						get: (params, cb) => {
+							return cb(null, [])
+						},
+						delete: (params, cb) => {
+							return cb(null,  true)
+						},
+					},
+					replicasets :{
+						delete: (params, cb) => {
+							return cb(null,  true)
+						},
+					},
+					pods :{
+						delete: (params, cb) => {
+							return cb(null,  true)
+						},
+					},
+					hpa :{
+						get: (params, cb) => {
+							return cb(null, kubeData.autoscale)
+						},
+						delete: (params, cb) => {
+							return cb(null, true)
+						},
+					}
+				}
+			};
+			
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					core: {namespaces},
+					extensions: {namespaces},
+					autoscaling: {namespaces}
+				});
+			services.deleteService(options, function (error, res) {
+				assert.ok(res);
+				done();
+			});
+		});
+	});
+
+	describe("calling  getLatestVersion", function () {
+
+		
+		afterEach((done) => {
+			sinon.restore();
+			done();
+		});
+		beforeEach((done) => {
+			done();
+		});
+
+		it("Success", function (done) {
+			let kubeData = dD();
+			let options = kubeData.deployer;
+			options.params = {
+				env : "kubetest",
+				serviceName : "kube-proxy"
+			};
+			
+			let namespaces = () => {
+				return {
+					deployments :{
+						get: (params, cb) => {
+							return cb(null, kubeData.deploymentListSys)
+						},
+					},
+					daemonsets :{
+						get: (params, cb) => {
+							return cb(null,  kubeData.daemonsetListSys)
+						},
+					}
+				}
+			};
+			
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					extensions: {
+						deployments :{
+							get: (params, cb) => {
+								return cb(null, kubeData.deploymentListSys)
+							},
+						},
+						daemonsets :{
+							get: (params, cb) => {
+								return cb(null,  kubeData.daemonsetListSys)
+							},
+						}
+					}
+				});
+			services.getLatestVersion(options, function (error, res) {
+				assert.equal(res, "0");
+				done();
+			});
+		});
+	});
+	
+	describe("calling  inspectService", function () {
+		
+		
+		afterEach((done) => {
+			sinon.restore();
+			done();
+		});
+		beforeEach((done) => {
+			done();
+		});
+		
+		it("Success version", function (done) {
+			let kubeData = dD();
+			let options = kubeData.deployer;
+			options.params = {
+				env : "kubetest",
+				serviceName : "mongo-service"
+			};
+			let namespaces = () => {
+				return {
+					deployment :{
+						get: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						},
+						delete: (params, cb) => {
+							return cb(null,  true)
+						},
+					},
+					deployments :{
+						get: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						},
+						put: (params, cb) => {
+							return cb(null,  true)
+						},
+					},
+					daemonset :{
+						get: (params, cb) => {
+							return cb(null,  kubeData.daemonsetNginx)
+						},
+						delete: (params, cb) => {
+							return cb(null,  true)
+						},
+					},
+					services :{
+						get: (params, cb) => {
+							return cb(null, kubeData.serviceList)
+						},
+						delete: (params, cb) => {
+							return cb(null,  true)
+						},
+					},
+					replicasets :{
+						delete: (params, cb) => {
+							return cb(null,  true)
+						},
+					},
+					pods :{
+						get: (params, cb) => {
+							return cb(null,  {})
+						},
+					},
+					hpa :{
+						get: (params, cb) => {
+							return cb(null, kubeData.autoscale)
+						},
+						delete: (params, cb) => {
+							return cb(null, true)
+						},
+					}
+				}
+			};
+			
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					core: {
+						namespaces: namespaces,
+						nodes: {
+							get: (params, cb) => {
+								return cb(null, kubeData.nodeList)
+							},
+						}
+					},
+					extensions : {
+						namespaces: namespaces,
+					}
+				});
+			services.inspectService(options, function (error, res) {
+				assert.ok(res);
+				done();
+			});
+		});
+	});
+	
+	describe("calling  getServiceHost", function () {
+		
+		
+		afterEach((done) => {
+			sinon.restore();
+			done();
+		});
+		beforeEach((done) => {
+			done();
+		});
+		
+		it("Success", function (done) {
+			let kubeData = dD();
+			let options = kubeData.deployer;
+			options.params = {
+				env : "kubetest",
+				serviceName : "kube-proxy",
+				version: 1
+			};
+			
+			let namespaces = () => {
+				return {
+					services :{
+						get: (params, cb) => {
+							return cb(null, kubeData.serviceList)
+						},
+					}
+				}
+			};
+			
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					core: {namespaces}
+				});
+			services.getServiceHost(options, function (error, res) {
+				assert.ok(res);
+				done();
+			});
+		});
+		it("err Service not found", function (done) {
+			let kubeData = dD();
+			let options = kubeData.deployer;
+			options.params = {
+				env : "kubetest",
+				serviceName : "kube-proxy"
+			};
+			
+			let namespaces = () => {
+				return {
+					services :{
+						get: (params, cb) => {
+							return cb(null,{items: []})
+						},
+					}
+				}
+			};
+			
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					core: {namespaces}
+				});
+			services.getServiceHost(options, function (error, res) {
+				assert.ok(error);
+				done();
+			});
+		});
+		it("Success Unable to get service host", function (done) {
+			let kubeData = dD();
+			let options = kubeData.deployer;
+			options.params = {
+				env : "kubetest",
+				serviceName : "kube-proxy"
+			};
+			
+			let namespaces = () => {
+				return {
+					services :{
+						get: (params, cb) => {
+							return cb(null, {items: [{}]})
+						},
+					}
+				}
+			};
+			
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					core: {namespaces}
+				});
+			services.getServiceHost(options, function (error, res) {
+				assert.ok(error);
+				done();
+			});
+		});
+	});
 });

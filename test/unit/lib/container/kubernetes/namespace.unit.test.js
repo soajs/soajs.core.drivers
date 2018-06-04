@@ -5,7 +5,8 @@ const helper = require("../../../../helper.js");
 const secrets = helper.requireModule('./lib/container/kubernetes/namespace.js');
 const utils = helper.requireModule('./lib/container/kubernetes/utils.js');
 let dD = require('../../../../schemas/kubernetes/local.js');
-
+let kubeData = {};
+let options = {};
 describe("testing /lib/container/kubernetes/namespace.js", function () {
 	
 	describe("calling createNameSpace", function () {
@@ -13,8 +14,8 @@ describe("testing /lib/container/kubernetes/namespace.js", function () {
 			sinon.restore();
 			done();
 		});
-		let kubeData;
-		let options;
+		let kubeData = {};
+		let options = {};
 		
 		it("Success", function (done) {
 			kubeData = dD();
@@ -44,8 +45,6 @@ describe("testing /lib/container/kubernetes/namespace.js", function () {
 	});
 	
 	describe("calling listNameSpaces", function () {
-		let kubeData;
-		let options;
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -76,8 +75,6 @@ describe("testing /lib/container/kubernetes/namespace.js", function () {
 	
 	describe("calling deleteNameSpace", function () {
 		
-		let kubeData;
-		let options;
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -89,6 +86,7 @@ describe("testing /lib/container/kubernetes/namespace.js", function () {
 		it("Success", function (done) {
 			kubeData = dD();
 			options = kubeData.deployer;
+			options.strategy = "blata";
 			options.namespace = 'test';
 			sinon
 				.stub(utils, 'getDeployer')

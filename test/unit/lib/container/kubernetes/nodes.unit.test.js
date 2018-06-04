@@ -5,7 +5,8 @@ const helper = require("../../../../helper.js");
 const secrets = helper.requireModule('./lib/container/kubernetes/nodes.js');
 const utils = helper.requireModule('./lib/container/kubernetes/utils.js');
 let dD = require('../../../../schemas/kubernetes/local.js');
-
+let kubeData = {};
+let options = {};
 describe("testing /lib/container/kubernetes/nodes.js", function () {
 	
 	describe("calling inspectNode", function () {
@@ -13,8 +14,6 @@ describe("testing /lib/container/kubernetes/nodes.js", function () {
 			sinon.restore();
 			done();
 		});
-		let kubeData;
-		let options;
 		
 		it("Success", function (done) {
 			kubeData = dD();
@@ -42,8 +41,6 @@ describe("testing /lib/container/kubernetes/nodes.js", function () {
 	});
 	
 	describe("calling listNodes", function () {
-		let kubeData;
-		let options;
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -74,8 +71,6 @@ describe("testing /lib/container/kubernetes/nodes.js", function () {
 	
 	describe("calling removeNode", function () {
 		
-		let kubeData;
-		let options;
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -110,11 +105,8 @@ describe("testing /lib/container/kubernetes/nodes.js", function () {
 		
 	});
 	
-	
 	describe("calling updateNode", function () {
 		
-		let kubeData;
-		let options;
 		afterEach((done) => {
 			sinon.restore();
 			done();

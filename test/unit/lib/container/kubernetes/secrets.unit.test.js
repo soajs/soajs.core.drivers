@@ -5,7 +5,8 @@ const helper = require("../../../../helper.js");
 const secrets = helper.requireModule('./lib/container/kubernetes/secrets.js');
 const utils = helper.requireModule('./lib/container/kubernetes/utils.js');
 let dD = require('../../../../schemas/kubernetes/local.js');
-
+let kubeData = {};
+let options = {};
 describe("testing /lib/container/kubernetes/secrets.js", function () {
 	
 	describe("calling getSecret", function () {
@@ -13,38 +14,10 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 			sinon.restore();
 			done();
 		});
-		let kubeData;
-		let options;
 		
 		it("Success", function (done) {
 			kubeData = dD();
 			options = kubeData.deployer;
-			sinon
-				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						namespaces: function (namespace){
-							return {
-								secrets :{
-									get: (params, cb)=>{
-										return cb(null, kubeData.secret)
-									}
-								}
-							}
-						}
-					},
-					
-				});
-			options.params = {
-				name: 'test-secret-1'
-			};
-			secrets.getSecret(options, function (error, res) {
-				assert.equal(res.name, 'test-secret-1');
-				done();
-			});
-		});
-		
-		it("Success with namespace provided", function (done) {
 			let namespaces = () => {
 				return {
 					secrets: {
@@ -64,8 +37,7 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 					
 				});
 			options.params = {
-				name: 'test-secret-1',
-				namespace: "soajs"
+				name: 'test-secret-1'
 			};
 			secrets.getSecret(options, function (error, res) {
 				assert.equal(res.name, 'test-secret-1');
@@ -75,8 +47,6 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 	});
 	
 	describe("calling createSecret", function () {
-		let kubeData;
-		let options;
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -103,12 +73,12 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 					}
 				}
 			};
+			namespaces.get = (params, cb)=>{
+				return cb(null, kubeData.namespaces)
+			};
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
-					createSecret: (params, cb) => {
-						return cb(null, kubeData.secret)
-					},
 					core : {namespaces}
 				});
 			secrets.createSecret(options, function (error, res) {
@@ -135,12 +105,12 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 					}
 				}
 			};
+			namespaces.get = (params, cb)=>{
+				return cb(null, kubeData.namespaces)
+			};
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
-					createSecret: (params, cb) => {
-						return cb(null, kubeData.secret)
-					},
 					core : {namespaces}
 				});
 			secrets.createSecret(options, function (error, res) {
@@ -152,8 +122,6 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 	
 	describe("calling deleteSecret", function () {
 		
-		let kubeData;
-		let options;
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -176,6 +144,9 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 					}
 				}
 			};
+			namespaces.get = (params, cb)=>{
+				return cb(null, kubeData.namespaces)
+			};
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
@@ -190,8 +161,6 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 	
 	describe("calling listSecret", function () {
 		
-		let kubeData;
-		let options;
 		afterEach((done) => {
 			sinon.restore();
 			done();

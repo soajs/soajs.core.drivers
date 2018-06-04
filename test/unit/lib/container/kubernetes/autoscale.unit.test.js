@@ -5,7 +5,8 @@ const helper = require("../../../../helper.js");
 const api = helper.requireModule('./lib/container/kubernetes/autoscale.js');
 const utils = helper.requireModule('./lib/container/kubernetes/utils.js');
 let dD = require('../../../../schemas/kubernetes/local.js');
-
+let kubeData = {};
+let options = {};
 describe("testing /lib/container/kubernetes/autoscale.js", function () {
 	
 	describe("calling getAutoscaler", function () {
@@ -13,8 +14,6 @@ describe("testing /lib/container/kubernetes/autoscale.js", function () {
 			sinon.restore();
 			done();
 		});
-		let kubeData;
-		let options;
 		
 		it("error", function (done) {
 			kubeData = dD();
@@ -30,7 +29,7 @@ describe("testing /lib/container/kubernetes/autoscale.js", function () {
 							return {
 								hpa: {
 									"get": (params, cb) => {
-										return cb({code: 404}, kubeData)
+										return cb({code: 404}, kubeData.hpa)
 									}
 								}
 							}
@@ -59,7 +58,7 @@ describe("testing /lib/container/kubernetes/autoscale.js", function () {
 							return {
 								hpa: {
 									"get": (params, cb) => {
-										return cb(null, kubeData.autoscale)
+										return cb(null, kubeData.hpa)
 									}
 								}
 							}
@@ -80,8 +79,6 @@ describe("testing /lib/container/kubernetes/autoscale.js", function () {
 			sinon.restore();
 			done();
 		});
-		let kubeData;
-		let options;
 		
 		it("Success", function (done) {
 			kubeData = dD();
@@ -118,14 +115,20 @@ describe("testing /lib/container/kubernetes/autoscale.js", function () {
 			sinon.restore();
 			done();
 		});
-		let kubeData;
-		let options;
 		
 		it("Success", function (done) {
 			kubeData = dD();
 			options = kubeData.deployer;
 			options.params = {
-				"id": "service"
+				"id": "mongo",
+				"type": "deployment",
+				"min": 1,
+				"max": 4,
+				"metrics": {
+					"cpu": {
+						"percent": 70
+					}
+				}
 			};
 			sinon
 				.stub(utils, 'getDeployer')
@@ -134,6 +137,9 @@ describe("testing /lib/container/kubernetes/autoscale.js", function () {
 						namespaces: function (oneResource) {
 							return {
 								hpa: {
+									"get": (params, cb) => {
+										return cb(null, kubeData.hpa)
+									},
 									"put": (params, cb) => {
 										return cb(null, true)
 									}
@@ -156,8 +162,6 @@ describe("testing /lib/container/kubernetes/autoscale.js", function () {
 			sinon.restore();
 			done();
 		});
-		let kubeData;
-		let options;
 		
 		it("Success", function (done) {
 			kubeData = dD();

@@ -5,7 +5,8 @@ const helper = require("../../../../helper.js");
 const metrics = helper.requireModule('./lib/container/kubernetes/metrics.js');
 const utils = helper.requireModule('./lib/container/kubernetes/utils.js');
 let dD = require('../../../../schemas/kubernetes/local.js');
-
+let kubeData = {};
+let options = {};
 describe("testing /lib/container/kubernetes/metrics.js", function () {
 	
 	describe("calling manageResources", function () {
@@ -13,8 +14,6 @@ describe("testing /lib/container/kubernetes/metrics.js", function () {
 			sinon.restore();
 			done();
 		});
-		let kubeData;
-		let options;
 		
 		it("Success", function (done) {
 			kubeData = dD();
@@ -74,8 +73,6 @@ describe("testing /lib/container/kubernetes/metrics.js", function () {
 			sinon.restore();
 			done();
 		});
-		let kubeData;
-		let options;
 		
 		it("Success", function (done) {
 			kubeData = dD();
