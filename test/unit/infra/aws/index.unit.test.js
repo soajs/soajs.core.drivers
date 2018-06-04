@@ -1365,8 +1365,8 @@ describe("testing /infra/aws/index.js", function () {
 				.yields(null, true);
 			
 			options.infra.stack.loadBalancers = {};
-			options.infra.stack.loadBalancers[options.registry.code.toUpperCase()] = {};
-			options.infra.stack.loadBalancers[options.registry.code.toUpperCase()]['nginx'] = {
+			options.infra.stack.loadBalancers[options.soajs.registry.code.toUpperCase()] = {};
+			options.infra.stack.loadBalancers[options.soajs.registry.code.toUpperCase()]['nginx'] = {
 				name: "aws-lb-123456"
 			};
 			driver.executeDriver('deleteService', options, function (error, response) {
@@ -1392,8 +1392,8 @@ describe("testing /infra/aws/index.js", function () {
 				.yields(null, true);
 			
 			options.infra.stack.loadBalancers = {};
-			options.infra.stack.loadBalancers[options.registry.code.toUpperCase()] = {};
-			options.infra.stack.loadBalancers[options.registry.code.toUpperCase()]['nginx'] = {
+			options.infra.stack.loadBalancers[options.soajs.registry.code.toUpperCase()] = {};
+			options.infra.stack.loadBalancers[options.soajs.registry.code.toUpperCase()]['nginx'] = {
 				name: "aws-lb-123456"
 			};
 			driver.executeDriver('deleteService', options, function (error, response) {
@@ -1496,8 +1496,8 @@ describe("testing /infra/aws/index.js", function () {
 				]);
 			
 			options.infra.stack.loadBalancers = {};
-			options.infra.stack.loadBalancers[options.registry.code.toUpperCase()] = {};
-			options.infra.stack.loadBalancers[options.registry.code.toUpperCase()]['nginx'] = {
+			options.infra.stack.loadBalancers[options.soajs.registry.code.toUpperCase()] = {};
+			options.infra.stack.loadBalancers[options.soajs.registry.code.toUpperCase()]['nginx'] = {
 				name: "aws-lb-123456",
 				DNSName: "192.168.50.50",
 				ports: [

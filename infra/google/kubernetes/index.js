@@ -628,7 +628,7 @@ let driver = {
 			}
 			
 			let mockedResponse = {
-				"env": options.registry.code,
+				"env": options.soajs.registry.code,
 				"stackId": cluster.id,
 				"stackName": cluster.id,
 				"templateProperties": {

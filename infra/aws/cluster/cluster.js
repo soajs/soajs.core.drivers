@@ -127,7 +127,7 @@ const AWSCluster = {
 					}
 					
 					oneDeployment.id = response.StackId;
-					oneDeployment.environments = [options.registry.code.toUpperCase()];
+					oneDeployment.environments = [options.soajs.registry.code.toUpperCase()];
 					oneDeployment.options.zone = options.params.region;
 					oneDeployment.options.template = options.params.infraCodeTemplate;
 					return cb(null, oneDeployment);

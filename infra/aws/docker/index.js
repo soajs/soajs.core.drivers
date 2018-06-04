@@ -136,21 +136,21 @@ driver.deleteService = function (options, cb) {
 				return cb(error);
 			}
 			
-			let info = helper.getDeploymentFromInfra(options.infra, options.registry.code);
+			let info = helper.getDeploymentFromInfra(options.infra, options.soajs.registry.code);
 			if (!info) {
 				return cb(null, true);
 			}
 			
 			//if there is a load balancer for this service make a call to drivers to delete it
 			let infraStack = info[0];
-			if (infraStack.loadBalancers && infraStack.loadBalancers[options.registry.code.toUpperCase()]
-				&& infraStack.loadBalancers[options.registry.code.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']]
-				&& infraStack.loadBalancers[options.registry.code.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']].name) {
+			if (infraStack.loadBalancers && infraStack.loadBalancers[options.soajs.registry.code.toUpperCase()]
+				&& infraStack.loadBalancers[options.soajs.registry.code.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']]
+				&& infraStack.loadBalancers[options.soajs.registry.code.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']].name) {
 				options.params = {
-					envCode: options.registry.code.toLowerCase(),
+					envCode: options.soajs.registry.code.toLowerCase(),
 					info: info,
 					name: deployedServiceDetails.service.labels['soajs.service.name'],
-					ElbName: infraStack.loadBalancers[options.registry.code.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']].name
+					ElbName: infraStack.loadBalancers[options.soajs.registry.code.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']].name
 				};
 				options.infra.stack = infraStack;
 				LBDriver.deleteExternalLB(options, cb);
@@ -168,7 +168,7 @@ driver.listNodes = function (options, cb) {
 			if(!options.params){
 				options.params = {};
 			}
-			options.params.env = options.registry.code;
+			options.params.env = options.soajs.registry.code;
 			ClusterDriver.getCluster(options, mCb);
 		},
 		"listNodes": (mCb) => {
@@ -197,7 +197,7 @@ driver.listServices = function (options, cb) {
 		}
 		
 		let deployment = options.infra.stack;
-		let env = options.registry.code.toUpperCase();
+		let env = options.soajs.registry.code.toUpperCase();
 		
 		services.forEach(function (oneService) {
 			if (deployment && oneService.labels && oneService.labels['soajs.service.type'] === 'server' && oneService.labels['soajs.service.subtype'] === 'nginx') {
