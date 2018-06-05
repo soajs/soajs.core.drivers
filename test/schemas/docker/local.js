@@ -212,7 +212,7 @@ let soajs = {
 		}
 	},
 	registry: registry,
-	validator: require('soajs').core.validator,
+	validator: require('jsonschema'),
 };
 module.exports = function () {
 	let data = {
@@ -1963,7 +1963,7 @@ module.exports = function () {
 					"\t\t}\n" +
 					"\t},\n" +
 					"\tregistry: registry,\n" +
-					"\tvalidator: require('soajs').core.validator,\n" +
+					"\tvalidator: require('jsonschema'),\n" +
 					"};\n" +
 					"module.exports = function () {\n" +
 					"\tlet data = {\n" +

@@ -350,7 +350,7 @@ let soajs = {
 		}
 	},
 	registry: registry,
-	validator: require('soajs').core.validator,
+	validator: require('jsonschema'),
 };
 module.exports = function () {
 	let data = {
