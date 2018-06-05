@@ -2,26 +2,17 @@
 
 const utils = {
 	
-	updateEnvironmentRecord(options, deployedServiceDetails, cb) {
+	updateEnvironmentRecord(options, deployedServiceDetails, loadBalancer, cb) {
 		let env = options.env.toUpperCase();
-		if (deployedServiceDetails && deployedServiceDetails.service && deployedServiceDetails.service.labels && deployedServiceDetails.service.labels['soajs.service.type'] === 'server' && deployedServiceDetails.service.labels['soajs.service.subtype'] === 'nginx') {
-			if (options.infra.stack.loadBalancers && options.infra.stack.loadBalancers[env] && options.infra.stack.loadBalancers[env][deployedServiceDetails.service.labels['soajs.service.name']]) {
-				//fix the ports
-				if (deployedServiceDetails.service.ports && deployedServiceDetails.service.servicePortType === 'loadBalancer') {
-					let portValue, protocolValue;
-					deployedServiceDetails.service.ports.forEach((onePort) => {
-						if(onePort.target === 443){
-							protocolValue = 'https';
-							portValue = onePort.target;
-						}
-						if(!portValue && onePort.target === 80){
-							protocolValue = 'http';
-							portValue = onePort.target;
-						}
-					});
-					
-					options.soajs.registry.protocol = protocolValue;
-					options.soajs.registry.port = portValue;
+		if (loadBalancer && deployedServiceDetails && deployedServiceDetails.service) {
+			if(deployedServiceDetails.service.name === env.toLowerCase() + "-nginx"){
+				if(deployedServiceDetails.service.labels && deployedServiceDetails.service.labels['soajs.service.type'] === 'server' && deployedServiceDetails.service.labels['soajs.service.subtype'] === 'nginx'){
+					let protocolValue = (loadBalancer === 443) ? 'https' : 'http';
+					//compare the above values with the current environment settings and update if required
+					if ((!options.soajs.registry.protocol || (options.soajs.registry.protocol !== protocolValue)) || (!options.soajs.registry.port || (options.soajs.registry.port !== loadBalancer))) {
+						options.soajs.registry.protocol = protocolValue;
+						options.soajs.registry.port = loadBalancer;
+					}
 				}
 			}
 		}
@@ -39,15 +30,29 @@ const utils = {
 				return cb();
 			}
 			
+			let loadBalancer = null;
 			let publishedPort = false;
 			options.params.catalog.recipe.deployOptions.ports.forEach((onePublishedPort) => {
 				if (onePublishedPort.isPublished) {
 					publishedPort = true;
 				}
+				
+				if(onePublishedPort.published){
+					loadBalancer = null;
+				}
+				else{
+					if(onePublishedPort.target === 443){
+						loadBalancer = 443;
+					}
+					
+					if(!loadBalancer && onePublishedPort.target === 80){
+						loadBalancer = 80;
+					}
+				}
 			});
 			
 			if (publishedPort) {
-				computeProtocolAndPortsFromService();
+				computeProtocolAndPortsFromService(loadBalancer);
 			}
 			else{
 				return cb();
@@ -59,6 +64,7 @@ const utils = {
 				return cb();
 			}
 			
+			let loadBalancer = null;
 			let publishedPort = false;
 			options.params.catalog.recipe.deployOptions.ports.forEach((onePublishedPort) => {
 				if (onePublishedPort.isPublished) {
@@ -72,7 +78,7 @@ const utils = {
 						return cb(error);
 					}
 					else{
-						utils.updateEnvironmentRecord(options, deployedServiceDetails, cb);
+						utils.updateEnvironmentRecord(options, deployedServiceDetails, loadBalancer, cb);
 					}
 				});
 			}
@@ -81,7 +87,7 @@ const utils = {
 			}
 		}
 		
-		function computeProtocolAndPortsFromService() {
+		function computeProtocolAndPortsFromService(loadBalancer) {
 			driver.inspectService(options, (error, deployedServiceDetails) => {
 				if (error) {
 					return cb(error);
@@ -98,7 +104,7 @@ const utils = {
 					if (!publishedPort && currentAttempt <= maxAttempts) {
 						currentAttempt++;
 						setTimeout(() => {
-							computeProtocolAndPortsFromService();
+							computeProtocolAndPortsFromService(loadBalancer);
 						}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 2000);
 					}
 					else {
@@ -137,7 +143,7 @@ const utils = {
 								return cb(error);
 							}
 							else{
-								utils.updateEnvironmentRecord(options, deployedServiceDetails, cb);
+								utils.updateEnvironmentRecord(options, deployedServiceDetails, loadBalancer, cb);
 							}
 						});
 					}
