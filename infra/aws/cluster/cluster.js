@@ -84,7 +84,7 @@ const AWSCluster = {
 					templateInputsToUse = JSON.parse(templateInputsToUse);
 				}
 				catch(e){
-					soajs.log.error(e);
+					options.soajs.log.error(e);
 				}
 			}
 			let inputs = templateInputsToUse.inputs;
@@ -119,7 +119,7 @@ const AWSCluster = {
 				],
 				TemplateURL: config.templateUrl + options.params.infraCodeTemplate
 			};
-			
+			options.soajs.log.debug("Deploying Cluster on Cloud Formation with the following inputs:", params);
 			mapTemplateInputsWithValues(inputs, options.params, params, () => {
 				cloudFormation.createStack(params, function (err, response) {
 					if (err) {

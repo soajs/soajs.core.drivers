@@ -1,6 +1,33 @@
 "use strict";
 
 const utils = {
+	
+	updateEnvironmentRecord(options, deployedServiceDetails, cb) {
+		let env = options.env.toUpperCase();
+		if (deployedServiceDetails && deployedServiceDetails.service && deployedServiceDetails.service.labels && deployedServiceDetails.service.labels['soajs.service.type'] === 'server' && deployedServiceDetails.service.labels['soajs.service.subtype'] === 'nginx') {
+			if (options.infra.stack.loadBalancers && options.infra.stack.loadBalancers[env] && options.infra.stack.loadBalancers[env][deployedServiceDetails.service.labels['soajs.service.name']]) {
+				//fix the ports
+				if (deployedServiceDetails.service.ports && deployedServiceDetails.service.servicePortType === 'loadBalancer') {
+					let portValue, protocolValue;
+					deployedServiceDetails.service.ports.forEach((onePort) => {
+						if(onePort.target === 443){
+							protocolValue = 'https';
+							portValue = onePort.target;
+						}
+						if(!portValue && onePort.target === 80){
+							protocolValue = 'http';
+							portValue = onePort.target;
+						}
+					});
+					
+					options.soajs.registry.protocol = protocolValue;
+					options.soajs.registry.port = portValue;
+				}
+			}
+		}
+		return cb();
+	},
+	
 	updateEnvSettings(driver, cluster, options, deployedServiceDetails, cb) {
 		let maxAttempts = 30;
 		let currentAttempt = 1;
@@ -40,7 +67,14 @@ const utils = {
 			});
 			
 			if (publishedPort) {
-				utils.checkWithInfra(cluster, options, deployedServiceDetails, cb)
+				utils.checkWithInfra(cluster, options, deployedServiceDetails, (error) => {
+					if(error){
+						return cb(error);
+					}
+					else{
+						utils.updateEnvironmentRecord(options, deployedServiceDetails, cb);
+					}
+				});
 			}
 			else{
 				return cb();
@@ -98,7 +132,14 @@ const utils = {
 							options.soajs.registry.port = port;
 						}
 						
-						utils.checkWithInfra(cluster, options, deployedServiceDetails, cb)
+						utils.checkWithInfra(cluster, options, deployedServiceDetails, (error) => {
+							if(error){
+								return cb(error);
+							}
+							else{
+								utils.updateEnvironmentRecord(options, deployedServiceDetails, cb);
+							}
+						});
 					}
 				}
 			});
