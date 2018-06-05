@@ -119,9 +119,8 @@ describe("testing /infra/aws/index.js", function () {
 			};
 			options.soajs.registry.protocol = 'http';
 			options.soajs.registry.port = 80;
-			driver.updateEnvSettings(containerDriver, cluster, options, deployedServiceDetails, function (error, response) {
+			driver.updateEnvSettings(containerDriver, cluster, options, deployedServiceDetails, function (error) {
 				assert.ifError(error);
-				assert.ok(response);
 				done();
 			});
 		});
@@ -214,9 +213,8 @@ describe("testing /infra/aws/index.js", function () {
 			};
 			options.soajs.registry.protocol = 'http';
 			options.soajs.registry.port = 80;
-			driver.updateEnvSettings(containerDriver, cluster, options, deployedServiceDetails, function (error, response) {
+			driver.updateEnvSettings(containerDriver, cluster, options, deployedServiceDetails, function (error) {
 				assert.ifError(error);
-				assert.ok(response);
 				done();
 			});
 		});
@@ -296,9 +294,8 @@ describe("testing /infra/aws/index.js", function () {
 				}
 			};
 			
-			driver.updateEnvSettings(containerDriver, cluster, options, deployedServiceDetails, function (error, response) {
+			driver.updateEnvSettings(containerDriver, cluster, options, deployedServiceDetails, function (error) {
 				assert.ifError(error);
-				assert.ok(response);
 				done();
 			});
 		});

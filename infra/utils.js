@@ -3,6 +3,9 @@
 const utils = {
 	
 	updateEnvironmentRecord(options, deployedServiceDetails, loadBalancer, cb) {
+		if(!options.env){
+			options.env = options.soajs.registry.code;
+		}
 		let env = options.env.toUpperCase();
 		if (loadBalancer && deployedServiceDetails && deployedServiceDetails.service) {
 			if(deployedServiceDetails.service.name === env.toLowerCase() + "-nginx"){
