@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "async": "2.1.4",
-    "aws-sdk": "2.165.0",
+    "aws-sdk": "2.178.0",
     "azure-arm-compute": "^5.1.1",
     "azure-arm-network": "^5.3.0",
     "azure-arm-resource": "^3.1.1-preview",
