@@ -1,7 +1,7 @@
 {
   "name": "soajs.core.drivers",
   "description": "SOAJS Driver Strategies",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "author": {
     "name": "soajs team",
     "email": "team@soajs.org"
@@ -33,7 +33,7 @@
     "randomstring": "^1.1.5",
     "request": "2.82.0",
     "soajs.core.libs": "1.0.2",
-    "soajs.core.modules": "2.0.4",
+    "soajs.core.modules": "2.0.5",
     "stdio": "0.2.7",
     "ws": "3.3.1"
   },
