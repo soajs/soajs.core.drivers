@@ -610,9 +610,9 @@ const driver = {
 
 	listNetworks: function (options, cb) {
 		options.soajs.log.debug(`Listing Networks for resourcegroup ${options.params.resourceGroupName} `);
-		driver.authenticate(options, (error, authData) => {
+		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
-				const networkClient = driver.getConnector({
+				const networkClient = driverUtils.getConnector({
 					api: 'network',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
@@ -628,8 +628,6 @@ const driver = {
 		});
 	},
 	
-
-
     /**
 	 * List available loadbalancers
 	 
@@ -637,13 +635,12 @@ const driver = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-
-
+  
 	listLoadBalancers: function (options, cb) {
 		options.soajs.log.debug(`Listing laod balancers for resourcegroup ${options.params.resourceGroupName}`);
-		driver.authenticate(options, (error, authData) => {
+	    driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
-				const networkClient = driver.getConnector({
+				const networkClient = driverUtils.getConnector({
 					api: 'network',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
@@ -657,8 +654,6 @@ const driver = {
 		});
 	},
 	
-
-
     /**
 	 * List available subnets
 	 listsub
@@ -668,9 +663,9 @@ const driver = {
 	 */
 	 listSubnets: function (options, cb) {
 		options.soajs.log.debug(`Listing subnets for  ${options.params.resourceGroupName} and virtual network name ${options.params.virtualNetworkName}`);
-		driver.authenticate(options, (error, authData) => {
+	    driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
-				const networkClient = driver.getConnector({
+				const networkClient = driverUtils.getConnector({
 					api: 'network',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
@@ -684,9 +679,6 @@ const driver = {
 		});
 	},
 	
-	
-
-
     /**
 	 * List available securitygroups
 	 
@@ -694,13 +686,12 @@ const driver = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-
-
+  
 	listSecurityGroups: function (options, cb) {
 		options.soajs.log.debug(`Listing securityGroups for resourcegroup ${options.params.resourceGroupName} `);
-		driver.authenticate(options, (error, authData) => {
+	    driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
-				const networkClient = driver.getConnector({
+				const networkClient = driverUtils.getConnector({
 					api: 'network',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
@@ -726,9 +717,9 @@ const driver = {
 
 	listPublicIp: function (options, cb) {
 		options.soajs.log.debug(`Listing public ips for resourcegroup ${options.params.resourceGroupName} `);
-		driver.authenticate(options, (error, authData) => {
+	    driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
-				const networkClient = driver.getConnector({
+				const networkClient = driverUtils.getConnector({
 					api: 'network',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
@@ -740,9 +731,7 @@ const driver = {
 				});
 			});
 		});
-	},
-
-
-}
+	}
+};
 			
 module.exports = driver;
