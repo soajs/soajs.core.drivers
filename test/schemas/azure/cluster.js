@@ -1,38 +1,22 @@
 'use strict';
 let infra = {
-	"_id": "5b044a4df920c675412f82e3",
-	"name" : "azure",
-	"label" : "Azure Web Services",
-	"api" : {
-		"clientId" : "clientId",
-		"secret" : "secret",
-		"domain" : "domain"
+	"_id": '5b18008acf544bca9b55cd79',
+	"api": {
+		"clientId": "1",
+		"secret": "2",
+		"domain": "3",
+		"subscriptionId": "4"
 	},
-	"templates" : [
-		"local"
-	],
-	"technologies" : [
+	"name": "azure",
+	"technologies": [
 		"vm"
 	],
-	"deployments" : [
-		{
-			"technology" : "vm",
-			"options" : {
-			
-			},
-			"environments" : [
-				"AZURE"
-			],
-			"loadBalancers" : {
-			
-			},
-			"name" : "deploymentname",
-			"id" : "id"
-		}
+	"templates": null,
+	"drivers": [
+		"Native"
 	],
-	"drivers" : [
-		"Cloud Formation"
-	],
+	"label": "Azure Driver",
+	"deployments": [],
 	"info": [
 		[
 		
@@ -46,68 +30,58 @@ let infra = {
 	],
 };
 
-infra.info[0] = infra.deployments[0];
+infra.info[0] = infra.deployments[0] ? infra.deployments[0] : [];
 infra.stack = infra.deployments[0];
 
 let registry = {
-	"_id": "5b05a55220957fbc7ac752cc",
-	"code": "AZURE",
-	"description": "azure",
-	"sensitive": false,
-	"domain": "loolper.com",
+	"_id": '55128442e603d7e01ab1688c',
+	"code": "DASHBOARD",
+	"domain": "soajs.org",
+	"sitePrefix": "dashboard",
+	"apiPrefix": "dashboard-api",
+	"locked": true,
+	"port": 80,
+	"protocol": "http",
 	"profile": "/opt/soajs/FILES/profiles/profile.js",
-	"sitePrefix": "site",
-	"apiPrefix": "api",
-	"dbs": {
-		"config": {
-			"prefix": ""
-		},
-		"databases": {}
-	},
 	"deployer": {
+		"type": "manual",
+		"selected": "manual",
 		"manual": {
-			"nodes": ""
+			"nodes": "127.0.0.1"
 		},
 		"container": {
 			"docker": {
 				"local": {
+					"nodes": "127.0.0.1",
 					"socketPath": "/var/run/docker.sock"
 				},
 				"remote": {
-					"apiPort": 443,
-					"nodes": "192.168.50.50",
+					"nodes": "127.0.0.1",
 					"apiProtocol": "https",
 					"auth": {
-						"token": "9b96ba56ce934ded56c3f21ac9bdaddc8ba4782b7753cf07576bfabcace8632eba1749ff1187239ef1f56dd74377aa1e5d0a1113de2ed18368af4b808ad245bc7da986e101caddb7b75992b14d6a866db884ea8aee5ab02786886ecf9f25e974"
+						"token": "%dockertoken%"
 					}
 				}
 			},
 			"kubernetes": {
 				"local": {
-					"nodes": "",
-					"namespace": {
-						"default": "soajs",
-						"perService": false
-					},
+					"nodes": "127.0.0.1",
+					"namespace": "%namespace%",
 					"auth": {
-						"token": ""
+						"token": "%kubetoken%"
 					}
 				},
 				"remote": {
-					"nodes": "",
-					"namespace": {
-						"default": "soajs",
-						"perService": false
-					},
+					"nodes": "127.0.0.1",
+					"namespace": "%namespace%",
 					"auth": {
-						"token": ""
+						"token": "%kubetoken%"
 					}
 				}
 			}
-		},
-		"type": "container",
-		"selected": "container.docker.remote"
+		}
 	},
+	"description": "this is the Dashboard environment",
 	"services": {
 		"controller": {
 			"maxPoolSize": 100,
@@ -128,7 +102,7 @@ let registry = {
 			},
 			"key": {
 				"algorithm": "aes256",
-				"password": "weqerw"
+				"password": "soajs key lal massa"
 			},
 			"logger": {
 				"src": true,
@@ -161,11 +135,11 @@ let registry = {
 				"randomInc": 100
 			},
 			"cookie": {
-				"secret": "SJ9IrXXyX"
+				"secret": "this is a secret sentence"
 			},
 			"session": {
-				"name": "SJxc8rmQJ7",
-				"secret": "By_q8rXQyX",
+				"name": "soajsID",
+				"secret": "this is antoine hage app server",
 				"cookie": {
 					"path": "/",
 					"httpOnly": true,

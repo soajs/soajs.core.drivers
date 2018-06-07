@@ -1,53 +1,11 @@
 'use strict';
 
 const async = require('async');
-const azureApi = require('ms-rest-azure');
-const AzureComputeManagementClient = require('azure-arm-compute');
-const AzureStorageManagementClient = require('azure-arm-storage');
-const AzureNetworkManagementClient = require('azure-arm-network');
-const AzureResourceManagementClient = require('azure-arm-resource').ResourceManagementClient;
-
 const helper = require('./helper');
-const config = require('./config');
 const utils = require('../../../lib/utils/utils.js');
+const driverUtils = require('../utils/index.js');
 
 const driver = {
-	
-	/**
-	 * Gets the connector to the appropriate azure api
-	 * @param  {Object}   opts  Options passed to function as params
-	 * @return {Instance}       Instance of the azure api class
-	 */
-	getConnector: function (opts) {
-		switch (opts.api) {
-			case 'compute':
-				return new AzureComputeManagementClient(opts.credentials, opts.subscriptionId);
-			case 'storage':
-				return new AzureStorageManagementClient(opts.credentials, opts.subscriptionId);
-			case 'network':
-				return new AzureNetworkManagementClient(opts.credentials, opts.subscriptionId);
-			case 'resource':
-				return new AzureResourceManagementClient(opts.credentials, opts.subscriptionId);
-			default:
-				return new AzureComputeManagementClient(opts.credentials, opts.subscriptionId);
-		}
-	},
-	
-	/**
-	 * Authenticate using the provided credentials
-	 
-	 * @param  {Object}   options  Data passed to function as params
-	 * @param  {Function} cb    Callback function
-	 * @return {void}
-	 */
-	authenticate: function (options, cb) {
-		azureApi.loginWithServicePrincipalSecret(options.infra.api.clientId, options.infra.api.secret, options.infra.api.domain, function (error, credentials, subscriptions) {
-			if (error) return cb(error);
-			
-			return cb(null, {credentials, subscriptions});
-		});
-	},
-	
 	/**
 	 * Create a virtual machine on MS Azure
 	 
@@ -56,24 +14,24 @@ const driver = {
 	 * @return {void}
 	 */
 	deployService: function (options, cb) {
-		driver.authenticate(options, (error, authData) => {
+		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
-				const computeClient = driver.getConnector({
+				const computeClient = driverUtils.getConnector({
 					api: 'compute',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				const networkClient = driver.getConnector({
+				const networkClient = driverUtils.getConnector({
 					api: 'network',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				const storageClient = driver.getConnector({
+				const storageClient = driverUtils.getConnector({
 					api: 'storage',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				const resourceClient = driver.getConnector({
+				const resourceClient = driverUtils.getConnector({
 					api: 'resource',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
@@ -281,14 +239,14 @@ const driver = {
 	 */
 	inspectService: function (options, cb) {
 		options.soajs.log.debug(`Inspecting virtual machine ${options.params.vmName} in resource group ${options.env}`);
-		driver.authenticate(options, (error, authData) => {
+		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
-				const computeClient = driver.getConnector({
+				const computeClient = driverUtils.getConnector({
 					api: 'compute',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				const networkClient = driver.getConnector({
+				const networkClient = driverUtils.getConnector({
 					api: 'network',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
@@ -323,19 +281,19 @@ const driver = {
 	 */
 	listServices: function (options, cb) {
 		options.soajs.log.debug(`Listing all virtual machines in ${options.env} and all custom vms`);
-		driver.authenticate(options, (error, authData) => {
+		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
-				const computeClient = driver.getConnector({
+				const computeClient = driverUtils.getConnector({
 					api: 'compute',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				const networkClient = driver.getConnector({
+				const networkClient = driverUtils.getConnector({
 					api: 'network',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				const resourceClient = driver.getConnector({
+				const resourceClient = driverUtils.getConnector({
 					api: 'resource',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
@@ -388,9 +346,9 @@ const driver = {
 	 */
 	deleteService: function (options, cb) {
 		options.soajs.log.debug(`Deleting virtual machine ${options.params.serviceId} in resource group ${options.env}`);
-		driver.authenticate(options, (error, authData) => {
+		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
-				const computeClient = driver.getConnector({
+				const computeClient = driverUtils.getConnector({
 					api: 'compute',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
@@ -425,9 +383,9 @@ const driver = {
 	 */
 	restartService: function (options, cb) {
 		options.soajs.log.debug(`Restarting virtual machine ${options.params.vmName} in resource group ${options.env}`);
-		driver.authenticate(options, (error, authData) => {
+		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
-				const computeClient = driver.getConnector({
+				const computeClient = driverUtils.getConnector({
 					api: 'compute',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
@@ -450,9 +408,9 @@ const driver = {
 	 */
 	redeployService: function (options, cb) {
 		options.soajs.log.debug(`Redeploying virtual machine ${options.params.vmName} in resource group ${options.env}`);
-		driver.authenticate(options, (error, authData) => {
+		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
-				const computeClient = driver.getConnector({
+				const computeClient = driverUtils.getConnector({
 					api: 'compute',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
@@ -475,9 +433,9 @@ const driver = {
 	 */
 	powerOffVM: function (options, cb) {
 		options.soajs.log.debug(`Powering Off virtual machine ${options.params.vmName} in resource group ${options.env}`);
-		driver.authenticate(options, (error, authData) => {
+		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
-				const computeClient = driver.getConnector({
+				const computeClient = driverUtils.getConnector({
 					api: 'compute',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
@@ -500,9 +458,9 @@ const driver = {
 	 */
 	startVM: function (options, cb) {
 		options.soajs.log.debug(`Starting virtual machine ${options.params.vmName} in resource group ${options.env}`);
-		driver.authenticate(options, (error, authData) => {
+		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
-				const computeClient = driver.getConnector({
+				const computeClient = driverUtils.getConnector({
 					api: 'compute',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
@@ -525,9 +483,9 @@ const driver = {
 	 */
 	deleteResourceGroup: function (options, cb) {
 		options.soajs.log.debug(`Deleting resource group ${options.env}`);
-		driver.authenticate(options, (error, authData) => {
+		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
-				const resourceClient = driver.getConnector({
+				const resourceClient = driverUtils.getConnector({
 					api: 'resource',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
@@ -550,9 +508,9 @@ const driver = {
 	 */
 	listVmSizes: function (options, cb) {
 		options.soajs.log.debug(`Listing available virtual machine sizes in ${options.params.location} location`);
-		driver.authenticate(options, (error, authData) => {
+		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
-				const computeClient = driver.getConnector({
+				const computeClient = driverUtils.getConnector({
 					api: 'compute',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
@@ -575,9 +533,9 @@ const driver = {
 	 */
 	listVmImagePublishers: function (options, cb) {
 		options.soajs.log.debug(`Listing virtual machine image publishers in ${options.params.location} location`);
-		driver.authenticate(options, (error, authData) => {
+		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
-				const computeClient = driver.getConnector({
+				const computeClient = driverUtils.getConnector({
 					api: 'compute',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
@@ -600,9 +558,9 @@ const driver = {
 	 */
 	listVmImagePublisherOffers: function (options, cb) {
 		options.soajs.log.debug(`Listing vm image offers for publisher ${options.params.publisher} in ${options.params.location} location`);
-		driver.authenticate(options, (error, authData) => {
+		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
-				const computeClient = driver.getConnector({
+				const computeClient = driverUtils.getConnector({
 					api: 'compute',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
@@ -625,9 +583,9 @@ const driver = {
 	 */
 	listVmImageVersions: function (options, cb) {
 		options.soajs.log.debug(`Listing vm image versions for publisher ${options.params.publisher} and offer ${options.params.offer} in ${options.params.location} location`);
-		driver.authenticate(options, (error, authData) => {
+		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
-				const computeClient = driver.getConnector({
+				const computeClient = driverUtils.getConnector({
 					api: 'compute',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId

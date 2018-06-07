@@ -45,7 +45,7 @@ describe("testing /infra/aws/index.js", function () {
 		
 		
 		//test case when nothing is returned
-		it("Success", function (done) {
+		it("Error", function (done) {
 			sinon
 				.stub(AWSDriver, 'getConnector')
 				.returns({
@@ -61,7 +61,7 @@ describe("testing /infra/aws/index.js", function () {
 		
 		
 		//test case with error returned
-		it("Success", function (done) {
+		it("Error", function (done) {
 			sinon
 				.stub(AWSDriver, 'getConnector')
 				.returns({
