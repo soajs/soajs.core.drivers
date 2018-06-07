@@ -639,8 +639,152 @@ const driver = {
 				});
 			});
 		});
-	}
+	},
 	
-};
+   
+	/**
+	 * List available Networks
+	 
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
 
+	listNetworks: function (options, cb) {
+		options.soajs.log.debug(`Listing Networks for resourcegroup ${options.params.resourceGroupName} `);
+		driver.authenticate(options, (error, authData) => {
+			utils.checkError(error, 700, cb, () => {
+				const networkClient = driver.getConnector({
+					api: 'network',
+					credentials: authData.credentials,
+					subscriptionId: options.infra.api.subscriptionId
+				});
+				networkClient.virtualNetworks.list(options.params.resourceGroupName, function (error, networks) {
+					utils.checkError(error, 712, cb, () => {
+						console.log(networks);
+						return cb(null, networks);
+						
+					});
+				});
+			});
+		});
+	},
+	
+
+
+    /**
+	 * List available loadbalancers
+	 
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+
+
+	listLoadBalancers: function (options, cb) {
+		options.soajs.log.debug(`Listing laod balancers for resourcegroup ${options.params.resourceGroupName}`);
+		driver.authenticate(options, (error, authData) => {
+			utils.checkError(error, 700, cb, () => {
+				const networkClient = driver.getConnector({
+					api: 'network',
+					credentials: authData.credentials,
+					subscriptionId: options.infra.api.subscriptionId
+				});
+				networkClient.loadBalancers.list(options.params.resourceGroupName, function (error, loadBalancers) {
+					utils.checkError(error, 712, cb, () => {
+						return cb(null, loadBalancers);
+					});
+				});
+			});
+		});
+	},
+	
+
+
+    /**
+	 * List available subnets
+	 listsub
+	 * @param  {Object}   options  Data passed to function listsubas params
+	 * @param  {Function} cb    Callback functionlistsub
+	 * @return {void}listsub
+	 */
+	 listSubnets: function (options, cb) {
+		options.soajs.log.debug(`Listing subnets for  ${options.params.resourceGroupName} and virtual network name ${options.params.virtualNetworkName}`);
+		driver.authenticate(options, (error, authData) => {
+			utils.checkError(error, 700, cb, () => {
+				const networkClient = driver.getConnector({
+					api: 'network',
+					credentials: authData.credentials,
+					subscriptionId: options.infra.api.subscriptionId
+				});
+				networkClient.subnets.list(options.params.resourceGroupName, options.params.virtualNetworkName, function (error, subnets) {
+					utils.checkError(error, 712, cb, () => {
+						return cb(null, subnets);
+					});
+				});
+			});
+		});
+	},
+	
+	
+
+
+    /**
+	 * List available securitygroups
+	 
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+
+
+	listSecurityGroups: function (options, cb) {
+		options.soajs.log.debug(`Listing securityGroups for resourcegroup ${options.params.resourceGroupName} `);
+		driver.authenticate(options, (error, authData) => {
+			utils.checkError(error, 700, cb, () => {
+				const networkClient = driver.getConnector({
+					api: 'network',
+					credentials: authData.credentials,
+					subscriptionId: options.infra.api.subscriptionId
+					
+				});
+				networkClient.networkSecurityGroups.list(options.params.resourceGroupName,function (error, networkSecurityGroups) {
+					utils.checkError(error, 712, cb, () => {
+						return cb(null, networkSecurityGroups);
+					});
+				});
+			});
+		});
+	},
+	
+
+    /**
+	 * List available public ips
+	 
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+
+	listPublicIp: function (options, cb) {
+		options.soajs.log.debug(`Listing public ips for resourcegroup ${options.params.resourceGroupName} `);
+		driver.authenticate(options, (error, authData) => {
+			utils.checkError(error, 700, cb, () => {
+				const networkClient = driver.getConnector({
+					api: 'network',
+					credentials: authData.credentials,
+					subscriptionId: options.infra.api.subscriptionId
+				});
+				networkClient.publicIPAddresses.list(options.params.resourceGroupName,function (error, publicIPAddresses) {
+					utils.checkError(error, 712, cb, () => {
+						return cb(null, publicIP);
+					});
+				});
+			});
+		});
+	},
+
+
+}
+			
 module.exports = driver;
