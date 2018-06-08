@@ -252,7 +252,7 @@ const helper = {
                 }
             }
         }
-
+        
         record.env = [];
 
         if(opts.publicIp && opts.publicIp.ipAddress) {
@@ -266,6 +266,67 @@ const helper = {
         // record.servicePortType = "";
 
         return record;
+    },
+
+    buildNetwork: function(opts){
+        let record = {}
+
+       if(opts.name ) record.name = opts.name;
+       if(opts.id) record.name = opts.name;
+
+
+        return record;
+
+    },
+    buildLOadBalancers: function(opts){
+        let record = {}
+
+        if(opts.name ) record.name = opts.name;
+        if(opts.id) record.id = opts.id;
+ 
+ 
+         return record;
+
+
+
+    },
+
+    bulidSubnets: function(opts){
+        let record = {}
+
+        if(opts.name) record.name = opts.name;
+        if(opts.id) record.id = opts.id;
+ 
+ 
+         return record;
+        
+ 
+
+    },
+
+    buildPublicIPs: function(opts){
+        let record = {}
+
+        if(opts.name ) record.name = opts.name;
+        if(opts.id) record.id = opts.id;
+ 
+ 
+         return record;
+
+
+    },
+    buildSecurityGroups: function(opts){
+
+        let record = {}
+
+        if(opts.name ) record.name = opts.name;
+        if(opts.id) record.id = opts.id;
+ 
+ 
+         return record;
+
+
+
     },
 
     buildSecurityRules: function(ports) {
@@ -369,5 +430,6 @@ const helper = {
     }
 
 };
+
 
 module.exports = helper;

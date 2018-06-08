@@ -223,7 +223,7 @@ const driver = {
 					
 				}, function (error, result) {
 					utils.checkError(error && error.error, error && error.code, cb, () => {
-						return cb(null, helper.buildVMRecord({vm: result.createVirtualMachin}));
+						return cb(null, helper.buildVMRecord({vm: result.createVirtualMachine}));
 					});
 				});
 			});
