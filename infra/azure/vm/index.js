@@ -619,7 +619,6 @@ const driver = {
 				});
 				networkClient.virtualNetworks.list(options.params.resourceGroupName, function (error, networks) {
 					utils.checkError(error, 712, cb, () => {
-						console.log(networks);
 						return cb(null, networks);
 						
 					});
@@ -726,7 +725,7 @@ const driver = {
 				});
 				networkClient.publicIPAddresses.list(options.params.resourceGroupName,function (error, publicIPAddresses) {
 					utils.checkError(error, 712, cb, () => {
-						return cb(null, publicIP);
+						return cb(null, publicIPAddresses);
 					});
 				});
 			});
