@@ -272,7 +272,7 @@ const helper = {
         let record = {}
 
        if(opts.name ) record.name = opts.name;
-       if(opts.id) record.name = opts.name;
+       if(opts.id) record.id = opts.id;
 
 
         return record;

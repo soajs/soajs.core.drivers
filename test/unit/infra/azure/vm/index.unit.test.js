@@ -334,6 +334,7 @@ describe("calling executeDriver - listNetworks", function () {
 		service.executeDriver('listNetworks', options, function (error, response) {
 			assert.ifError(error);
 			assert.ok(response);
+			assert.deepEqual();
 		done();
 		});
 	});
@@ -393,6 +394,7 @@ describe("calling executeDriver - listLoadBalancers", function () {
 		service.executeDriver('listLoadBalancers', options, function (error, response) {
 			assert.ifError(error);
 			assert.ok(response);
+			assert.deepEqual();
 		done();
 		});
 	});
@@ -454,6 +456,7 @@ describe("calling executeDriver - listSubnets", function () {
 		service.executeDriver('listSubnets', options, function (error, response) {
 			assert.ifError(error);
 			assert.ok(response);
+			assert.deepEqual();
 		done();
 		});
 	});
@@ -636,6 +639,7 @@ describe("calling executeDriver - listSecurityGroups", function () {
 		service.executeDriver('listSecurityGroups', options, function (error, response) {
 			assert.ifError(error);
 			assert.ok(response);
+			assert.deepEqual();
 		done();
 		});
 	});
@@ -707,6 +711,7 @@ describe("calling executeDriver - listSecurityGroups", function () {
 			service.executeDriver('listPublicIp', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
+				assert.deepEqual();
 			done();
 			});
 		});
