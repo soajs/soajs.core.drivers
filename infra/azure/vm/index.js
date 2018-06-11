@@ -223,7 +223,7 @@ const driver = {
 					
 				}, function (error, result) {
 					utils.checkError(error && error.error, error && error.code, cb, () => {
-						return cb(null, helper.buildVMRecord({vm: result.createVirtualMachin}));
+						return cb(null, helper.buildVMRecord({vm: result.createVirtualMachine}));
 					});
 				});
 			});
@@ -618,7 +618,7 @@ const driver = {
 					subscriptionId: options.infra.api.subscriptionId
 				});
 				networkClient.virtualNetworks.list(options.params.resourceGroupName, function (error, networks) {
-					utils.checkError(error, 712, cb, () => {
+					utils.checkError(error, 731, cb, () => {
 						return cb(null, networks);
 						
 					});
@@ -645,7 +645,7 @@ const driver = {
 					subscriptionId: options.infra.api.subscriptionId
 				});
 				networkClient.loadBalancers.list(options.params.resourceGroupName, function (error, loadBalancers) {
-					utils.checkError(error, 712, cb, () => {
+					utils.checkError(error, 732, cb, () => {
 						return cb(null, loadBalancers);
 					});
 				});
@@ -670,7 +670,7 @@ const driver = {
 					subscriptionId: options.infra.api.subscriptionId
 				});
 				networkClient.subnets.list(options.params.resourceGroupName, options.params.virtualNetworkName, function (error, subnets) {
-					utils.checkError(error, 712, cb, () => {
+					utils.checkError(error, 733, cb, () => {
 						return cb(null, subnets);
 					});
 				});
@@ -697,7 +697,7 @@ const driver = {
 					
 				});
 				networkClient.networkSecurityGroups.list(options.params.resourceGroupName,function (error, networkSecurityGroups) {
-					utils.checkError(error, 712, cb, () => {
+					utils.checkError(error, 734, cb, () => {
 						return cb(null, networkSecurityGroups);
 					});
 				});
@@ -709,8 +709,8 @@ const driver = {
     /**
 	 * List available public ips
 	 
-	 * @param  {Object}   options  Data passed to function as params
-	 * @param  {Function} cb    Callback function
+	 * @param  {Object}   options  
+	 * @param  {Function} cb   
 	 * @return {void}
 	 */
 
@@ -724,7 +724,7 @@ const driver = {
 					subscriptionId: options.infra.api.subscriptionId
 				});
 				networkClient.publicIPAddresses.list(options.params.resourceGroupName,function (error, publicIPAddresses) {
-					utils.checkError(error, 712, cb, () => {
+					utils.checkError(error, 735, cb, () => {
 						return cb(null, publicIPAddresses);
 					});
 				});
