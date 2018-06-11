@@ -252,7 +252,7 @@ const helper = {
                 }
             }
         }
-        
+
         record.env = [];
 
         if(opts.publicIp && opts.publicIp.ipAddress) {
@@ -287,12 +287,7 @@ const helper = {
         if(opts.name ) record.name = opts.name;
         if(opts.id) record.id = opts.id;
         if(opts.location) record.region = opts.location;
- 
- 
-         return record;
-
-
-
+        return record;
     },
 
     bulidSubnets: function(opts){
@@ -301,11 +296,7 @@ const helper = {
         if(opts.name) record.name = opts.name;
         if(opts.id) record.id = opts.id;
         if(opts.location) record.region = opts.location;
- 
          return record;
-        
- 
-
     },
 
     buildPublicIPs: function(opts){
@@ -314,10 +305,7 @@ const helper = {
         if(opts.name ) record.name = opts.name;
         if(opts.id) record.id = opts.id;
         if(opts.location) record.region = opts.location;
- 
          return record;
-
-
     },
     buildSecurityGroups: function(opts){
 
@@ -326,11 +314,7 @@ const helper = {
         if(opts.name ) record.name = opts.name;
         if(opts.id) record.id = opts.id;
         if(opts.location) record.region = opts.location;
- 
          return record;
-
-
-
     },
 
     buildSecurityRules: function(ports) {
@@ -434,12 +418,4 @@ const helper = {
     }
 };
 
-let record = {
-    "id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-lb",
-    "name": "tester-lb",
-    "type": "Microsoft.Network/loadBalancers",
-    "location": "centralus",
-}
-
-console.log(helper.buildLOadBalancers(record));
 module.exports = helper;

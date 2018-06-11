@@ -13,16 +13,6 @@ let options = {};
 describe("testing /lib/azure/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
 
-	describe("calling executeDriver - getConnector", function () {
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		it("Success", function (done) {
-			done();
-		});
-	});
-
 	describe("calling executeDriver - authenticate", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -351,7 +341,38 @@ describe("testing /lib/azure/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			done();
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+
+			sinon
+				.stub(serviceUtils, 'getConnector')
+				.returns({
+					virtualMachines: {
+						restart:  (env, vmName, cb)=>{
+							return cb(null, {
+								"name": "773283f6-f0f1-4f30-ac7b-49bab3ac4663",
+								"status": "Succeeded",
+								"startTime": "2018-06-11T12:31:11.006Z",
+								"endTime": "2018-06-11T12:31:11.131Z"
+							})
+						}
+					},
+				});
+			info = dD();
+			options = info.deployCluster;
+			options.env = 'tester';
+			options.params = {
+				vmName: 'tester-vm'
+			};
+			service.executeDriver('restartService', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				assert.equal(response.status, "Succeeded");
+				done();
+			});
 		});
 	});
 
@@ -371,7 +392,38 @@ describe("testing /lib/azure/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			done();
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+
+			sinon
+				.stub(serviceUtils, 'getConnector')
+				.returns({
+					virtualMachines: {
+						powerOff:  (env, vmName, cb)=>{
+							return cb(null, {
+								"name": "773283f6-f0f1-4f30-ac7b-49bab3ac4663",
+								"status": "Succeeded",
+								"startTime": "2018-06-11T12:31:11.006Z",
+								"endTime": "2018-06-11T12:31:11.131Z"
+							})
+						}
+					},
+				});
+			info = dD();
+			options = info.deployCluster;
+			options.env = 'tester';
+			options.params = {
+				vmName: 'tester-vm'
+			};
+			service.executeDriver('powerOffVM', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				assert.equal(response.status, "Succeeded");
+				done();
+			});
 		});
 	});
 
@@ -381,7 +433,38 @@ describe("testing /lib/azure/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			done();
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+
+			sinon
+				.stub(serviceUtils, 'getConnector')
+				.returns({
+					virtualMachines: {
+						start:  (env, vmName, cb)=>{
+							return cb(null, {
+								"name": "773283f6-f0f1-4f30-ac7b-49bab3ac4663",
+								"status": "Succeeded",
+								"startTime": "2018-06-11T12:31:11.006Z",
+								"endTime": "2018-06-11T12:31:11.131Z"
+							})
+						}
+					},
+				});
+			info = dD();
+			options = info.deployCluster;
+			options.env = 'tester';
+			options.params = {
+				vmName: 'tester-vm'
+			};
+			service.executeDriver('startVM', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				assert.equal(response.status, "Succeeded");
+				done();
+			});
 		});
 	});
 
