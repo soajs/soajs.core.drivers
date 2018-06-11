@@ -432,7 +432,6 @@ const helper = {
             });
         });
     }
-
 };
 
 let record = {

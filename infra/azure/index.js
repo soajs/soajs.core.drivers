@@ -12,8 +12,15 @@ function runCorrespondingDriver(method, options, cb) {
 
 const driver = {
 	
+	"authenticate": function (options, cb) {
+		driverUtils.authenticate(options, (error) => {
+			utils.checkError(error, 700, cb, () => {
+				return cb(null, true);
+			});
+		});
+	},
+
 	"getExtras": function (options, cb) {
-		return cb(null, {technologies: ['vm'], templates: 'local', drivers: ['Native']});  //TODO: confirm templates array
 		return cb(null, {technologies: ['vm'], templates: ['local'], drivers: ['Native', 'Terraform']});
 	},
 	

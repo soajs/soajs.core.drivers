@@ -13,10 +13,7 @@ const driver = {
 			azureApi.loginWithServicePrincipalSecret(options.infra.api.clientId, options.infra.api.secret, options.infra.api.domain, function (error, credentials, subscriptions) {
 				if(error) return cb(error);
 				
-				if (options.returnCredentials) {
-					return cb(null, { credentials, subscriptions });
-				}
-				return cb(null, true);
+				return cb(null, { credentials, subscriptions });
 			});
 		}
 		else {
