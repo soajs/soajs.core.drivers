@@ -18,9 +18,7 @@ let infra = {
 	"label": "Azure Driver",
 	"deployments": [],
 	"info": [
-		[
-		
-		],
+		[],
 		[
 			{
 				"code": "AZURE"
@@ -1014,7 +1012,180 @@ module.exports = function () {
 				"provisioningState": "Succeeded",
 				"etag": "W/\"4432dc5f-04b1-4dcd-9719-7d76d9e8152f\""
 			},
-		}
+		},
+		"vmSize": [
+			{
+				"name": "Standard_B1ms",
+				"numberOfCores": 1,
+				"osDiskSizeInMB": 1047552,
+				"resourceDiskSizeInMB": 4096,
+				"memoryInMB": 2048,
+				"maxDataDiskCount": 2
+			},
+			{
+				"name": "Standard_B1s",
+				"numberOfCores": 1,
+				"osDiskSizeInMB": 1047552,
+				"resourceDiskSizeInMB": 2048,
+				"memoryInMB": 1024,
+				"maxDataDiskCount": 2
+			}],
+		"vmImagePublisher": [
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/1e",
+				"name": "1e",
+				"location": "eastus"
+			},
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/4psa",
+				"name": "4psa",
+				"location": "eastus"
+			},
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/5nine-software-inc",
+				"name": "5nine-software-inc",
+				"location": "eastus"
+			}],
+		"vmPublisherOffers": [
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu15.04Snappy",
+				"name": "Ubuntu15.04Snappy",
+				"location": "eastus"
+			},
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu15.04SnappyDocker",
+				"name": "Ubuntu15.04SnappyDocker",
+				"location": "eastus"
+			},
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/UbuntuServer",
+				"name": "UbuntuServer",
+				"location": "eastus"
+			},
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Core",
+				"name": "Ubuntu_Core",
+				"location": "eastus"
+			},
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Snappy_Core",
+				"name": "Ubuntu_Snappy_Core",
+				"location": "eastus"
+			},
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Snappy_Core_Docker",
+				"name": "Ubuntu_Snappy_Core_Docker",
+				"location": "eastus"
+			}
+		],
+		"vmImageVersions": [
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Core/Skus/16",
+				"name": "16",
+				"location": "eastus"
+			}
+		],
+		"virtualNetworks": [
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/virtualNetworks/tester-vn",
+				"name": "tester-vn",
+				"type": "Microsoft.Network/virtualNetworks",
+				"location": "eastus",
+				"tags": {},
+				"addressSpace": {
+					"addressPrefixes": [
+						"10.0.0.0/16"
+					]
+				},
+				"dhcpOptions": {
+					"dnsServers": []
+				},
+				"subnets": [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/virtualNetworks/tester-vn/subnets/tester-subnet",
+						"addressPrefix": "10.0.2.0/24",
+						"serviceEndpoints": [],
+						"ipConfigurations": [
+							{
+								"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkInterfaces/tester-ni/ipConfigurations/testconfiguration1"
+							}
+						],
+						"provisioningState": "Succeeded",
+						"name": "tester-subnet",
+						"etag": "W/\"bcb37303-50ad-402c-bdbb-2e67be65e436\""
+					}
+				],
+				"virtualNetworkPeerings": [],
+				"resourceGuid": "f0ec2a41-431a-4645-97ee-454c115ce41a",
+				"provisioningState": "Succeeded",
+				"enableDdosProtection": false,
+				"enableVmProtection": false,
+				"etag": "W/\"bcb37303-50ad-402c-bdbb-2e67be65e436\""
+			}
+		],
+		"loadBalancers": [
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-lb",
+				"name": "tester-lb",
+				"type": "Microsoft.Network/loadBalancers",
+				"location": "centralus",
+				"sku": {
+					"name": "Basic"
+				},
+				"frontendIPConfigurations": [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-lb/frontendIPConfigurations/LoadBalancerFrontEnd",
+						"privateIPAllocationMethod": "Dynamic",
+						"publicIPAddress": {
+							"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-lb-ip"
+						},
+						"provisioningState": "Succeeded",
+						"name": "LoadBalancerFrontEnd",
+						"etag": "W/\"5a6127ca-2a9f-4fcd-a2e6-0189230fb560\""
+					}
+				],
+				"backendAddressPools": [],
+				"loadBalancingRules": [],
+				"probes": [],
+				"inboundNatRules": [],
+				"inboundNatPools": [],
+				"resourceGuid": "bd29e9dc-9a22-417c-976b-f96f041950c9",
+				"provisioningState": "Succeeded",
+				"etag": "W/\"5a6127ca-2a9f-4fcd-a2e6-0189230fb560\""
+			}
+		],
+		"subnets" : [
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-lb",
+				"name": "tester-lb",
+				"type": "Microsoft.Network/loadBalancers",
+				"location": "centralus",
+				"sku": {
+					"name": "Basic"
+				},
+				"frontendIPConfigurations": [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-lb/frontendIPConfigurations/LoadBalancerFrontEnd",
+						"privateIPAllocationMethod": "Dynamic",
+						"publicIPAddress": {
+							"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-lb-ip"
+						},
+						"provisioningState": "Succeeded",
+						"name": "LoadBalancerFrontEnd",
+						"etag": "W/\"6f4eba17-9470-4496-8ad6-25ddb9e804c1\""
+					}
+				],
+				"backendAddressPools": [],
+				"loadBalancingRules": [],
+				"probes": [],
+				"inboundNatRules": [],
+				"inboundNatPools": [],
+				"outboundNatRules": [],
+				"resourceGuid": "fd3aaf39-5384-4cab-b3d2-f703b21a2637",
+				"provisioningState": "Succeeded",
+				"etag": "W/\"6f4eba17-9470-4496-8ad6-25ddb9e804c1\""
+			}
+		]
 	};
 	return data;
 };
