@@ -9,7 +9,7 @@ const azureApi = require('ms-rest-azure');
 let dD = require('../../../schemas/azure/cluster.js');
 let info = {};
 let options = {};
-describe("testing /lib/azure/utils/index.js", function () {
+describe.skip("testing /lib/azure/utils/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
 	
 	describe("calling authenticate", function () {
