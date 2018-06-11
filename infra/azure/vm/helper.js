@@ -273,16 +273,20 @@ const helper = {
 
        if(opts.name ) record.name = opts.name;
        if(opts.id) record.id = opts.id;
+       if(opts.location) record.region = opts.location;
+ 
 
 
         return record;
 
     },
+   
     buildLOadBalancers: function(opts){
         let record = {}
 
         if(opts.name ) record.name = opts.name;
         if(opts.id) record.id = opts.id;
+        if(opts.location) record.region = opts.location;
  
  
          return record;
@@ -296,7 +300,7 @@ const helper = {
 
         if(opts.name) record.name = opts.name;
         if(opts.id) record.id = opts.id;
- 
+        if(opts.location) record.region = opts.location;
  
          return record;
         
@@ -309,7 +313,7 @@ const helper = {
 
         if(opts.name ) record.name = opts.name;
         if(opts.id) record.id = opts.id;
- 
+        if(opts.location) record.region = opts.location;
  
          return record;
 
@@ -321,7 +325,7 @@ const helper = {
 
         if(opts.name ) record.name = opts.name;
         if(opts.id) record.id = opts.id;
- 
+        if(opts.location) record.region = opts.location;
  
          return record;
 
@@ -431,5 +435,12 @@ const helper = {
 
 };
 
+let record = {
+    "id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-lb",
+    "name": "tester-lb",
+    "type": "Microsoft.Network/loadBalancers",
+    "location": "centralus",
+}
 
+console.log(helper.buildLOadBalancers(record));
 module.exports = helper;
