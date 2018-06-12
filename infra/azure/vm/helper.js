@@ -274,46 +274,54 @@ const helper = {
         if(opts.network) {
             if (opts.network.name) record.name = opts.network.name;
     		if (opts.network.id) record.id = opts.network.id;
-    		if (opts.network.location) record.region = opts.network.location;
+			if (opts.network.location) record.region = opts.network.location;
+			if (opts.network.subnets) record.subnets = opts.network.subnets;
+			if(opts.network.addressSpace) record.addressSpace = opts.network.addressSpace;
         }
 
 		return record;
 
 	},
 
-	buildLOadBalancers: function (opts) {
+	buildLOadBalancersRecord: function (opts) {
 		let record = {};
-
-		if (opts.name) record.name = opts.name;
-		if (opts.id) record.id = opts.id;
-		if (opts.location) record.region = opts.location;
+		if(opts.loadBlanacer){
+		if (opts.loadBlanacer.name) record.name = opts.loadBlanacer.name;
+		if (opts.loadBlanacer.id) record.id = opts.loadBlanacer.id;
+		if (opts.loadBlanacer.location) record.region = opts.loadBlanacer.location;
+	}
 		return record;
 	},
 
-	bulidSubnets: function (opts) {
+	bulidSubnetsRecord: function (opts) {
 		let record = {};
 
-		if (opts.name) record.name = opts.name;
-		if (opts.id) record.id = opts.id;
-		if (opts.location) record.region = opts.location;
+		if(opts.subnets){
+		if (opts.subnets.name) record.name = opts.subnets.name;
+		if (opts.subnets.id) record.id = opts.subnets.id;
+		if (opts.subnets.location) record.region = opts.subnets.location;
+		if (opts.subnets.addressPrefix) record.addressPrefix = opts.subnets.addressPrefix;
+		}
 		return record;
 	},
 
-	buildPublicIPs: function (opts) {
+	buildPublicIPsRecord: function (opts) {
 		let record = {}
-
-		if (opts.name) record.name = opts.name;
-		if (opts.id) record.id = opts.id;
-		if (opts.location) record.region = opts.location;
+		if(opts.publicIPs){
+		if (opts.publicIPAddresses.name) record.name = opts.publicIPAddresses.name;
+		if (opts.publicIPAddresses.id) record.id = opts.id;
+		if (opts.publicIPAddresses.location) record.region = opts.publicIPAddresses.location;
+		}
 		return record;
 	},
-	buildSecurityGroups: function (opts) {
+	buildSecurityGroupsRecord: function (opts) {
 
 		let record = {};
-
-		if (opts.name) record.name = opts.name;
-		if (opts.id) record.id = opts.id;
-		if (opts.location) record.region = opts.location;
+		if(opts.networkSecurityGroups){
+		if (opts.networkSecurityGroups.name) record.name = opts.networkSecurityGroups.name;
+		if (opts.networkSecurityGroups.id) record.id = opts.networkSecurityGroups.id;
+		if (opts.networkSecurityGroups.location) record.region = opts.networkSecurityGroups.location;
+		}
 		return record;
 	},
 

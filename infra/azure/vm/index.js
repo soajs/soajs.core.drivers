@@ -649,7 +649,12 @@ const driver = {
 				});
 				networkClient.loadBalancers.list(options.params.resourceGroupName, function (error, loadBalancers) {
 					utils.checkError(error, 732, cb, () => {
-						return cb(null, loadBalancers);
+						async.map(loadBalancers, function(oneloadBalancer, callback) {
+							return callback(null, helper.buildLOadBalancersRecord({ loadBlanacer: oneloadBalancer }));
+						}, function(error, loadBalancersList) {
+							return cb(null, loadBalancersList);
+						});
+					
 					});
 				});
 			});
@@ -660,7 +665,7 @@ const driver = {
 	* List available subnets
 
 	* @param  {Object}   options  Data passed to function listsubas params
-	* @param  {Function} cb    Callback functionlistsub
+	* @param  {Function} cb    Callback fspub
 	* @return {void}listsub
 	*/
 	listSubnets: function (options, cb) {
@@ -674,7 +679,11 @@ const driver = {
 				});
 				networkClient.subnets.list(options.params.resourceGroupName, options.params.virtualNetworkName, function (error, subnets) {
 					utils.checkError(error, 733, cb, () => {
-						return cb(null, subnets);
+						async.map(subnets, function(oneSubnet, callback) {
+							return callback(null, helper.bulidSubnetsRecord({ subnets: oneSubnet }));
+						}, function(error, subnetsList) {
+							return cb(null, subnetsList);
+						});
 					});
 				});
 			});
@@ -701,7 +710,13 @@ const driver = {
 				});
 				networkClient.networkSecurityGroups.list(options.params.resourceGroupName,function (error, networkSecurityGroups) {
 					utils.checkError(error, 734, cb, () => {
-						return cb(null, networkSecurityGroups);
+						
+						async.map(networkSecurityGroups, function(oneNetworkSecurityGroup, callback) {
+						return callback(null, helper.buildSecurityGroupsRecord({ networkSecurityGroups: oneNetworkSecurityGroup }));
+					}, function(error, securityGroupsList) {
+						return cb(null, securityGroupsList);
+					});
+					
 					});
 				});
 			});
@@ -717,7 +732,7 @@ const driver = {
 	* @return {void}
 	*/
 
-	listPublicIp: function (options, cb) {
+	listPublicIps: function (options, cb) {
 		options.soajs.log.debug(`Listing public ips for resourcegroup ${options.params.resourceGroupName} `);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
@@ -728,7 +743,11 @@ const driver = {
 				});
 				networkClient.publicIPAddresses.list(options.params.resourceGroupName,function (error, publicIPAddresses) {
 					utils.checkError(error, 735, cb, () => {
-						return cb(null, publicIPAddresses);
+						async.map(publicIPAddresses, function(onepublicIPAddresse, callback) {
+							return callback(null, helper.buildPublicIPsRecord({ publicIPAddresse: onepublicIPAddresse }));
+						}, function(error, PublicIpsList) {
+							return cb(null, PublicIpsList);
+						});
 					});
 				});
 			});
