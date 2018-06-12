@@ -805,7 +805,13 @@ const driver = {
 		options.params.command = `journalctl --lines ${numberOfLines}`;
 		return driver.runCommand(options,cb);
 	},
+	/**
+	* List data disks of a resource group
 
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
 	listDataDisks: function (options, cb){
 		options.soajs.log.debug(`Listing Data Disks for resourcegroup ${options.params.resourceGroupName}`);
 		driverUtils.authenticate(options, (error, authData) => {
