@@ -670,7 +670,7 @@ const driver = {
 						}, function(error, loadBalancersList) {
 							return cb(null, loadBalancersList);
 						});
-					
+
 					});
 				});
 			});
@@ -726,13 +726,11 @@ const driver = {
 				});
 				networkClient.networkSecurityGroups.list(options.params.resourceGroupName,function (error, networkSecurityGroups) {
 					utils.checkError(error, 734, cb, () => {
-						
 						async.map(networkSecurityGroups, function(oneNetworkSecurityGroup, callback) {
-						return callback(null, helper.buildSecurityGroupsRecord({ networkSecurityGroups: oneNetworkSecurityGroup }));
-					}, function(error, securityGroupsList) {
-						return cb(null, securityGroupsList);
-					});
-					
+							return callback(null, helper.buildSecurityGroupsRecord({ networkSecurityGroups: oneNetworkSecurityGroup }));
+						}, function(error, securityGroupsList) {
+							return cb(null, securityGroupsList);
+						});
 					});
 				});
 			});
@@ -817,18 +815,18 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-			computeClient.disks.list(options.params.resourceGroupName, function (error, dataDisks) {
-				utils.checkError(error, 737, cb, () => {
-					async.map(dataDisks, function(onedataDisk, callback) {
-						return callback(null, helper.buildPublicIPsRecord({ dataDisk: onedataDisk }));
-					}, function(error, dataDisksList) {
-						return cb(null, dataDisksList);
+				computeClient.disks.list(options.params.resourceGroupName, function (error, dataDisks) {
+					utils.checkError(error, 737, cb, () => {
+						async.map(dataDisks, function(onedataDisk, callback) {
+							return callback(null, helper.buildPublicIPsRecord({ dataDisk: onedataDisk }));
+						}, function(error, dataDisksList) {
+							return cb(null, dataDisksList);
+						});
 					});
 				});
 			});
 		});
-	});
-}
+	}
 
 
 };
