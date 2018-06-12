@@ -268,52 +268,133 @@ const helper = {
 		return record;
 	},
 
-	buildNetworkRecord: function (opts) {
+	buildVmSizes:  function (opts) {
 		let record = {};
 
-        if(opts.network) {
-            if (opts.network.name) record.name = opts.network.name;
-    		if (opts.network.id) record.id = opts.network.id;
-    		if (opts.network.location) record.region = opts.network.location;
+        if(opts.vmSizes) {
+            if (opts.vmSizes.name) record.name = opts.vmSizes.name;
+    		if (opts.vmSizes.numberOfCores) record.numberOfCores = opts.vmSizes.numberOfCores;
+
+
         }
 
 		return record;
 
 	},
 
-	buildLOadBalancers: function (opts) {
+
+	buildVmImagePublisherssRecord: function (opts) {
 		let record = {};
 
-		if (opts.name) record.name = opts.name;
-		if (opts.id) record.id = opts.id;
-		if (opts.location) record.region = opts.location;
+        if(opts.vmImagePublishers) {
+            if (opts.vmImagePublishers.name) record.name = opts.vmImagePublishers.name;
+    		if (opts.vmImagePublishers.id) record.id = opts.vmImagePublishers.id;
+			if (opts.vmImagePublishers.location) record.region = opts.vmImagePublisherss.location;
+
+        }
+
+		return record;
+
+	},
+
+	buildVmImagePublishersOffersRecord: function (opts) {
+		let record = {};
+
+        if(opts.vmImagePublisherOffer) {
+            if (opts.vmImagePublisherOffer.name) record.name = opts.vmImagePublisherOffer.name;
+    		if (opts.vmImagePublisherOffer.id) record.id = opts.vmImagePublisherOffer.id;
+			if (opts.vmImagePublisherOffer.location) record.region = opts.vmImagePublisherOffer.location;
+
+        }
+
+		return record;
+
+	},
+
+
+	buildVmImageVersionsRecord: function (opts) {
+		let record = {};
+
+        if(opts.vmImageVersion) {
+            if (opts.vmImageVersion.name) record.name = opts.vmImageVersion.name;
+    		if (opts.vmImageVersion.id) record.id = opts.vmImageVersion.id;
+			if (opts.vmImageVersion.location) record.region = opts.vmImageVersion.location;
+
+        }
+
+		return record;
+
+	},
+
+
+	buildDataDiskRecord: function (opts) {
+		let record = {};
+
+        if(opts.dataDisk) {
+            if (opts.dataDisk.name) record.name = opts.dataDisk.name;
+    		if (opts.dataDisk.id) record.id = opts.dataDisk.id;
+			if (opts.dataDisk.location) record.region = opts.dataDisk.location;
+
+        }
+
+		return record;
+
+	},
+
+	buildNetworkRecord: function (opts) {
+		let record = {};
+
+        if(opts.network) {
+            if (opts.network.name) record.name = opts.network.name;
+    		if (opts.network.id) record.id = opts.network.id;
+			if (opts.network.location) record.region = opts.network.location;
+			if (opts.network.subnets) record.subnets = opts.network.subnets;
+			if(opts.network.addressSpace) record.addressSpace = opts.network.addressSpace;
+        }
+
+		return record;
+
+	},
+
+	buildLOadBalancersRecord: function (opts) {
+		let record = {};
+		if(opts.loadBlanacer){
+		if (opts.loadBlanacer.name) record.name = opts.loadBlanacer.name;
+		if (opts.loadBlanacer.id) record.id = opts.loadBlanacer.id;
+		if (opts.loadBlanacer.location) record.region = opts.loadBlanacer.location;
+	}
 		return record;
 	},
 
-	bulidSubnets: function (opts) {
+	bulidSubnetsRecord: function (opts) {
 		let record = {};
 
-		if (opts.name) record.name = opts.name;
-		if (opts.id) record.id = opts.id;
-		if (opts.location) record.region = opts.location;
+		if(opts.subnets){
+		if (opts.subnets.name) record.name = opts.subnets.name;
+		if (opts.subnets.id) record.id = opts.subnets.id;
+		if (opts.subnets.location) record.region = opts.subnets.location;
+		if (opts.subnets.addressPrefix) record.addressPrefix = opts.subnets.addressPrefix;
+		}
 		return record;
 	},
 
-	buildPublicIPs: function (opts) {
+	buildPublicIPsRecord: function (opts) {
 		let record = {}
-
-		if (opts.name) record.name = opts.name;
-		if (opts.id) record.id = opts.id;
-		if (opts.location) record.region = opts.location;
+		if(opts.publicIPs){
+		if (opts.publicIPAddresses.name) record.name = opts.publicIPAddresses.name;
+		if (opts.publicIPAddresses.id) record.id = opts.id;
+		if (opts.publicIPAddresses.location) record.region = opts.publicIPAddresses.location;
+		}
 		return record;
 	},
-	buildSecurityGroups: function (opts) {
+	buildSecurityGroupsRecord: function (opts) {
 
 		let record = {};
-
-		if (opts.name) record.name = opts.name;
-		if (opts.id) record.id = opts.id;
-		if (opts.location) record.region = opts.location;
+		if(opts.networkSecurityGroups){
+		if (opts.networkSecurityGroups.name) record.name = opts.networkSecurityGroups.name;
+		if (opts.networkSecurityGroups.id) record.id = opts.networkSecurityGroups.id;
+		if (opts.networkSecurityGroups.location) record.region = opts.networkSecurityGroups.location;
+		}
 		return record;
 	},
 
