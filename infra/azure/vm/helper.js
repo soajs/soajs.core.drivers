@@ -359,10 +359,10 @@ const helper = {
 	buildLOadBalancersRecord: function (opts) {
 		let record = {};
 		if(opts.loadBlanacer){
-		if (opts.loadBlanacer.name) record.name = opts.loadBlanacer.name;
-		if (opts.loadBlanacer.id) record.id = opts.loadBlanacer.id;
-		if (opts.loadBlanacer.location) record.region = opts.loadBlanacer.location;
-	}
+			if (opts.loadBlanacer.name) record.name = opts.loadBlanacer.name;
+			if (opts.loadBlanacer.id) record.id = opts.loadBlanacer.id;
+			if (opts.loadBlanacer.location) record.region = opts.loadBlanacer.location;
+		}
 		return record;
 	},
 
@@ -370,10 +370,10 @@ const helper = {
 		let record = {};
 
 		if(opts.subnets){
-		if (opts.subnets.name) record.name = opts.subnets.name;
-		if (opts.subnets.id) record.id = opts.subnets.id;
-		if (opts.subnets.location) record.region = opts.subnets.location;
-		if (opts.subnets.addressPrefix) record.addressPrefix = opts.subnets.addressPrefix;
+			if (opts.subnets.name) record.name = opts.subnets.name;
+			if (opts.subnets.id) record.id = opts.subnets.id;
+			if (opts.subnets.location) record.region = opts.subnets.location;
+			if (opts.subnets.addressPrefix) record.addressPrefix = opts.subnets.addressPrefix;
 		}
 		return record;
 	},
@@ -381,9 +381,9 @@ const helper = {
 	buildPublicIPsRecord: function (opts) {
 		let record = {}
 		if(opts.publicIPs){
-		if (opts.publicIPAddresses.name) record.name = opts.publicIPAddresses.name;
-		if (opts.publicIPAddresses.id) record.id = opts.id;
-		if (opts.publicIPAddresses.location) record.region = opts.publicIPAddresses.location;
+			if (opts.publicIPAddresses.name) record.name = opts.publicIPAddresses.name;
+			if (opts.publicIPAddresses.id) record.id = opts.id;
+			if (opts.publicIPAddresses.location) record.region = opts.publicIPAddresses.location;
 		}
 		return record;
 	},
@@ -391,9 +391,9 @@ const helper = {
 
 		let record = {};
 		if(opts.networkSecurityGroups){
-		if (opts.networkSecurityGroups.name) record.name = opts.networkSecurityGroups.name;
-		if (opts.networkSecurityGroups.id) record.id = opts.networkSecurityGroups.id;
-		if (opts.networkSecurityGroups.location) record.region = opts.networkSecurityGroups.location;
+			if (opts.networkSecurityGroups.name) record.name = opts.networkSecurityGroups.name;
+			if (opts.networkSecurityGroups.id) record.id = opts.networkSecurityGroups.id;
+			if (opts.networkSecurityGroups.location) record.region = opts.networkSecurityGroups.location;
 		}
 		return record;
 	},
