@@ -790,7 +790,25 @@ const driver = {
 		let numberOfLines = options.params.numberOfLines || 200;
 		options.params.command = `journalctl --lines ${numberOfLines}`;
 		return driver.runCommand(options,cb);
-	}
+	},
+
+	listDataDisks: function (options, cb){
+		options.soajs.log.debug(`Listing Data Disks for resourcegroup ${options.params.resourceGroupName}`);
+		driverUtils.authenticate(options, (error, authData) => {
+			utils.checkError(error, 700, cb, () => {
+				const computeClient = driverUtils.getConnector({
+					api: 'compute',
+					credentials: authData.credentials,
+					subscriptionId: options.infra.api.subscriptionId
+				});
+			computeClient.disks.list(options.params.resourceGroupName, function (error, dataDisks) {
+				utils.checkError(error, 737, cb, () => {
+					return cb(null, dataDisks);
+				});
+			});
+		});
+	});
+}
 
 
 };
