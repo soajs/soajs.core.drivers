@@ -619,8 +619,11 @@ const driver = {
 				});
 				networkClient.virtualNetworks.list(options.params.resourceGroupName, function (error, networks) {
 					utils.checkError(error, 731, cb, () => {
-						return cb(null, networks);
-
+						async.map(networks, function(oneNetwork, callback) {
+							return callback(null, helper.buildNetworkRecord({ network: oneNetwork }));
+						}, function(error, networksList) {
+							return cb(null, networksList);
+						});
 					});
 				});
 			});

@@ -6,13 +6,13 @@ const async = require('async');
 const config = require('./config');
 
 const helper = {
-	
+
 	createResourceGroup: function (resourceClient, opts, cb) {
 		let groupParameters = {location: opts.location, tags: opts.tags || {}};
-		
+
 		return resourceClient.resourceGroups.createOrUpdate(opts.resourceGroupName, groupParameters, cb);
 	},
-	
+
 	createStorageAccount: function (storageClient, opts, cb) {
 		let params = {
 			location: opts.location,
@@ -22,25 +22,25 @@ const helper = {
 			kind: opts.storageKind || 'Storage',
 			tags: opts.tags || {}
 		};
-		
+
 		return storageClient.storageAccounts.create(opts.resourceGroupName, opts.accountName, params, cb);
 	},
-	
+
 	createVirtualNetwork: function (networkClient, opts, cb) {
 		if (!(opts.addressPrefixes && Array.isArray(opts.addressPrefixes))) {
 			opts.addressPrefixes = ['10.0.0.0/24'];
 		}
-		
+
 		if (!(opts.dhcpServers && Array.isArray(opts.dhcpServers))) {
 			// opts.dhcpServers = ['10.1.1.1', '10.1.2.4'];
 		}
-		
+
 		if (!(opts.subnets && Array.isArray(opts.subnets))) {
 			opts.subnets = [
 				{name: 'subnet', addressPrefix: '10.0.0.0/24'}
 			];
 		}
-		
+
 		let params = {
 			location: opts.location,
 			addressSpace: {
@@ -53,11 +53,11 @@ const helper = {
 		};
 		return networkClient.virtualNetworks.createOrUpdate(opts.resourceGroupName, opts.vnetName, params, cb);
 	},
-	
+
 	getSubnetInfo: function (networkClient, opts, cb) {
 		return networkClient.subnets.get(opts.resourceGroupName, opts.vnetName, opts.subnetName, cb);
 	},
-	
+
 	createPublicIP: function (networkClient, opts, cb) {
 		let params = {
 			location: opts.location,
@@ -66,10 +66,10 @@ const helper = {
 			//     domainNameLabel: opts.domainNameLabel
 			// }
 		};
-		
+
 		return networkClient.publicIPAddresses.createOrUpdate(opts.resourceGroupName, opts.publicIPName, params, cb);
 	},
-	
+
 	createNetworkSecurityGroup: function (networkClient, opts, cb) {
 		let requestOptions = {
 			method: 'PUT',
@@ -83,15 +83,15 @@ const helper = {
 				}
 			}
 		};
-		
+
 		request(requestOptions, function (error, response, body) {
 			if (error) return cb(error);
 			if (body && body.error) return cb(body.error);
-			
+
 			return cb(null, body);
 		});
 	},
-	
+
 	createNetworkInterface: function (networkClient, opts, cb) {
 		let params = {
 			location: opts.location,
@@ -107,22 +107,22 @@ const helper = {
 				id: opts.networkSecurityGroupName
 			}
 		};
-		
+
 		return networkClient.networkInterfaces.createOrUpdate(opts.resourceGroupName, opts.networkInterfaceName, params, cb);
 	},
-	
+
 	getVMImage: function (computeClient, opts, cb) { //TODO: check get image instead of list images
 		return computeClient.virtualMachineImages.list(opts.location, opts.publisher, opts.offer, opts.sku, {top: 1}, (error, imageList) => {
 			if (error) return cb(error);
-			
+
 			return cb(null, (imageList && imageList[0]) ? imageList[0] : {});
 		});
 	},
-	
+
 	getNetworkInterfaceInfo: function (networkClient, opts, cb) {
 		return networkClient.networkInterfaces.get(opts.resourceGroupName, opts.networkInterfaceName, cb);
 	},
-	
+
 	createVirtualMachine: function (computeClient, opts, cb) {
 		let params = {
 			location: opts.location,
@@ -160,7 +160,7 @@ const helper = {
 			},
 			tags: opts.tags
 		};
-		
+
 		//check if password or SSH public key
 		if (opts.adminPassword) {
 			params.osProfile.adminPassword = opts.adminPassword;
@@ -178,51 +178,51 @@ const helper = {
 				"disablePasswordAuthentication": true
 			};
 		}
-		
+
 		if (opts.command) {
 			let commandOutput = helper.buildCommands(opts.command, opts.envs || []);
 			params.osProfile.customData = Buffer.from(commandOutput).toString('base64');
 		}
-		
+
 		return computeClient.virtualMachines.createOrUpdate(opts.resourceGroupName, opts.vmName, params, cb);
 	},
-	
+
 	buildCommands: function (command, envs) {
 		let output = '';
-		
+
 		if (command.command) {
 			output += command.command.join(' ');
 			output += '\n';
 		}
-		
+
 		output += helper.buildEnvVars(envs);
-		
+
 		if (command.args) {
 			output += command.args.join('\n');
 		}
-		
+
 		return output;
 	},
-	
+
 	buildEnvVars: function (envs) {
 		let output = '';
-		
+
 		if (envs && Array.isArray(envs) && envs.length > 0) {
 			envs.forEach((oneEnv) => {
 				output += `export ${oneEnv};\n`;
 			});
 		}
-		
+
 		return output;
 	},
-	
+
 	buildVMRecord: function (opts) {
 		let record = {};
-		
+
 		if (opts.vm) {
 			if (opts.vm.name) record.name = opts.vm.name;
 			if (opts.vm.name) record.id = opts.vm.name;
-			
+
 			record.labels = {};
 			if (opts.vm.tags) record.labels = opts.vm.tags;
 			if (opts.vm.location) record.labels['soajs.service.vm.location'] = opts.vm.location;
@@ -231,19 +231,19 @@ const helper = {
 				record.labels['soajs.service.vm.group'] = idInfo[idInfo.indexOf('resourceGroups') + 1];
 			}
 			if (opts.vm.hardwareProfile && opts.vm.hardwareProfile.vmSize) record.labels['soajs.service.vm.size'] = opts.vm.hardwareProfile.vmSize;
-			
+
 			record.ports = [];
 			record.voluming = {};
-			
+
 			record.tasks = [];
 			record.tasks[0] = {};
 			if (opts.vm.name) record.tasks[0].id = opts.vm.name;
 			if (opts.vm.name) record.tasks[0].name = opts.vm.name;
-			
+
 			record.tasks[0].status = {};
 			if (opts.vm.provisioningState) record.tasks[0].status.state = opts.vm.provisioningState.toLowerCase();
 			if (opts.vm.provisioningState) record.tasks[0].status.ts = new Date().getTime();
-			
+
 			record.tasks[0].ref = {os: {}};
 			if (opts.vm.storageProfile) {
 				if (opts.vm.storageProfile.osDisk) {
@@ -252,74 +252,75 @@ const helper = {
 				}
 			}
 		}
-		
+
 		record.env = [];
-		
+
 		if (opts.publicIp && opts.publicIp.ipAddress) {
 			record.ip = opts.publicIp.ipAddress;
 		}
-		
+
 		if (opts.securityGroup && opts.securityGroup.securityRules) {
 			record.ports = helper.buildPortsArray(opts.securityGroup.securityRules);
 		}
-		
+
 		// record.servicePortType = "";
-		
+
 		return record;
 	},
-	
-	buildNetwork: function (opts) {
+
+	buildNetworkRecord: function (opts) {
 		let record = {};
-		
-		if (opts.name) record.name = opts.name;
-		if (opts.id) record.id = opts.id;
-		if (opts.location) record.region = opts.location;
-		
-		
+
+        if(opts.network) {
+            if (opts.network.name) record.name = opts.network.name;
+    		if (opts.network.id) record.id = opts.network.id;
+    		if (opts.network.location) record.region = opts.network.location;
+        }
+
 		return record;
-		
+
 	},
-	
+
 	buildLOadBalancers: function (opts) {
 		let record = {};
-		
+
 		if (opts.name) record.name = opts.name;
 		if (opts.id) record.id = opts.id;
 		if (opts.location) record.region = opts.location;
 		return record;
 	},
-	
+
 	bulidSubnets: function (opts) {
 		let record = {};
-		
+
 		if (opts.name) record.name = opts.name;
 		if (opts.id) record.id = opts.id;
 		if (opts.location) record.region = opts.location;
 		return record;
 	},
-	
+
 	buildPublicIPs: function (opts) {
 		let record = {}
-		
+
 		if (opts.name) record.name = opts.name;
 		if (opts.id) record.id = opts.id;
 		if (opts.location) record.region = opts.location;
 		return record;
 	},
 	buildSecurityGroups: function (opts) {
-		
+
 		let record = {};
-		
+
 		if (opts.name) record.name = opts.name;
 		if (opts.id) record.id = opts.id;
 		if (opts.location) record.region = opts.location;
 		return record;
 	},
-	
+
 	buildSecurityRules: function (ports) {
 		let securityRules = [];
 		let priority = 100;
-		
+
 		if (Array.isArray(ports)) {
 			ports.forEach(onePort => {
 				securityRules.push({
@@ -338,13 +339,13 @@ const helper = {
 				priority += 10;
 			});
 		}
-		
+
 		return securityRules;
 	},
-	
+
 	buildPortsArray: function (securityRules) {
 		let output = [];
-		
+
 		securityRules.forEach(function (oneSecurityRule) {
 			output.push({
 				protocol: (oneSecurityRule.protocol && oneSecurityRule.protocol === '*') ? 'tcp/udp' : oneSecurityRule.protocol,
@@ -353,28 +354,28 @@ const helper = {
 				isPublished: (oneSecurityRule.destinationPortRange) ? true : false
 			});
 		});
-		
+
 		return output;
 	},
-	
+
 	filterVMs: function (env, vms, cb) {
 		async.filter(vms, function (oneVm, callback) {
 			let valid = false;
 			if (!oneVm.tags || Object.keys(oneVm.tags).length === 0) valid = true;
 			else if (oneVm.tags && oneVm.tags['soajs.content'] === 'true' && oneVm.tags['soajs.env.code'] === env) valid = true;
 			else if (oneVm.tags && (!oneVm.tags['soajs.content'] || oneVm.tags['soajs.content'] !== 'true')) valid = true;
-			
+
 			return callback(null, valid);
 		}, cb);
 	},
-	
+
 	getVmNetworkInfo: function (networkClient, opts, cb) {
 		let idInfo, resourceGroupName, networkInterfaceName, networkSecurityGroupName, ipName;
 		if (opts.vm.id) {
 			idInfo = opts.vm.id.split('/');
 			resourceGroupName = idInfo[idInfo.indexOf('resourceGroups') + 1];
 		}
-		
+
 		if (opts.vm.networkProfile && opts.vm.networkProfile.networkInterfaces && Array.isArray(opts.vm.networkProfile.networkInterfaces)) {
 			for (let i = 0; i < opts.vm.networkProfile.networkInterfaces.length; i++) {
 				if (opts.vm.networkProfile.networkInterfaces[i].primary) {
@@ -387,14 +388,14 @@ const helper = {
 				networkInterfaceName = opts.vm.networkProfile.networkInterfaces[0].id.split('/').pop();
 			}
 		}
-		
+
 		networkClient.networkInterfaces.get(resourceGroupName, networkInterfaceName, function (error, networkInterface) {
 			if (error) return cb(error);
-			
+
 			if (networkInterface && networkInterface.networkSecurityGroup && networkInterface.networkSecurityGroup.id) {
 				networkSecurityGroupName = networkInterface.networkSecurityGroup.id.split('/').pop();
 			}
-			
+
 			if (networkInterface && networkInterface.ipConfigurations && Array.isArray(networkInterface.ipConfigurations)) {
 				for (let i = 0; i < networkInterface.ipConfigurations.length; i++) {
 					if (networkInterface.ipConfigurations[i].primary && networkInterface.ipConfigurations[i].publicIPAddress) {
@@ -403,13 +404,13 @@ const helper = {
 					}
 				}
 			}
-			
+
 			networkClient.networkSecurityGroups.get(resourceGroupName, networkSecurityGroupName, function (error, securityGroup) {
 				if (error) return cb(error);
-				
+
 				networkClient.publicIPAddresses.get(resourceGroupName, ipName, function (error, publicIp) {
 					if (error) return cb(error);
-					
+
 					return cb(null, {networkInterface, securityGroup, publicIp});
 				});
 			});
