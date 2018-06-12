@@ -517,7 +517,11 @@ const driver = {
 				});
 				computeClient.virtualMachineSizes.list(options.params.location, function (error, vmSizes) {
 					utils.checkError(error, 709, cb, () => {
-						return cb(null, vmSizes);
+						async.map(vmSizes, function(onevmSize, callback) {
+							return callback(null, helper.buildNetworkRecord({ vmSize: onevmSize }));
+						}, function(error, vmSizesList) {
+							return cb(null, vmSizesList);
+						});
 					});
 				});
 			});
@@ -542,7 +546,11 @@ const driver = {
 				});
 				computeClient.virtualMachineImages.listPublishers(options.params.location, function (error, imagePublishers) {
 					utils.checkError(error, 710, cb, () => {
-						return cb(null, imagePublishers);
+						async.map(imagePublishers, function(oneimagePublisher, callback) {
+							return callback(null, helper.buildNetworkRecord({ imagePublisher: oneimagePublisher }));
+						}, function(error, imagePublishersList) {
+							return cb(null, imagePublishersList);
+						});
 					});
 				});
 			});
@@ -567,7 +575,11 @@ const driver = {
 				});
 				computeClient.virtualMachineImages.listOffers(options.params.location, options.params.publisher, function (error, imageOffers) {
 					utils.checkError(error, 711, cb, () => {
-						return cb(null, imageOffers);
+						async.map(imageOffers, function(oneimageOffer, callback) {
+							return callback(null, helper.buildNetworkRecord({ imageOffer: oneimageOffer }));
+						}, function(error, imageOffersList) {
+							return cb(null, imageOffersList);
+						});
 					});
 				});
 			});
@@ -592,7 +604,11 @@ const driver = {
 				});
 				computeClient.virtualMachineImages.listSkus(options.params.location, options.params.publisher, options.params.offer, function (error, imageVersions) {
 					utils.checkError(error, 712, cb, () => {
-						return cb(null, imageVersions);
+						async.map(imageVersions, function(oneimageVersion, callback) {
+							return callback(null, helper.buildNetworkRecord({ imageVersion: oneimageVersion }));
+						}, function(error, imageVersionsList) {
+							return cb(null, imageVersionsList);
+						});
 					});
 				});
 			});
@@ -803,7 +819,11 @@ const driver = {
 				});
 			computeClient.disks.list(options.params.resourceGroupName, function (error, dataDisks) {
 				utils.checkError(error, 737, cb, () => {
-					return cb(null, dataDisks);
+					async.map(dataDisks, function(onedataDisk, callback) {
+						return callback(null, helper.buildPublicIPsRecord({ dataDisk: onedataDisk }));
+					}, function(error, dataDisksList) {
+						return cb(null, dataDisksList);
+					});
 				});
 			});
 		});
