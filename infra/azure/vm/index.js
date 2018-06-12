@@ -716,8 +716,7 @@ const driver = {
 	* @param  {Function} cb
 	* @return {void}
 	*/
-
-	listPublicIp: function (options, cb) {
+	listPublicIps: function (options, cb) {
 		options.soajs.log.debug(`Listing public ips for resourcegroup ${options.params.resourceGroupName} `);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
@@ -735,6 +734,13 @@ const driver = {
 		});
 	},
 
+	/**
+	* Execute a command inside a running virtual machine
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
 	runCommand: function(options, cb) {
 		options.soajs.log.debug(`Running command in virtual machine`);
 		driverUtils.authenticate(options, (error, authData) => {
@@ -754,8 +760,16 @@ const driver = {
 		});
 	},
 
+	/**
+	* Get logs of a running virtual machine
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
 	getLogs: function(options, cb) {
-		options.params.command = "journalctl --lines 200";
+		let numberOfLines = options.params.numberOfLines || 200;
+		options.params.command = `journalctl --lines ${numberOfLines}`;
 		return driver.runCommand(options,cb);
 	}
 
