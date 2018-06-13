@@ -59,7 +59,7 @@ const driver = {
         if (error) return cb({error, code: 740});
         return cb(null, result);
       });
-    
+
         // inject auth data from options.infra.api to options.params.input
         // pass options to terraform driver, destroy function
         // return callback with data drom terrafor driver
