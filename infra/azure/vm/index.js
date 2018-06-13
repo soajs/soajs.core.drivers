@@ -518,7 +518,7 @@ const driver = {
 				computeClient.virtualMachineSizes.list(options.params.location, function (error, vmSizes) {
 					utils.checkError(error, 709, cb, () => {
 						async.map(vmSizes, function(onevmSize, callback) {
-							return callback(null, helper.buildNetworkRecord({ vmSize: onevmSize }));
+							return callback(null, helper.buildVmSizes({ vmSize: onevmSize }));
 						}, function(error, vmSizesList) {
 							return cb(null, vmSizesList);
 						});
@@ -547,7 +547,7 @@ const driver = {
 				computeClient.virtualMachineImages.listPublishers(options.params.location, function (error, imagePublishers) {
 					utils.checkError(error, 710, cb, () => {
 						async.map(imagePublishers, function(oneimagePublisher, callback) {
-							return callback(null, helper.buildNetworkRecord({ imagePublisher: oneimagePublisher }));
+							return callback(null, helper.buildVmImagePublisherssRecord({ imagePublisher: oneimagePublisher }));
 						}, function(error, imagePublishersList) {
 							return cb(null, imagePublishersList);
 						});
@@ -576,7 +576,7 @@ const driver = {
 				computeClient.virtualMachineImages.listOffers(options.params.location, options.params.publisher, function (error, imageOffers) {
 					utils.checkError(error, 711, cb, () => {
 						async.map(imageOffers, function(oneimageOffer, callback) {
-							return callback(null, helper.buildNetworkRecord({ imageOffer: oneimageOffer }));
+							return callback(null, helper.buildVmImagePublishersOffersRecord({ imageOffer: oneimageOffer }));
 						}, function(error, imageOffersList) {
 							return cb(null, imageOffersList);
 						});
@@ -605,7 +605,7 @@ const driver = {
 				computeClient.virtualMachineImages.listSkus(options.params.location, options.params.publisher, options.params.offer, function (error, imageVersions) {
 					utils.checkError(error, 712, cb, () => {
 						async.map(imageVersions, function(oneimageVersion, callback) {
-							return callback(null, helper.buildNetworkRecord({ imageVersion: oneimageVersion }));
+							return callback(null, helper.buildVmImageVersionsRecord({ imageVersion: oneimageVersion }));
 						}, function(error, imageVersionsList) {
 							return cb(null, imageVersionsList);
 						});

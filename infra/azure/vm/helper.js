@@ -274,8 +274,8 @@ const helper = {
         if(opts.vmSizes) {
             if (opts.vmSizes.name) record.name = opts.vmSizes.name;
     		if (opts.vmSizes.numberOfCores) record.numberOfCores = opts.vmSizes.numberOfCores;
-		
-			
+
+
         }
 
 		return record;
@@ -290,7 +290,7 @@ const helper = {
             if (opts.vmImagePublishers.name) record.name = opts.vmImagePublishers.name;
     		if (opts.vmImagePublishers.id) record.id = opts.vmImagePublishers.id;
 			if (opts.vmImagePublishers.location) record.region = opts.vmImagePublisherss.location;
-			
+
         }
 
 		return record;
@@ -304,7 +304,7 @@ const helper = {
             if (opts.vmImagePublisherOffer.name) record.name = opts.vmImagePublisherOffer.name;
     		if (opts.vmImagePublisherOffer.id) record.id = opts.vmImagePublisherOffer.id;
 			if (opts.vmImagePublisherOffer.location) record.region = opts.vmImagePublisherOffer.location;
-			
+
         }
 
 		return record;
@@ -319,7 +319,7 @@ const helper = {
             if (opts.vmImageVersion.name) record.name = opts.vmImageVersion.name;
     		if (opts.vmImageVersion.id) record.id = opts.vmImageVersion.id;
 			if (opts.vmImageVersion.location) record.region = opts.vmImageVersion.location;
-			
+
         }
 
 		return record;
@@ -334,7 +334,7 @@ const helper = {
             if (opts.dataDisk.name) record.name = opts.dataDisk.name;
     		if (opts.dataDisk.id) record.id = opts.dataDisk.id;
 			if (opts.dataDisk.location) record.region = opts.dataDisk.location;
-			
+
         }
 
 		return record;
@@ -369,16 +369,17 @@ const helper = {
 	buildLOadBalancersRecord: function (opts) {
 		let record = {};
 		if(opts.loadBlanacer){
-		if (opts.loadBlanacer.name) record.name = opts.loadBlanacer.name;
-		if (opts.loadBlanacer.id) record.id = opts.loadBlanacer.id;
-		if (opts.loadBlanacer.location) record.region = opts.loadBlanacer.location;
-	}
+			if (opts.loadBlanacer.name) record.name = opts.loadBlanacer.name;
+			if (opts.loadBlanacer.id) record.id = opts.loadBlanacer.id;
+			if (opts.loadBlanacer.location) record.region = opts.loadBlanacer.location;
+		}
 		return record;
 	},
 
 	bulidnetworkSubnetsRecord: function (opts) {
 		let record = {};
 
+<<<<<<< HEAD
 		if(opts){
 			if (opts.name) record.name = opts.name;
 			if (opts.id) record.id = opts.id;
@@ -399,6 +400,13 @@ const helper = {
 			if (opts.subnet.id) record.id = opts.subnet.id;
 			if (opts.subnet.location) record.region = opts.subnet.location;
 			if (opts.subnet.addressPrefix) record.addressPrefix = opts.subnet.addressPrefix;
+=======
+		if(opts.subnets){
+			if (opts.subnets.name) record.name = opts.subnets.name;
+			if (opts.subnets.id) record.id = opts.subnets.id;
+			if (opts.subnets.location) record.region = opts.subnets.location;
+			if (opts.subnets.addressPrefix) record.addressPrefix = opts.subnets.addressPrefix;
+>>>>>>> 6dc38e6b029ec5f38b9bb7856146474894d44e79
 		}
 		
 		return record;
@@ -407,9 +415,9 @@ const helper = {
 	buildPublicIPsRecord: function (opts) {
 		let record = {}
 		if(opts.publicIPs){
-		if (opts.publicIPAddresses.name) record.name = opts.publicIPAddresses.name;
-		if (opts.publicIPAddresses.id) record.id = opts.id;
-		if (opts.publicIPAddresses.location) record.region = opts.publicIPAddresses.location;
+			if (opts.publicIPAddresses.name) record.name = opts.publicIPAddresses.name;
+			if (opts.publicIPAddresses.id) record.id = opts.id;
+			if (opts.publicIPAddresses.location) record.region = opts.publicIPAddresses.location;
 		}
 		return record;
 	},
@@ -417,11 +425,17 @@ const helper = {
 
 		let record = {};
 		if(opts.networkSecurityGroups){
-		if (opts.networkSecurityGroups.name) record.name = opts.networkSecurityGroups.name;
-		if (opts.networkSecurityGroups.id) record.id = opts.networkSecurityGroups.id;
-		if (opts.networkSecurityGroups.location) record.region = opts.networkSecurityGroups.location;
+			if (opts.networkSecurityGroups.name) record.name = opts.networkSecurityGroups.name;
+			if (opts.networkSecurityGroups.id) record.id = opts.networkSecurityGroups.id;
+			if (opts.networkSecurityGroups.location) record.region = opts.networkSecurityGroups.location;
 		}
 		return record;
+	},
+
+	buildDiskRecord: function(opts) {
+		if(opts.disk) {
+			//TODO
+		}
 	},
 
 	buildSecurityRules: function (ports) {
