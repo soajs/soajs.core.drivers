@@ -783,7 +783,13 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				let params =  {commandId: 'RunShellScript', script: [options.params.command]};
+
+				let script = [];
+				if(options.params.env) script = script.concat(options.params.env.map(oneEnv => `export ${oneEnv}`)); // export environment variables
+				if(options.params.command) script = script.concat(options.params.command); // add command
+				if(options.params.args) script = script.concat(options.params.args); // add command arguments
+
+				let params = { commandId: 'RunShellScript', script: script };
 				computeClient.virtualMachines.runCommand(options.params.resourceGroupName, options.params.vmName, params, function(error, result) {
 					utils.checkError(error, 736, cb, () => {
 						return cb(null, result);
@@ -802,7 +808,7 @@ const driver = {
 	*/
 	getLogs: function(options, cb) {
 		let numberOfLines = options.params.numberOfLines || 200;
-		options.params.command = `journalctl --lines ${numberOfLines}`;
+		options.params.command = [ `journalctl --lines ${numberOfLines}` ];
 		return driver.runCommand(options,cb);
 	},
 	/**
