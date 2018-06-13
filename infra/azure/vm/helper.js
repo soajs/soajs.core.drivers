@@ -343,15 +343,25 @@ const helper = {
 
 	buildNetworkRecord: function (opts) {
 		let record = {};
-
+		record.subnets = [];
         if(opts.network) {
             if (opts.network.name) record.name = opts.network.name;
     		if (opts.network.id) record.id = opts.network.id;
 			if (opts.network.location) record.region = opts.network.location;
-			if (opts.network.subnets) record.subnets = opts.network.subnets;
+			if (opts.network.subnets) {
+				
+				for(let i = 0 ; i < opts.network.subnets.length ; i++){
+					record.subnets.push(  helper.bulidSubnetsRecord({subnet :opts.network.subnets[i] }));
+
+
+				}
+			}
 			if(opts.network.addressSpace) record.addressSpace = opts.network.addressSpace;
         }
 
+		
+		
+		
 		return record;
 
 	},
@@ -366,15 +376,31 @@ const helper = {
 		return record;
 	},
 
-	bulidSubnetsRecord: function (opts) {
+	bulidnetworkSubnetsRecord: function (opts) {
 		let record = {};
 
-		if(opts.subnets){
-		if (opts.subnets.name) record.name = opts.subnets.name;
-		if (opts.subnets.id) record.id = opts.subnets.id;
-		if (opts.subnets.location) record.region = opts.subnets.location;
-		if (opts.subnets.addressPrefix) record.addressPrefix = opts.subnets.addressPrefix;
+		if(opts){
+			if (opts.name) record.name = opts.name;
+			if (opts.id) record.id = opts.id;
+			if (opts.location) record.region = opts.location;
+			if (opts.addressPrefix) record.addressPrefix = opts.addressPrefix;
+
+
+
 		}
+
+
+	},
+
+	bulidSubnetsRecord: function (opts) {
+		let record = {};
+		if(opts.subnet){
+			if (opts.subnet.name) record.name = opts.subnet.name;
+			if (opts.subnet.id) record.id = opts.subnet.id;
+			if (opts.subnet.location) record.region = opts.subnet.location;
+			if (opts.subnet.addressPrefix) record.addressPrefix = opts.subnet.addressPrefix;
+		}
+		
 		return record;
 	},
 
