@@ -783,7 +783,13 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				let params =  {commandId: 'RunShellScript', script: [options.params.command]};
+
+				let script = [];
+				if(options.params.env) script = script.concat(options.params.env.map(oneEnv => `export ${oneEnv}`)); // export environment variables
+				if(options.params.command) script = script.concat(options.params.command); // add command
+				if(options.params.args) script = script.concat(options.params.args); // add command arguments
+
+				let params = { commandId: 'RunShellScript', script: script };
 				computeClient.virtualMachines.runCommand(options.params.resourceGroupName, options.params.vmName, params, function(error, result) {
 					utils.checkError(error, 736, cb, () => {
 						return cb(null, result);
@@ -802,17 +808,17 @@ const driver = {
 	*/
 	getLogs: function(options, cb) {
 		let numberOfLines = options.params.numberOfLines || 200;
-		options.params.command = `journalctl --lines ${numberOfLines}`;
+		options.params.command = [ `journalctl --lines ${numberOfLines}` ];
 		return driver.runCommand(options,cb);
 	},
 	/**
-	* List data disks of a resource group
+	* List data/os disks of a resource group
 
 	* @param  {Object}   options  Data passed to function as params
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-	listDataDisks: function (options, cb){
+	listDisks: function (options, cb){
 		options.soajs.log.debug(`Listing Data Disks for resourcegroup ${options.params.resourceGroupName}`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
@@ -821,12 +827,28 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				computeClient.disks.list(options.params.resourceGroupName, function (error, dataDisks) {
+				computeClient.disks.list(options.params.resourceGroupName, function (error, disks) {
 					utils.checkError(error, 737, cb, () => {
-						async.map(dataDisks, function(onedataDisk, callback) {
-							return callback(null, helper.buildPublicIPsRecord({ dataDisk: onedataDisk }));
-						}, function(error, dataDisksList) {
-							return cb(null, dataDisksList);
+						async.concat(disks, function(oneDisk, callback) {
+							if(options.params && options.params.type) {
+								// only return disks of type os
+								if(options.params.type === 'os' && oneDisk.osType) {
+									return callback(null, [helper.buildDiskRecord({ disk: oneDisk })]);
+								}
+								// only return disks of type data
+								else if (options.params.type === 'data' && !oneDisk.osType) {
+									return callback(null, [helper.buildDiskRecord({ disk: oneDisk })]);
+								}
+								// ignore disk
+								else {
+									return callback(null, []);
+								}
+							}
+
+							// return all disks if no type is specified
+							return callback(null, [helper.buildDiskRecord({ disk: oneDisk })]);
+						}, function(error, disksList) {
+							return cb(null, disksList);
 						});
 					});
 				});
@@ -838,3 +860,4 @@ const driver = {
 };
 
 module.exports = driver;
+disk

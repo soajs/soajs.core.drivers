@@ -398,6 +398,12 @@ const helper = {
 		return record;
 	},
 
+	buildDiskRecord: function(opts) {
+		if(opts.disk) {
+			//TODO
+		}
+	},
+
 	buildSecurityRules: function (ports) {
 		let securityRules = [];
 		let priority = 100;
