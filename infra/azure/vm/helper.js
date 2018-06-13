@@ -379,7 +379,6 @@ const helper = {
 	bulidnetworkSubnetsRecord: function (opts) {
 		let record = {};
 
-<<<<<<< HEAD
 		if(opts){
 			if (opts.name) record.name = opts.name;
 			if (opts.id) record.id = opts.id;
@@ -400,13 +399,6 @@ const helper = {
 			if (opts.subnet.id) record.id = opts.subnet.id;
 			if (opts.subnet.location) record.region = opts.subnet.location;
 			if (opts.subnet.addressPrefix) record.addressPrefix = opts.subnet.addressPrefix;
-=======
-		if(opts.subnets){
-			if (opts.subnets.name) record.name = opts.subnets.name;
-			if (opts.subnets.id) record.id = opts.subnets.id;
-			if (opts.subnets.location) record.region = opts.subnets.location;
-			if (opts.subnets.addressPrefix) record.addressPrefix = opts.subnets.addressPrefix;
->>>>>>> 6dc38e6b029ec5f38b9bb7856146474894d44e79
 		}
 		
 		return record;
