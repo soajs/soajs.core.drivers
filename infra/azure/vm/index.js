@@ -666,7 +666,7 @@ const driver = {
 				networkClient.loadBalancers.list(options.params.resourceGroupName, function (error, loadBalancers) {
 					utils.checkError(error, 732, cb, () => {
 						async.map(loadBalancers, function(oneloadBalancer, callback) {
-							return callback(null, helper.buildLOadBalancersRecord({ loadBlanacer: oneloadBalancer }));
+							return callback(null, helper.buildLoadBalancersRecord({ loadBlanacer: oneloadBalancer }));
 						}, function(error, loadBalancersList) {
 							return cb(null, loadBalancersList);
 						});

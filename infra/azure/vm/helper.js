@@ -368,7 +368,7 @@ const helper = {
 
 	},
 
-	buildLOadBalancersRecord: function (opts) {
+	buildLoadBalancersRecord: function (opts) {
 		let record = {};
 		if(opts.loadBlanacer){
 			if (opts.loadBlanacer.name) record.name = opts.loadBlanacer.name;
