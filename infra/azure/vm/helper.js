@@ -285,7 +285,11 @@ const helper = {
 
         if(opts.vmSizes) {
             if (opts.vmSizes.name) record.name = opts.vmSizes.name;
-    		if (opts.vmSizes.numberOfCores) record.numberOfCores = opts.vmSizes.numberOfCores;
+			if (opts.vmSizes.numberOfCores) record.numberOfCores = opts.vmSizes.numberOfCores;
+			if (opts.vmSizes.osDiskSizeInMB) record.osDiskSizeInMB = opts.vmSizes.osDiskSizeInMB;
+			if (opts.vmSizes.resourceDiskSizeInMB) record.resourceDiskSizeInMB = opts.vmSizes.resourceDiskSizeInMB;
+			if (opts.vmSizes.memoryInMB) record.memoryInMB = opts.vmSizes.memoryInMB;
+    		if (opts.vmSizes.maxDataDiskCount) record.maxDataDiskCount = opts.vmSizes.maxDataDiskCount;
 
 
         }
@@ -293,7 +297,19 @@ const helper = {
 		return record;
 
 	},
+	buildRunCommmand: function(opts){
+		let record ={};
 
+		if(opts.runCommand){
+			if (opts.runCommand.name) record.name = opts.runCommand.name;
+    		if (opts.runCommand.status) record.status = opts.runCommand.status;
+			
+
+
+		}
+		return record;
+
+	},
 
 	buildVmImagePublisherssRecord: function (opts) {
 		let record = {};
@@ -316,6 +332,8 @@ const helper = {
             if (opts.vmImagePublisherOffer.name) record.name = opts.vmImagePublisherOffer.name;
     		if (opts.vmImagePublisherOffer.id) record.id = opts.vmImagePublisherOffer.id;
 			if (opts.vmImagePublisherOffer.location) record.region = opts.vmImagePublisherOffer.location;
+			if(opts.vmImagePublisherOffer.publisher) record.publisher = opts.vmImagePublisherOffer.publisher;
+			if(opts.vmImagePublisherOffer.imageName) record.imageName = opts.vmImagePublisherOffer.imageName;
 
         }
 
@@ -331,13 +349,14 @@ const helper = {
             if (opts.vmImageVersion.name) record.name = opts.vmImageVersion.name;
     		if (opts.vmImageVersion.id) record.id = opts.vmImageVersion.id;
 			if (opts.vmImageVersion.location) record.region = opts.vmImageVersion.location;
+			if(opts.vmImageVersion.publisher) record.publisher = opts.vmImageVersion.publisher;
+			if(opts.vmImageVersion.imageName) record.imageName = opts.vmImageVersion.imageName;
 
         }
 
 		return record;
 
 	},
-
 
 	buildDiskRecord: function (opts) {
 		let record = {};
@@ -346,6 +365,9 @@ const helper = {
             if (opts.disk.name) record.name = opts.disk.name;
     		if (opts.disk.id) record.id = opts.disk.id;
 			if (opts.disk.location) record.region = opts.disk.location;
+			if (opts.disk.diskSizeGb) record.diskSizeGb = opts.disk.diskSizeGb;
+    		if (opts.disk.type) record.type = opts.disk.type;
+			if (opts.disk.storageType) record.storageType = opts.disk.storageType;
 
         }
 
