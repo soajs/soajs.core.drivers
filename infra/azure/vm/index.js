@@ -392,7 +392,7 @@ const driver = {
 				});
 				computeClient.virtualMachines.restart(options.env, options.params.vmName, function (error, result) {
 					utils.checkError(error, 706, cb, () => {
-						return cb(null, result);
+						return cb(null, true);
 					});
 				});
 			});
@@ -417,7 +417,7 @@ const driver = {
 				});
 				computeClient.virtualMachines.redeploy(options.env, options.params.vmName, function (error, result) {
 					utils.checkError(error, 706, cb, () => {
-						return cb(null, result);
+						return cb(null, true);
 					});
 				});
 			});
@@ -442,7 +442,7 @@ const driver = {
 				});
 				computeClient.virtualMachines.powerOff(options.env, options.params.vmName, function (error, result) {
 					utils.checkError(error, 702, cb, () => {
-						return cb(null, result);
+						return cb(null, true);
 					});
 				});
 			});
@@ -467,7 +467,7 @@ const driver = {
 				});
 				computeClient.virtualMachines.start(options.env, options.params.vmName, function (error, result) {
 					utils.checkError(error, 703, cb, () => {
-						return cb(null, result);
+						return cb(null, true);
 					});
 				});
 			});
@@ -492,7 +492,7 @@ const driver = {
 				});
 				resourceClient.resourceGroups.deleteMethod(options.env, function (error, result) {
 					utils.checkError(error, 708, cb, () => {
-						return cb(null, result);
+						return cb(null, true);
 					});
 				});
 			});
@@ -666,7 +666,7 @@ const driver = {
 				networkClient.loadBalancers.list(options.params.resourceGroupName, function (error, loadBalancers) {
 					utils.checkError(error, 732, cb, () => {
 						async.map(loadBalancers, function(oneloadBalancer, callback) {
-							return callback(null, helper.buildLOadBalancersRecord({ loadBlanacer: oneloadBalancer }));
+							return callback(null, helper.buildLoadBalancersRecord({ loadBlanacer: oneloadBalancer }));
 						}, function(error, loadBalancersList) {
 							return cb(null, loadBalancersList);
 						});

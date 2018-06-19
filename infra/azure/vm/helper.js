@@ -250,6 +250,18 @@ const helper = {
 					if (opts.vm.storageProfile.osDisk.osType) record.tasks[0].ref.os.type = opts.vm.storageProfile.osDisk.osType;
 					if (opts.vm.storageProfile.osDisk.diskSizeGB) record.tasks[0].ref.os.diskSizeGB = opts.vm.storageProfile.osDisk.diskSizeGB;
 				}
+				if(opts.vm.storageProfile.dataDisks) {
+					record.volumes = [];
+					opts.vm.storageProfile.dataDisks.forEach(function(oneDisk) {
+						record.volumes.push({
+							name: oneDisk.name,
+							type: 'data',
+							caching: oneDisk.caching,
+							diskSizeGb: oneDisk.diskSizeGb,
+							storageType: (oneDisk.managedDisk && oneDisk.managedDisk.storageAccountType) ? oneDisk.managedDisk.storageAccountType : ''
+						});
+					});
+				}
 			}
 		}
 
@@ -327,13 +339,13 @@ const helper = {
 	},
 
 
-	buildDataDiskRecord: function (opts) {
+	buildDiskRecord: function (opts) {
 		let record = {};
 
-        if(opts.dataDisk) {
-            if (opts.dataDisk.name) record.name = opts.dataDisk.name;
-    		if (opts.dataDisk.id) record.id = opts.dataDisk.id;
-			if (opts.dataDisk.location) record.region = opts.dataDisk.location;
+        if(opts.disk) {
+            if (opts.disk.name) record.name = opts.disk.name;
+    		if (opts.disk.id) record.id = opts.disk.id;
+			if (opts.disk.location) record.region = opts.disk.location;
 
         }
 
@@ -366,7 +378,7 @@ const helper = {
 
 	},
 
-	buildLOadBalancersRecord: function (opts) {
+	buildLoadBalancersRecord: function (opts) {
 		let record = {};
 		if(opts.loadBlanacer){
 			if (opts.loadBlanacer.name) record.name = opts.loadBlanacer.name;
@@ -422,12 +434,6 @@ const helper = {
 			if (opts.networkSecurityGroups.location) record.region = opts.networkSecurityGroups.location;
 		}
 		return record;
-	},
-
-	buildDiskRecord: function(opts) {
-		if(opts.disk) {
-			//TODO
-		}
 	},
 
 	buildSecurityRules: function (ports) {
