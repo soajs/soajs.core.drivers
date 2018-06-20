@@ -495,7 +495,7 @@ const helper = {
 		async.filter(vms, function (oneVm, callback) {
 			let valid = false;
 			if (!oneVm.tags || Object.keys(oneVm.tags).length === 0) valid = true;
-			else if (oneVm.tags && oneVm.tags['soajs.content'] === 'true' && oneVm.tags['soajs.env.code'] === env) valid = true;
+			else if (env && oneVm.tags && oneVm.tags['soajs.content'] === 'true' && oneVm.tags['soajs.env.code'] === env) valid = true;
 			else if (oneVm.tags && (!oneVm.tags['soajs.content'] || oneVm.tags['soajs.content'] !== 'true')) valid = true;
 
 			return callback(null, valid);

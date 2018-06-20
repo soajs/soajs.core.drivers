@@ -300,20 +300,20 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-
-				resourceClient.resourceGroups.checkExistence(options.env, function (error, exists) {
+				
+				let env = options.env ? options.env: null;
+				checkExistence (env, function (error, exists) {
 					utils.checkError(error, 704, cb, () => {
 						if (!exists) {
 							return cb(null, []);
 						}
-
 						computeClient.virtualMachines.listAll(function (error, vms) {
 							utils.checkError(error, 704, cb, () => {
 								if (!(vms && Array.isArray(vms))) {
 									return cb(null, []);
 								}
 
-								helper.filterVMs(options.env, vms, function (error, filteredVms) {
+								helper.filterVMs(env, vms, function (error, filteredVms) {
 									//no error is returned by function
 									async.map(filteredVms, function (oneVm, callback) {
 										let vmRecordOptions = {vm: oneVm};
@@ -337,6 +337,14 @@ const driver = {
 						});
 					});
 				});
+				function checkExistence (env, mCb){
+					if (env){
+						resourceClient.resourceGroups.checkExistence(options.env, mCb)
+					}
+					else {
+						return mCb(null, true);
+					}
+				}
 			});
 		});
 	},
