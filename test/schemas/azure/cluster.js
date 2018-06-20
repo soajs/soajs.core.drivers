@@ -1154,187 +1154,127 @@ module.exports = function () {
 				"etag": "W/\"5a6127ca-2a9f-4fcd-a2e6-0189230fb560\""
 			}
 		],
-		"subnets" : [
+		"subnets": [
 			{
-				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-lb",
-				"name": "tester-lb",
-				"type": "Microsoft.Network/loadBalancers",
-				"location": "centralus",
-				"sku": {
-					"name": "Basic"
-				},
-				"frontendIPConfigurations": [
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/virtualNetworks/tester-vn/subnets/tester-subnet",
+				"addressPrefix": "10.0.2.0/24",
+				"serviceEndpoints": [],
+				"ipConfigurations": [
 					{
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-lb/frontendIPConfigurations/LoadBalancerFrontEnd",
-						"privateIPAllocationMethod": "Dynamic",
-						"publicIPAddress": {
-							"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-lb-ip"
-						},
-						"provisioningState": "Succeeded",
-						"name": "LoadBalancerFrontEnd",
-						"etag": "W/\"6f4eba17-9470-4496-8ad6-25ddb9e804c1\""
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkInterfaces/tester-ni/ipConfigurations/testconfiguration1"
 					}
 				],
-				"backendAddressPools": [],
-				"loadBalancingRules": [],
-				"probes": [],
-				"inboundNatRules": [],
-				"inboundNatPools": [],
-				"outboundNatRules": [],
-				"resourceGuid": "fd3aaf39-5384-4cab-b3d2-f703b21a2637",
 				"provisioningState": "Succeeded",
-				"etag": "W/\"6f4eba17-9470-4496-8ad6-25ddb9e804c1\""
+				"name": "tester-subnet",
+				"etag": "W/\"6c581c8c-d2c0-4e6f-b32b-b9db99ca2369\""
 			}
 		],
-		"publicIp" :	[
+		"Disks": [
 			{
-				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-ip",
-				"name": "tester-ip",
-				"type": "Microsoft.Network/publicIPAddresses",
-				"location": "eastus",
-				"tags": {},
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/SOAJS/providers/Microsoft.Compute/disks/mongo_OsDisk_1_5aa8030cb6044037b5c8f4d6c75a391a",
+				"name": "mongo_OsDisk_1_5aa8030cb6044037b5c8f4d6c75a391a",
+				"type": "Microsoft.Compute/disks",
+				"location": "centralus",
+				"managedBy": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/soajs/providers/Microsoft.Compute/virtualMachines/mongo",
 				"sku": {
-					"name": "Basic"
+					"name": "Standard_LRS",
+					"tier": "Standard"
 				},
-				"publicIPAllocationMethod": "Dynamic",
-				"publicIPAddressVersion": "IPv4",
-				"ipConfiguration": {
-					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkInterfaces/tester-ni/ipConfigurations/testconfiguration1"
+				"timeCreated": "2018-06-08T08:43:58.918Z",
+				"osType": "Linux",
+				"creationData": {
+					"createOption": "FromImage",
+					"imageReference": {
+						"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/centralus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/UbuntuServer/Skus/17.10/Versions/17.10.201805220"
+					}
 				},
-				"ipTags": [],
-				"ipAddress": "40.114.121.7",
-				"idleTimeoutInMinutes": 30,
-				"resourceGuid": "2659d8ca-dba2-4b8e-8a1d-fb922c71f432",
-				"provisioningState": "Succeeded",
-				"etag": "W/\"a606e103-19e7-4c17-b92f-7ed88be91968\""
+				"diskSizeGB": 30,
+				"provisioningState": "Succeeded"
 			},
 			{
-				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-lb-ip",
-				"name": "tester-lb-ip",
-				"type": "Microsoft.Network/publicIPAddresses",
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/SOAJS/providers/Microsoft.Compute/disks/mysql_OsDisk_1_42ef3a000aff4269988d134e376e0160",
+				"name": "mysql_OsDisk_1_42ef3a000aff4269988d134e376e0160",
+				"type": "Microsoft.Compute/disks",
 				"location": "centralus",
+				"managedBy": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/soajs/providers/Microsoft.Compute/virtualMachines/mysql",
 				"sku": {
-					"name": "Basic"
+					"name": "Standard_LRS",
+					"tier": "Standard"
 				},
-				"publicIPAllocationMethod": "Dynamic",
-				"publicIPAddressVersion": "IPv4",
-				"ipConfiguration": {
-					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-lb/frontendIPConfigurations/LoadBalancerFrontEnd"
+				"timeCreated": "2018-06-08T08:45:51.415Z",
+				"osType": "Linux",
+				"creationData": {
+					"createOption": "FromImage",
+					"imageReference": {
+						"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/centralus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/UbuntuServer/Skus/17.10/Versions/17.10.201805220"
+					}
 				},
-				"ipTags": [],
-				"idleTimeoutInMinutes": 4,
-				"resourceGuid": "b259942c-01ce-4693-a583-68ed737885bb",
-				"provisioningState": "Succeeded",
-				"etag": "W/\"3eebeb0c-d2e3-45b3-ac3e-f50b8e7fa569\""
+				"diskSizeGB": 30,
+				"provisioningState": "Succeeded"
+			},
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/TESTER-2/providers/Microsoft.Compute/disks/myosdisk1",
+				"name": "myosdisk1",
+				"type": "Microsoft.Compute/disks",
+				"location": "eastus",
+				"tags": {
+					"soajs.env.code": "tester"
+				},
+				"managedBy": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester-2/providers/Microsoft.Compute/virtualMachines/tester-vm",
+				"sku": {
+					"name": "Standard_LRS",
+					"tier": "Standard"
+				},
+				"timeCreated": "2018-06-12T12:24:36.453Z",
+				"osType": "Linux",
+				"creationData": {
+					"createOption": "FromImage",
+					"imageReference": {
+						"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/UbuntuServer/Skus/16.04-LTS/Versions/16.04.201805220"
+					}
+				},
+				"diskSizeGB": 30,
+				"provisioningState": "Succeeded"
+			},
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/TESTER/providers/Microsoft.Compute/disks/ubuntu-data-disk",
+				"name": "ubuntu-data-disk",
+				"type": "Microsoft.Compute/disks",
+				"location": "eastus",
+				"managedBy": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Compute/virtualMachines/ubuntu",
+				"sku": {
+					"name": "Standard_LRS",
+					"tier": "Standard"
+				},
+				"timeCreated": "2018-06-12T13:59:54.060Z",
+				"creationData": {
+					"createOption": "Empty"
+				},
+				"diskSizeGB": 10,
+				"provisioningState": "Succeeded"
+			},
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/TESTER/providers/Microsoft.Compute/disks/ubuntu_OsDisk_1_eeffec9587b0485c80c6726d751c40eb",
+				"name": "ubuntu_OsDisk_1_eeffec9587b0485c80c6726d751c40eb",
+				"type": "Microsoft.Compute/disks",
+				"location": "eastus",
+				"managedBy": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Compute/virtualMachines/ubuntu",
+				"sku": {
+					"name": "Standard_LRS",
+					"tier": "Standard"
+				},
+				"timeCreated": "2018-06-12T11:58:24.138Z",
+				"osType": "Linux",
+				"creationData": {
+					"createOption": "FromImage",
+					"imageReference": {
+						"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/UbuntuServer/Skus/17.10/Versions/17.10.201805220"
+					}
+				},
+				"diskSizeGB": 30,
+				"provisioningState": "Succeeded"
 			}
-		],
-
-	"Disks" :[
-  {
-    "id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/SOAJS/providers/Microsoft.Compute/disks/mongo_OsDisk_1_5aa8030cb6044037b5c8f4d6c75a391a",
-    "name": "mongo_OsDisk_1_5aa8030cb6044037b5c8f4d6c75a391a",
-    "type": "Microsoft.Compute/disks",
-    "location": "centralus",
-    "managedBy": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/soajs/providers/Microsoft.Compute/virtualMachines/mongo",
-    "sku": {
-      "name": "Standard_LRS",
-      "tier": "Standard"
-    },
-    "timeCreated": "2018-06-08T08:43:58.918Z",
-    "osType": "Linux",
-    "creationData": {
-      "createOption": "FromImage",
-      "imageReference": {
-        "id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/centralus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/UbuntuServer/Skus/17.10/Versions/17.10.201805220"
-      }
-    },
-    "diskSizeGB": 30,
-    "provisioningState": "Succeeded"
-  },
-  {
-    "id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/SOAJS/providers/Microsoft.Compute/disks/mysql_OsDisk_1_42ef3a000aff4269988d134e376e0160",
-    "name": "mysql_OsDisk_1_42ef3a000aff4269988d134e376e0160",
-    "type": "Microsoft.Compute/disks",
-    "location": "centralus",
-    "managedBy": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/soajs/providers/Microsoft.Compute/virtualMachines/mysql",
-    "sku": {
-      "name": "Standard_LRS",
-      "tier": "Standard"
-    },
-    "timeCreated": "2018-06-08T08:45:51.415Z",
-    "osType": "Linux",
-    "creationData": {
-      "createOption": "FromImage",
-      "imageReference": {
-        "id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/centralus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/UbuntuServer/Skus/17.10/Versions/17.10.201805220"
-      }
-    },
-    "diskSizeGB": 30,
-    "provisioningState": "Succeeded"
-  },
-  {
-    "id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/TESTER-2/providers/Microsoft.Compute/disks/myosdisk1",
-    "name": "myosdisk1",
-    "type": "Microsoft.Compute/disks",
-    "location": "eastus",
-    "tags": {
-      "soajs.env.code": "tester"
-    },
-    "managedBy": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester-2/providers/Microsoft.Compute/virtualMachines/tester-vm",
-    "sku": {
-      "name": "Standard_LRS",
-      "tier": "Standard"
-    },
-    "timeCreated": "2018-06-12T12:24:36.453Z",
-    "osType": "Linux",
-    "creationData": {
-      "createOption": "FromImage",
-      "imageReference": {
-        "id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/UbuntuServer/Skus/16.04-LTS/Versions/16.04.201805220"
-      }
-    },
-    "diskSizeGB": 30,
-    "provisioningState": "Succeeded"
-  },
-  {
-    "id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/TESTER/providers/Microsoft.Compute/disks/ubuntu-data-disk",
-    "name": "ubuntu-data-disk",
-    "type": "Microsoft.Compute/disks",
-    "location": "eastus",
-    "managedBy": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Compute/virtualMachines/ubuntu",
-    "sku": {
-      "name": "Standard_LRS",
-      "tier": "Standard"
-    },
-    "timeCreated": "2018-06-12T13:59:54.060Z",
-    "creationData": {
-      "createOption": "Empty"
-    },
-    "diskSizeGB": 10,
-    "provisioningState": "Succeeded"
-  },
-  {
-    "id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/TESTER/providers/Microsoft.Compute/disks/ubuntu_OsDisk_1_eeffec9587b0485c80c6726d751c40eb",
-    "name": "ubuntu_OsDisk_1_eeffec9587b0485c80c6726d751c40eb",
-    "type": "Microsoft.Compute/disks",
-    "location": "eastus",
-    "managedBy": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Compute/virtualMachines/ubuntu",
-    "sku": {
-      "name": "Standard_LRS",
-      "tier": "Standard"
-    },
-    "timeCreated": "2018-06-12T11:58:24.138Z",
-    "osType": "Linux",
-    "creationData": {
-      "createOption": "FromImage",
-      "imageReference": {
-        "id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/UbuntuServer/Skus/17.10/Versions/17.10.201805220"
-      }
-    },
-    "diskSizeGB": 30,
-    "provisioningState": "Succeeded"
-  }
-]
+		]
 	};
 	return data;
 };
