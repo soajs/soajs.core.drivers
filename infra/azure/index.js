@@ -11,7 +11,7 @@ function runCorrespondingDriver(method, options, cb) {
 }
 
 const driver = {
-	
+
 	"authenticate": function (options, cb) {
 		driverUtils.authenticate(options, (error) => {
 			utils.checkError(error, 700, cb, () => {
@@ -21,21 +21,21 @@ const driver = {
 	},
 
 	"getExtras": function (options, cb) {
-		return cb(null, {technologies: ['vm'], templates: ['local'], drivers: ['Native', 'Terraform']});
+		return cb(null, {technologies: ['vm'], templates: ['local'], drivers: ['Terraform']});
 	},
-	
+
 	"deployCluster": function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	"getDeployClusterStatus": function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	"getDNSInfo": function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	"getRegions": function (options, cb) {
 		options.returnCredentials = true;
 		driverUtils.authenticate(options, (error, authData) => {
@@ -57,35 +57,35 @@ const driver = {
 	"scaleCluster": function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	"getCluster": function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	"updateCluster": function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	"deleteCluster": function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	"publishPorts": function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	"deployExternalLb": function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	"updateExternalLB": function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	"deleteExternalLB": function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	"executeDriver": function(method, options, cb){
 		runCorrespondingDriver(method, options, cb);
 	}

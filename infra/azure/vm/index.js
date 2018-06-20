@@ -262,6 +262,8 @@ const driver = {
 							else {
 								vmRecordOptions.securityGroup = networkInfo.securityGroup;
 								vmRecordOptions.publicIp = networkInfo.publicIp;
+								vmRecordOptions.subnet = networkInfo.subnet;
+								vmRecordOptions.virtualNetworkName = networkInfo.virtualNetworkName;
 							}
 
 							return cb(null, helper.buildVMRecord(vmRecordOptions));
@@ -323,6 +325,8 @@ const driver = {
 											else {
 												vmRecordOptions.securityGroup = networkInfo.securityGroup;
 												vmRecordOptions.publicIp = networkInfo.publicIp;
+												vmRecordOptions.subnet = networkInfo.subnet;
+												vmRecordOptions.virtualNetworkName = networkInfo.virtualNetworkName;
 											}
 
 											return callback(null, helper.buildVMRecord(vmRecordOptions));

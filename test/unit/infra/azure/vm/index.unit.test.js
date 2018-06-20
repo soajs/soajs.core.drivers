@@ -382,7 +382,33 @@ describe("testing /lib/azure/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			done();
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+
+			sinon
+				.stub(serviceUtils, 'getConnector')
+				.returns({
+					virtualMachines: {
+						redeploy: (env, vmName, cb) => {
+							return cb(null, {})
+						}
+					},
+				});
+			info = dD();
+			options = info.deployCluster;
+			options.env = 'tester';
+			options.params = {
+				vmName: 'tester-vm'
+			};
+			service.executeDriver('redeployService', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				//todo need to see result
+				done();
+			});
 		});
 	});
 
@@ -463,6 +489,40 @@ describe("testing /lib/azure/index.js", function () {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.equal(response.status, "Succeeded");
+				done();
+			});
+		});
+	});
+
+	describe("calling executeDriver - deleteResourceGroup", function () {
+		afterEach((done) => {
+			sinon.restore();
+			done();
+		});
+		it("Success", function (done) {
+			info = dD();
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+			sinon
+				.stub(serviceUtils, 'getConnector')
+				.returns({
+					resourceGroups: {
+						deleteMethod: (location, cb) => {
+							return cb(null, true)
+						}
+					},
+				});
+
+			options = info.deployCluster;
+			options.params = {
+				env: "tester"
+			};
+			service.executeDriver('deleteResourceGroup', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
 				done();
 			});
 		});
@@ -638,7 +698,6 @@ describe("testing /lib/azure/index.js", function () {
 			service.executeDriver('listNetworks', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				console.log(JSON.stringify(response, null, 2))
 				assert.deepEqual(response, info.virtualNetworks);
 				done();
 			});
@@ -701,12 +760,10 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-				info = dD();
-				options = info.deployCluster;
-				options.params = {
-					resourceGroupName: "tester",
-					virtualNetworkName: "tester-vm",
-				};
+			options.params = {
+				resourceGroupName: "tester",
+				virtualNetworkName: "tester-vn",
+			};
 			service.executeDriver('listSubnets', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
@@ -722,6 +779,7 @@ describe("testing /lib/azure/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
+			info = dD();
 			sinon
 				.stub(serviceUtils, 'authenticate')
 				.yields(null, {
@@ -732,19 +790,20 @@ describe("testing /lib/azure/index.js", function () {
 				.returns({
 					networkSecurityGroups: {
 						list: (resourceGroupName, cb) => {
-							return cb(null, info.networkSecurityGroup)
+							return cb(null, [info.networkSecurityGroup["tester-sg"]])
 						}
 					},
 				});
-			info = dD();
+
 			options = info.deployCluster;
 			options.params = {
 				resourceGroupName: "tester",
+				virtualNetworkName: "tester-vn",
 			};
 			service.executeDriver('listSecurityGroups', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual();
+				assert.deepEqual([info.networkSecurityGroup["tester-sg"]], response);
 				done();
 			});
 		});
@@ -756,6 +815,7 @@ describe("testing /lib/azure/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
+			info = dD();
 			sinon
 				.stub(serviceUtils, 'authenticate')
 				.yields(null, {
@@ -766,11 +826,11 @@ describe("testing /lib/azure/index.js", function () {
 				.returns({
 					publicIPAddresses: {
 						list: (resourceGroupName, cb) => {
-							return cb(null, info.publicIp)
+							return cb(null, [info.publicIp["tester-ip"]])
 						}
 					},
 				});
-			info = dD();
+
 			options = info.deployCluster;
 			options.params = {
 				resourceGroupName: "tester",
@@ -813,7 +873,7 @@ describe("testing /lib/azure/index.js", function () {
 			service.executeDriver('listDisks', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual();
+				assert.deepEqual([info.publicIp["tester-ip"]], response);
 				done();
 			});
 		});
