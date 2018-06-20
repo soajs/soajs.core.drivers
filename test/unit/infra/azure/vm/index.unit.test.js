@@ -12,7 +12,7 @@ let options = {};
 
 describe("testing /lib/azure/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
-	
+
 	describe("calling executeDriver - authenticate", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -22,7 +22,7 @@ describe("testing /lib/azure/index.js", function () {
 			done();
 		});
 	});
-	
+
 	describe("calling executeDriver -  deployService", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -32,7 +32,7 @@ describe("testing /lib/azure/index.js", function () {
 			done();
 		});
 	});
-	
+
 	describe("calling executeDriver - inspectService", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -46,7 +46,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -75,7 +75,7 @@ describe("testing /lib/azure/index.js", function () {
 							return cb(null, info.publicIp[ipName]);
 						}
 					},
-					
+
 				});
 			let expectedResponce = {
 				"name": "tester-vm",
@@ -126,7 +126,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listServices", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -140,7 +140,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -169,7 +169,7 @@ describe("testing /lib/azure/index.js", function () {
 							return cb(null, info.publicIp[ipName])
 						}
 					},
-					
+
 				});
 			let expectedResponce = [
 				{
@@ -303,7 +303,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - deleteService", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -315,7 +315,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -334,7 +334,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - restartService", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -346,7 +346,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -375,7 +375,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - redeployService", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -385,7 +385,7 @@ describe("testing /lib/azure/index.js", function () {
 			done();
 		});
 	});
-	
+
 	describe("calling executeDriver - powerOffVM", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -397,7 +397,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -426,7 +426,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - startVM", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -438,7 +438,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -467,7 +467,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listVmSizes", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -489,7 +489,7 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			
+
 			options = info.deployCluster;
 			options.params = {
 				location: "eastus"
@@ -502,7 +502,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listVmImagePublishers", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -510,7 +510,7 @@ describe("testing /lib/azure/index.js", function () {
 		});
 		it("Success", function (done) {
 			info = dD();
-			
+
 			sinon
 				.stub(serviceUtils, 'authenticate')
 				.yields(null, {
@@ -537,7 +537,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listVmImagePublisherOffers", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -559,7 +559,7 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			
+
 			options = info.deployCluster;
 			options.params = {
 				location: "eastus",
@@ -573,7 +573,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listVmImageVersions", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -609,7 +609,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listNetworks", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -644,7 +644,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listLoadBalancers", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -678,7 +678,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listSubnets", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -701,7 +701,12 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			
+				info = dD();
+				options = info.deployCluster;
+				options.params = {
+					resourceGroupName: "tester",
+					virtualNetworkName: "tester-vm",
+				};
 			service.executeDriver('listSubnets', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
@@ -710,7 +715,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listSecurityGroups", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -727,12 +732,15 @@ describe("testing /lib/azure/index.js", function () {
 				.returns({
 					networkSecurityGroups: {
 						list: (resourceGroupName, cb) => {
-							return cb(null, )
+							return cb(null, info.networkSecurityGroup)
 						}
 					},
 				});
 			info = dD();
 			options = info.deployCluster;
+			options.params = {
+				resourceGroupName: "tester",
+			};
 			service.executeDriver('listSecurityGroups', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
@@ -741,8 +749,8 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
-	describe("calling executeDriver - listPublicIp", function () {
+
+	describe("calling executeDriver - listPublicIps", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -758,54 +766,51 @@ describe("testing /lib/azure/index.js", function () {
 				.returns({
 					publicIPAddresses: {
 						list: (resourceGroupName, cb) => {
-							return cb(null, [
-								{
-									"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-ip",
-									"name": "tester-ip",
-									"type": "Microsoft.Network/publicIPAddresses",
-									"location": "eastus",
-									"tags": {},
-									"sku": {
-										"name": "Basic"
-									},
-									"publicIPAllocationMethod": "Dynamic",
-									"publicIPAddressVersion": "IPv4",
-									"ipConfiguration": {
-										"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkInterfaces/tester-ni/ipConfigurations/testconfiguration1"
-									},
-									"ipTags": [],
-									"ipAddress": "40.114.121.7",
-									"idleTimeoutInMinutes": 30,
-									"resourceGuid": "2659d8ca-dba2-4b8e-8a1d-fb922c71f432",
-									"provisioningState": "Succeeded",
-									"etag": "W/\"a606e103-19e7-4c17-b92f-7ed88be91968\""
-								},
-								{
-									"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-lb-ip",
-									"name": "tester-lb-ip",
-									"type": "Microsoft.Network/publicIPAddresses",
-									"location": "centralus",
-									"sku": {
-										"name": "Basic"
-									},
-									"publicIPAllocationMethod": "Dynamic",
-									"publicIPAddressVersion": "IPv4",
-									"ipConfiguration": {
-										"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-lb/frontendIPConfigurations/LoadBalancerFrontEnd"
-									},
-									"ipTags": [],
-									"idleTimeoutInMinutes": 4,
-									"resourceGuid": "b259942c-01ce-4693-a583-68ed737885bb",
-									"provisioningState": "Succeeded",
-									"etag": "W/\"3eebeb0c-d2e3-45b3-ac3e-f50b8e7fa569\""
-								}
-							])
+							return cb(null, info.publicIp)
 						}
 					},
 				});
 			info = dD();
 			options = info.deployCluster;
-			service.executeDriver('listPublicIp', options, function (error, response) {
+			options.params = {
+				resourceGroupName: "tester",
+			};
+			service.executeDriver('listPublicIps', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				assert.deepEqual(response, info.publicIp);
+				done();
+			});
+		});
+	});
+
+
+	describe("calling executeDriver - listDisks", function () {
+		afterEach((done) => {
+			sinon.restore();
+			done();
+		});
+		it("Success", function (done) {
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+			sinon
+				.stub(serviceUtils, 'getConnector')
+				.returns({
+					disks: {
+						list: (resourceGroupName, cb) => {
+							return cb(null, info.Disks)
+						}
+					},
+				});
+			info = dD();
+			options = info.deployCluster;
+			options.params = {
+				resourceGroupName: "tester",
+			};
+			service.executeDriver('listDisks', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual();
