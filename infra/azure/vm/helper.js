@@ -322,10 +322,10 @@ const helper = {
 	buildVmImagePublisherssRecord: function (opts) {
 		let record = {};
 
-        if(opts.vmImagePublishers) {
-            if (opts.vmImagePublishers.name) record.name = opts.vmImagePublishers.name;
-    		if (opts.vmImagePublishers.id) record.id = opts.vmImagePublishers.id;
-			if (opts.vmImagePublishers.location) record.region = opts.vmImagePublisherss.location;
+        if(opts.imagePublisher) {
+            if (opts.imagePublisher.name) record.name = opts.imagePublisher.name;
+    		if (opts.imagePublisher.id) record.id = opts.imagePublisher.id;
+			if (opts.imagePublisher.location) record.region = opts.imagePublisher.location;
 
         }
 
@@ -336,12 +336,12 @@ const helper = {
 	buildVmImagePublishersOffersRecord: function (opts) {
 		let record = {};
 
-        if(opts.vmImagePublisherOffer) {
-            if (opts.vmImagePublisherOffer.name) record.name = opts.vmImagePublisherOffer.name;
-    		if (opts.vmImagePublisherOffer.id) record.id = opts.vmImagePublisherOffer.id;
-			if (opts.vmImagePublisherOffer.location) record.region = opts.vmImagePublisherOffer.location;
-			if(opts.vmImagePublisherOffer.publisher) record.publisher = opts.vmImagePublisherOffer.publisher;
-			if(opts.vmImagePublisherOffer.imageName) record.imageName = opts.vmImagePublisherOffer.imageName;
+        if(opts.imageOffer) {
+            if (opts.imageOffer.name) record.name = opts.imageOffer.name;
+    		if (opts.imageOffer.id) record.id = opts.imageOffer.id;
+			if (opts.imageOffer.location) record.region = opts.imageOffer.location;
+			if(opts.imageOffer.publisher) record.publisher = opts.imageOffer.publisher;
+			if(opts.imageOffer.imageName) record.imageName = opts.imageOffer.imageName;
 
         }
 
@@ -353,12 +353,12 @@ const helper = {
 	buildVmImageVersionsRecord: function (opts) {
 		let record = {};
 
-        if(opts.vmImageVersion) {
-            if (opts.vmImageVersion.name) record.name = opts.vmImageVersion.name;
-    		if (opts.vmImageVersion.id) record.id = opts.vmImageVersion.id;
-			if (opts.vmImageVersion.location) record.region = opts.vmImageVersion.location;
-			if(opts.vmImageVersion.publisher) record.publisher = opts.vmImageVersion.publisher;
-			if(opts.vmImageVersion.imageName) record.imageName = opts.vmImageVersion.imageName;
+        if(opts.imageVersion) {
+            if (opts.imageVersion.name) record.name = opts.imageVersion.name;
+    		if (opts.imageVersion.id) record.id = opts.imageVersion.id;
+			if (opts.imageVersion.location) record.region = opts.imageVersion.location;
+			if(opts.imageVersion.publisher) record.publisher = opts.imageVersion.publisher;
+			if(opts.imageVersion.imageName) record.imageName = opts.imageVersion.imageName;
 
         }
 
@@ -418,29 +418,13 @@ const helper = {
 		return record;
 	},
 
-	bulidnetworkSubnetsRecord: function (opts) {
-		let record = {};
-
-		if(opts){
-			if (opts.name) record.name = opts.name;
-			if (opts.id) record.id = opts.id;
-			if (opts.location) record.region = opts.location;
-			if (opts.addressPrefix) record.addressPrefix = opts.addressPrefix;
-
-
-
-		}
-
-
-	},
-
 	bulidSubnetsRecord: function (opts) {
 		let record = {};
-		if(opts.subnet){
-			if (opts.subnet.name) record.name = opts.subnet.name;
-			if (opts.subnet.id) record.id = opts.subnet.id;
-			if (opts.subnet.location) record.region = opts.subnet.location;
-			if (opts.subnet.addressPrefix) record.addressPrefix = opts.subnet.addressPrefix;
+		if(opts.subnets){
+			if (opts.subnets.name) record.name = opts.subnets.name;
+			if (opts.subnets.id) record.id = opts.subnets.id;
+			if (opts.subnets.location) record.region = opts.subnets.location;
+			if (opts.subnets.addressPrefix) record.addressPrefix = opts.subnets.addressPrefix;
 		}
 
 		return record;
@@ -448,10 +432,10 @@ const helper = {
 
 	buildPublicIPsRecord: function (opts) {
 		let record = {}
-		if(opts.publicIPs){
-			if (opts.publicIPAddresses.name) record.name = opts.publicIPAddresses.name;
-			if (opts.publicIPAddresses.id) record.id = opts.id;
-			if (opts.publicIPAddresses.location) record.region = opts.publicIPAddresses.location;
+		if(opts.publicIPAddresse){
+			if (opts.publicIPAddresse.name) record.name = opts.publicIPAddresse.name;
+			if (opts.publicIPAddresse.id) record.id = opts.publicIPAddresse.id;
+			if (opts.publicIPAddresse.location) record.region = opts.publicIPAddresse.location;
 		}
 		return record;
 	},
