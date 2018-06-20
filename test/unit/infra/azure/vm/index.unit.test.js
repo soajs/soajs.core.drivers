@@ -382,7 +382,33 @@ describe("testing /lib/azure/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			done();
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+			
+			sinon
+				.stub(serviceUtils, 'getConnector')
+				.returns({
+					virtualMachines: {
+						redeploy: (env, vmName, cb) => {
+							return cb(null, {})
+						}
+					},
+				});
+			info = dD();
+			options = info.deployCluster;
+			options.env = 'tester';
+			options.params = {
+				vmName: 'tester-vm'
+			};
+			service.executeDriver('redeployService', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				//todo need to see result
+				done();
+			});
 		});
 	});
 	
@@ -463,6 +489,40 @@ describe("testing /lib/azure/index.js", function () {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.equal(response.status, "Succeeded");
+				done();
+			});
+		});
+	});
+	
+	describe("calling executeDriver - deleteResourceGroup", function () {
+		afterEach((done) => {
+			sinon.restore();
+			done();
+		});
+		it("Success", function (done) {
+			info = dD();
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+			sinon
+				.stub(serviceUtils, 'getConnector')
+				.returns({
+					resourceGroups: {
+						deleteMethod: (location, cb) => {
+							return cb(null, true)
+						}
+					},
+				});
+			
+			options = info.deployCluster;
+			options.params = {
+				env: "tester"
+			};
+			service.executeDriver('deleteResourceGroup', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
 				done();
 			});
 		});
@@ -638,7 +698,6 @@ describe("testing /lib/azure/index.js", function () {
 			service.executeDriver('listNetworks', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				console.log(JSON.stringify(response, null, 2))
 				assert.deepEqual(response, info.virtualNetworks);
 				done();
 			});
@@ -701,7 +760,10 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			
+			options.params = {
+				resourceGroupName: "tester",
+				virtualNetworkName: "tester-vn",
+			};
 			service.executeDriver('listSubnets', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
@@ -717,6 +779,7 @@ describe("testing /lib/azure/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
+			info = dD();
 			sinon
 				.stub(serviceUtils, 'authenticate')
 				.yields(null, {
@@ -727,16 +790,20 @@ describe("testing /lib/azure/index.js", function () {
 				.returns({
 					networkSecurityGroups: {
 						list: (resourceGroupName, cb) => {
-							return cb(null, )
+							return cb(null, [info.networkSecurityGroup["tester-sg"]])
 						}
 					},
 				});
-			info = dD();
+			
 			options = info.deployCluster;
+			options.params = {
+				resourceGroupName: "tester",
+				virtualNetworkName: "tester-vn",
+			};
 			service.executeDriver('listSecurityGroups', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual();
+				assert.deepEqual([info.networkSecurityGroup["tester-sg"]], response);
 				done();
 			});
 		});
@@ -748,6 +815,7 @@ describe("testing /lib/azure/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
+			info = dD();
 			sinon
 				.stub(serviceUtils, 'authenticate')
 				.yields(null, {
@@ -758,57 +826,20 @@ describe("testing /lib/azure/index.js", function () {
 				.returns({
 					publicIPAddresses: {
 						list: (resourceGroupName, cb) => {
-							return cb(null, [
-								{
-									"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-ip",
-									"name": "tester-ip",
-									"type": "Microsoft.Network/publicIPAddresses",
-									"location": "eastus",
-									"tags": {},
-									"sku": {
-										"name": "Basic"
-									},
-									"publicIPAllocationMethod": "Dynamic",
-									"publicIPAddressVersion": "IPv4",
-									"ipConfiguration": {
-										"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkInterfaces/tester-ni/ipConfigurations/testconfiguration1"
-									},
-									"ipTags": [],
-									"ipAddress": "40.114.121.7",
-									"idleTimeoutInMinutes": 30,
-									"resourceGuid": "2659d8ca-dba2-4b8e-8a1d-fb922c71f432",
-									"provisioningState": "Succeeded",
-									"etag": "W/\"a606e103-19e7-4c17-b92f-7ed88be91968\""
-								},
-								{
-									"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-lb-ip",
-									"name": "tester-lb-ip",
-									"type": "Microsoft.Network/publicIPAddresses",
-									"location": "centralus",
-									"sku": {
-										"name": "Basic"
-									},
-									"publicIPAllocationMethod": "Dynamic",
-									"publicIPAddressVersion": "IPv4",
-									"ipConfiguration": {
-										"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-lb/frontendIPConfigurations/LoadBalancerFrontEnd"
-									},
-									"ipTags": [],
-									"idleTimeoutInMinutes": 4,
-									"resourceGuid": "b259942c-01ce-4693-a583-68ed737885bb",
-									"provisioningState": "Succeeded",
-									"etag": "W/\"3eebeb0c-d2e3-45b3-ac3e-f50b8e7fa569\""
-								}
-							])
+							return cb(null, [info.publicIp["tester-ip"]])
 						}
 					},
 				});
-			info = dD();
+			
 			options = info.deployCluster;
+			options.params = {
+				resourceGroupName: "tester",
+				virtualNetworkName: "tester-vn",
+			};
 			service.executeDriver('listPublicIp', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual();
+				assert.deepEqual([info.publicIp["tester-ip"]], response);
 				done();
 			});
 		});
