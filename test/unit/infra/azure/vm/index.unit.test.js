@@ -10,7 +10,7 @@ let dD = require('../../../../schemas/azure/cluster.js');
 let info = {};
 let options = {};
 
-describe("testing /lib/azure/index.js", function () {
+describe("testing vm /lib/azure/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
 
 	describe("calling executeDriver - authenticate", function () {
@@ -75,6 +75,11 @@ describe("testing /lib/azure/index.js", function () {
 							return cb(null, info.publicIp[ipName]);
 						}
 					},
+					subnets: {
+						get: (resourceGroupName, vnetName, subnetName, cb) => {
+							return cb(null, info.subnets[subnetName]);
+						}
+					},
 
 				});
 			let expectedResponce = {
@@ -94,7 +99,7 @@ describe("testing /lib/azure/index.js", function () {
 						"isPublished": true
 					}
 				],
-				"voluming": {},
+				"voluming": [],
 				"tasks": [
 					{
 						"id": "tester-vm",
@@ -111,7 +116,8 @@ describe("testing /lib/azure/index.js", function () {
 					}
 				],
 				"env": [],
-				"ip": "40.121.55.181"
+				"ip": "40.121.55.181",
+				"network": "tester-vn"
 			};
 			options.env = 'tester';
 			options.params = {

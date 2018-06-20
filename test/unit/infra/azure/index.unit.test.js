@@ -18,7 +18,7 @@ describe("testing /lib/azure/index.js", function () {
 			sinon.restore();
 			done();
 		});
-		let expectedRes =  {technologies: ['vm'], templates: ['local'], drivers: ['Native', 'Terraform']};
+		let expectedRes =  {technologies: ['vm'], templates: ['local'], drivers: ['Terraform']};
 		
 		it("Success", function (done) {
 			service.getExtras(options, function (error, response) {
