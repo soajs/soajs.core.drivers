@@ -251,9 +251,9 @@ const helper = {
 					if (opts.vm.storageProfile.osDisk.diskSizeGB) record.tasks[0].ref.os.diskSizeGB = opts.vm.storageProfile.osDisk.diskSizeGB;
 				}
 				if(opts.vm.storageProfile.dataDisks) {
-					record.volumes = [];
+					record.voluming.volumes = [];
 					opts.vm.storageProfile.dataDisks.forEach(function(oneDisk) {
-						record.volumes.push({
+						record.voluming.volumes.push({
 							name: oneDisk.name,
 							type: 'data',
 							caching: oneDisk.caching,
@@ -273,6 +273,14 @@ const helper = {
 
 		if (opts.securityGroup && opts.securityGroup.securityRules) {
 			record.ports = helper.buildPortsArray(opts.securityGroup.securityRules);
+		}
+
+		if(opts.subnet && opts.subnet.name) {
+			record.layer = opts.subnet.name;
+		}
+
+		if(opts.virtualNetworkName) {
+			record.network = opts.virtualNetworkName;
 		}
 
 		// record.servicePortType = "";
@@ -303,7 +311,7 @@ const helper = {
 		if(opts.runCommand){
 			if (opts.runCommand.name) record.name = opts.runCommand.name;
     		if (opts.runCommand.status) record.status = opts.runCommand.status;
-			
+
 
 
 		}
@@ -383,7 +391,7 @@ const helper = {
     		if (opts.network.id) record.id = opts.network.id;
 			if (opts.network.location) record.region = opts.network.location;
 			if (opts.network.subnets) {
-				
+
 				for(let i = 0 ; i < opts.network.subnets.length ; i++){
 					record.subnets.push(  helper.bulidSubnetsRecord({subnet :opts.network.subnets[i] }));
 
@@ -393,9 +401,9 @@ const helper = {
 			if(opts.network.addressSpace) record.addressSpace = opts.network.addressSpace;
         }
 
-		
-		
-		
+
+
+
 		return record;
 
 	},
@@ -434,7 +442,7 @@ const helper = {
 			if (opts.subnet.location) record.region = opts.subnet.location;
 			if (opts.subnet.addressPrefix) record.addressPrefix = opts.subnet.addressPrefix;
 		}
-		
+
 		return record;
 	},
 
@@ -511,7 +519,7 @@ const helper = {
 	},
 
 	getVmNetworkInfo: function (networkClient, opts, cb) {
-		let idInfo, resourceGroupName, networkInterfaceName, networkSecurityGroupName, ipName;
+		let idInfo, resourceGroupName, networkInterfaceName, networkSecurityGroupName, ipName, subnetName, vnetName;
 		if (opts.vm.id) {
 			idInfo = opts.vm.id.split('/');
 			resourceGroupName = idInfo[idInfo.indexOf('resourceGroups') + 1];
@@ -539,20 +547,48 @@ const helper = {
 
 			if (networkInterface && networkInterface.ipConfigurations && Array.isArray(networkInterface.ipConfigurations)) {
 				for (let i = 0; i < networkInterface.ipConfigurations.length; i++) {
-					if (networkInterface.ipConfigurations[i].primary && networkInterface.ipConfigurations[i].publicIPAddress) {
-						ipName = networkInterface.ipConfigurations[i].publicIPAddress.id.split('/').pop();
+					if(networkInterface.ipConfigurations[i].primary) {
+						if (networkInterface.ipConfigurations[i].publicIPAddress) {
+							ipName = networkInterface.ipConfigurations[i].publicIPAddress.id.split('/').pop();
+						}
+						if(networkInterface.ipConfigurations[i].subnet) {
+							// sample subnet id: /subscriptions/xxxxxxxxx/resourceGroups/test/providers/Microsoft.Network/virtualNetworks/test-vn/subnets/test-subnet
+							let subnetInfo = networkInterface.ipConfigurations[i].subnet.id.split('/');
+							subnetName = subnetInfo.pop();
+							vnetName = subnetInfo[subnetInfo.indexOf('virtualNetworks') + 1];
+						}
+
 						break;
 					}
 				}
 			}
 
-			networkClient.networkSecurityGroups.get(resourceGroupName, networkSecurityGroupName, function (error, securityGroup) {
-				if (error) return cb(error);
-
-				networkClient.publicIPAddresses.get(resourceGroupName, ipName, function (error, publicIp) {
-					if (error) return cb(error);
-
-					return cb(null, {networkInterface, securityGroup, publicIp});
+			async.auto({
+				getSecurityGroup: function(callback) {
+					networkClient.networkSecurityGroups.get(resourceGroupName, networkSecurityGroupName, function (error, securityGroup) {
+						if (error) return callback(error);
+						return callback(null, securityGroup);
+					});
+				},
+				getPublicIp: function(callback) {
+					networkClient.publicIPAddresses.get(resourceGroupName, ipName, function (error, publicIp) {
+						if (error) return cb(error);
+						return callback(null, publicIp);
+					});
+				},
+				getSubnet: function(callback) {
+					networkClient.subnets.get(resourceGroupName, vnetName, subnetName, function(error, subnet) {
+						if (error) return cb(error);
+						return callback(null, subnet);
+					});
+				}
+			}, function(error, results) {
+				return cb(null, {
+					networkInterface,
+					securityGroup: results.getSecurityGroup,
+					publicIp: results.getPublicIp,
+					subnet: results.getSubnet,
+					virtualNetworkName: vnetName
 				});
 			});
 		});
