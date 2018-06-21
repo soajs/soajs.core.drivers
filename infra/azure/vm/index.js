@@ -301,50 +301,36 @@ const driver = {
 					subscriptionId: options.infra.api.subscriptionId
 				});
 				
-				let env = options.env ? options.env: null;
-				checkExistence (env, function (error, exists) {
+				let group = options.params && options.params.group ? options.params.group.toLowerCase() : null;
+				
+				computeClient.virtualMachines.listAll(function (error, vms) {
 					utils.checkError(error, 704, cb, () => {
-						if (!exists) {
+						if (!(vms && Array.isArray(vms))) {
 							return cb(null, []);
 						}
-						computeClient.virtualMachines.listAll(function (error, vms) {
-							utils.checkError(error, 704, cb, () => {
-								if (!(vms && Array.isArray(vms))) {
-									return cb(null, []);
-								}
-
-								helper.filterVMs(env, vms, function (error, filteredVms) {
-									//no error is returned by function
-									async.map(filteredVms, function (oneVm, callback) {
-										let vmRecordOptions = {vm: oneVm};
-										helper.getVmNetworkInfo(networkClient, {vm: oneVm}, function (error, networkInfo) {
-											if (error) {
-												options.soajs.log.error(`Unable to get network information for ${oneVm.name} while inspecting`);
-												options.soajs.log.error(error);
-											}
-											else {
-												vmRecordOptions.securityGroup = networkInfo.securityGroup;
-												vmRecordOptions.publicIp = networkInfo.publicIp;
-												vmRecordOptions.subnet = networkInfo.subnet;
-												vmRecordOptions.virtualNetworkName = networkInfo.virtualNetworkName;
-											}
-
-											return callback(null, helper.buildVMRecord(vmRecordOptions));
-										});
-									}, cb);
+						
+						helper.filterVMs(group, vms, function (error, filteredVms) {
+							//no error is returned by function
+							async.map(filteredVms, function (oneVm, callback) {
+								let vmRecordOptions = {vm: oneVm};
+								helper.getVmNetworkInfo(networkClient, {vm: oneVm}, function (error, networkInfo) {
+									if (error) {
+										options.soajs.log.error(`Unable to get network information for ${oneVm.name} while inspecting`);
+										options.soajs.log.error(error);
+									}
+									else {
+										vmRecordOptions.securityGroup = networkInfo.securityGroup;
+										vmRecordOptions.publicIp = networkInfo.publicIp;
+										vmRecordOptions.subnet = networkInfo.subnet;
+										vmRecordOptions.virtualNetworkName = networkInfo.virtualNetworkName;
+									}
+									
+									return callback(null, helper.buildVMRecord(vmRecordOptions));
 								});
-							});
+							}, cb);
 						});
 					});
 				});
-				function checkExistence (env, mCb){
-					if (env){
-						resourceClient.resourceGroups.checkExistence(options.env, mCb)
-					}
-					else {
-						return mCb(null, true);
-					}
-				}
 			});
 		});
 	},
@@ -357,7 +343,7 @@ const driver = {
 	* @return {void}
 	*/
 	deleteService: function (options, cb) {
-		options.soajs.log.debug(`Deleting virtual machine ${options.params.serviceId} in resource group ${options.env}`);
+		options.soajs.log.debug(`Deleting virtual machine ${options.params.serviceId} in resource group ${options.params.group}`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const computeClient = driverUtils.getConnector({
@@ -369,7 +355,7 @@ const driver = {
 				//todo: inspect service, get the needed details for the below if any
 				async.series({
 					"deleteVM": (mCb) =>{
-						computeClient.virtualMachines.deleteMethod(options.env, options.params.id, mCb);
+						computeClient.virtualMachines.deleteMethod(options.params.group, options.params.id, mCb);
 					}
 					//todo: missing delete public ip address
 					//todo: missing delete network interface
@@ -394,7 +380,7 @@ const driver = {
 	* @return {void}
 	*/
 	restartService: function (options, cb) {
-		options.soajs.log.debug(`Restarting virtual machine ${options.params.vmName} in resource group ${options.env}`);
+		options.soajs.log.debug(`Restarting virtual machine ${options.params.vmName} in resource group ${options.params.group}`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const computeClient = driverUtils.getConnector({
@@ -402,7 +388,7 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				computeClient.virtualMachines.restart(options.env, options.params.vmName, function (error, result) {
+				computeClient.virtualMachines.restart(options.params.group, options.params.vmName, function (error, result) {
 					utils.checkError(error, 706, cb, () => {
 						return cb(null, true);
 					});
@@ -444,7 +430,7 @@ const driver = {
 	* @return {void}
 	*/
 	powerOffVM: function (options, cb) {
-		options.soajs.log.debug(`Powering Off virtual machine ${options.params.vmName} in resource group ${options.env}`);
+		options.soajs.log.debug(`Powering Off virtual machine ${options.params.vmName} in resource group ${options.params.group}`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const computeClient = driverUtils.getConnector({
@@ -452,9 +438,9 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				computeClient.virtualMachines.powerOff(options.env, options.params.vmName, function (error, result) {
+				computeClient.virtualMachines.powerOff(options.params.group, options.params.vmName, function (error, result) {
 					utils.checkError(error, 702, cb, () => {
-						return cb(null, true);
+						return cb(null, result);
 					});
 				});
 			});
@@ -469,7 +455,7 @@ const driver = {
 	* @return {void}
 	*/
 	startVM: function (options, cb) {
-		options.soajs.log.debug(`Starting virtual machine ${options.params.vmName} in resource group ${options.env}`);
+		options.soajs.log.debug(`Starting virtual machine ${options.params.vmName} in resource group ${options.params.group}`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const computeClient = driverUtils.getConnector({
@@ -477,9 +463,9 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				computeClient.virtualMachines.start(options.env, options.params.vmName, function (error, result) {
+				computeClient.virtualMachines.start(options.params.group, options.params.vmName, function (error, result) {
 					utils.checkError(error, 703, cb, () => {
-						return cb(null, true);
+						return cb(null, result);
 					});
 				});
 			});
@@ -494,7 +480,7 @@ const driver = {
 	* @return {void}
 	*/
 	deleteResourceGroup: function (options, cb) {
-		options.soajs.log.debug(`Deleting resource group ${options.env}`);
+		options.soajs.log.debug(`Deleting resource group ${options.params.group}`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const resourceClient = driverUtils.getConnector({
@@ -502,9 +488,9 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				resourceClient.resourceGroups.deleteMethod(options.env, function (error, result) {
+				resourceClient.resourceGroups.deleteMethod(options.params.group, function (error, result) {
 					utils.checkError(error, 708, cb, () => {
-						return cb(null, true);
+						return cb(null, result);
 					});
 				});
 			});
@@ -797,12 +783,12 @@ const driver = {
 				});
 
 				let script = [];
-				if(options.params.env) script = script.concat(options.params.env.map(oneEnv => `export ${oneEnv}`)); // export environment variables
-				if(options.params.command) script = script.concat(options.params.command); // add command
-				if(options.params.args) script = script.concat(options.params.args); // add command arguments
+				if(options.params.env && Array.isArray(options.params.env)) script = script.concat(options.params.env.map(oneEnv => `export ${oneEnv}`)); // export environment variables
+				if(options.params.command && Array.isArray(options.params.command)) script = script.concat(options.params.command); // add command
+				if(options.params.args && Array.isArray(options.params.args)) script = script.concat(options.params.args); // add command arguments
 
 				let params = { commandId: 'RunShellScript', script: script };
-				computeClient.virtualMachines.runCommand(options.params.resourceGroupName, options.params.vmName, params, function(error, result) {
+				computeClient.virtualMachines.runCommand(options.params.group, options.params.vmName, params, function(error, result) {
 					utils.checkError(error && error.body && error.body.code === 'Conflict'
 						&& error.body.message.includes("Run command extension execution is in progress. Please wait for completion before invoking a run command."),
 						766, cb, () => {
