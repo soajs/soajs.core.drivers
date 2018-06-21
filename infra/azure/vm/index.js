@@ -803,8 +803,12 @@ const driver = {
 
 				let params = { commandId: 'RunShellScript', script: script };
 				computeClient.virtualMachines.runCommand(options.params.resourceGroupName, options.params.vmName, params, function(error, result) {
-					utils.checkError(error, 736, cb, () => {
-						return cb(null, result);
+					utils.checkError(error && error.body && error.body.code === 'Conflict'
+						&& error.body.message.includes("Run command extension execution is in progress. Please wait for completion before invoking a run command."),
+						766, cb, () => {
+						utils.checkError(error, 736, cb, () => {
+							return cb(null, result);
+						});
 					});
 				});
 			});
@@ -819,9 +823,11 @@ const driver = {
 	* @return {void}
 	*/
 	getLogs: function(options, cb) {
-		let numberOfLines = options.params.numberOfLines || 200;
-		options.params.command = [ `journalctl --lines ${numberOfLines}` ];
-		return driver.runCommand(options,cb);
+		utils.checkError(!options.params, 736, cb, () => {
+			let numberOfLines = options.params.numberOfLines || 200;
+			options.params.command = [ `journalctl -r --lines ${numberOfLines}` ];
+			return driver.runCommand(options,cb);
+		});
 	},
 	/**
 	* List data/os disks of a resource group
