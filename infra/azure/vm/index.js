@@ -281,7 +281,7 @@ const driver = {
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-	listResourceGroups: function(options, cb) {
+	listGroups: function(options, cb) {
 		options.soajs.log.debug(`Listing available resource groups`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
