@@ -81,19 +81,16 @@ const helper = {
 	buildVmSizes:  function (opts) {
 		let record = {};
 
-        if(opts.vmSizes) {
-            if (opts.vmSizes.name) record.name = opts.vmSizes.name;
-			if (opts.vmSizes.numberOfCores) record.numberOfCores = opts.vmSizes.numberOfCores;
-			if (opts.vmSizes.osDiskSizeInMB) record.osDiskSizeInMB = opts.vmSizes.osDiskSizeInMB;
-			if (opts.vmSizes.resourceDiskSizeInMB) record.resourceDiskSizeInMB = opts.vmSizes.resourceDiskSizeInMB;
-			if (opts.vmSizes.memoryInMB) record.memoryInMB = opts.vmSizes.memoryInMB;
-    		if (opts.vmSizes.maxDataDiskCount) record.maxDataDiskCount = opts.vmSizes.maxDataDiskCount;
-
-
+        if(opts.vmSize) {
+            if (opts.vmSize.name) record.name = opts.vmSize.name;
+			if (opts.vmSize.numberOfCores) record.numberOfCores = opts.vmSize.numberOfCores;
+			if (opts.vmSize.osDiskSizeInMB) record.osDiskSizeInMB = opts.vmSize.osDiskSizeInMB;
+			if (opts.vmSize.resourceDiskSizeInMB) record.resourceDiskSizeInMB = opts.vmSize.resourceDiskSizeInMB;
+			if (opts.vmSize.memoryInMB) record.memoryInMB = opts.vmSize.memoryInMB;
+    		if (opts.vmSize.maxDataDiskCount) record.maxDataDiskCount = opts.vmSize.maxDataDiskCount;
         }
 
 		return record;
-
 	},
 	buildRunCommmand: function(opts){
 		let record ={};
@@ -101,12 +98,9 @@ const helper = {
 		if(opts.runCommand){
 			if (opts.runCommand.name) record.name = opts.runCommand.name;
     		if (opts.runCommand.status) record.status = opts.runCommand.status;
-
-
-
 		}
-		return record;
 
+		return record;
 	},
 
 	buildVmImagePublisherssRecord: function (opts) {
@@ -116,11 +110,9 @@ const helper = {
             if (opts.imagePublisher.name) record.name = opts.imagePublisher.name;
     		if (opts.imagePublisher.id) record.id = opts.imagePublisher.id;
 			if (opts.imagePublisher.location) record.region = opts.imagePublisher.location;
-
         }
 
 		return record;
-
 	},
 
 	buildVmImagePublishersOffersRecord: function (opts) {
@@ -132,11 +124,9 @@ const helper = {
 			if (opts.imageOffer.location) record.region = opts.imageOffer.location;
 			if(opts.imageOffer.publisher) record.publisher = opts.imageOffer.publisher;
 			if(opts.imageOffer.imageName) record.imageName = opts.imageOffer.imageName;
-
         }
 
 		return record;
-
 	},
 
 
@@ -149,11 +139,9 @@ const helper = {
 			if (opts.imageVersion.location) record.region = opts.imageVersion.location;
 			if(opts.imageVersion.publisher) record.publisher = opts.imageVersion.publisher;
 			if(opts.imageVersion.imageName) record.imageName = opts.imageVersion.imageName;
-
         }
 
 		return record;
-
 	},
 
 	buildDiskRecord: function (opts) {
@@ -166,11 +154,9 @@ const helper = {
 			if (opts.disk.diskSizeGb) record.diskSizeGb = opts.disk.diskSizeGb;
     		if (opts.disk.type) record.type = opts.disk.type;
 			if (opts.disk.storageType) record.storageType = opts.disk.storageType;
-
         }
 
 		return record;
-
 	},
 
 	buildNetworkRecord: function (opts) {
@@ -181,21 +167,14 @@ const helper = {
     		if (opts.network.id) record.id = opts.network.id;
 			if (opts.network.location) record.region = opts.network.location;
 			if (opts.network.subnets) {
-
 				for(let i = 0 ; i < opts.network.subnets.length ; i++){
 					record.subnets.push(  helper.bulidSubnetsRecord({subnet :opts.network.subnets[i] }));
-
-
 				}
 			}
 			if(opts.network.addressSpace) record.addressSpace = opts.network.addressSpace;
         }
 
-
-
-
 		return record;
-
 	},
 
 	buildLoadBalancersRecord: function (opts) {
@@ -210,11 +189,11 @@ const helper = {
 
 	bulidSubnetsRecord: function (opts) {
 		let record = {};
-		if(opts.subnets){
-			if (opts.subnets.name) record.name = opts.subnets.name;
-			if (opts.subnets.id) record.id = opts.subnets.id;
-			if (opts.subnets.location) record.region = opts.subnets.location;
-			if (opts.subnets.addressPrefix) record.addressPrefix = opts.subnets.addressPrefix;
+		if(opts.subnet){
+			if (opts.subnet.name) record.name = opts.subnet.name;
+			if (opts.subnet.id) record.id = opts.subnet.id;
+			if (opts.subnet.location) record.region = opts.subnet.location;
+			if (opts.subnet.addressPrefix) record.addressPrefix = opts.subnet.addressPrefix;
 		}
 
 		return record;
