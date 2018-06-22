@@ -10,7 +10,7 @@ let dD = require('../../../../schemas/azure/cluster.js');
 let info = {};
 let options = {};
 
-describe("testing vm /lib/azure/index.js", function () {
+describe("testing /lib/azure/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
 
 	describe("calling executeDriver - authenticate", function () {
@@ -56,7 +56,7 @@ describe("testing vm /lib/azure/index.js", function () {
 						}
 					},
 					virtualMachines: {
-						get: (env, vmName, cb) => {
+						get:(env, vmName, cb) => {
 							return cb(null, info.virtualMachines[0]);
 						}
 					},
@@ -76,14 +76,15 @@ describe("testing vm /lib/azure/index.js", function () {
 						}
 					},
 					subnets: {
-						get: (resourceGroupName, vnetName, subnetName, cb) => {
-							return cb(null, info.subnets[subnetName]);
-						}
-					},
+						get: (resourceGroupName, vnetName,subnetName, cb) => {
+						return cb(null, info.subnets[vnetName]);
+					}
+				},
 
 				});
 			let expectedResponce = {
 				"name": "tester-vm",
+				"network":"tester-vn",
 				"id": "tester-vm",
 				"labels": {
 					"soajs.env.code": "tester",
@@ -99,7 +100,9 @@ describe("testing vm /lib/azure/index.js", function () {
 						"isPublished": true
 					}
 				],
-				"voluming": [],
+				"voluming": {
+					"volumes":[]
+				},
 				"tasks": [
 					{
 						"id": "tester-vm",
@@ -116,8 +119,7 @@ describe("testing vm /lib/azure/index.js", function () {
 					}
 				],
 				"env": [],
-				"ip": "40.121.55.181",
-				"network": "tester-vn"
+				"ip": "40.121.55.181"
 			};
 			options.env = 'tester';
 			options.params = {
@@ -175,11 +177,17 @@ describe("testing vm /lib/azure/index.js", function () {
 							return cb(null, info.publicIp[ipName])
 						}
 					},
+					subnets: {
+						get: (resourceGroupName, vnetName,subnetName, cb) => {
+						return cb(null, info.subnets[vnetName]);
+					}
+				},
 
 				});
 			let expectedResponce = [
 				{
 					"name": "tester-vm",
+					"network":"tester-vn",
 					"id": "tester-vm",
 					"labels": {
 						"soajs.env.code": "tester",
@@ -195,7 +203,9 @@ describe("testing vm /lib/azure/index.js", function () {
 							"isPublished": true
 						}
 					],
-					"voluming": {},
+					"voluming": {
+						"volumes":[]
+					},
 					"tasks": [
 						{
 							"id": "tester-vm",
@@ -216,6 +226,7 @@ describe("testing vm /lib/azure/index.js", function () {
 				},
 				{
 					"name": "mongo",
+					"network":"soajs-vn",
 					"id": "mongo",
 					"labels": {
 						"soajs.service.vm.location": "centralus",
@@ -236,7 +247,9 @@ describe("testing vm /lib/azure/index.js", function () {
 							"isPublished": true
 						}
 					],
-					"voluming": {},
+					"voluming": {
+						"volumes":[]
+					},
 					"tasks": [
 						{
 							"id": "mongo",
@@ -257,6 +270,7 @@ describe("testing vm /lib/azure/index.js", function () {
 				},
 				{
 					"name": "mysql",
+					"network":"soajs-vn",
 					"id": "mysql",
 					"labels": {
 						"soajs.service.vm.location": "centralus",
@@ -277,7 +291,9 @@ describe("testing vm /lib/azure/index.js", function () {
 							"isPublished": true
 						}
 					],
-					"voluming": {},
+					"voluming": {
+						"volumes":[]
+					},
 					"tasks": [
 						{
 							"id": "mysql",
@@ -376,7 +392,7 @@ describe("testing vm /lib/azure/index.js", function () {
 			service.executeDriver('restartService', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.equal(response.status, "Succeeded");
+				assert.equal(response, "Succeeded");
 				done();
 			});
 		});
@@ -844,7 +860,9 @@ describe("testing vm /lib/azure/index.js", function () {
 			service.executeDriver('listPublicIps', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response, info.publicIp);
+				assert.deepEqual(response.id, info.publicIp.id);
+				assert.deepEqual(response.name, info.publicIp.name);
+				assert.deepEqual(response.location, info.publicIp.location);
 				done();
 			});
 		});
@@ -880,6 +898,41 @@ describe("testing vm /lib/azure/index.js", function () {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual([info.publicIp["tester-ip"]], response);
+				done();
+			});
+		});
+	});
+
+
+	describe("calling executeDriver - runCommand", function () {
+		afterEach((done) => {
+			sinon.restore();
+			done();
+		});
+		it("Success", function (done) {
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+			sinon
+				.stub(serviceUtils, 'getConnector')
+				.returns({
+					virtualMachines: {
+						runCommand: (resourceGroupName, vmName, params,  cb) => {
+							return cb(null, info.runCommand)
+						}
+					},
+				});
+			info = dD();
+			options = info.deployCluster;
+			options.params = {
+				resourceGroupName: "tester",
+			};
+			service.executeDriver('runcommand', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				// todo response needed
 				done();
 			});
 		});

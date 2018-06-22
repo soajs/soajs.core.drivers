@@ -396,7 +396,7 @@ const driver = {
 				});
 				computeClient.virtualMachines.restart(options.env, options.params.vmName, function (error, result) {
 					utils.checkError(error, 706, cb, () => {
-						return cb(null, true);
+						return cb(null, result.status);
 					});
 				});
 			});
