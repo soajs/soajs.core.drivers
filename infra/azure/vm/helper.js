@@ -1,220 +1,10 @@
 'use strict';
 
-const request = require('request');
 const async = require('async');
 
 const config = require('./config');
 
 const helper = {
-
-	createResourceGroup: function (resourceClient, opts, cb) {
-		let groupParameters = {location: opts.location, tags: opts.tags || {}};
-
-		return resourceClient.resourceGroups.createOrUpdate(opts.resourceGroupName, groupParameters, cb);
-	},
-
-	createStorageAccount: function (storageClient, opts, cb) {
-		let params = {
-			location: opts.location,
-			sku: {
-				name: opts.accountType,
-			},
-			kind: opts.storageKind || 'Storage',
-			tags: opts.tags || {}
-		};
-
-		return storageClient.storageAccounts.create(opts.resourceGroupName, opts.accountName, params, cb);
-	},
-
-	createVirtualNetwork: function (networkClient, opts, cb) {
-		if (!(opts.addressPrefixes && Array.isArray(opts.addressPrefixes))) {
-			opts.addressPrefixes = ['10.0.0.0/24'];
-		}
-
-		if (!(opts.dhcpServers && Array.isArray(opts.dhcpServers))) {
-			// opts.dhcpServers = ['10.1.1.1', '10.1.2.4'];
-		}
-
-		if (!(opts.subnets && Array.isArray(opts.subnets))) {
-			opts.subnets = [
-				{name: 'subnet', addressPrefix: '10.0.0.0/24'}
-			];
-		}
-
-		let params = {
-			location: opts.location,
-			addressSpace: {
-				addressPrefixes: opts.addressPrefixes
-			},
-			dhcpOptions: {
-				dnsServers: opts.dhcpServers || []
-			},
-			subnets: opts.subnets
-		};
-		return networkClient.virtualNetworks.createOrUpdate(opts.resourceGroupName, opts.vnetName, params, cb);
-	},
-
-	getSubnetInfo: function (networkClient, opts, cb) {
-		return networkClient.subnets.get(opts.resourceGroupName, opts.vnetName, opts.subnetName, cb);
-	},
-
-	createPublicIP: function (networkClient, opts, cb) {
-		let params = {
-			location: opts.location,
-			publicIPAllocationMethod: opts.publicIPAllocationMethod || 'Dynamic',
-			// dnsSettings: {
-			//     domainNameLabel: opts.domainNameLabel
-			// }
-		};
-
-		return networkClient.publicIPAddresses.createOrUpdate(opts.resourceGroupName, opts.publicIPName, params, cb);
-	},
-
-	createNetworkSecurityGroup: function (networkClient, opts, cb) {
-		let requestOptions = {
-			method: 'PUT',
-			uri: `https://management.azure.com/subscriptions/${opts.subscriptionId}/resourceGroups/${opts.resourceGroupName}/providers/Microsoft.Network/networkSecurityGroups/${opts.networkSecurityGroupName}?api-version=${config.apiVersion2018}`,
-			headers: {Authorization: `Bearer ${opts.bearerToken}`},
-			json: true,
-			body: {
-				location: opts.location,
-				properties: {
-					securityRules: helper.buildSecurityRules(opts.ports)
-				}
-			}
-		};
-
-		request(requestOptions, function (error, response, body) {
-			if (error) return cb(error);
-			if (body && body.error) return cb(body.error);
-
-			return cb(null, body);
-		});
-	},
-
-	createNetworkInterface: function (networkClient, opts, cb) {
-		let params = {
-			location: opts.location,
-			ipConfigurations: [
-				{
-					name: opts.ipConfigName,
-					privateIPAllocationMethod: opts.publicIPAllocationMethod || 'Dynamic',
-					subnet: opts.subnetInfo,
-					publicIPAddress: opts.publicIPInfo
-				}
-			],
-			networkSecurityGroup: {
-				id: opts.networkSecurityGroupName
-			}
-		};
-
-		return networkClient.networkInterfaces.createOrUpdate(opts.resourceGroupName, opts.networkInterfaceName, params, cb);
-	},
-
-	getVMImage: function (computeClient, opts, cb) { //TODO: check get image instead of list images
-		return computeClient.virtualMachineImages.list(opts.location, opts.publisher, opts.offer, opts.sku, {top: 1}, (error, imageList) => {
-			if (error) return cb(error);
-
-			return cb(null, (imageList && imageList[0]) ? imageList[0] : {});
-		});
-	},
-
-	getNetworkInterfaceInfo: function (networkClient, opts, cb) {
-		return networkClient.networkInterfaces.get(opts.resourceGroupName, opts.networkInterfaceName, cb);
-	},
-
-	createVirtualMachine: function (computeClient, opts, cb) {
-		let params = {
-			location: opts.location,
-			osProfile: {
-				computerName: opts.vmName,
-				adminUsername: opts.adminUsername
-			},
-			hardwareProfile: {
-				vmSize: opts.vmSize
-			},
-			storageProfile: {
-				imageReference: {
-					publisher: opts.image.publisher,
-					offer: opts.image.offer,
-					sku: opts.image.sku,
-					version: opts.image.version
-				},
-				osDisk: {
-					createOption: opts.disk.createOption || 'fromImage',
-					managedDisk: {
-						stoageAccountType: opts.disk.accountType
-					}
-					// name: opts.disk.osDiskName,
-					// caching: opts.disk.caching || 'None',
-					// vhd: { uri: 'https://' + opts.disk.storageAccountName + '.blob.core.windows.net/nodejscontainer/osnodejslinux.vhd' } //TODO
-				}
-			},
-			networkProfile: {
-				networkInterfaces: [
-					{
-						id: opts.network.networkInterfaceId,
-						primary: true
-					}
-				]
-			},
-			tags: opts.tags
-		};
-
-		//check if password or SSH public key
-		if (opts.adminPassword) {
-			params.osProfile.adminPassword = opts.adminPassword;
-		}
-		else if (opts.adminPublicKey) {
-			params.osProfile.linuxConfiguration = {
-				"ssh": {
-					"publicKeys": [
-						{
-							"path": "/home/" + opts.adminUsername + "/.ssh/authorized_keys",
-							"keyData": opts.adminPublicKey
-						}
-					]
-				},
-				"disablePasswordAuthentication": true
-			};
-		}
-
-		if (opts.command) {
-			let commandOutput = helper.buildCommands(opts.command, opts.envs || []);
-			params.osProfile.customData = Buffer.from(commandOutput).toString('base64');
-		}
-
-		return computeClient.virtualMachines.createOrUpdate(opts.resourceGroupName, opts.vmName, params, cb);
-	},
-
-	buildCommands: function (command, envs) {
-		let output = '';
-
-		if (command.command) {
-			output += command.command.join(' ');
-			output += '\n';
-		}
-
-		output += helper.buildEnvVars(envs);
-
-		if (command.args) {
-			output += command.args.join('\n');
-		}
-
-		return output;
-	},
-
-	buildEnvVars: function (envs) {
-		let output = '';
-
-		if (envs && Array.isArray(envs) && envs.length > 0) {
-			envs.forEach((oneEnv) => {
-				output += `export ${oneEnv};\n`;
-			});
-		}
-
-		return output;
-	},
 
 	buildVMRecord: function (opts) {
 		let record = {};
@@ -291,19 +81,16 @@ const helper = {
 	buildVmSizes:  function (opts) {
 		let record = {};
 
-		if(opts.vmSize) {
-			if (opts.vmSize.name) record.name = opts.vmSize.name;
+        if(opts.vmSize) {
+            if (opts.vmSize.name) record.name = opts.vmSize.name;
 			if (opts.vmSize.numberOfCores) record.numberOfCores = opts.vmSize.numberOfCores;
 			if (opts.vmSize.osDiskSizeInMB) record.osDiskSizeInMB = opts.vmSize.osDiskSizeInMB;
 			if (opts.vmSize.resourceDiskSizeInMB) record.resourceDiskSizeInMB = opts.vmSize.resourceDiskSizeInMB;
 			if (opts.vmSize.memoryInMB) record.memoryInMB = opts.vmSize.memoryInMB;
-			if (opts.vmSize.maxDataDiskCount) record.maxDataDiskCount = opts.vmSize.maxDataDiskCount;
-
-
-		}
+    		if (opts.vmSize.maxDataDiskCount) record.maxDataDiskCount = opts.vmSize.maxDataDiskCount;
+        }
 
 		return record;
-
 	},
 
 	buildRunCommmand: function(opts){
@@ -311,26 +98,22 @@ const helper = {
 
 		if(opts.runCommand){
 			if (opts.runCommand.name) record.name = opts.runCommand.name;
-			if (opts.runCommand.status) record.status = opts.runCommand.status;
-
+    		if (opts.runCommand.status) record.status = opts.runCommand.status;
 		}
 
 		return record;
-
 	},
 
 	buildVmImagePublisherssRecord: function (opts) {
 		let record = {};
 
-		if(opts.imagePublisher) {
-			if (opts.imagePublisher.name) record.name = opts.imagePublisher.name;
-			if (opts.imagePublisher.id) record.id = opts.imagePublisher.id;
-			if (opts.imagePublisher.location) record.location = opts.imagePublisher.location;
-
-		}
+        if(opts.imagePublisher) {
+            if (opts.imagePublisher.name) record.name = opts.imagePublisher.name;
+    		if (opts.imagePublisher.id) record.id = opts.imagePublisher.id;
+			if (opts.imagePublisher.location) record.region = opts.imagePublisher.location;
+        }
 
 		return record;
-
 	},
 
 	buildVmImagePublishersOffersRecord: function (opts) {
@@ -342,11 +125,9 @@ const helper = {
 			if (opts.imageOffer.location) record.location = opts.imageOffer.location;
 			if(opts.imageOffer.publisher) record.publisher = opts.imageOffer.publisher;
 			if(opts.imageOffer.imageName) record.imageName = opts.imageOffer.imageName;
-
-		}
+        }
 
 		return record;
-
 	},
 
 
@@ -359,11 +140,9 @@ const helper = {
 			if (opts.imageVersion.location) record.location = opts.imageVersion.location;
 			if(opts.imageVersion.publisher) record.publisher = opts.imageVersion.publisher;
 			if(opts.imageVersion.imageName) record.imageName = opts.imageVersion.imageName;
-
-		}
+        }
 
 		return record;
-
 	},
 
 	buildDiskRecord: function (opts) {
@@ -376,11 +155,9 @@ const helper = {
 			if (opts.disk.diskSizeGb) record.diskSizeGb = opts.disk.diskSizeGb;
 			if (opts.disk.type) record.type = opts.disk.type;
 			if (opts.disk.storageType) record.storageType = opts.disk.storageType;
-
-		}
+        }
 
 		return record;
-
 	},
 
 	buildNetworkRecord: function (opts) {
@@ -391,7 +168,6 @@ const helper = {
 			if (opts.network.id) record.id = opts.network.id;
 			if (opts.network.location) record.location = opts.network.location;
 			if (opts.network.subnets) {
-
 				for(let i = 0 ; i < opts.network.subnets.length ; i++){
 					record.subnets.push(  helper.bulidSubnetsRecord({subnet :opts.network.subnets[i] }));
 				}
@@ -399,11 +175,7 @@ const helper = {
 			if(opts.network.addressSpace) record.addressSpace = opts.network.addressSpace;
 		}
 
-
-
-
 		return record;
-
 	},
 
 	buildLoadBalancersRecord: function (opts) {
@@ -418,11 +190,11 @@ const helper = {
 
 	bulidSubnetsRecord: function (opts) {
 		let record = {};
-		if(opts.subnets){
-			if (opts.subnets.name) record.name = opts.subnets.name;
-			if (opts.subnets.id) record.id = opts.subnets.id;
-			if (opts.subnets.location) record.location = opts.subnets.location;
-			if (opts.subnets.addressPrefix) record.addressPrefix = opts.subnets.addressPrefix;
+		if(opts.subnet){
+			if (opts.subnet.name) record.name = opts.subnet.name;
+			if (opts.subnet.id) record.id = opts.subnet.id;
+			if (opts.subnet.location) record.region = opts.subnet.location;
+			if (opts.subnet.addressPrefix) record.addressPrefix = opts.subnet.addressPrefix;
 		}
 
 		return record;
