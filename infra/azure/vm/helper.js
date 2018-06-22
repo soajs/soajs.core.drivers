@@ -314,7 +314,7 @@ const helper = {
 			if (opts.runCommand.status) record.status = opts.runCommand.status;
 
 		}
-		
+
 		return record;
 
 	},
@@ -394,8 +394,6 @@ const helper = {
 
 				for(let i = 0 ; i < opts.network.subnets.length ; i++){
 					record.subnets.push(  helper.bulidSubnetsRecord({subnet :opts.network.subnets[i] }));
-
-
 				}
 			}
 			if(opts.network.addressSpace) record.addressSpace = opts.network.addressSpace;
@@ -436,6 +434,9 @@ const helper = {
 			if (opts.publicIPAddresse.name) record.name = opts.publicIPAddresse.name;
 			if (opts.publicIPAddresse.id) record.id = opts.publicIPAddresse.id;
 			if (opts.publicIPAddresse.location) record.location = opts.publicIPAddresse.location;
+			if (opts.publicIPAddresse.ipAddress) record.ipAddress = opts.publicIPAddresse.ipAddress;
+			if (opts.publicIPAddresse.publicIPAllocationMethod) record.publicIPAllocationMethod = opts.publicIPAddresse.publicIPAllocationMethod;
+			if (opts.publicIPAddresse.tags) record.tags = opts.publicIPAddresse.tags;
 		}
 		return record;
 	},

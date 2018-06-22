@@ -300,15 +300,15 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				
+
 				let group = options.params && options.params.group ? options.params.group.toLowerCase() : null;
-				
+
 				computeClient.virtualMachines.listAll(function (error, vms) {
 					utils.checkError(error, 704, cb, () => {
 						if (!(vms && Array.isArray(vms))) {
 							return cb(null, []);
 						}
-						
+
 						helper.filterVMs(group, vms, function (error, filteredVms) {
 							//no error is returned by function
 							async.map(filteredVms, function (oneVm, callback) {
@@ -324,7 +324,7 @@ const driver = {
 										vmRecordOptions.subnet = networkInfo.subnet;
 										vmRecordOptions.virtualNetworkName = networkInfo.virtualNetworkName;
 									}
-									
+
 									return callback(null, helper.buildVMRecord(vmRecordOptions));
 								});
 							}, cb);
@@ -754,6 +754,7 @@ const driver = {
 				});
 				networkClient.publicIPAddresses.list(options.params.resourceGroupName,function (error, publicIPAddresses) {
 					utils.checkError(error, 735, cb, () => {
+						
 						async.map(publicIPAddresses, function(onepublicIPAddresse, callback) {
 							return callback(null, helper.buildPublicIPsRecord({ publicIPAddresse: onepublicIPAddresse }));
 						}, function(error, PublicIpsList) {
@@ -793,6 +794,7 @@ const driver = {
 						&& error.body.message.includes("Run command extension execution is in progress. Please wait for completion before invoking a run command."),
 						766, cb, () => {
 						utils.checkError(error, 736, cb, () => {
+						//	console.log(JSON.stringify(result, null,2) + "------------------------------------------");
 							return cb(null, result);
 						});
 					});

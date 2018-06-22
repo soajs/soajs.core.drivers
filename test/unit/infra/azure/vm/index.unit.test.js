@@ -751,10 +751,11 @@ describe("testing /lib/azure/index.js", function () {
 			options.params = {
 				resourceGroupName: "tester",
 			};
+			let expectedResponce =
 			service.executeDriver('listLoadBalancers', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(info.loadBalancers, response);
+				assert.deepEqual( info.loadBalancers, response);
 				done();
 			});
 		});
@@ -822,6 +823,7 @@ describe("testing /lib/azure/index.js", function () {
 				resourceGroupName: "tester",
 				virtualNetworkName: "tester-vn",
 			};
+
 			service.executeDriver('listSecurityGroups', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
@@ -857,12 +859,21 @@ describe("testing /lib/azure/index.js", function () {
 			options.params = {
 				resourceGroupName: "tester",
 			};
+			let expectedResponce = [
+  {
+    "name": "tester-ip",
+    "id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-ip",
+    "location": "eastus",
+    "ipAddress": "40.121.55.181",
+    "publicIPAllocationMethod": "Dynamic",
+    "tags": {}
+  }
+]
 			service.executeDriver('listPublicIps', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response.id, info.publicIp.id);
-				assert.deepEqual(response.name, info.publicIp.name);
-				assert.deepEqual(response.location, info.publicIp.location);
+				assert.deepEqual(response, expectedResponce);
+
 				done();
 			});
 		});
@@ -892,12 +903,12 @@ describe("testing /lib/azure/index.js", function () {
 			info = dD();
 			options = info.deployCluster;
 			options.params = {
-				resourceGroupName: "tester",
+				resourceGroupName: "dynamic-template",
 			};
 			service.executeDriver('listDisks', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual([info.publicIp["tester-ip"]], response);
+				assert.deepEqual(info.Disks, response);
 				done();
 			});
 		});
@@ -926,13 +937,11 @@ describe("testing /lib/azure/index.js", function () {
 				});
 			info = dD();
 			options = info.deployCluster;
-			options.params = {
-				resourceGroupName: "tester",
-			};
-			service.executeDriver('runcommand', options, function (error, response) {
+
+			service.executeDriver('runCommand', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				// todo response needed
+				assert.deepEqual(info.runCommand, response);
 				done();
 			});
 		});
