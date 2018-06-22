@@ -78,7 +78,20 @@ const helper = {
 		return record;
 	},
 
-	buildVmSizes:  function (opts) {
+	buildResourceGroupRecord: function(opts) {
+		let record = {};
+
+		if(opts.resourceGroup) {
+			if(opts.resourceGroup.id) record.id = opts.resourceGroup.id;
+			if(opts.resourceGroup.name) record.name = opts.resourceGroup.name;
+			if(opts.resourceGroup.location) record.region = opts.resourceGroup.location;
+			if(opts.resourceGroup.tags) record.labels = opts.resourceGroup.tags;
+		}
+
+		return record;
+	},
+
+	buildVmSizes: function (opts) {
 		let record = {};
 
         if(opts.vmSize) {

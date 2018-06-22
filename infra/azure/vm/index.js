@@ -275,6 +275,35 @@ const driver = {
 	},
 
 	/**
+	* List available resource groups
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
+	listResourceGroups: function(options, cb) {
+		options.soajs.log.debug(`Listing available resource groups`);
+		driverUtils.authenticate(options, (error, authData) => {
+			utils.checkError(error, 700, cb, () => {
+				const resourceClient = driverUtils.getConnector({
+					api: 'resource',
+					credentials: authData.credentials,
+					subscriptionId: options.infra.api.subscriptionId
+				});
+				resourceClient.resourceGroups.list(function (error, resourceGroups) {
+					utils.checkError(error, 714, cb, () => {
+						async.map(resourceGroups, function(oneResourceGroup, callback) {
+							return callback(null, helper.buildResourceGroupRecord({ resourceGroup: oneResourceGroup }));
+						}, function(error, resourceGroupsList) {
+							return cb(null, resourceGroupsList);
+						});
+					});
+				});
+			});
+		});
+	},
+
+	/**
 	* List available virtual machine sizes
 
 	* @param  {Object}   options  Data passed to function as params
