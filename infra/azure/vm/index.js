@@ -15,7 +15,7 @@ const driver = {
 	* @return {void}
 	*/
 	inspectService: function (options, cb) {
-		options.soajs.log.debug(`Inspecting virtual machine ${options.params.vmName} in resource group ${options.env}`);
+		options.soajs.log.debug(`Inspecting virtual machine ${options.params.vmName} in resource group ${options.params.group}`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const computeClient = driverUtils.getConnector({
@@ -28,7 +28,7 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				computeClient.virtualMachines.get(options.env, options.params.vmName, function (error, vmInfo) {
+				computeClient.virtualMachines.get(options.params.group, options.params.vmName, function (error, vmInfo) {
 					utils.checkError(error, 701, cb, () => {
 						let vmRecordOptions = {vm: vmInfo};
 						helper.getVmNetworkInfo(networkClient, {vm: vmInfo}, function (error, networkInfo) {
@@ -59,7 +59,7 @@ const driver = {
 	* @return {void}
 	*/
 	listServices: function (options, cb) {
-		options.soajs.log.debug(`Listing all virtual machines in ${options.env} and all custom vms`);
+		options.soajs.log.debug(`Listing all virtual machines in ${options.params.group} and all custom vms`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const computeClient = driverUtils.getConnector({
@@ -182,7 +182,7 @@ const driver = {
 	* @return {void}
 	*/
 	redeployService: function (options, cb) {
-		options.soajs.log.debug(`Redeploying virtual machine ${options.params.vmName} in resource group ${options.env}`);
+		options.soajs.log.debug(`Redeploying virtual machine ${options.params.vmName} in resource group ${options.params.group}`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const computeClient = driverUtils.getConnector({
@@ -190,7 +190,7 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				computeClient.virtualMachines.redeploy(options.env, options.params.vmName, function (error, result) {
+				computeClient.virtualMachines.redeploy(options.params.group, options.params.vmName, function (error, result) {
 					utils.checkError(error, 706, cb, () => {
 						return cb(null, true);
 					});
@@ -282,7 +282,7 @@ const driver = {
 	* @return {void}
 	*/
 	listVmSizes: function (options, cb) {
-		options.soajs.log.debug(`Listing available virtual machine sizes in ${options.params.location} location`);
+		options.soajs.log.debug(`Listing available virtual machine sizes in ${options.params.region} location`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const computeClient = driverUtils.getConnector({
@@ -290,7 +290,7 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				computeClient.virtualMachineSizes.list(options.params.location, function (error, vmSizes) {
+				computeClient.virtualMachineSizes.list(options.params.region, function (error, vmSizes) {
 					utils.checkError(error, 709, cb, () => {
 						async.map(vmSizes, function(onevmSize, callback) {
 							return callback(null, helper.buildVmSizes({ vmSize: onevmSize }));
@@ -311,7 +311,7 @@ const driver = {
 	* @return {void}
 	*/
 	listVmImagePublishers: function (options, cb) {
-		options.soajs.log.debug(`Listing virtual machine image publishers in ${options.params.location} location`);
+		options.soajs.log.debug(`Listing virtual machine image publishers in ${options.params.region} location`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const computeClient = driverUtils.getConnector({
@@ -319,7 +319,7 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				computeClient.virtualMachineImages.listPublishers(options.params.location, function (error, imagePublishers) {
+				computeClient.virtualMachineImages.listPublishers(options.params.region, function (error, imagePublishers) {
 					utils.checkError(error, 710, cb, () => {
 						async.map(imagePublishers, function(oneimagePublisher, callback) {
 							return callback(null, helper.buildVmImagePublisherssRecord({ imagePublisher: oneimagePublisher }));
@@ -340,7 +340,7 @@ const driver = {
 	* @return {void}
 	*/
 	listVmImagePublisherOffers: function (options, cb) {
-		options.soajs.log.debug(`Listing vm image offers for publisher ${options.params.publisher} in ${options.params.location} location`);
+		options.soajs.log.debug(`Listing vm image offers for publisher ${options.params.publisher} in ${options.params.region} location`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const computeClient = driverUtils.getConnector({
@@ -348,7 +348,7 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				computeClient.virtualMachineImages.listOffers(options.params.location, options.params.publisher, function (error, imageOffers) {
+				computeClient.virtualMachineImages.listOffers(options.params.region, options.params.publisher, function (error, imageOffers) {
 					utils.checkError(error, 711, cb, () => {
 						async.map(imageOffers, function(oneimageOffer, callback) {
 							return callback(null, helper.buildVmImagePublishersOffersRecord({ imageOffer: oneimageOffer }));
@@ -369,7 +369,7 @@ const driver = {
 	* @return {void}
 	*/
 	listVmImageVersions: function (options, cb) {
-		options.soajs.log.debug(`Listing vm image versions for publisher ${options.params.publisher} and offer ${options.params.offer} in ${options.params.location} location`);
+		options.soajs.log.debug(`Listing vm image versions for publisher ${options.params.publisher} and offer ${options.params.offer} in ${options.params.region} location`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const computeClient = driverUtils.getConnector({
@@ -377,7 +377,7 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				computeClient.virtualMachineImages.listSkus(options.params.location, options.params.publisher, options.params.offer, function (error, imageVersions) {
+				computeClient.virtualMachineImages.listSkus(options.params.region, options.params.publisher, options.params.offer, function (error, imageVersions) {
 					utils.checkError(error, 712, cb, () => {
 						async.map(imageVersions, function(oneimageVersion, callback) {
 							return callback(null, helper.buildVmImageVersionsRecord({ imageVersion: oneimageVersion }));
@@ -400,7 +400,7 @@ const driver = {
 	*/
 
 	listNetworks: function (options, cb) {
-		options.soajs.log.debug(`Listing Networks for resourcegroup ${options.params.resourceGroupName} `);
+		options.soajs.log.debug(`Listing Networks for resourcegroup ${options.params.group} `);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const networkClient = driverUtils.getConnector({
@@ -408,7 +408,7 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				networkClient.virtualNetworks.list(options.params.resourceGroupName, function (error, networks) {
+				networkClient.virtualNetworks.list(options.params.group, function (error, networks) {
 					utils.checkError(error, 731, cb, () => {
 						async.map(networks, function(oneNetwork, callback) {
 							return callback(null, helper.buildNetworkRecord({ network: oneNetwork }));
@@ -430,7 +430,7 @@ const driver = {
 	*/
 
 	listLoadBalancers: function (options, cb) {
-		options.soajs.log.debug(`Listing laod balancers for resourcegroup ${options.params.resourceGroupName}`);
+		options.soajs.log.debug(`Listing laod balancers for resourcegroup ${options.params.group}`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const networkClient = driverUtils.getConnector({
@@ -438,7 +438,7 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				networkClient.loadBalancers.list(options.params.resourceGroupName, function (error, loadBalancers) {
+				networkClient.loadBalancers.list(options.params.group, function (error, loadBalancers) {
 					utils.checkError(error, 732, cb, () => {
 						async.map(loadBalancers, function(oneloadBalancer, callback) {
 							return callback(null, helper.buildLoadBalancersRecord({ loadBlanacer: oneloadBalancer }));
@@ -460,7 +460,7 @@ const driver = {
 	* @return {void}listsub
 	*/
 	listSubnets: function (options, cb) {
-		options.soajs.log.debug(`Listing subnets for  ${options.params.resourceGroupName} and virtual network name ${options.params.virtualNetworkName}`);
+		options.soajs.log.debug(`Listing subnets for  ${options.params.group} and virtual network name ${options.params.virtualNetworkName}`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const networkClient = driverUtils.getConnector({
@@ -468,7 +468,7 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				networkClient.subnets.list(options.params.resourceGroupName, options.params.virtualNetworkName, function (error, subnets) {
+				networkClient.subnets.list(options.params.group, options.params.virtualNetworkName, function (error, subnets) {
 					utils.checkError(error, 733, cb, () => {
 						async.map(subnets, function(oneSubnet, callback) {
 							return callback(null, helper.bulidSubnetsRecord({ subnets: oneSubnet }));
@@ -490,7 +490,7 @@ const driver = {
 	*/
 
 	listSecurityGroups: function (options, cb) {
-		options.soajs.log.debug(`Listing securityGroups for resourcegroup ${options.params.resourceGroupName} `);
+		options.soajs.log.debug(`Listing securityGroups for resourcegroup ${options.params.group} `);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const networkClient = driverUtils.getConnector({
@@ -499,7 +499,7 @@ const driver = {
 					subscriptionId: options.infra.api.subscriptionId
 
 				});
-				networkClient.networkSecurityGroups.list(options.params.resourceGroupName,function (error, networkSecurityGroups) {
+				networkClient.networkSecurityGroups.list(options.params.group,function (error, networkSecurityGroups) {
 					utils.checkError(error, 734, cb, () => {
 						async.map(networkSecurityGroups, function(oneNetworkSecurityGroup, callback) {
 							return callback(null, helper.buildSecurityGroupsRecord({ networkSecurityGroups: oneNetworkSecurityGroup }));
@@ -521,7 +521,7 @@ const driver = {
 	* @return {void}
 	*/
 	listPublicIps: function (options, cb) {
-		options.soajs.log.debug(`Listing public ips for resourcegroup ${options.params.resourceGroupName} `);
+		options.soajs.log.debug(`Listing public ips for resourcegroup ${options.params.group} `);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const networkClient = driverUtils.getConnector({
@@ -529,7 +529,7 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				networkClient.publicIPAddresses.list(options.params.resourceGroupName,function (error, publicIPAddresses) {
+				networkClient.publicIPAddresses.list(options.params.group,function (error, publicIPAddresses) {
 					utils.checkError(error, 735, cb, () => {
 						async.map(publicIPAddresses, function(onepublicIPAddresse, callback) {
 							return callback(null, helper.buildPublicIPsRecord({ publicIPAddresse: onepublicIPAddresse }));
@@ -600,7 +600,7 @@ const driver = {
 	* @return {void}
 	*/
 	listDisks: function (options, cb){
-		options.soajs.log.debug(`Listing Data Disks for resourcegroup ${options.params.resourceGroupName}`);
+		options.soajs.log.debug(`Listing Data Disks for resourcegroup ${options.params.group}`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const computeClient = driverUtils.getConnector({
@@ -608,7 +608,7 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				computeClient.disks.list(options.params.resourceGroupName, function (error, disks) {
+				computeClient.disks.list(options.params.group, function (error, disks) {
 					utils.checkError(error, 737, cb, () => {
 						async.concat(disks, function(oneDisk, callback) {
 							if(options.params && options.params.type) {
