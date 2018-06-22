@@ -6,229 +6,6 @@ const utils = require('../../../lib/utils/utils.js');
 const driverUtils = require('../utils/index.js');
 
 const driver = {
-	/**
-	* Create a virtual machine on MS Azure
-
-	* @param  {Object}   options  Data passed to function as params
-	* @param  {Function} cb    Callback function
-	* @return {void}
-	*/
-	deployService: function (options, cb) {
-		driverUtils.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const computeClient = driverUtils.getConnector({
-					api: 'compute',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				const networkClient = driverUtils.getConnector({
-					api: 'network',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				const storageClient = driverUtils.getConnector({
-					api: 'storage',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				const resourceClient = driverUtils.getConnector({
-					api: 'resource',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-
-				async.auto({
-
-					createResourceGroup: function (callback) {
-						let opts = {
-							resourceGroupName: options.env,
-							location: options.params.location,
-							// tags: options.params.resourceGroup.tags || {}
-						};
-						options.soajs.log.debug(`Creating resource group ${opts.resourceGroupName}`);
-						return helper.createResourceGroup(resourceClient, opts, function (error, resourceGroup) {
-							if (error) return callback({error, code: 714});
-							return callback(null, resourceGroup);
-						});
-					},
-					createStorageAccount: ['createResourceGroup', function (result, callback) {
-						//NOTE: if not a managed disk, need to create a storage account manually and link it to vm
-						return callback();
-						// let opts = {
-						//     resourceGroupName: result.createResourceGroup.name,
-						//     location: options.params.location,
-						//     accountName: 'storageaccount', //TODO: make dynamic, must be between 3 and 24 characters in length and use numbers and lower-case letters only
-						//     accountType: 'Standard_LRS', //TODO: make dynamic
-						//     accountKind: (options.params.storageAccount && options.params.storageAccount.accountType) ? options.params.storageAccount.accountType: 'Storage',
-						//     tags: (options.params.storageAccount && options.params.storageAccount.tags) ? options.params.storageAccount.tags : {}
-						// };
-						// options.soajs.log.debug(`Creating storage account ${options.params.accountName}`);
-						// return helper.createStorageAccount(storageClient, opts, callback);
-					}],
-					createVirtualNetwork: ['createResourceGroup', function (result, callback) {
-						let opts = {
-							resourceGroupName: result.createResourceGroup.name,
-							location: options.params.location,
-							vnetName: `${result.createResourceGroup.name}-${options.params.instance.name}-vnet`,
-							addressPrefixes: (options.params.virtualNetwork && options.params.virtualNetwork.addressPrefixes) ? options.params.virtualNetwork.addressPrefixes : null,
-							dhcpServers: (options.params.virtualNetwork && options.params.virtualNetwork.dhcpServers) ? options.params.virtualNetwork.dhcpServers : null,
-							subnets: (options.params.virtualNetwork && options.params.virtualNetwork.subnets) ? options.params.virtualNetwork.subnets : null
-						};
-						options.soajs.log.debug(`Creating virtual network ${opts.vnetName}`);
-						return helper.createVirtualNetwork(networkClient, opts, function (error, virtualNetwork) {
-							if (error) return callback({error, code: 715});
-
-							return callback(null, virtualNetwork);
-						});
-					}],
-					getSubnetInfo: ['createResourceGroup', 'createVirtualNetwork', function (result, callback) {
-						let opts = {
-							resourceGroupName: result.createResourceGroup.name,
-							vnetName: result.createVirtualNetwork.name,
-							subnetName: (result.createVirtualNetwork.subnets &&
-								result.createVirtualNetwork.subnets[0] &&
-								result.createVirtualNetwork.subnets[0].name) ? result.createVirtualNetwork.subnets[0].name : null
-							};
-							options.soajs.log.debug(`Getting subnet information ${opts.subnetName}`);
-							return helper.getSubnetInfo(networkClient, opts, function (error, subnetInfo) {
-								if (error) return callback({error, code: 716});
-
-								return callback(null, subnetInfo);
-							});
-					}],
-					createPublicIP: ['createResourceGroup', function (result, callback) {
-						let opts = {
-							resourceGroupName: result.createResourceGroup.name,
-							location: options.params.location,
-							publicIPName: `${result.createResourceGroup.name}-${options.params.instance.name}-ip`,
-							publicIPAllocationMethod: (options.params.publicIP && options.params.publicIP.allocationMethod) ? options.params.publicIP.allocationMethod : 'Dynamic',
-							// domainNameLabel: options.params.publicIP.domainNameLabel
-						};
-						options.soajs.log.debug(`Creating public IP address ${opts.publicIPName}`);
-						return helper.createPublicIP(networkClient, opts, function (error, publicIP) {
-							if (error) return callback({error, code: 717});
-
-							return callback(null, publicIP);
-						});
-					}],
-					createNetworkSecurityGroup: ['createResourceGroup', function (result, callback) {
-						let opts = {
-							resourceGroupName: result.createResourceGroup.name,
-							location: options.params.location,
-							networkSecurityGroupName: `${result.createResourceGroup.name}-${options.params.instance.name}-nsg`,
-
-							//NOTE: azure package function not working properly, passing these options to make an api call direclty
-							bearerToken: authData.credentials.tokenCache._entries[0].accessToken,
-							subscriptionId: options.infra.api.subscriptionId,
-						};
-
-						if (options.params.instance && options.params.instance.ports) {
-							opts.ports = options.params.instance.ports;
-						}
-
-						options.soajs.log.debug(`Creating network security group ${opts.networkSecurityGroupName}`);
-						return helper.createNetworkSecurityGroup(networkClient, opts, function (error, networkSecurityGroup) {
-							if (error) return callback({error, code: 718});
-
-							return callback(null, networkSecurityGroup);
-						});
-					}],
-					createNetworkInterface: ['createResourceGroup', 'getSubnetInfo', 'createPublicIP', 'createNetworkSecurityGroup', function (result, callback) {
-						let opts = {
-							resourceGroupName: result.createResourceGroup.name,
-							location: options.params.location,
-							networkInterfaceName: `${result.createResourceGroup.name}-${options.params.instance.name}-ni`,
-							ipConfigName: `${result.createResourceGroup.name}-${options.params.instance.name}-ipConfig`,
-							subnetInfo: result.getSubnetInfo,
-							publicIPInfo: result.createPublicIP,
-							publicIPAllocationMethod: result.createPublicIP.publicIPAllocationMethod || 'Dynamic',
-							networkSecurityGroupName: result.createNetworkSecurityGroup.id
-						};
-						options.soajs.log.debug(`Creating network interface ${opts.networkInterfaceName}`);
-						return helper.createNetworkInterface(networkClient, opts, function (error, networkInterface) {
-							if (error) return callback({error, code: 719});
-
-							return callback(null, networkInterface);
-						});
-					}],
-					getVMImage: function (callback) {
-						let opts = {
-							location: options.params.location,
-							publisher: options.params.image.prefix,
-							offer: options.params.image.name,
-							sku: options.params.image.tag
-						};
-						options.soajs.log.debug(`Finding VM image ${opts.publisher} - ${opts.offer} - ${opts.sku}`);
-						return helper.getVMImage(computeClient, opts, function (error, image) {
-							if (error) return callback({error, code: 720});
-
-							return callback(null, image);
-						});
-					},
-					getNetworkInterfaceInfo: ['createResourceGroup', 'createNetworkInterface', function (result, callback) {
-						//NOTE: might not be needed
-						return callback();
-						// let opts = {
-						//     resourceGroupName: result.createResourceGroup.name,
-						//     networkInterfaceName: result.createNetworkInterface.name
-						// };
-						// options.soajs.log.debug(`Getting network interface information ${opts.networkInterfaceName}`);
-						// return helper.getNetworkInterfaceInfo(networkClient, opts, callback);
-					}],
-					createVirtualMachine: ['createResourceGroup', 'createStorageAccount', 'createVirtualNetwork', 'createPublicIP', 'createNetworkInterface', 'getVMImage', function (result, callback) {
-						let opts = {
-							resourceGroupName: result.createResourceGroup.name,
-							location: options.params.location,
-							vmName: options.params.instance.name,
-							adminUsername: options.params.instance.admin.username,
-							vmSize: options.params.instance.size,
-							image: {
-								publisher: options.params.image.prefix,
-								offer: options.params.image.name,
-								sku: options.params.image.tag,
-								version: result.getVMImage.name
-							},
-							disk: {
-								osDiskName: options.params.instance.osDiskName,
-								storageAccountType: options.params.instance.storageAccountType || 'Standard_LRS'//result.createStorageAccount.name
-							},
-							network: {
-								networkInterfaceId: result.createNetworkInterface.id
-							},
-							tags: options.params.labels
-						};
-
-						//check if password or SSH token
-						if (options.params.instance.admin.password) {
-							opts.adminPassword = options.params.instance.admin.password;
-						}
-						else if (options.params.instance.admin.token) {
-							opts.adminPublicKey = options.params.instance.admin.token;
-						}
-
-						if (options.params.instance && options.params.instance.env) {
-							opts.envs = options.params.instance.env;
-						}
-
-						if (options.params.instance && options.params.instance.command) {
-							opts.command = options.params.instance.command;
-						}
-
-						options.soajs.log.debug(`Creating virtual machine ${opts.vmName}`);
-						return helper.createVirtualMachine(computeClient, opts, function (error, vmInfo) {
-							if (error) return callback({error, code: 721});
-							return callback(null, vmInfo);
-						});
-					}]
-
-				}, function (error, result) {
-					utils.checkError(error && error.error, error && error.code, cb, () => {
-						return cb(null, helper.buildVMRecord({vm: result.createVirtualMachine}));
-					});
-				});
-			});
-		});
-	},
 
 	/**
 	* Get information about deployed vitual machine
@@ -300,15 +77,15 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				
+
 				let group = options.params && options.params.group ? options.params.group.toLowerCase() : null;
-				
+
 				computeClient.virtualMachines.listAll(function (error, vms) {
 					utils.checkError(error, 704, cb, () => {
 						if (!(vms && Array.isArray(vms))) {
 							return cb(null, []);
 						}
-						
+
 						helper.filterVMs(group, vms, function (error, filteredVms) {
 							//no error is returned by function
 							async.map(filteredVms, function (oneVm, callback) {
@@ -324,7 +101,7 @@ const driver = {
 										vmRecordOptions.subnet = networkInfo.subnet;
 										vmRecordOptions.virtualNetworkName = networkInfo.virtualNetworkName;
 									}
-									
+
 									return callback(null, helper.buildVMRecord(vmRecordOptions));
 								});
 							}, cb);
