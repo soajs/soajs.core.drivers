@@ -101,10 +101,30 @@ const helper = {
 			if (opts.vmSize.resourceDiskSizeInMB) record.resourceDiskSizeInMB = opts.vmSize.resourceDiskSizeInMB;
 			if (opts.vmSize.memoryInMB) record.memoryInMB = opts.vmSize.memoryInMB;
     		if (opts.vmSize.maxDataDiskCount) record.maxDataDiskCount = opts.vmSize.maxDataDiskCount;
+	
+	        record.label = record.name + ` / CPU: ${record.numberOfCores}`;
+	        let memory = record.memoryInMB;
+	        if(memory > 1024){
+	        	memory = memory / 1024;
+		        record.label += ` / RAM: ${memory}GB`;
+	        }
+	        else{
+		        record.label += ` / RAM: ${memory}MB`;
+	        }
+	        
+	        let hd = record.resourceDiskSizeInMB;
+	        if(hd > 1024){
+	        	hd = hd / 1024;
+		        record.label += ` / HD: ${hd}GB`;
+	        }
+	        else{
+	            record.label += ` / HD: ${hd}MB`;
+	        }
         }
 
 		return record;
 	},
+	
 	buildRunCommmand: function(opts){
 		let record ={};
 
