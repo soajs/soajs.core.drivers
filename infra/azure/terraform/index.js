@@ -20,6 +20,7 @@ const driver = {
         options.params.input.secret = options.infra.api.secret;
         options.params.input.domain = options.infra.api.domain;
         options.params.input.subscriptionId = options.infra.api.subscriptionId;
+        options.params.input.envCode = options.registry.envCode;
         terraform.apply(options,function(error, result){
             utils.checkError(error, 738, cb, () => {
                 return cb(null, result);
@@ -49,14 +50,6 @@ const driver = {
     * @return {void}
     */
     deleteCluster: function(options, cb) {
-        if(!options.params.input) {
-            options.params.input = {};
-        }
-
-        options.params.input.clientId = options.infra.api.clientId;
-        options.params.input.secret = options.infra.api.secret;
-        options.params.input.domain = options.infra.api.domain;
-        options.params.input.subscriptionId = options.infra.api.subscriptionId;
         // do not allow terraform to destroy the resource group of the layer. Deleting the resource group will delete the whole environment
         options.params.exclude = [`azurerm_resource_group.${options.params.layerName}`];
         terraform.destroy(options,function(error, result){
