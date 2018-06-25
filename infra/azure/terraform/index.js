@@ -20,7 +20,7 @@ const driver = {
         options.params.input.secret = options.infra.api.secret;
         options.params.input.domain = options.infra.api.domain;
         options.params.input.subscriptionId = options.infra.api.subscriptionId;
-        options.params.input.envCode = options.registry.envCode;
+        options.params.input.envCode = options.registry.code;
         terraform.apply(options,function(error, result){
             utils.checkError(error, 738, cb, () => {
                 return cb(null, result);
