@@ -471,7 +471,7 @@ const driver = {
 				networkClient.subnets.list(options.params.group, options.params.virtualNetworkName, function (error, subnets) {
 					utils.checkError(error, 733, cb, () => {
 						async.map(subnets, function(oneSubnet, callback) {
-							return callback(null, helper.bulidSubnetsRecord({ subnets: oneSubnet }));
+							return callback(null, helper.bulidSubnetsRecord({ subnet: oneSubnet }));
 						}, function(error, subnetsList) {
 							return cb(null, subnetsList);
 						});
@@ -531,7 +531,7 @@ const driver = {
 				});
 				networkClient.publicIPAddresses.list(options.params.group,function (error, publicIPAddresses) {
 					utils.checkError(error, 735, cb, () => {
-						
+
 						async.map(publicIPAddresses, function(onepublicIPAddresse, callback) {
 							return callback(null, helper.buildPublicIPsRecord({ publicIPAddresse: onepublicIPAddresse }));
 						}, function(error, PublicIpsList) {

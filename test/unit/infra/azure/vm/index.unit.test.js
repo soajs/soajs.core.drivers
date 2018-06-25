@@ -823,11 +823,18 @@ describe("testing /lib/azure/index.js", function () {
 				resourceGroupName: "tester",
 				virtualNetworkName: "tester-vn",
 			};
+			let expectedResponce =  [
+				{
+					"name": "tester-sg",
+					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-sg",
+					"tags": {}
+				}
+			]
 
 			service.executeDriver('listSecurityGroups', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual([info.networkSecurityGroup["tester-sg"]], response);
+				assert.deepEqual(expectedResponce, response);
 				done();
 			});
 		});

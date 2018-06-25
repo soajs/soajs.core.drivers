@@ -110,7 +110,7 @@ const helper = {
         if(opts.imagePublisher) {
             if (opts.imagePublisher.name) record.name = opts.imagePublisher.name;
     		if (opts.imagePublisher.id) record.id = opts.imagePublisher.id;
-			if (opts.imagePublisher.location) record.region = opts.imagePublisher.location;
+			if (opts.imagePublisher.location) record.location = opts.imagePublisher.location;
         }
 
 		return record;
@@ -218,8 +218,26 @@ const helper = {
 		if(opts.networkSecurityGroups){
 			if (opts.networkSecurityGroups.name) record.name = opts.networkSecurityGroups.name;
 			if (opts.networkSecurityGroups.id) record.id = opts.networkSecurityGroups.id;
-			if (opts.networkSecurityGroups.location) record.location = opts.networkSecurityGroups.location;
+			if (opts.networkSecurityGroups.region) record.region = opts.networkSecurityGroups.region;
+			if (opts.networkSecurityGroups.ports){
+				for(let i = 0 ; i < opts.networkSecurityGroups.ports.length ; i++){
+					record.ports.push(  helper.builddPortsRecord({subnet :opts.networkSecurityGroups.ports[i] }));
+				}
+			}
+			if (opts.networkSecurityGroups.tags) record.tags = opts.networkSecurityGroups.tags;
 		}
+		return record;
+	},
+
+	builddPortsRecord: function (opts) {
+		let record = {};
+		if(opts.ports){
+			if (opts.ports.name) record.name = opts.ports.name;
+			if (opts.ports.target) record.target = opts.ports.target;
+			if (opts.ports.published) record.published = opts.ports.published;
+			if (opts.ports.isPublished) record.isPublished = opts.ports.isPublished;
+		}
+
 		return record;
 	},
 

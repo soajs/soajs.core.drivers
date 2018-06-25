@@ -1151,7 +1151,7 @@ module.exports = function () {
 		],
 		"runCommand":{
 		  "name": "d3b5e3bb-230c-46c1-814e-d920c405a91f",
-		  "status": "Sasdasducceeded",
+		  "status": "Succeeded",
 		  "startTime": "2018-06-22T11:41:20.282Z",
 		  "endTime": "2018-06-22T11:41:33.954Z",
 		  "output": [
