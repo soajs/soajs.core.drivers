@@ -78,7 +78,20 @@ const helper = {
 		return record;
 	},
 
-	buildVmSizes:  function (opts) {
+	buildResourceGroupRecord: function(opts) {
+		let record = {};
+
+		if(opts.resourceGroup) {
+			if(opts.resourceGroup.id) record.id = opts.resourceGroup.id;
+			if(opts.resourceGroup.name) record.name = opts.resourceGroup.name;
+			if(opts.resourceGroup.location) record.region = opts.resourceGroup.location;
+			if(opts.resourceGroup.tags) record.labels = opts.resourceGroup.tags;
+		}
+
+		return record;
+	},
+
+	buildVmSizes: function (opts) {
 		let record = {};
 
         if(opts.vmSize) {
@@ -88,6 +101,25 @@ const helper = {
 			if (opts.vmSize.resourceDiskSizeInMB) record.resourceDiskSizeInMB = opts.vmSize.resourceDiskSizeInMB;
 			if (opts.vmSize.memoryInMB) record.memoryInMB = opts.vmSize.memoryInMB;
     		if (opts.vmSize.maxDataDiskCount) record.maxDataDiskCount = opts.vmSize.maxDataDiskCount;
+
+	        record.label = record.name + ` / CPU: ${record.numberOfCores}`;
+	        let memory = record.memoryInMB;
+	        if(memory > 1024){
+	        	memory = memory / 1024;
+		        record.label += ` / RAM: ${memory}GB`;
+	        }
+	        else{
+		        record.label += ` / RAM: ${memory}MB`;
+	        }
+
+	        let hd = record.resourceDiskSizeInMB;
+	        if(hd > 1024){
+	        	hd = hd / 1024;
+		        record.label += ` / HD: ${hd}GB`;
+	        }
+	        else{
+	            record.label += ` / HD: ${hd}MB`;
+	        }
         }
 
 		return record;

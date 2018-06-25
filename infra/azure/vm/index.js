@@ -275,6 +275,35 @@ const driver = {
 	},
 
 	/**
+	* List available resource groups
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
+	listGroups: function(options, cb) {
+		options.soajs.log.debug(`Listing available resource groups`);
+		driverUtils.authenticate(options, (error, authData) => {
+			utils.checkError(error, 700, cb, () => {
+				const resourceClient = driverUtils.getConnector({
+					api: 'resource',
+					credentials: authData.credentials,
+					subscriptionId: options.infra.api.subscriptionId
+				});
+				resourceClient.resourceGroups.list(function (error, resourceGroups) {
+					utils.checkError(error, 714, cb, () => {
+						async.map(resourceGroups, function(oneResourceGroup, callback) {
+							return callback(null, helper.buildResourceGroupRecord({ resourceGroup: oneResourceGroup }));
+						}, function(error, resourceGroupsList) {
+							return cb(null, resourceGroupsList);
+						});
+					});
+				});
+			});
+		});
+	},
+
+	/**
 	* List available virtual machine sizes
 
 	* @param  {Object}   options  Data passed to function as params
@@ -610,7 +639,7 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				computeClient.disks.list(options.params.group, function (error, disks) {
+				computeClient.disks.listByResourceGroup(options.params.group, function (error, disks) {
 					utils.checkError(error, 737, cb, () => {
 						async.concat(disks, function(oneDisk, callback) {
 							if(options.params && options.params.type) {
