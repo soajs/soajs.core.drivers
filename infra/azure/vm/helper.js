@@ -101,7 +101,7 @@ const helper = {
 			if (opts.vmSize.resourceDiskSizeInMB) record.resourceDiskSizeInMB = opts.vmSize.resourceDiskSizeInMB;
 			if (opts.vmSize.memoryInMB) record.memoryInMB = opts.vmSize.memoryInMB;
     		if (opts.vmSize.maxDataDiskCount) record.maxDataDiskCount = opts.vmSize.maxDataDiskCount;
-	
+
 	        record.label = record.name + ` / CPU: ${record.numberOfCores}`;
 	        let memory = record.memoryInMB;
 	        if(memory > 1024){
@@ -111,7 +111,7 @@ const helper = {
 	        else{
 		        record.label += ` / RAM: ${memory}MB`;
 	        }
-	        
+
 	        let hd = record.resourceDiskSizeInMB;
 	        if(hd > 1024){
 	        	hd = hd / 1024;
@@ -124,7 +124,7 @@ const helper = {
 
 		return record;
 	},
-	
+
 	buildRunCommmand: function(opts){
 		let record ={};
 
@@ -352,8 +352,8 @@ const helper = {
 			async.auto({
 				getSecurityGroup: function(callback) {
 					networkClient.networkSecurityGroups.get(resourceGroupName, networkSecurityGroupName, function (error, securityGroup) {
-						if (error) return callback(error);
-						return callback(null, securityGroup);
+						if (error) opts.log.warn(`Unable to get security group ${networkSecurityGroupName}`);
+						return callback(null, securityGroup || {});
 					});
 				},
 				getPublicIp: function(callback) {
@@ -361,14 +361,14 @@ const helper = {
 						return callback(null, true);
 					}
 					networkClient.publicIPAddresses.get(resourceGroupName, ipName, function (error, publicIp) {
-						if (error) return cb(error);
-						return callback(null, publicIp);
+						if (error) opts.log.warn(`Unable to get public ip address ${ipName}`);
+						return callback(null, publicIp || {});
 					});
 				},
 				getSubnet: function(callback) {
 					networkClient.subnets.get(resourceGroupName, vnetName, subnetName, function(error, subnet) {
-						if (error) return cb(error);
-						return callback(null, subnet);
+						if (error) opts.log.warn(`Unable to get subnet ${subnetName} in network ${vnetName}`);
+						return callback(null, subnet || {});
 					});
 				}
 			}, function(error, results) {
