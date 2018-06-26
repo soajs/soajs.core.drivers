@@ -3,6 +3,7 @@
 const utils = require('../../lib/utils/utils.js');
 const helper = require('./helper.js');
 const driverUtils = require('./utils/index.js');
+const terraform = require('./terraform');
 
 const defaultDriver = 'vm';
 
@@ -25,7 +26,8 @@ const driver = {
 	},
 
 	"deployCluster": function (options, cb) {
-		return cb(null, true);
+		return terraform.deployCluster(options, cb);
+		// return cb(null, true);
 	},
 
 	"getDeployClusterStatus": function (options, cb) {
@@ -63,11 +65,13 @@ const driver = {
 	},
 
 	"updateCluster": function (options, cb) {
-		return cb(null, true);
+		return terraform.updateCluster(options, cb);
+		// return cb(null, true);
 	},
 
 	"deleteCluster": function (options, cb) {
-		return cb(null, true);
+		return terraform.deleteCluster(options, cb);
+		// return cb(null, true);
 	},
 
 	"publishPorts": function (options, cb) {
