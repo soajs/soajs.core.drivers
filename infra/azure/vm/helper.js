@@ -357,6 +357,9 @@ const helper = {
 					});
 				},
 				getPublicIp: function(callback) {
+					if (!ipName){
+						return callback(null, true);
+					}
 					networkClient.publicIPAddresses.get(resourceGroupName, ipName, function (error, publicIp) {
 						if (error) return cb(error);
 						return callback(null, publicIp);

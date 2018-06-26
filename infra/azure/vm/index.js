@@ -59,7 +59,7 @@ const driver = {
 	* @return {void}
 	*/
 	listServices: function (options, cb) {
-		options.soajs.log.debug(`Listing all virtual machines in ${options.params.group} and all custom vms`);
+		options.soajs.log.debug(`Listing all virtual machines in ${options.params.group ? options.params.group : 'all environments'} and all custom vms`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const computeClient = driverUtils.getConnector({
