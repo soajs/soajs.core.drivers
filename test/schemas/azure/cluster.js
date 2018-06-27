@@ -2,10 +2,10 @@
 let infra = {
 	"_id": '5b18008acf544bca9b55cd79',
 	"api": {
-		"clientId": "cca65dcd-3aa3-44d3-81cb-6b57b764be6a",
-    "secret": "QY7TMLyoA6Jjzidtduqbn/4Y2mDlyJUbKZ40c6dBTYw=",
-    "domain": "608c3255-376b-47a4-8e8e-9291e506d03e",
-    "subscriptionId": "d159e994-8b44-42f7-b100-78c4508c34a6"
+		"clientId": "1",
+		"secret": "2",
+		"domain": "3",
+		"subscriptionId": "4"
 	},
 	"name": "azure",
 	"technologies": [
@@ -1031,142 +1031,142 @@ module.exports = function () {
 				"memoryInMB": 1024,
 				"maxDataDiskCount": 2,
 				"label": "Standard_B1s / CPU: 1 / RAM: 1024MB / HD: 2GB"
-
+				
 			}
 		],
 		"vmImagePublisher": [
-				{
-					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/1e",
-					"name": "1e",
-					"location": "eastus"
-				},
-				{
-					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/4psa",
-					"name": "4psa",
-					"location": "eastus"
-				},
-				{
-					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/5nine-software-inc",
-					"name": "5nine-software-inc",
-					"location": "eastus"
-				}
-			],
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/1e",
+				"name": "1e",
+				"location": "eastus"
+			},
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/4psa",
+				"name": "4psa",
+				"location": "eastus"
+			},
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/5nine-software-inc",
+				"name": "5nine-software-inc",
+				"location": "eastus"
+			}
+		],
 		"vmPublisherOffers": [
-					{
-						"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu15.04Snappy",
-						"name": "Ubuntu15.04Snappy",
-						"location": "eastus"
-					},
-					{
-						"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu15.04SnappyDocker",
-						"name": "Ubuntu15.04SnappyDocker",
-						"location": "eastus"
-					},
-					{
-						"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/UbuntuServer",
-						"name": "UbuntuServer",
-						"location": "eastus"
-					},
-					{
-						"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Core",
-						"name": "Ubuntu_Core",
-						"location": "eastus"
-					},
-					{
-						"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Snappy_Core",
-						"name": "Ubuntu_Snappy_Core",
-						"location": "eastus"
-					},
-					{
-						"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Snappy_Core_Docker",
-						"name": "Ubuntu_Snappy_Core_Docker",
-						"location": "eastus"
-					}
-				],
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu15.04Snappy",
+				"name": "Ubuntu15.04Snappy",
+				"location": "eastus"
+			},
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu15.04SnappyDocker",
+				"name": "Ubuntu15.04SnappyDocker",
+				"location": "eastus"
+			},
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/UbuntuServer",
+				"name": "UbuntuServer",
+				"location": "eastus"
+			},
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Core",
+				"name": "Ubuntu_Core",
+				"location": "eastus"
+			},
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Snappy_Core",
+				"name": "Ubuntu_Snappy_Core",
+				"location": "eastus"
+			},
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Snappy_Core_Docker",
+				"name": "Ubuntu_Snappy_Core_Docker",
+				"location": "eastus"
+			}
+		],
 		"vmImageVersions": [
-					{
-						"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Core/Skus/16",
-						"name": "16",
-						"location": "eastus"
-					}
-				],
+			{
+				"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Core/Skus/16",
+				"name": "16",
+				"location": "eastus"
+			}
+		],
 		"virtualNetworks": [
-					{
-						"subnets": [
-							{}
-						],
-						"name": "tester-vn",
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/virtualNetworks/tester-vn",
-						"location": "eastus",
-						"addressSpace": {
-							"addressPrefixes": [
-								"10.0.0.0/16"
-							]
-						}
-					}
+			{
+				"subnets": [
+					{}
 				],
+				"name": "tester-vn",
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/virtualNetworks/tester-vn",
+				"location": "eastus",
+				"addressSpace": {
+					"addressPrefixes": [
+						"10.0.0.0/16"
+					]
+				}
+			}
+		],
 		"subnets": [
-					{
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/virtualNetworks/tester-vn/subnets/tester-subnet",
-						"addressPrefix": "10.0.2.0/24",
-						"name": "tester-subnet",
-
-					}
-				],
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/virtualNetworks/tester-vn/subnets/tester-subnet",
+				"addressPrefix": "10.0.2.0/24",
+				"name": "tester-subnet",
+				
+			}
+		],
 		"Disks": [
-					{
-						"name": "mongo_OsDisk_1_5aa8030cb6044037b5c8f4d6c75a391a",
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/SOAJS/providers/Microsoft.Compute/disks/mongo_OsDisk_1_5aa8030cb6044037b5c8f4d6c75a391a",
-						"location": "centralus",
-						"type": "Microsoft.Compute/disks"
-					},
-					{
-						"name": "mysql_OsDisk_1_42ef3a000aff4269988d134e376e0160",
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/SOAJS/providers/Microsoft.Compute/disks/mysql_OsDisk_1_42ef3a000aff4269988d134e376e0160",
-						"location": "centralus",
-						"type": "Microsoft.Compute/disks"
-					},
-					{
-						"name": "dynamic-template-tester-osDisk-0",
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/DYNAMIC-TEMPLATE/providers/Microsoft.Compute/disks/dynamic-template-tester-osDisk-0",
-						"location": "eastus",
-						"type": "Microsoft.Compute/disks"
-					},
-					{
-						"name": "volume_one-0",
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/DYNAMIC-TEMPLATE/providers/Microsoft.Compute/disks/volume_one-0",
-						"location": "eastus",
-						"type": "Microsoft.Compute/disks"
-					},
-					{
-						"name": "myosdisk1",
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/TESTER/providers/Microsoft.Compute/disks/myosdisk1",
-						"location": "eastus",
-						"type": "Microsoft.Compute/disks"
-					}
-				],
-		"loadBalancers":[
+			{
+				"name": "mongo_OsDisk_1_5aa8030cb6044037b5c8f4d6c75a391a",
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/SOAJS/providers/Microsoft.Compute/disks/mongo_OsDisk_1_5aa8030cb6044037b5c8f4d6c75a391a",
+				"location": "centralus",
+				"type": "Microsoft.Compute/disks"
+			},
+			{
+				"name": "mysql_OsDisk_1_42ef3a000aff4269988d134e376e0160",
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/SOAJS/providers/Microsoft.Compute/disks/mysql_OsDisk_1_42ef3a000aff4269988d134e376e0160",
+				"location": "centralus",
+				"type": "Microsoft.Compute/disks"
+			},
+			{
+				"name": "dynamic-template-tester-osDisk-0",
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/DYNAMIC-TEMPLATE/providers/Microsoft.Compute/disks/dynamic-template-tester-osDisk-0",
+				"location": "eastus",
+				"type": "Microsoft.Compute/disks"
+			},
+			{
+				"name": "volume_one-0",
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/DYNAMIC-TEMPLATE/providers/Microsoft.Compute/disks/volume_one-0",
+				"location": "eastus",
+				"type": "Microsoft.Compute/disks"
+			},
+			{
+				"name": "myosdisk1",
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/TESTER/providers/Microsoft.Compute/disks/myosdisk1",
+				"location": "eastus",
+				"type": "Microsoft.Compute/disks"
+			}
+		],
+		"loadBalancers": [
 			{
 				"name": "tester-lb",
 				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-lb",
 				"location": "centralus"
 			}
 		],
-		"runCommand":{
-		  "name": "d3b5e3bb-230c-46c1-814e-d920c405a91f",
-		  "status": "Succeeded",
-		  "startTime": "2018-06-22T11:41:20.282Z",
-		  "endTime": "2018-06-22T11:41:33.954Z",
-		  "output": [
-		    {
-		      "code": "ProvisioningState/succeeded",
-		      "level": "Info",
-		      "displayStatus": "Provisioning succeeded",
-		      "message": "Enable succeeded: \n[stdout]\n 11:39:21 ubuntu python3[1055]: 2018/06/22 11:39:21.171799 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Target handler state: enabled\nJun 22 11:39:21 ubuntu python3[1055]: 2018/06/22 11:39:21.203900 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] [Enable] current handler state is: enabled\nJun 22 11:39:21 ubuntu python3[1055]: 2018/06/22 11:39:21.237334 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Update settings file: 45.settings\nJun 22 11:39:21 ubuntu python3[1055]: 2018/06/22 11:39:21.264261 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Enable extension [bin/run-command-shim enable]\nJun 22 11:39:22 ubuntu python3[1055]: 2018/06/22 11:39:22.298886 INFO Event: name=Microsoft.CPlat.Core.RunCommandLinux, op=Enable, message=Launch command succeeded: bin/run-command-shim enable, duration=1002\nJun 22 11:39:22 ubuntu python3[1055]: 2018/06/22 11:39:22.427124 INFO Event: name=WALinuxAgent, op=ProcessGoalState, message=Incarnation 47, duration=1405\nJun 22 11:39:57 ubuntu sshd[37471]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=61.177.172.60  user=root\nJun 22 11:39:59 ubuntu sshd[37471]: Failed password for root from 61.177.172.60 port 57482 ssh2\nJun 22 11:40:01 ubuntu sshd[37471]: Failed password for root from 61.177.172.60 port 57482 ssh2\nJun 22 11:40:04 ubuntu sshd[37471]: Failed password for root from 61.177.172.60 port 57482 ssh2\nJun 22 11:40:04 ubuntu sshd[37471]: Received disconnect from 61.177.172.60 port 57482:11:  [preauth]\nJun 22 11:40:04 ubuntu sshd[37471]: Disconnected from 61.177.172.60 port 57482 [preauth]\nJun 22 11:40:04 ubuntu sshd[37471]: PAM 2 more authentication failures; logname= uid=0 euid=0 tty=ssh ruser= rhost=61.177.172.60  user=root\nJun 22 11:40:24 ubuntu python3[1055]: 2018/06/22 11:40:24.042860 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Target handler state: enabled\nJun 22 11:40:24 ubuntu python3[1055]: 2018/06/22 11:40:24.087845 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] [Enable] current handler state is: enabled\nJun 22 11:40:24 ubuntu python3[1055]: 2018/06/22 11:40:24.120786 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Update settings file: 46.settings\nJun 22 11:40:24 ubuntu python3[1055]: 2018/06/22 11:40:24.165278 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Enable extension [bin/run-command-shim enable]\nJun 22 11:40:25 ubuntu python3[1055]: 2018/06/22 11:40:25.205382 INFO Event: name=Microsoft.CPlat.Core.RunCommandLinux, op=Enable, message=Launch command succeeded: bin/run-command-shim enable, duration=1003\nJun 22 11:40:25 ubuntu python3[1055]: 2018/06/22 11:40:25.351438 INFO Event: name=WALinuxAgent, op=ProcessGoalState, message=Incarnation 48, duration=1451\nJun 22 11:40:53 ubuntu sshd[37565]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=61.177.172.60  user=root\nJun 22 11:40:55 ubuntu sshd[37565]: Failed password for root from 61.177.172.60 port 23100 ssh2\nJun 22 11:40:57 ubuntu sshd[37565]: Failed password for root from 61.177.172.60 port 23100 ssh2\nJun 22 11:40:59 ubuntu sshd[37565]: Failed password for root from 61.177.172.60 port 23100 ssh2\nJun 22 11:41:00 ubuntu sshd[37565]: Received disconnect from 61.177.172.60 port 23100:11:  [preauth]\nJun 22 11:41:00 ubuntu sshd[37565]: Disconnected from 61.177.172.60 port 23100 [preauth]\nJun 22 11:41:00 ubuntu sshd[37565]: PAM 2 more authentication failures; logname= uid=0 euid=0 tty=ssh ruser= rhost=61.177.172.60  user=root\nJun 22 11:41:27 ubuntu python3[1055]: 2018/06/22 11:41:27.005735 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Target handler state: enabled\nJun 22 11:41:27 ubuntu python3[1055]: 2018/06/22 11:41:27.028525 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] [Enable] current handler state is: enabled\nJun 22 11:41:27 ubuntu python3[1055]: 2018/06/22 11:41:27.065983 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Update settings file: 47.settings\nJun 22 11:41:27 ubuntu python3[1055]: 2018/06/22 11:41:27.097058 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Enable extension [bin/run-command-shim enable]\n\n[stderr]\n"
-		    }
-		  ]
-		}
-
+		"runCommand": {
+			"name": "d3b5e3bb-230c-46c1-814e-d920c405a91f",
+			"status": "Succeeded",
+			"startTime": "2018-06-22T11:41:20.282Z",
+			"endTime": "2018-06-22T11:41:33.954Z",
+			"output": [
+				{
+					"code": "ProvisioningState/succeeded",
+					"level": "Info",
+					"displayStatus": "Provisioning succeeded",
+					"message": "Enable succeeded: \n[stdout]\n 11:39:21 ubuntu python3[1055]: 2018/06/22 11:39:21.171799 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Target handler state: enabled\nJun 22 11:39:21 ubuntu python3[1055]: 2018/06/22 11:39:21.203900 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] [Enable] current handler state is: enabled\nJun 22 11:39:21 ubuntu python3[1055]: 2018/06/22 11:39:21.237334 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Update settings file: 45.settings\nJun 22 11:39:21 ubuntu python3[1055]: 2018/06/22 11:39:21.264261 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Enable extension [bin/run-command-shim enable]\nJun 22 11:39:22 ubuntu python3[1055]: 2018/06/22 11:39:22.298886 INFO Event: name=Microsoft.CPlat.Core.RunCommandLinux, op=Enable, message=Launch command succeeded: bin/run-command-shim enable, duration=1002\nJun 22 11:39:22 ubuntu python3[1055]: 2018/06/22 11:39:22.427124 INFO Event: name=WALinuxAgent, op=ProcessGoalState, message=Incarnation 47, duration=1405\nJun 22 11:39:57 ubuntu sshd[37471]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=61.177.172.60  user=root\nJun 22 11:39:59 ubuntu sshd[37471]: Failed password for root from 61.177.172.60 port 57482 ssh2\nJun 22 11:40:01 ubuntu sshd[37471]: Failed password for root from 61.177.172.60 port 57482 ssh2\nJun 22 11:40:04 ubuntu sshd[37471]: Failed password for root from 61.177.172.60 port 57482 ssh2\nJun 22 11:40:04 ubuntu sshd[37471]: Received disconnect from 61.177.172.60 port 57482:11:  [preauth]\nJun 22 11:40:04 ubuntu sshd[37471]: Disconnected from 61.177.172.60 port 57482 [preauth]\nJun 22 11:40:04 ubuntu sshd[37471]: PAM 2 more authentication failures; logname= uid=0 euid=0 tty=ssh ruser= rhost=61.177.172.60  user=root\nJun 22 11:40:24 ubuntu python3[1055]: 2018/06/22 11:40:24.042860 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Target handler state: enabled\nJun 22 11:40:24 ubuntu python3[1055]: 2018/06/22 11:40:24.087845 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] [Enable] current handler state is: enabled\nJun 22 11:40:24 ubuntu python3[1055]: 2018/06/22 11:40:24.120786 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Update settings file: 46.settings\nJun 22 11:40:24 ubuntu python3[1055]: 2018/06/22 11:40:24.165278 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Enable extension [bin/run-command-shim enable]\nJun 22 11:40:25 ubuntu python3[1055]: 2018/06/22 11:40:25.205382 INFO Event: name=Microsoft.CPlat.Core.RunCommandLinux, op=Enable, message=Launch command succeeded: bin/run-command-shim enable, duration=1003\nJun 22 11:40:25 ubuntu python3[1055]: 2018/06/22 11:40:25.351438 INFO Event: name=WALinuxAgent, op=ProcessGoalState, message=Incarnation 48, duration=1451\nJun 22 11:40:53 ubuntu sshd[37565]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=61.177.172.60  user=root\nJun 22 11:40:55 ubuntu sshd[37565]: Failed password for root from 61.177.172.60 port 23100 ssh2\nJun 22 11:40:57 ubuntu sshd[37565]: Failed password for root from 61.177.172.60 port 23100 ssh2\nJun 22 11:40:59 ubuntu sshd[37565]: Failed password for root from 61.177.172.60 port 23100 ssh2\nJun 22 11:41:00 ubuntu sshd[37565]: Received disconnect from 61.177.172.60 port 23100:11:  [preauth]\nJun 22 11:41:00 ubuntu sshd[37565]: Disconnected from 61.177.172.60 port 23100 [preauth]\nJun 22 11:41:00 ubuntu sshd[37565]: PAM 2 more authentication failures; logname= uid=0 euid=0 tty=ssh ruser= rhost=61.177.172.60  user=root\nJun 22 11:41:27 ubuntu python3[1055]: 2018/06/22 11:41:27.005735 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Target handler state: enabled\nJun 22 11:41:27 ubuntu python3[1055]: 2018/06/22 11:41:27.028525 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] [Enable] current handler state is: enabled\nJun 22 11:41:27 ubuntu python3[1055]: 2018/06/22 11:41:27.065983 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Update settings file: 47.settings\nJun 22 11:41:27 ubuntu python3[1055]: 2018/06/22 11:41:27.097058 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Enable extension [bin/run-command-shim enable]\n\n[stderr]\n"
 				}
-				return data;
-			};
+			]
+		}
+		
+	}
+	return data;
+};

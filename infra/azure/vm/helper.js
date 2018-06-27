@@ -222,11 +222,11 @@ const helper = {
 
 	bulidSubnetsRecord: function (opts) {
 		let record = {};
-		if(opts.subnet){
-			if (opts.subnet.name) record.name = opts.subnet.name;
-			if (opts.subnet.id) record.id = opts.subnet.id;
-			if (opts.subnet.location) record.region = opts.subnet.location;
-			if (opts.subnet.addressPrefix) record.addressPrefix = opts.subnet.addressPrefix;
+		if(opts.subnets){
+			if (opts.subnets.name) record.name = opts.subnets.name;
+			if (opts.subnets.id) record.id = opts.subnets.id;
+			if (opts.subnets.location) record.region = opts.subnets.location;
+			if (opts.subnets.addressPrefix) record.addressPrefix = opts.subnets.addressPrefix;
 		}
 
 		return record;
@@ -250,7 +250,7 @@ const helper = {
 		if(opts.networkSecurityGroups){
 			if (opts.networkSecurityGroups.name) record.name = opts.networkSecurityGroups.name;
 			if (opts.networkSecurityGroups.id) record.id = opts.networkSecurityGroups.id;
-			if (opts.networkSecurityGroups.region) record.region = opts.networkSecurityGroups.region;
+			if (opts.networkSecurityGroups.location) record.region = opts.networkSecurityGroups.location;
 			if (opts.networkSecurityGroups.ports){
 				for(let i = 0 ; i < opts.networkSecurityGroups.ports.length ; i++){
 					record.ports.push(  helper.builddPortsRecord({subnet :opts.networkSecurityGroups.ports[i] }));

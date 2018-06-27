@@ -9,7 +9,7 @@ const azureApi = require('ms-rest-azure');
 let dD = require('../../../schemas/azure/cluster.js');
 let info = {};
 let options = {};
-describe("testing /lib/azure/utils/index.js", function () {
+describe.skip("testing /lib/azure/utils/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
 
 	describe("calling authenticate", function () {
@@ -23,7 +23,6 @@ describe("testing /lib/azure/utils/index.js", function () {
 			options = info.deployCluster;
 
 			service.authenticate(options, function (error, response) {
-//				console.log(JSON.stringify(options,null,2));
 				assert.ok(response);
 				done();
 			});
@@ -95,29 +94,26 @@ describe("testing /lib/azure/utils/index.js", function () {
 
 			};
 			service.authenticate(options, function (error, response) {
-	//			console.log("*******************************" + JSON.stringify(response,null,2));
 				assert.ifError(error);
 				assert.ok(response);
-		//		assert.deepEqual(response,expectedRes);
+				assert.deepEqual(response,expectedRes);
 				done();
 			});
 		});
 
-		it.skip("Error wrong credentials", function (done) {
+		it("Error wrong credentials", function (done) {
 
 			info = dD();
 			options = info.deployCluster;
 			service.authenticate(options, function (error, response) {
-	//			console.log("--------------------------------" + JSON.stringify(response,null,2));
 				assert.ok(error);
 				done();
 			});
 		});
 
-		it.skip("Error no credentials", function (done) {
+		it("Error no credentials", function (done) {
 			info = dD();
 			options = {};
-			//expected output format
 			service.authenticate(options, function (error, response) {
 				assert.ok(error);
 				done();
@@ -125,7 +121,7 @@ describe("testing /lib/azure/utils/index.js", function () {
 		});
 	});
 
-	describe.skip("calling connector", function () {
+	describe("calling connector", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();

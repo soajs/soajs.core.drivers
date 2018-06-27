@@ -167,7 +167,7 @@ const driver = {
 				});
 				computeClient.virtualMachines.restart(options.params.group, options.params.vmName, function (error, result) {
 					utils.checkError(error, 706, cb, () => {
-						return cb(null, result.status);
+						return cb(null, result);
 					});
 				});
 			});
@@ -500,7 +500,7 @@ const driver = {
 				networkClient.subnets.list(options.params.group, options.params.virtualNetworkName, function (error, subnets) {
 					utils.checkError(error, 733, cb, () => {
 						async.map(subnets, function(oneSubnet, callback) {
-							return callback(null, helper.bulidSubnetsRecord({ subnet: oneSubnet }));
+							return callback(null, helper.bulidSubnetsRecord({ subnets: oneSubnet }));
 						}, function(error, subnetsList) {
 							return cb(null, subnetsList);
 						});
