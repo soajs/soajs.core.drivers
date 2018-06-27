@@ -41,6 +41,9 @@ const driver = {
 								vmRecordOptions.publicIp = networkInfo.publicIp;
 								vmRecordOptions.subnet = networkInfo.subnet;
 								vmRecordOptions.virtualNetworkName = networkInfo.virtualNetworkName;
+								if(networkInfo.loadBalancers && Array.isArray(networkInfo.loadBalancers) && networkInfo.loadBalancers.length > 0) {
+									vmRecordOptions.loadBalancers = networkInfo.loadBalancers;
+								}
 							}
 
 							return cb(null, helper.buildVMRecord(vmRecordOptions));
@@ -100,6 +103,9 @@ const driver = {
 										vmRecordOptions.publicIp = networkInfo.publicIp;
 										vmRecordOptions.subnet = networkInfo.subnet;
 										vmRecordOptions.virtualNetworkName = networkInfo.virtualNetworkName;
+										if(networkInfo.loadBalancers && Array.isArray(networkInfo.loadBalancers) && networkInfo.loadBalancers.length > 0) {
+											vmRecordOptions.loadBalancers = networkInfo.loadBalancers;
+										}
 									}
 
 									return callback(null, helper.buildVMRecord(vmRecordOptions));
@@ -470,7 +476,7 @@ const driver = {
 				networkClient.loadBalancers.list(options.params.group, function (error, loadBalancers) {
 					utils.checkError(error, 732, cb, () => {
 						async.map(loadBalancers, function(oneloadBalancer, callback) {
-							return callback(null, helper.buildLoadBalancersRecord({ loadBlanacer: oneloadBalancer }));
+							return callback(null, helper.buildLoadBalancerRecord({ loadBlanacer: oneloadBalancer }));
 						}, function(error, loadBalancersList) {
 							return cb(null, loadBalancersList);
 						});
