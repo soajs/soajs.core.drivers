@@ -2,10 +2,10 @@
 let infra = {
 	"_id": '5b18008acf544bca9b55cd79',
 	"api": {
-		"clientId": "1",
-		"secret": "2",
-		"domain": "3",
-		"subscriptionId": "4"
+		"clientId": "cca65dcd-3aa3-44d3-81cb-6b57b764be6a",
+    "secret": "QY7TMLyoA6Jjzidtduqbn/4Y2mDlyJUbKZ40c6dBTYw=",
+    "domain": "608c3255-376b-47a4-8e8e-9291e506d03e",
+    "subscriptionId": "d159e994-8b44-42f7-b100-78c4508c34a6"
 	},
 	"name": "azure",
 	"technologies": [
@@ -1020,7 +1020,8 @@ module.exports = function () {
 				"osDiskSizeInMB": 1047552,
 				"resourceDiskSizeInMB": 4096,
 				"memoryInMB": 2048,
-				"maxDataDiskCount": 2
+				"maxDataDiskCount": 2,
+				"label": "Standard_B1ms / CPU: 1 / RAM: 2GB / HD: 4GB"
 			},
 			{
 				"name": "Standard_B1s",
@@ -1028,7 +1029,9 @@ module.exports = function () {
 				"osDiskSizeInMB": 1047552,
 				"resourceDiskSizeInMB": 2048,
 				"memoryInMB": 1024,
-				"maxDataDiskCount": 2
+				"maxDataDiskCount": 2,
+				"label": "Standard_B1s / CPU: 1 / RAM: 1024MB / HD: 2GB"
+
 			}
 		],
 		"vmImagePublisher": [

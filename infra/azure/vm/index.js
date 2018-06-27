@@ -639,7 +639,7 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				computeClient.disks.listByResourceGroup(options.params.group, function (error, disks) {
+				computeClient.disks.list(options.params.group, function (error, disks) {
 					utils.checkError(error, 737, cb, () => {
 						async.concat(disks, function(oneDisk, callback) {
 							if(options.params && options.params.type) {
