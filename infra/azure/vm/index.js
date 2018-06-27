@@ -59,7 +59,7 @@ const driver = {
 	* @return {void}
 	*/
 	listServices: function (options, cb) {
-		options.soajs.log.debug(`Listing all virtual machines in ${options.params.group} and all custom vms`);
+		options.soajs.log.debug(`Listing all virtual machines in ${options.params.group ? options.params.group : 'all environments'} and all custom vms`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const computeClient = driverUtils.getConnector({
@@ -90,7 +90,7 @@ const driver = {
 							//no error is returned by function
 							async.map(filteredVms, function (oneVm, callback) {
 								let vmRecordOptions = {vm: oneVm};
-								helper.getVmNetworkInfo(networkClient, {vm: oneVm}, function (error, networkInfo) {
+								helper.getVmNetworkInfo(networkClient, {vm: oneVm, log: options.soajs.log}, function (error, networkInfo) {
 									if (error) {
 										options.soajs.log.error(`Unable to get network information for ${oneVm.name} while inspecting`);
 										options.soajs.log.error(error);

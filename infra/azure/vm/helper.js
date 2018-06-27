@@ -373,20 +373,23 @@ const helper = {
 			async.auto({
 				getSecurityGroup: function(callback) {
 					networkClient.networkSecurityGroups.get(resourceGroupName, networkSecurityGroupName, function (error, securityGroup) {
-						if (error) return callback(error);
-						return callback(null, securityGroup);
+						if (error) opts.log.warn(`Unable to get security group ${networkSecurityGroupName}`);
+						return callback(null, securityGroup || {});
 					});
 				},
 				getPublicIp: function(callback) {
+					if (!ipName){
+						return callback(null, true);
+					}
 					networkClient.publicIPAddresses.get(resourceGroupName, ipName, function (error, publicIp) {
-						if (error) return cb(error);
-						return callback(null, publicIp);
+						if (error) opts.log.warn(`Unable to get public ip address ${ipName}`);
+						return callback(null, publicIp || {});
 					});
 				},
 				getSubnet: function(callback) {
 					networkClient.subnets.get(resourceGroupName, vnetName, subnetName, function(error, subnet) {
-						if (error) return cb(error);
-						return callback(null, subnet);
+						if (error) opts.log.warn(`Unable to get subnet ${subnetName} in network ${vnetName}`);
+						return callback(null, subnet || {});
 					});
 				}
 			}, function(error, results) {
