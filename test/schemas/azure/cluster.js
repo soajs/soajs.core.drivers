@@ -1031,7 +1031,7 @@ module.exports = function () {
 				"memoryInMB": 1024,
 				"maxDataDiskCount": 2,
 				"label": "Standard_B1s / CPU: 1 / RAM: 1024MB / HD: 2GB"
-				
+
 			}
 		],
 		"vmImagePublisher": [
@@ -1110,7 +1110,7 @@ module.exports = function () {
 				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/virtualNetworks/tester-vn/subnets/tester-subnet",
 				"addressPrefix": "10.0.2.0/24",
 				"name": "tester-subnet",
-				
+
 			}
 		],
 		"Disks": [
@@ -1165,8 +1165,52 @@ module.exports = function () {
 					"message": "Enable succeeded: \n[stdout]\n 11:39:21 ubuntu python3[1055]: 2018/06/22 11:39:21.171799 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Target handler state: enabled\nJun 22 11:39:21 ubuntu python3[1055]: 2018/06/22 11:39:21.203900 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] [Enable] current handler state is: enabled\nJun 22 11:39:21 ubuntu python3[1055]: 2018/06/22 11:39:21.237334 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Update settings file: 45.settings\nJun 22 11:39:21 ubuntu python3[1055]: 2018/06/22 11:39:21.264261 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Enable extension [bin/run-command-shim enable]\nJun 22 11:39:22 ubuntu python3[1055]: 2018/06/22 11:39:22.298886 INFO Event: name=Microsoft.CPlat.Core.RunCommandLinux, op=Enable, message=Launch command succeeded: bin/run-command-shim enable, duration=1002\nJun 22 11:39:22 ubuntu python3[1055]: 2018/06/22 11:39:22.427124 INFO Event: name=WALinuxAgent, op=ProcessGoalState, message=Incarnation 47, duration=1405\nJun 22 11:39:57 ubuntu sshd[37471]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=61.177.172.60  user=root\nJun 22 11:39:59 ubuntu sshd[37471]: Failed password for root from 61.177.172.60 port 57482 ssh2\nJun 22 11:40:01 ubuntu sshd[37471]: Failed password for root from 61.177.172.60 port 57482 ssh2\nJun 22 11:40:04 ubuntu sshd[37471]: Failed password for root from 61.177.172.60 port 57482 ssh2\nJun 22 11:40:04 ubuntu sshd[37471]: Received disconnect from 61.177.172.60 port 57482:11:  [preauth]\nJun 22 11:40:04 ubuntu sshd[37471]: Disconnected from 61.177.172.60 port 57482 [preauth]\nJun 22 11:40:04 ubuntu sshd[37471]: PAM 2 more authentication failures; logname= uid=0 euid=0 tty=ssh ruser= rhost=61.177.172.60  user=root\nJun 22 11:40:24 ubuntu python3[1055]: 2018/06/22 11:40:24.042860 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Target handler state: enabled\nJun 22 11:40:24 ubuntu python3[1055]: 2018/06/22 11:40:24.087845 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] [Enable] current handler state is: enabled\nJun 22 11:40:24 ubuntu python3[1055]: 2018/06/22 11:40:24.120786 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Update settings file: 46.settings\nJun 22 11:40:24 ubuntu python3[1055]: 2018/06/22 11:40:24.165278 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Enable extension [bin/run-command-shim enable]\nJun 22 11:40:25 ubuntu python3[1055]: 2018/06/22 11:40:25.205382 INFO Event: name=Microsoft.CPlat.Core.RunCommandLinux, op=Enable, message=Launch command succeeded: bin/run-command-shim enable, duration=1003\nJun 22 11:40:25 ubuntu python3[1055]: 2018/06/22 11:40:25.351438 INFO Event: name=WALinuxAgent, op=ProcessGoalState, message=Incarnation 48, duration=1451\nJun 22 11:40:53 ubuntu sshd[37565]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=61.177.172.60  user=root\nJun 22 11:40:55 ubuntu sshd[37565]: Failed password for root from 61.177.172.60 port 23100 ssh2\nJun 22 11:40:57 ubuntu sshd[37565]: Failed password for root from 61.177.172.60 port 23100 ssh2\nJun 22 11:40:59 ubuntu sshd[37565]: Failed password for root from 61.177.172.60 port 23100 ssh2\nJun 22 11:41:00 ubuntu sshd[37565]: Received disconnect from 61.177.172.60 port 23100:11:  [preauth]\nJun 22 11:41:00 ubuntu sshd[37565]: Disconnected from 61.177.172.60 port 23100 [preauth]\nJun 22 11:41:00 ubuntu sshd[37565]: PAM 2 more authentication failures; logname= uid=0 euid=0 tty=ssh ruser= rhost=61.177.172.60  user=root\nJun 22 11:41:27 ubuntu python3[1055]: 2018/06/22 11:41:27.005735 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Target handler state: enabled\nJun 22 11:41:27 ubuntu python3[1055]: 2018/06/22 11:41:27.028525 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] [Enable] current handler state is: enabled\nJun 22 11:41:27 ubuntu python3[1055]: 2018/06/22 11:41:27.065983 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Update settings file: 47.settings\nJun 22 11:41:27 ubuntu python3[1055]: 2018/06/22 11:41:27.097058 INFO [Microsoft.CPlat.Core.RunCommandLinux-1.0.0] Enable extension [bin/run-command-shim enable]\n\n[stderr]\n"
 				}
 			]
-		}
-		
+		},
+		"Groups": [
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/dashboard",
+				"name": "dashboard",
+				"region": "centralus",
+				"labels": {}
+			},
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/demo",
+				"name": "demo",
+				"region": "eastus",
+				"labels": {}
+			},
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/dynamic-template",
+				"name": "dynamic-template",
+				"region": "eastus",
+				"labels": {}
+			},
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/memsql",
+				"name": "memsql",
+				"region": "centralus",
+				"labels": {}
+			},
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/mongo",
+				"name": "mongo",
+				"region": "centralus",
+				"labels": {}
+			},
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/ragheb",
+				"name": "ragheb",
+				"region": "centralus",
+				"labels": {}
+			},
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/soajs",
+				"name": "soajs",
+				"region": "centralus"
+			}
+		]
+
+
 	}
 	return data;
 };
