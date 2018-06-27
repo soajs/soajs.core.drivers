@@ -11,29 +11,31 @@ let info = {};
 let options = {};
 describe.skip("testing /lib/azure/utils/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
-	
+
 	describe("calling authenticate", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
-		it.skip("Success", function (done) {
-			
+		it("Success", function (done) {
+
 			info = dD();
 			options = info.deployCluster;
+
 			service.authenticate(options, function (error, response) {
 				assert.ok(response);
 				done();
 			});
 		});
-		
-		it.skip("Success with credentials", function (done) {
+
+		it("Success with credentials", function (done) {
 			info = dD();
 			options = info.deployCluster;
 			options.returnCredentials = true;
 			//expected output format
 			let expectedRes  = {
 				"credentials": {
+					"signRequest": {},
 					"environment": {
 						"validateAuthority": true,
 						"name": "Azure",
@@ -87,17 +89,20 @@ describe.skip("testing /lib/azure/utils/index.js", function () {
 						"environmentName": "Azure",
 						"name": "Free Trial"
 					}
-				]
+				],
+				subscriptionId: '123'
+
 			};
 			service.authenticate(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
+				assert.deepEqual(response,expectedRes);
 				done();
 			});
 		});
-		
+
 		it("Error wrong credentials", function (done) {
-			
+
 			info = dD();
 			options = info.deployCluster;
 			service.authenticate(options, function (error, response) {
@@ -105,24 +110,23 @@ describe.skip("testing /lib/azure/utils/index.js", function () {
 				done();
 			});
 		});
-		
+
 		it("Error no credentials", function (done) {
 			info = dD();
 			options = {};
-			//expected output format
 			service.authenticate(options, function (error, response) {
 				assert.ok(error);
 				done();
 			});
 		});
 	});
-	
-	describe.skip("calling connector", function () {
+
+	describe("calling connector", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
-		
+
 		it("Success", function (done) {
 			info = dD();
 			options  = {
@@ -184,7 +188,7 @@ describe.skip("testing /lib/azure/utils/index.js", function () {
 				],
 				subscriptionId: '123'
 			};
-			options.api = '';
+			options.api = 'compute';
 			service.getConnector(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);

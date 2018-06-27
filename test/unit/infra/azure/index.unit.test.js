@@ -12,14 +12,14 @@ let dD = require('../../../schemas/azure/cluster.js');
 let info = {};
 let options = {};
 describe("testing /lib/azure/index.js", function () {
-	
+
 	describe("calling getExtras", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
 		let expectedRes =  {technologies: ['vm'], templates: ['local'], drivers: ['Terraform']};
-		
+
 		it("Success", function (done) {
 			service.getExtras(options, function (error, response) {
 				assert.ifError(error);
@@ -29,7 +29,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling getRegions", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -303,7 +303,7 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			
+
 			service.getRegions(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
@@ -312,7 +312,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling deployCluster", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -322,47 +322,70 @@ describe("testing /lib/azure/index.js", function () {
 			done();
 		});
 	});
-	
+
 	describe("calling getDeployClusterStatus", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
+		// let expectedRes={},
 		it("Success", function (done) {
-			done();
+			service.getDeployClusterStatus(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				//	assert.deepEqual(response, expectedRes);
+				done();
+			});
 		});
 	});
-	
+
 	describe("calling getDNSInfo", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
+		// let expectedRes={},
 		it("Success", function (done) {
-			done();
+			service.getDNSInfo(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				//	assert.deepEqual(response, expectedRes);
+				done();
+			});
 		});
 	});
-	
+
 	describe("calling scaleCluster", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
 		it("Success", function (done) {
-			done();
+			service.scaleCluster(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+			//	assert.deepEqual(response, expectedRes);
+				done();
+			});
 		});
 	});
-	
+
 	describe("calling getCluster", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
+		// let expectedRes={},
 		it("Success", function (done) {
-			done();
+			service.getCluster(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+			//	assert.deepEqual(response, expectedRes);
+				done();
+			});
 		});
 	});
-	
+
 	describe("calling updateCluster", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -372,7 +395,7 @@ describe("testing /lib/azure/index.js", function () {
 			done();
 		});
 	});
-	
+
 	describe("calling deleteCluster", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -382,44 +405,68 @@ describe("testing /lib/azure/index.js", function () {
 			done();
 		});
 	});
-	
+
 	describe("calling publishPorts", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
+		// let expectedRes={},
 		it("Success", function (done) {
-			done();
+			service.publishPorts(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				//	assert.deepEqual(response, expectedRes);
+				done();
+			});
 		});
 	});
-	
+
 	describe("calling deployExternalLb", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
+		// let expectedRes={},
 		it("Success", function (done) {
-			done();
+			service.deployExternalLb(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				//	assert.deepEqual(response, expectedRes);
+				done();
+			});
 		});
 	});
-	
+
 	describe("calling updateExternalLB", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
+		// let expectedRes={},
 		it("Success", function (done) {
-			done();
+			service.updateExternalLB(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				//	assert.deepEqual(response, expectedRes);
+				done();
+			});
 		});
 	});
-	
+
 	describe("calling deleteExternalLB", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
+		// let expectedRes={},
 		it("Success", function (done) {
-			done();
+			service.deleteExternalLB(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				//	assert.deepEqual(response, expectedRes);
+				done();
+			});
 		});
 	});
 });

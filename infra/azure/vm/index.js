@@ -173,7 +173,7 @@ const driver = {
 				});
 				computeClient.virtualMachines.restart(options.params.group, options.params.vmName, function (error, result) {
 					utils.checkError(error, 706, cb, () => {
-						return cb(null, true);
+						return cb(null, result);
 					});
 				});
 			});
@@ -566,6 +566,7 @@ const driver = {
 				});
 				networkClient.publicIPAddresses.list(options.params.group,function (error, publicIPAddresses) {
 					utils.checkError(error, 735, cb, () => {
+
 						async.map(publicIPAddresses, function(onepublicIPAddresse, callback) {
 							return callback(null, helper.buildPublicIPsRecord({ publicIPAddresse: onepublicIPAddresse }));
 						}, function(error, PublicIpsList) {
@@ -605,6 +606,7 @@ const driver = {
 						&& error.body.message.includes("Run command extension execution is in progress. Please wait for completion before invoking a run command."),
 						766, cb, () => {
 						utils.checkError(error, 736, cb, () => {
+						//	console.log(JSON.stringify(result, null,2) + "------------------------------------------");
 							return cb(null, result);
 						});
 					});
@@ -643,7 +645,7 @@ const driver = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-				computeClient.disks.listByResourceGroup(options.params.group, function (error, disks) {
+				computeClient.disks.list(options.params.group, function (error, disks) {
 					utils.checkError(error, 737, cb, () => {
 						async.concat(disks, function(oneDisk, callback) {
 							if(options.params && options.params.type) {
