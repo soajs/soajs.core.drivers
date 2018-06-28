@@ -513,7 +513,7 @@ const driver = {
 				networkClient.subnets.list(options.params.group, options.params.virtualNetworkName, function (error, subnets) {
 					utils.checkError(error, 733, cb, () => {
 						async.map(subnets, function(oneSubnet, callback) {
-							return callback(null, helper.bulidSubnetsRecord({ subnets: oneSubnet }));
+							return callback(null, helper.bulidSubnetsRecord({ subnet: oneSubnet }));
 						}, function(error, subnetsList) {
 							return cb(null, subnetsList);
 						});
