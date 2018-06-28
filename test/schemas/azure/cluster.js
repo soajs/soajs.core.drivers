@@ -13,7 +13,7 @@ let infra = {
 	],
 	"templates": null,
 	"drivers": [
-		"Native"
+		"terraform"
 	],
 	"label": "Azure Driver",
 	"deployments": [],
@@ -1166,7 +1166,6 @@ module.exports = function () {
 				}
 			]
 		}
-		
-	}
+	};
 	return data;
 };

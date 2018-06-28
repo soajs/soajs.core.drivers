@@ -75,6 +75,11 @@ describe("testing /lib/azure/index.js", function () {
 							return cb(null, info.publicIp[ipName]);
 						}
 					},
+					networkInterfaceLoadBalancers: {
+						list: (resourceGroupName, networkInterfaceName, cb) => {
+							return cb(null, []);
+						}
+					},
 					subnets: {
 						get: (resourceGroupName, vnetName, subnetName, cb) => {
 							return cb(null, info.subnets[vnetName]);
@@ -175,6 +180,11 @@ describe("testing /lib/azure/index.js", function () {
 					publicIPAddresses: {
 						get: (resourceGroupName, ipName, cb) => {
 							return cb(null, info.publicIp[ipName])
+						}
+					},
+					networkInterfaceLoadBalancers: {
+						list: (resourceGroupName, networkInterfaceName, cb) => {
+							return cb(null, []);
 						}
 					},
 					subnets: {
@@ -756,10 +766,17 @@ describe("testing /lib/azure/index.js", function () {
 			options.params = {
 				resourceGroupName: "tester",
 			};
+			let expectedRes = [
+				{
+					"name": "tester-lb",
+					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-lb",
+					"region": "centralus"
+				}
+			];
 			service.executeDriver('listLoadBalancers', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(info.loadBalancers, response);
+				assert.deepEqual(expectedRes, response);
 				done();
 			});
 		});
@@ -942,7 +959,6 @@ describe("testing /lib/azure/index.js", function () {
 				.returns({
 					virtualMachines: {
 						runCommand: (resourceGroupName, vmName, params, cb) => {
-							console.log(params, "SDSADASDASDASDASDAS")
 							return params.script && params.script.length ? cb(null, info.runCommand) : cb(true);
 						}
 					},
