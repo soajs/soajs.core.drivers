@@ -103,9 +103,6 @@ const driver = {
 										vmRecordOptions.publicIp = networkInfo.publicIp;
 										vmRecordOptions.subnet = networkInfo.subnet;
 										vmRecordOptions.virtualNetworkName = networkInfo.virtualNetworkName;
-										if(networkInfo.loadBalancers && Array.isArray(networkInfo.loadBalancers) && networkInfo.loadBalancers.length > 0) {
-											vmRecordOptions.loadBalancers = networkInfo.loadBalancers;
-										}
 									}
 
 									return callback(null, helper.buildVMRecord(vmRecordOptions));
@@ -606,7 +603,7 @@ const driver = {
 						&& error.body.message.includes("Run command extension execution is in progress. Please wait for completion before invoking a run command."),
 						766, cb, () => {
 						utils.checkError(error, 736, cb, () => {
-						//	console.log(JSON.stringify(result, null,2) + "------------------------------------------");
+
 							return cb(null, result);
 						});
 					});

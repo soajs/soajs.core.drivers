@@ -12,7 +12,7 @@ let options = {};
 
 describe("testing /lib/azure/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
-	
+
 	describe("calling executeDriver - authenticate", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -22,7 +22,7 @@ describe("testing /lib/azure/index.js", function () {
 			done();
 		});
 	});
-	
+
 	describe("calling executeDriver -  deployService", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -32,7 +32,7 @@ describe("testing /lib/azure/index.js", function () {
 			done();
 		});
 	});
-	
+
 	describe("calling executeDriver - inspectService", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -46,7 +46,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -85,7 +85,7 @@ describe("testing /lib/azure/index.js", function () {
 							return cb(null, info.subnets[vnetName]);
 						}
 					},
-					
+
 				});
 			let expectedResponce = {
 				"name": "tester-vm",
@@ -139,7 +139,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listServices", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -153,7 +153,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -192,7 +192,7 @@ describe("testing /lib/azure/index.js", function () {
 							return cb(null, info.subnets[vnetName]);
 						}
 					},
-					
+
 				});
 			let expectedResponce = [
 				{
@@ -335,7 +335,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - deleteService", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -347,7 +347,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -366,7 +366,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - restartService", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -378,7 +378,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -412,7 +412,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - redeployService", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -424,7 +424,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -448,7 +448,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - powerOffVM", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -460,7 +460,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -489,7 +489,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - startVM", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -501,7 +501,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -530,7 +530,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - deleteResourceGroup", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -552,7 +552,7 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			
+
 			options = info.deployCluster;
 			options.params = {
 				env: "tester"
@@ -564,7 +564,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listVmSizes", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -586,7 +586,7 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			
+
 			options = info.deployCluster;
 			options.params = {
 				location: "eastus"
@@ -599,7 +599,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listVmImagePublishers", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -607,7 +607,7 @@ describe("testing /lib/azure/index.js", function () {
 		});
 		it("Success", function (done) {
 			info = dD();
-			
+
 			sinon
 				.stub(serviceUtils, 'authenticate')
 				.yields(null, {
@@ -634,7 +634,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listVmImagePublisherOffers", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -656,7 +656,7 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			
+
 			options = info.deployCluster;
 			options.params = {
 				location: "eastus",
@@ -670,7 +670,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listVmImageVersions", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -706,7 +706,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listNetworks", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -740,7 +740,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listLoadBalancers", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -781,7 +781,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listSubnets", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -816,7 +816,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listSecurityGroups", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -838,7 +838,7 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			
+
 			options = info.deployCluster;
 			options.params = {
 				resourceGroupName: "tester",
@@ -848,11 +848,10 @@ describe("testing /lib/azure/index.js", function () {
 				{
 					"name": "tester-sg",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-sg",
-					"region": "eastus",
 					"tags": {}
 				}
 			];
-			
+
 			service.executeDriver('listSecurityGroups', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
@@ -861,7 +860,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listPublicIps", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -883,7 +882,7 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			
+
 			options = info.deployCluster;
 			options.params = {
 				resourceGroupName: "tester",
@@ -906,8 +905,8 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
-	
+
+
 	describe("calling executeDriver - listDisks", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -941,8 +940,8 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
-	
+
+
 	describe("calling executeDriver - runCommand", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -973,6 +972,101 @@ describe("testing /lib/azure/index.js", function () {
 				env: ["rayan=test"]
 			};
 			service.executeDriver('runCommand', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				assert.deepEqual(info.runCommand, response);
+				done();
+			});
+		});
+	});
+
+	describe("calling executeDriver - listGroups", function () {
+		afterEach((done) => {
+			sinon.restore();
+			done();
+		});
+		it("Success", function (done) {
+			info = dD();
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+			sinon
+				.stub(serviceUtils, 'getConnector')
+				.returns({
+					resourceGroups: {
+						list: (cb) => {
+							return cb(null, info.Groups)
+						}
+					},
+				});
+				info = dD();
+				options = info.deployCluster;
+				let expected = [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/dashboard",
+						"name": "dashboard"
+					},
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/demo",
+						"name": "demo"
+					},
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/dynamic-template",
+						"name": "dynamic-template"
+					},
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/memsql",
+						"name": "memsql"
+					},
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/mongo",
+						"name": "mongo"
+					},
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/ragheb",
+						"name": "ragheb"
+					},
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/soajs",
+						"name": "soajs"
+					}
+				];
+
+			service.executeDriver('listGroups',options, function (error, response) {
+
+				assert.ifError(error);
+				assert.ok(response);
+				assert.deepEqual(expected, response);
+				done();
+			});
+		});
+	});
+
+	describe("calling executeDriver - getLogs", function () {
+		afterEach((done) => {
+			sinon.restore();
+			done();
+		});
+		it("Success", function (done) {
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+			sinon
+				.stub(serviceUtils, 'getConnector')
+				.returns({
+					virtualMachines: {
+						runCommand: (resourceGroupName, vmName, params, cb) => {
+							return params.script && params.script.length ? cb(null, info.runCommand) : cb(true);
+						}
+					},
+				});
+			info = dD();
+			options = info.deployCluster;
+			service.executeDriver('getLogs', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(info.runCommand, response);
