@@ -73,6 +73,13 @@ const helper = {
 			record.network = opts.virtualNetworkName;
 		}
 
+		if(opts.loadBalancers && Array.isArray(opts.loadBalancers) && opts.loadBalancers.length > 0) {
+			record.loadBalancers = [];
+			opts.loadBalancers.forEach(function(oneLoadBalancer) {
+				record.loadBalancers.push(helper.buildLoadBalancerRecord({ loadBalancer: oneLoadBalancer }));
+			});
+		}
+
 		// record.servicePortType = "";
 
 		return record;
@@ -210,15 +217,32 @@ const helper = {
 		return record;
 	},
 
-	buildLoadBalancersRecord: function (opts) {
+	buildLoadBalancerRecord: function (opts) {
 		let record = {};
-		if(opts.loadBlanacer){
-			if (opts.loadBlanacer.name) record.name = opts.loadBlanacer.name;
-			if (opts.loadBlanacer.id) record.id = opts.loadBlanacer.id;
-			if (opts.loadBlanacer.location) record.location = opts.loadBlanacer.location;
+		if(opts.loadBalancer){
+			if (opts.loadBalancer.name) record.name = opts.loadBalancer.name;
+			if (opts.loadBalancer.id) record.id = opts.loadBalancer.id;
+			if (opts.loadBalancer.location) record.region = opts.loadBalancer.location;
+
+			if(opts.loadBalancer.frontendIPConfigurations && Array.isArray(opts.loadBalancer.frontendIPConfigurations) && opts.loadBalancer.frontendIPConfigurations.length > 0) {
+				record.configs = [];
+				opts.loadBalancer.frontendIPConfigurations.forEach(function(oneConfig) {
+					let oneEntry = {};
+					if(oneConfig.privateIPAddress) {
+						oneEntry.privateIpAddress = oneConfig.privateIPAddress;
+					}
+					if(oneConfig.publicIPAddress && oneConfig.publicIPAddress.id) {
+						oneEntry.publicIpAddressId = oneConfig.publicIPAddress.id;
+						oneEntry.publicIpAddressName = oneConfig.publicIPAddress.id.split('/').pop();
+					}
+					record.configs.push(oneEntry);
+				});
+			}
 		}
+
 		return record;
 	},
+
 
 	bulidSubnetsRecord: function (opts) {
 		let record = {};
@@ -404,6 +428,7 @@ const helper = {
 					securityGroup: results.getSecurityGroup,
 					publicIp: results.getPublicIp,
 					subnet: results.getSubnet,
+					loadBalancers: results.getLoadBalancers,
 					virtualNetworkName: vnetName
 				});
 			});
