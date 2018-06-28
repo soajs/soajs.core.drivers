@@ -831,7 +831,6 @@ describe("testing /lib/azure/index.js", function () {
 				{
 					"name": "tester-sg",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-sg",
-					"region": "eastus",
 					"tags": {}
 				}
 			];
@@ -980,23 +979,49 @@ describe("testing /lib/azure/index.js", function () {
 				.stub(serviceUtils, 'getConnector')
 				.returns({
 					resourceGroups: {
-						list: (resourceGroupName, cb) => {
+						list: (cb) => {
 							return cb(null, info.Groups)
 						}
 					},
 				});
+				info = dD();
+				options = info.deployCluster;
+				let expected = [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/dashboard",
+						"name": "dashboard"
+					},
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/demo",
+						"name": "demo"
+					},
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/dynamic-template",
+						"name": "dynamic-template"
+					},
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/memsql",
+						"name": "memsql"
+					},
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/mongo",
+						"name": "mongo"
+					},
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/ragheb",
+						"name": "ragheb"
+					},
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/soajs",
+						"name": "soajs"
+					}
+				];
 
-			options = info.deployCluster;
-			options.params = {
-				resourceGroupName: "tester",
-				virtualNetworkName: "tester-vn",
-			};
+			service.executeDriver('listGroups',options, function (error, response) {
 
-
-			service.executeDriver('listGroups', function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(info.Groups, response);
+				assert.deepEqual(expected, response);
 				done();
 			});
 		});

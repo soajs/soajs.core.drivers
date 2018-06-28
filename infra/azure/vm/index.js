@@ -103,9 +103,6 @@ const driver = {
 										vmRecordOptions.publicIp = networkInfo.publicIp;
 										vmRecordOptions.subnet = networkInfo.subnet;
 										vmRecordOptions.virtualNetworkName = networkInfo.virtualNetworkName;
-										if(networkInfo.loadBalancers && Array.isArray(networkInfo.loadBalancers) && networkInfo.loadBalancers.length > 0) {
-											vmRecordOptions.loadBalancers = networkInfo.loadBalancers;
-										}
 									}
 
 									return callback(null, helper.buildVMRecord(vmRecordOptions));
@@ -476,7 +473,7 @@ const driver = {
 				networkClient.loadBalancers.list(options.params.group, function (error, loadBalancers) {
 					utils.checkError(error, 732, cb, () => {
 						async.map(loadBalancers, function(oneloadBalancer, callback) {
-							return callback(null, helper.buildLoadBalancerRecord({ loadBlanacer: oneloadBalancer }));
+							return callback(null, helper.buildLoadBalancersRecord({ loadBlanacer: oneloadBalancer }));
 						}, function(error, loadBalancersList) {
 							return cb(null, loadBalancersList);
 						});
@@ -606,7 +603,7 @@ const driver = {
 						&& error.body.message.includes("Run command extension execution is in progress. Please wait for completion before invoking a run command."),
 						766, cb, () => {
 						utils.checkError(error, 736, cb, () => {
-						//	console.log(JSON.stringify(result, null,2) + "------------------------------------------");
+
 							return cb(null, result);
 						});
 					});
