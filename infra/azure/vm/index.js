@@ -103,6 +103,9 @@ const driver = {
 										vmRecordOptions.publicIp = networkInfo.publicIp;
 										vmRecordOptions.subnet = networkInfo.subnet;
 										vmRecordOptions.virtualNetworkName = networkInfo.virtualNetworkName;
+										if(networkInfo.loadBalancers && Array.isArray(networkInfo.loadBalancers) && networkInfo.loadBalancers.length > 0) {
+											vmRecordOptions.loadBalancers = networkInfo.loadBalancers;
+										}
 									}
 
 									return callback(null, helper.buildVMRecord(vmRecordOptions));

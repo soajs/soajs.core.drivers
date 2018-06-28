@@ -73,6 +73,13 @@ const helper = {
 			record.network = opts.virtualNetworkName;
 		}
 
+		if(opts.loadBalancers && Array.isArray(opts.loadBalancers) && opts.loadBalancers.length > 0) {
+			record.loadBalancers = [];
+			opts.loadBalancers.forEach(function(oneLoadBalancer) {
+				record.loadBalancers.push(helper.buildLoadBalancerRecord({ loadBalancer: oneLoadBalancer }));
+			});
+		}
+
 		// record.servicePortType = "";
 
 		return record;
@@ -210,15 +217,32 @@ const helper = {
 		return record;
 	},
 
-	buildLoadBalancersRecord: function (opts) {
+	buildLoadBalancerRecord: function (opts) {
 		let record = {};
-		if(opts.loadBlanacer){
-			if (opts.loadBlanacer.name) record.name = opts.loadBlanacer.name;
-			if (opts.loadBlanacer.id) record.id = opts.loadBlanacer.id;
-			if (opts.loadBlanacer.location) record.location = opts.loadBlanacer.location;
+		if(opts.loadBalancer){
+			if (opts.loadBalancer.name) record.name = opts.loadBalancer.name;
+			if (opts.loadBalancer.id) record.id = opts.loadBalancer.id;
+			if (opts.loadBalancer.location) record.region = opts.loadBalancer.location;
+
+			if(opts.loadBalancer.frontendIPConfigurations && Array.isArray(opts.loadBalancer.frontendIPConfigurations) && opts.loadBalancer.frontendIPConfigurations.length > 0) {
+				record.configs = [];
+				opts.loadBalancer.frontendIPConfigurations.forEach(function(oneConfig) {
+					let oneEntry = {};
+					if(oneConfig.privateIPAddress) {
+						oneEntry.privateIpAddress = oneConfig.privateIPAddress;
+					}
+					if(oneConfig.publicIPAddress && oneConfig.publicIPAddress.id) {
+						oneEntry.publicIpAddressId = oneConfig.publicIPAddress.id;
+						oneEntry.publicIpAddressName = oneConfig.publicIPAddress.id.split('/').pop();
+					}
+					record.configs.push(oneEntry);
+				});
+			}
 		}
+
 		return record;
 	},
+
 
 	bulidSubnetsRecord: function (opts) {
 		let record = {};
@@ -373,20 +397,29 @@ const helper = {
 			async.auto({
 				getSecurityGroup: function(callback) {
 					networkClient.networkSecurityGroups.get(resourceGroupName, networkSecurityGroupName, function (error, securityGroup) {
-						if (error) return callback(error);
-						return callback(null, securityGroup);
+						if (error) opts.log.warn(`Unable to get security group ${networkSecurityGroupName}`);
+						return callback(null, securityGroup || {});
 					});
 				},
 				getPublicIp: function(callback) {
+					if (!ipName){
+						return callback(null, true);
+					}
 					networkClient.publicIPAddresses.get(resourceGroupName, ipName, function (error, publicIp) {
-						if (error) return cb(error);
-						return callback(null, publicIp);
+						if (error) opts.log.warn(`Unable to get public ip address ${ipName}`);
+						return callback(null, publicIp || {});
 					});
 				},
 				getSubnet: function(callback) {
 					networkClient.subnets.get(resourceGroupName, vnetName, subnetName, function(error, subnet) {
-						if (error) return cb(error);
-						return callback(null, subnet);
+						if (error) opts.log.warn(`Unable to get subnet ${subnetName} in network ${vnetName}`);
+						return callback(null, subnet || {});
+					});
+				},
+				getLoadBalancers: function(callback) {
+					networkClient.networkInterfaceLoadBalancers.list(resourceGroupName, networkInterfaceName, function(error, loadBalancers) {
+						if (error) opts.log.warn(`Unable to get load balancers for network interface ${networkInterfaceName}`);
+						return callback(null, loadBalancers || []);
 					});
 				}
 			}, function(error, results) {
@@ -395,6 +428,7 @@ const helper = {
 					securityGroup: results.getSecurityGroup,
 					publicIp: results.getPublicIp,
 					subnet: results.getSubnet,
+					loadBalancers: results.getLoadBalancers,
 					virtualNetworkName: vnetName
 				});
 			});
