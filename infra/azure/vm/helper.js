@@ -56,9 +56,26 @@ const helper = {
 		}
 
 		record.env = [];
+		record.ip = [];
 
-		if (opts.publicIp && opts.publicIp.ipAddress) {
-			record.ip = opts.publicIp.ipAddress;
+		if(opts.publicIp && opts.publicIp.ipAddress) {
+			record.ip.push({
+				type: 'public',
+				allocatedTo: 'instance',
+				address: opts.publicIp.ipAddress
+			});
+		}
+
+		if(opts.networkInterface && opts.networkInterface.ipConfigurations){
+			opts.networkInterface.ipConfigurations.forEach(function(oneIpConfig) {
+				if(oneIpConfig.privateIPAddress) {
+					record.ip.push({
+						type: 'private',
+						allocatedTo: 'instance',
+						address: oneIpConfig.privateIPAddress
+					});
+				}
+			});
 		}
 
 		if (opts.securityGroup && opts.securityGroup.securityRules) {
@@ -76,7 +93,18 @@ const helper = {
 		if(opts.loadBalancers && Array.isArray(opts.loadBalancers) && opts.loadBalancers.length > 0) {
 			record.loadBalancers = [];
 			opts.loadBalancers.forEach(function(oneLoadBalancer) {
-				record.loadBalancers.push(helper.buildLoadBalancerRecord({ loadBalancer: oneLoadBalancer }));
+				let loadBalancerRecord = helper.buildLoadBalancerRecord({ loadBalancer: oneLoadBalancer, publicIpsList: opts.publicIpsList });
+				record.loadBalancers.push(loadBalancerRecord);
+
+				if(loadBalancerRecord.ipAddresses && Array.isArray(loadBalancerRecord.ipAddresses)) {
+					loadBalancerRecord.ipAddresses.forEach(function(oneRecord) {
+						record.ip.push({
+							type: oneRecord.type,
+							allocatedTo: 'loadBalancer',
+							address: oneRecord.address
+						});
+					});
+				}
 			});
 		}
 
@@ -225,17 +253,26 @@ const helper = {
 			if (opts.loadBalancer.location) record.region = opts.loadBalancer.location;
 
 			if(opts.loadBalancer.frontendIPConfigurations && Array.isArray(opts.loadBalancer.frontendIPConfigurations) && opts.loadBalancer.frontendIPConfigurations.length > 0) {
-				record.configs = [];
+				record.ipAddresses = [];
 				opts.loadBalancer.frontendIPConfigurations.forEach(function(oneConfig) {
 					let oneEntry = {};
 					if(oneConfig.privateIPAddress) {
-						oneEntry.privateIpAddress = oneConfig.privateIPAddress;
+						oneEntry.address = oneConfig.privateIPAddress;
+						oneEntry.type = 'private';
 					}
 					if(oneConfig.publicIPAddress && oneConfig.publicIPAddress.id) {
-						oneEntry.publicIpAddressId = oneConfig.publicIPAddress.id;
-						oneEntry.publicIpAddressName = oneConfig.publicIPAddress.id.split('/').pop();
+						if(opts.publicIpsList) {
+							for (let i = 0; i < opts.publicIpsList.length; i++) {
+								if(opts.publicIpsList[i].id === oneConfig.publicIPAddress.id) {
+									oneEntry.type = 'public';
+									oneEntry.name = opts.publicIpsList[i].name || '';
+									oneEntry.address = opts.publicIpsList[i].ipAddress || '';
+									break;
+								}
+							}
+						}
 					}
-					record.configs.push(oneEntry);
+					record.ipAddresses.push(oneEntry);
 				});
 			}
 		}
@@ -432,6 +469,13 @@ const helper = {
 					virtualNetworkName: vnetName
 				});
 			});
+		});
+	},
+
+	listPublicIps: function(networkClient, opts, cb) {
+		networkClient.publicIPAddresses.listAll(function (error, publicIps) {
+			if(error) return cb(error);
+			return cb(null, publicIps);
 		});
 	}
 };

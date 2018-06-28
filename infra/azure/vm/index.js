@@ -35,18 +35,21 @@ const driver = {
 							if (error) {
 								options.soajs.log.error(`Unable to get network information for ${vmInfo.name} while inspecting`);
 								options.soajs.log.error(error);
-							}
-							else {
-								vmRecordOptions.securityGroup = networkInfo.securityGroup;
-								vmRecordOptions.publicIp = networkInfo.publicIp;
-								vmRecordOptions.subnet = networkInfo.subnet;
-								vmRecordOptions.virtualNetworkName = networkInfo.virtualNetworkName;
-								if(networkInfo.loadBalancers && Array.isArray(networkInfo.loadBalancers) && networkInfo.loadBalancers.length > 0) {
-									vmRecordOptions.loadBalancers = networkInfo.loadBalancers;
-								}
+								return cb(null, helper.buildVMRecord(vmRecordOptions));
 							}
 
-							return cb(null, helper.buildVMRecord(vmRecordOptions));
+							// list available ip addresses to map them later on to the instance's load balancer
+							helper.listPublicIps(networkClient, {}, function(error, publicIps = []) {
+								if (error) {
+									options.soajs.log.error(`Unable to list all available public ip addresses`);
+									options.soajs.log.error(error);
+								}
+
+								vmRecordOptions = Object.assign(vmRecordOptions, networkInfo);
+								vmRecordOptions.publicIpsList = publicIps;
+
+								return cb(null, helper.buildVMRecord(vmRecordOptions));
+							});
 						});
 					});
 				});
@@ -91,26 +94,30 @@ const driver = {
 
 						helper.filterVMs(group, vms, function (error, filteredVms) {
 							//no error is returned by function
-							async.map(filteredVms, function (oneVm, callback) {
-								let vmRecordOptions = {vm: oneVm};
-								helper.getVmNetworkInfo(networkClient, {vm: oneVm, log: options.soajs.log}, function (error, networkInfo) {
-									if (error) {
-										options.soajs.log.error(`Unable to get network information for ${oneVm.name} while inspecting`);
-										options.soajs.log.error(error);
-									}
-									else {
-										vmRecordOptions.securityGroup = networkInfo.securityGroup;
-										vmRecordOptions.publicIp = networkInfo.publicIp;
-										vmRecordOptions.subnet = networkInfo.subnet;
-										vmRecordOptions.virtualNetworkName = networkInfo.virtualNetworkName;
-										if(networkInfo.loadBalancers && Array.isArray(networkInfo.loadBalancers) && networkInfo.loadBalancers.length > 0) {
-											vmRecordOptions.loadBalancers = networkInfo.loadBalancers;
-										}
-									}
 
-									return callback(null, helper.buildVMRecord(vmRecordOptions));
-								});
-							}, cb);
+							// list available ip addresses to map them later on to the instances' load balancers
+							helper.listPublicIps(networkClient, {}, function(error, publicIps = []) {
+								if (error) {
+									options.soajs.log.error(`Unable to list all available public ip addresses`);
+									options.soajs.log.error(error);
+								}
+
+								async.map(filteredVms, function (oneVm, callback) {
+									let vmRecordOptions = {vm: oneVm};
+									helper.getVmNetworkInfo(networkClient, {vm: oneVm, log: options.soajs.log}, function (error, networkInfo) {
+										if (error) {
+											options.soajs.log.error(`Unable to get network information for ${oneVm.name} while inspecting`);
+											options.soajs.log.error(error);
+										}
+										else {
+											vmRecordOptions = Object.assign(vmRecordOptions, networkInfo);
+											vmRecordOptions.publicIpsList = publicIps;
+										}
+
+										return callback(null, helper.buildVMRecord(vmRecordOptions));
+									});
+								}, cb);
+							});
 						});
 					});
 				});
