@@ -73,6 +73,9 @@ describe("testing /lib/azure/index.js", function () {
 					publicIPAddresses: {
 						get: (resourceGroupName, ipName, cb) => {
 							return cb(null, info.publicIp[ipName]);
+						},
+						listAll: (cb) => {
+							return cb(null, [info.publicIp])
 						}
 					},
 					networkInterfaceLoadBalancers: {
@@ -124,7 +127,18 @@ describe("testing /lib/azure/index.js", function () {
 					}
 				],
 				"env": [],
-				"ip": "40.121.55.181"
+				"ip": [
+					{
+						"address": "40.121.55.181",
+						"allocatedTo": "instance",
+						"type": "public"
+					},
+					{
+						"address": "10.0.2.4",
+						"allocatedTo": "instance",
+						"type": "private"
+					}
+				]
 			};
 			options.env = 'tester';
 			options.params = {
@@ -180,6 +194,9 @@ describe("testing /lib/azure/index.js", function () {
 					publicIPAddresses: {
 						get: (resourceGroupName, ipName, cb) => {
 							return cb(null, info.publicIp[ipName])
+						},
+						listAll: (cb) => {
+							return cb(null, [info.publicIp])
 						}
 					},
 					networkInterfaceLoadBalancers: {
@@ -232,7 +249,18 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					],
 					"env": [],
-					"ip": "40.121.55.181"
+					"ip": [
+						{
+							"address": "40.121.55.181",
+							"allocatedTo": "instance",
+							"type": "public"
+						},
+						{
+							"address": "10.0.2.4",
+							"allocatedTo": "instance",
+							"type": "private"
+						}
+					]
 				},
 				{
 					"name": "mongo",
@@ -276,7 +304,18 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					],
 					"env": [],
-					"ip": "104.43.136.85"
+					"ip": [
+						{
+							"address": "104.43.136.85",
+							"allocatedTo": "instance",
+							"type": "public"
+						},
+						{
+							"address": "10.0.0.4",
+							"allocatedTo": "instance",
+							"type": "private"
+						}
+					]
 				},
 				{
 					"name": "mysql",
@@ -320,7 +359,18 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					],
 					"env": [],
-					"ip": "104.43.151.227"
+					"ip": [
+						{
+							"address": "104.43.151.227",
+							"allocatedTo": "instance",
+							"type": "public"
+						},
+						{
+							"address": "10.0.1.4",
+							"allocatedTo": "instance",
+							"type": "private"
+						}
+					]
 				}
 			];
 			options.env = 'tester';
