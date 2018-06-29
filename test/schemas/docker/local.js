@@ -775,6 +775,18 @@ module.exports = function () {
 								"SOAJS_GIT_COMMIT": {
 									"type": "computed",
 									"value": "$SOAJS_GIT_COMMIT"
+								},
+								"SOAJS_NX_CONTROLLER_NB": {
+									"type": "computed",
+									"value": "$SOAJS_NX_CONTROLLER_NB"
+								},
+								"SOAJS_NX_CONTROLLER_IP": {
+									"type": "computed",
+									"value": "$SOAJS_NX_CONTROLLER_IP_N"
+								},
+								"SOAJS_NX_CONTROLLER_PORT": {
+									"type": "computed",
+									"value": "$SOAJS_NX_CONTROLLER_PORT"
 								}
 							},
 							"cmd": {

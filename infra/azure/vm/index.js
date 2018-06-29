@@ -606,7 +606,6 @@ const driver = {
 						&& error.body.message.includes("Run command extension execution is in progress. Please wait for completion before invoking a run command."),
 						766, cb, () => {
 						utils.checkError(error, 736, cb, () => {
-						//	console.log(JSON.stringify(result, null,2) + "------------------------------------------");
 							return cb(null, result);
 						});
 					});

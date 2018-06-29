@@ -141,7 +141,7 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 
 			done();
 		});
-		it("Success deploy mongo", function (done) {
+		it("Success deploy mongo deployment", function (done) {
 			kubeData = dD();
 			options = kubeData.deployer;
 			options.params = kubeData.deployServiceParams;
@@ -206,6 +206,113 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 						}
 					},
 					deployment :{
+						post: (params, cb) => {
+							return cb(null, kubeData.deploymentMongo)
+						}
+					}
+				}
+			};
+			namespaces.get = (params, cb)=>{
+				return cb(null, kubeData.namespaces)
+			};
+			
+			//deployer.core.namespaces.get
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					core: {
+						namespaces: namespaces,
+						secrets : {
+							get: (cb) => {
+								return cb(null, kubeData.secrets)
+							}
+						},
+						namespace: {
+							post: (params, cb)=>{
+								return cb(null, true);
+							}
+						}
+					},
+					autoscaling: {
+						namespaces: namespaces,
+					},
+					extensions: {
+						namespaces: namespaces,
+					}
+				});
+			services.deployService(options, function (error, res) {
+				assert.ok(res);
+				done();
+			});
+		});
+		
+		it("Success deploy mongo daemonset", function (done) {
+			kubeData = dD();
+			options = kubeData.deployer;
+			options.params = kubeData.deployServiceParams;
+			options.params.inputmaskData.deployConfig.replication.mode ='daemonset';
+			delete options.params.inputmaskData.autoScale;
+			let response = {
+				name: '3.4.10',
+				full_size: 131854682,
+				images:
+					[{
+						size: 2926599685,
+						architecture: 'amd64',
+						variant: null,
+						features: null,
+						os: 'windows',
+						os_version: '10.0.16299.125',
+						os_features: null
+					},
+						{
+							size: 5441722307,
+							architecture: 'amd64',
+							variant: null,
+							features: null,
+							os: 'windows',
+							os_version: '10.0.14393.2007',
+							os_features: null
+						},
+						{
+							size: 131854682,
+							architecture: 'amd64',
+							variant: null,
+							features: null,
+							os: 'linux',
+							os_version: null,
+							os_features: null
+						}],
+				id: 17096438,
+				repository: 21412,
+				creator: 1156886,
+				last_updater: 1156886,
+				last_updated: '2018-01-05T04:53:33.261088Z',
+				image_id: null,
+				v2: true
+			};
+			let nocks = nock('https://hub.docker.com', {'cache-control': 'no-cache'})
+				.get('/v2/repositories/library/mongo/tags/3.4.10')
+				.reply(200, response);
+			
+			let namespaces = () => {
+				return {
+					services: {
+						post: (params, cb) => {
+							return cb(null, true)
+						}
+					},
+					hpa: {
+						post: (params, cb) => {
+							return cb(null, true)
+						}
+					},
+					serviceaccounts :{
+						post: (params, cb) => {
+							return cb(null, true)
+						}
+					},
+					daemonset :{
 						post: (params, cb) => {
 							return cb(null, kubeData.deploymentMongo)
 						}
