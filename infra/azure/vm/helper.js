@@ -99,9 +99,9 @@ const helper = {
 				if(loadBalancerRecord.ipAddresses && Array.isArray(loadBalancerRecord.ipAddresses)) {
 					loadBalancerRecord.ipAddresses.forEach(function(oneRecord) {
 						record.ip.push({
-							type: oneRecord.type,
+							type: oneRecord.type || '',
 							allocatedTo: 'loadBalancer',
-							address: oneRecord.address
+							address: oneRecord.address || ''
 						});
 					});
 				}
@@ -156,17 +156,6 @@ const helper = {
 	            record.label += ` / HD: ${hd}MB`;
 	        }
         }
-
-		return record;
-	},
-
-	buildRunCommmand: function(opts){
-		let record ={};
-
-		if(opts.runCommand){
-			if (opts.runCommand.name) record.name = opts.runCommand.name;
-    		if (opts.runCommand.status) record.status = opts.runCommand.status;
-		}
 
 		return record;
 	},
@@ -306,58 +295,17 @@ const helper = {
 		return record;
 	},
 	buildSecurityGroupsRecord: function (opts) {
-
 		let record = {};
 		if(opts.networkSecurityGroups){
 			if (opts.networkSecurityGroups.name) record.name = opts.networkSecurityGroups.name;
 			if (opts.networkSecurityGroups.id) record.id = opts.networkSecurityGroups.id;
 			if (opts.networkSecurityGroups.region) record.region = opts.networkSecurityGroups.region;
-			if (opts.networkSecurityGroups.ports){
-				for(let i = 0 ; i < opts.networkSecurityGroups.ports.length ; i++){
-					record.ports.push(  helper.builddPortsRecord({subnet :opts.networkSecurityGroups.ports[i] }));
-				}
+			if (opts.networkSecurityGroups.securityRules && Array.isArray(opts.networkSecurityGroups.securityRules) && opts.networkSecurityGroups.securityRules.length> 0){
+				record.ports = helper.buildPortsArray(opts.networkSecurityGroups.securityRules);
 			}
-			if (opts.networkSecurityGroups.tags) record.tags = opts.networkSecurityGroups.tags;
+			if (opts.networkSecurityGroups.tags) opts.networkSecurityGroups.tags = record.tags;
 		}
 		return record;
-	},
-
-	builddPortsRecord: function (opts) {
-		let record = {};
-		if(opts.ports){
-			if (opts.ports.name) record.name = opts.ports.name;
-			if (opts.ports.target) record.target = opts.ports.target;
-			if (opts.ports.published) record.published = opts.ports.published;
-			if (opts.ports.isPublished) record.isPublished = opts.ports.isPublished;
-		}
-
-		return record;
-	},
-
-	buildSecurityRules: function (ports) {
-		let securityRules = [];
-		let priority = 100;
-
-		if (Array.isArray(ports)) {
-			ports.forEach(onePort => {
-				securityRules.push({
-					name: onePort.name,
-					properties: {
-						priority: priority,
-						protocol: "*",
-						access: "Allow",
-						direction: "Inbound",
-						sourceAddressPrefix: "*",
-						sourcePortRange: "*",
-						destinationAddressPrefix: "*",
-						destinationPortRange: (onePort.published) ? onePort.published : (Math.floor(Math.random() * 2768) + 30000)
-					}
-				});
-				priority += 10;
-			});
-		}
-
-		return securityRules;
 	},
 
 	buildPortsArray: function (securityRules) {
