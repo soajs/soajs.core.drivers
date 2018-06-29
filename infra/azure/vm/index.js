@@ -530,7 +530,7 @@ const driver = {
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-
+	
 	listSecurityGroups: function (options, cb) {
 		options.soajs.log.debug(`Listing securityGroups for resourcegroup ${options.params.group} `);
 		driverUtils.authenticate(options, (error, authData) => {

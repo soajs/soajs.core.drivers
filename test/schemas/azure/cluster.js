@@ -1012,6 +1012,27 @@ module.exports = function () {
 				"provisioningState": "Succeeded",
 				"etag": "W/\"4432dc5f-04b1-4dcd-9719-7d76d9e8152f\""
 			},
+			"tester-tester-ip": {
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-tester-ip",
+				"name": "tester-tester-ip",
+				"type": "Microsoft.Network/publicIPAddresses",
+				"location": "centralus",
+				"tags": {},
+				"sku": {
+					"name": "Basic"
+				},
+				"publicIPAllocationMethod": "Static",
+				"publicIPAddressVersion": "IPv4",
+				"ipConfiguration": {
+					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-tester-lb/frontendIPConfigurations/tester-tester-lb-ip"
+				},
+				"ipTags": [],
+				"ipAddress": "23.99.134.149",
+				"idleTimeoutInMinutes": 30,
+				"resourceGuid": "9add26f8-ce9b-41ca-85d6-06334392005f",
+				"provisioningState": "Succeeded",
+				"etag": "W/\"f69eddb7-8e59-4d12-ac72-48b65f83277a\""
+			}
 		},
 		"vmSize": [
 			{
@@ -1208,9 +1229,202 @@ module.exports = function () {
 				"name": "soajs",
 				"region": "centralus"
 			}
-		]
-
-
-	}
+		],
+		"loadBalancerList": [
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-tester-lb",
+				"name": "tester-tester-lb",
+				"type": "Microsoft.Network/loadBalancers",
+				"location": "centralus",
+				"tags": {},
+				"sku": {
+					"name": "Basic"
+				},
+				"frontendIPConfigurations": [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-tester-lb/frontendIPConfigurations/tester-tester-lb-ip",
+						"privateIPAllocationMethod": "Dynamic",
+						"publicIPAddress": {
+							"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-tester-ip"
+						},
+						"provisioningState": "Succeeded",
+						"name": "tester-tester-lb-ip",
+						"etag": "W/\"efe1b864-7984-46b8-a271-448e26eedaa4\""
+					}
+				],
+				"backendAddressPools": [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-tester-lb/backendAddressPools/tester-tester-lb-backend-address-pool",
+						"backendIPConfigurations": [
+							{
+								"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkInterfaces/tester-tester-ni-0/ipConfigurations/tester-tester-ni-ipConfig-0"
+							}
+						],
+						"provisioningState": "Succeeded",
+						"name": "tester-tester-lb-backend-address-pool",
+						"etag": "W/\"efe1b864-7984-46b8-a271-448e26eedaa4\""
+					}
+				],
+				"loadBalancingRules": [],
+				"probes": [],
+				"inboundNatRules": [],
+				"inboundNatPools": [],
+				"resourceGuid": "2e5294d6-8ec8-4a2d-86c4-102b25da394e",
+				"provisioningState": "Succeeded",
+				"etag": "W/\"efe1b864-7984-46b8-a271-448e26eedaa4\""
+			}
+		],
+		"networkSecurutyGroup": [{
+			"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-tester-sg",
+			"name": "tester-tester-sg",
+			"type": "Microsoft.Network/networkSecurityGroups",
+			"location": "centralus",
+			"tags": {},
+			"securityRules": [
+				{
+					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-tester-sg/securityRules/http",
+					"protocol": "tcp",
+					"sourcePortRange": "*",
+					"destinationPortRange": "22",
+					"sourceAddressPrefix": "*",
+					"sourceAddressPrefixes": [],
+					"destinationAddressPrefix": "*",
+					"destinationAddressPrefixes": [],
+					"sourcePortRanges": [],
+					"destinationPortRanges": [],
+					"access": "Allow",
+					"priority": 100,
+					"direction": "Inbound",
+					"provisioningState": "Succeeded",
+					"name": "http",
+					"etag": "W/\"2e570ec3-9d7a-459e-9c79-f1a6cf4886b7\""
+				}
+			],
+			"defaultSecurityRules": [
+				{
+					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-tester-sg/defaultSecurityRules/AllowVnetInBound",
+					"description": "Allow inbound traffic from all VMs in VNET",
+					"protocol": "*",
+					"sourcePortRange": "*",
+					"destinationPortRange": "*",
+					"sourceAddressPrefix": "VirtualNetwork",
+					"sourceAddressPrefixes": [],
+					"destinationAddressPrefix": "VirtualNetwork",
+					"destinationAddressPrefixes": [],
+					"sourcePortRanges": [],
+					"destinationPortRanges": [],
+					"access": "Allow",
+					"priority": 65000,
+					"direction": "Inbound",
+					"provisioningState": "Succeeded",
+					"name": "AllowVnetInBound",
+					"etag": "W/\"2e570ec3-9d7a-459e-9c79-f1a6cf4886b7\""
+				},
+				{
+					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-tester-sg/defaultSecurityRules/AllowAzureLoadBalancerInBound",
+					"description": "Allow inbound traffic from azure load balancer",
+					"protocol": "*",
+					"sourcePortRange": "*",
+					"destinationPortRange": "*",
+					"sourceAddressPrefix": "AzureLoadBalancer",
+					"sourceAddressPrefixes": [],
+					"destinationAddressPrefix": "*",
+					"destinationAddressPrefixes": [],
+					"sourcePortRanges": [],
+					"destinationPortRanges": [],
+					"access": "Allow",
+					"priority": 65001,
+					"direction": "Inbound",
+					"provisioningState": "Succeeded",
+					"name": "AllowAzureLoadBalancerInBound",
+					"etag": "W/\"2e570ec3-9d7a-459e-9c79-f1a6cf4886b7\""
+				},
+				{
+					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-tester-sg/defaultSecurityRules/DenyAllInBound",
+					"description": "Deny all inbound traffic",
+					"protocol": "*",
+					"sourcePortRange": "*",
+					"destinationPortRange": "*",
+					"sourceAddressPrefix": "*",
+					"sourceAddressPrefixes": [],
+					"destinationAddressPrefix": "*",
+					"destinationAddressPrefixes": [],
+					"sourcePortRanges": [],
+					"destinationPortRanges": [],
+					"access": "Deny",
+					"priority": 65500,
+					"direction": "Inbound",
+					"provisioningState": "Succeeded",
+					"name": "DenyAllInBound",
+					"etag": "W/\"2e570ec3-9d7a-459e-9c79-f1a6cf4886b7\""
+				},
+				{
+					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-tester-sg/defaultSecurityRules/AllowVnetOutBound",
+					"description": "Allow outbound traffic from all VMs to all VMs in VNET",
+					"protocol": "*",
+					"sourcePortRange": "*",
+					"destinationPortRange": "*",
+					"sourceAddressPrefix": "VirtualNetwork",
+					"sourceAddressPrefixes": [],
+					"destinationAddressPrefix": "VirtualNetwork",
+					"destinationAddressPrefixes": [],
+					"sourcePortRanges": [],
+					"destinationPortRanges": [],
+					"access": "Allow",
+					"priority": 65000,
+					"direction": "Outbound",
+					"provisioningState": "Succeeded",
+					"name": "AllowVnetOutBound",
+					"etag": "W/\"2e570ec3-9d7a-459e-9c79-f1a6cf4886b7\""
+				},
+				{
+					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-tester-sg/defaultSecurityRules/AllowInternetOutBound",
+					"description": "Allow outbound traffic from all VMs to Internet",
+					"protocol": "*",
+					"sourcePortRange": "*",
+					"destinationPortRange": "*",
+					"sourceAddressPrefix": "*",
+					"sourceAddressPrefixes": [],
+					"destinationAddressPrefix": "Internet",
+					"destinationAddressPrefixes": [],
+					"sourcePortRanges": [],
+					"destinationPortRanges": [],
+					"access": "Allow",
+					"priority": 65001,
+					"direction": "Outbound",
+					"provisioningState": "Succeeded",
+					"name": "AllowInternetOutBound",
+					"etag": "W/\"2e570ec3-9d7a-459e-9c79-f1a6cf4886b7\""
+				},
+				{
+					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-tester-sg/defaultSecurityRules/DenyAllOutBound",
+					"description": "Deny all outbound traffic",
+					"protocol": "*",
+					"sourcePortRange": "*",
+					"destinationPortRange": "*",
+					"sourceAddressPrefix": "*",
+					"sourceAddressPrefixes": [],
+					"destinationAddressPrefix": "*",
+					"destinationAddressPrefixes": [],
+					"sourcePortRanges": [],
+					"destinationPortRanges": [],
+					"access": "Deny",
+					"priority": 65500,
+					"direction": "Outbound",
+					"provisioningState": "Succeeded",
+					"name": "DenyAllOutBound",
+					"etag": "W/\"2e570ec3-9d7a-459e-9c79-f1a6cf4886b7\""
+				}
+			],
+			"networkInterfaces": [
+				{
+					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkInterfaces/tester-tester-ni-0"
+				}
+			],
+			"resourceGuid": "633c826c-bff5-4c07-947d-b871abcde971",
+			"provisioningState": "Succeeded",
+			"etag": "W/\"2e570ec3-9d7a-459e-9c79-f1a6cf4886b7\""
+		}]
+	};
 	return data;
 };
