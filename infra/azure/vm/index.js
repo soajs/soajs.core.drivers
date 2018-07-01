@@ -88,13 +88,13 @@ const driver = {
 
 				computeClient.virtualMachines.listAll(function (error, vms) {
 					utils.checkError(error, 704, cb, () => {
-						if (!(vms && Array.isArray(vms))) {
+						if (!vms || vms.length === 0) {
 							return cb(null, []);
 						}
 
 						helper.filterVMs(group, vms, function (error, filteredVms) {
 							//no error is returned by function
-
+							
 							// list available ip addresses to map them later on to the instances' load balancers
 							helper.listPublicIps(networkClient, {}, function(error, publicIps = []) {
 								if (error) {
