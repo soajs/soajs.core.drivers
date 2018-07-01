@@ -530,7 +530,7 @@ const driver = {
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-
+	
 	listSecurityGroups: function (options, cb) {
 		options.soajs.log.debug(`Listing securityGroups for resourcegroup ${options.params.group} `);
 		driverUtils.authenticate(options, (error, authData) => {
@@ -613,7 +613,6 @@ const driver = {
 						&& error.body.message.includes("Run command extension execution is in progress. Please wait for completion before invoking a run command."),
 						766, cb, () => {
 						utils.checkError(error, 736, cb, () => {
-						//	console.log(JSON.stringify(result, null,2) + "------------------------------------------");
 							return cb(null, result);
 						});
 					});

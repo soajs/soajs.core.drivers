@@ -73,6 +73,9 @@ describe("testing /lib/azure/index.js", function () {
 					publicIPAddresses: {
 						get: (resourceGroupName, ipName, cb) => {
 							return cb(null, info.publicIp[ipName]);
+						},
+						listAll: (cb) => {
+							return cb(null, [info.publicIp])
 						}
 					},
 					networkInterfaceLoadBalancers: {
@@ -124,7 +127,152 @@ describe("testing /lib/azure/index.js", function () {
 					}
 				],
 				"env": [],
-				"ip": "40.121.55.181"
+				"ip": [
+					{
+						"address": "40.121.55.181",
+						"allocatedTo": "instance",
+						"type": "public"
+					},
+					{
+						"address": "10.0.2.4",
+						"allocatedTo": "instance",
+						"type": "private"
+					}
+				]
+			};
+			options.env = 'tester';
+			options.params = {
+				vmName: 'tester-vm'
+			};
+			service.executeDriver('inspectService', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				delete response.tasks[0].status.ts;
+				assert.deepEqual(expectedResponce, response);
+				done();
+			});
+		});
+		
+		it("Success loadBalancer", function (done) {
+			info = dD();
+			options = info.deployCluster;
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+			
+			sinon
+				.stub(serviceUtils, 'getConnector')
+				.returns({
+					resourceGroups: {
+						checkExistence: (env, cb) => {
+							return cb(null, true)
+						}
+					},
+					virtualMachines: {
+						get: (env, vmName, cb) => {
+							return cb(null, info.virtualMachines[0]);
+						}
+					},
+					networkInterfaces: {
+						get: (resourceGroupName, networkInterfaceName, cb) => {
+							return cb(null, info.networkInterface[networkInterfaceName]);
+						}
+					},
+					networkSecurityGroups: {
+						get: (resourceGroupName, networkSecurityGroupName, cb) => {
+							return cb(null, info.networkSecurityGroup[networkSecurityGroupName]);
+						}
+					},
+					publicIPAddresses: {
+						get: (resourceGroupName, ipName, cb) => {
+							return cb(null, info.publicIp[ipName]);
+						},
+						listAll: (cb) => {
+							return cb(null, [info.publicIp["tester-tester-ip"]])
+						}
+					},
+					networkInterfaceLoadBalancers: {
+						list: (resourceGroupName, networkInterfaceName, cb) => {
+							return cb(null, info.loadBalancerList);
+						}
+					},
+					subnets: {
+						get: (resourceGroupName, vnetName, subnetName, cb) => {
+							return cb(null, info.subnets[vnetName]);
+						}
+					},
+					
+				});
+			let expectedResponce = {
+				"name": "tester-vm",
+				"network": "tester-vn",
+				"id": "tester-vm",
+				"labels": {
+					"soajs.env.code": "tester",
+					"soajs.service.vm.location": "eastus",
+					"soajs.service.vm.group": "TESTER",
+					"soajs.service.vm.size": "Standard_A1"
+				},
+				"ports": [
+					{
+						"protocol": "Tcp",
+						"target": "*",
+						"published": "22",
+						"isPublished": true
+					}
+				],
+				"voluming": {
+					"volumes": []
+				},
+				"tasks": [
+					{
+						"id": "tester-vm",
+						"name": "tester-vm",
+						"status": {
+							"state": "succeeded",
+						},
+						"ref": {
+							"os": {
+								"type": "Linux",
+								"diskSizeGB": 30
+							}
+						}
+					}
+				],
+				"env": [],
+				"ip": [
+					{
+						"address": "40.121.55.181",
+						"allocatedTo": "instance",
+						"type": "public"
+					},
+					{
+						"address": "10.0.2.4",
+						"allocatedTo": "instance",
+						"type": "private"
+					},
+					{
+						"address": "23.99.134.149",
+						"allocatedTo": "loadBalancer",
+						"type": "public"
+					}
+				],
+				"loadBalancers": [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-tester-lb",
+						"ipAddresses": [
+							{
+								"address": "23.99.134.149",
+								"name": "tester-tester-ip",
+								"type": "public"
+							}
+						],
+						"name": "tester-tester-lb",
+						"region": "centralus"
+					}
+				]
 			};
 			options.env = 'tester';
 			options.params = {
@@ -180,6 +328,9 @@ describe("testing /lib/azure/index.js", function () {
 					publicIPAddresses: {
 						get: (resourceGroupName, ipName, cb) => {
 							return cb(null, info.publicIp[ipName])
+						},
+						listAll: (cb) => {
+							return cb(null, [info.publicIp])
 						}
 					},
 					networkInterfaceLoadBalancers: {
@@ -232,7 +383,18 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					],
 					"env": [],
-					"ip": "40.121.55.181"
+					"ip": [
+						{
+							"address": "40.121.55.181",
+							"allocatedTo": "instance",
+							"type": "public"
+						},
+						{
+							"address": "10.0.2.4",
+							"allocatedTo": "instance",
+							"type": "private"
+						}
+					]
 				},
 				{
 					"name": "mongo",
@@ -276,7 +438,18 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					],
 					"env": [],
-					"ip": "104.43.136.85"
+					"ip": [
+						{
+							"address": "104.43.136.85",
+							"allocatedTo": "instance",
+							"type": "public"
+						},
+						{
+							"address": "10.0.0.4",
+							"allocatedTo": "instance",
+							"type": "private"
+						}
+					]
 				},
 				{
 					"name": "mysql",
@@ -320,7 +493,18 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					],
 					"env": [],
-					"ip": "104.43.151.227"
+					"ip": [
+						{
+							"address": "104.43.151.227",
+							"allocatedTo": "instance",
+							"type": "public"
+						},
+						{
+							"address": "10.0.1.4",
+							"allocatedTo": "instance",
+							"type": "private"
+						}
+					]
 				}
 			];
 			options.env = 'tester';
@@ -834,7 +1018,7 @@ describe("testing /lib/azure/index.js", function () {
 				.returns({
 					networkSecurityGroups: {
 						list: (resourceGroupName, cb) => {
-							return cb(null, [info.networkSecurityGroup["tester-sg"]])
+							return cb(null, info.networkSecurutyGroup)
 						}
 					},
 				});
@@ -846,9 +1030,14 @@ describe("testing /lib/azure/index.js", function () {
 			};
 			let expectedResponce = [
 				{
-					"name": "tester-sg",
-					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-sg",
-					"tags": {}
+					"ports": [{
+						"isPublished": true,
+						"protocol": "tcp",
+						"published": "22",
+						"target": "*",
+					}],
+					"name": "tester-tester-sg",
+					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-tester-sg",
 				}
 			];
 

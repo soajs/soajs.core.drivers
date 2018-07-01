@@ -258,6 +258,9 @@ describe("testing /lib/container/docker/services.js", function () {
 					},
 					listSecrets: (cb) => {
 						return cb(null, dockerData.secretList)
+					},
+					listServices: (params, cb) => {
+						return cb(null, dockerData.serviceList)
 					}
 				});
 			services.deployService(options, function (error, res) {
@@ -342,6 +345,9 @@ describe("testing /lib/container/docker/services.js", function () {
 					},
 					listSecrets: (cb) => {
 						return cb(null, dockerData.secretList)
+					},
+					listServices: (params, cb) => {
+						return cb(null, dockerData.serviceList)
 					}
 				});
 			services.deployService(options, function (error, res) {
@@ -508,6 +514,9 @@ describe("testing /lib/container/docker/services.js", function () {
 					},
 					listSecrets: (cb) => {
 						return cb(null, [])
+					},
+					listServices: (params, cb) => {
+						return cb(null, dockerData.serviceList)
 					}
 				});
 			services.deployService(options, function (error, res) {

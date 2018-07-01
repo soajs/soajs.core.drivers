@@ -615,6 +615,7 @@ module.exports = function () {
 						"mode": "deployment",
 						"replicas": 1
 					},
+					"cpuLimit": 20,
 					"memoryLimit": 524288000
 				}
 			},
@@ -1184,9 +1185,7 @@ module.exports = function () {
 											}
 										],
 										"resources": {
-											"limits": {
-												"memory": "170Mi"
-											},
+											
 											"requests": {
 												"cpu": "100m",
 												"memory": "70Mi"
@@ -1256,10 +1255,7 @@ module.exports = function () {
 											}
 										],
 										"resources": {
-											"requests": {
-												"cpu": "150m",
-												"memory": "20Mi"
-											}
+										
 										},
 										"volumeMounts": [
 											{
@@ -1300,10 +1296,7 @@ module.exports = function () {
 											}
 										],
 										"resources": {
-											"requests": {
-												"cpu": "10m",
-												"memory": "20Mi"
-											}
+										
 										},
 										"livenessProbe": {
 											"httpGet": {
@@ -2592,9 +2585,6 @@ module.exports = function () {
 									}
 								],
 								"resources": {
-									"limits": {
-										"memory": "524288k"
-									},
 									"requests": {
 										"memory": "524288k"
 									}

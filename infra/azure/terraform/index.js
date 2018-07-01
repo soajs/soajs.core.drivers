@@ -21,6 +21,8 @@ const driver = {
         options.params.input.domain = options.infra.api.domain;
         options.params.input.subscriptionId = options.infra.api.subscriptionId;
         options.params.input.envCode = options.registry.code;
+        // in case a deployment fails and a rollback is needed, pass the excluded resources to avoid destroying the resource group when destroying a layer
+        options.params.exclude = [`azurerm_resource_group.${options.params.layerName}`];
         terraform.apply(options,function(error, result){
             utils.checkError(error, 738, cb, () => {
                 return cb(null, result);
