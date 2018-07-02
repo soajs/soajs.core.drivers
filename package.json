@@ -59,7 +59,6 @@
     "jsonschema": "1.1.1",
     "mocha": "3.2.0",
     "sinon": "^5.0.10",
-    "shelljs": "0.7.5",
     "stub-spawn-once": "^2.3.0"
   }
 }
