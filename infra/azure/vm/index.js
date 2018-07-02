@@ -96,7 +96,7 @@ const driver = {
 							//no error is returned by function
 							
 							// list available ip addresses to map them later on to the instances' load balancers
-							helper.listPublicIps(networkClient, {}, function(error, publicIps = []) {
+							helper.listPublicIps(networkClient, {}, function(error, publicIps) {
 								if (error) {
 									options.soajs.log.error(`Unable to list all available public ip addresses`);
 									options.soajs.log.error(error);
@@ -111,7 +111,7 @@ const driver = {
 										}
 										else {
 											vmRecordOptions = Object.assign(vmRecordOptions, networkInfo);
-											vmRecordOptions.publicIpsList = publicIps;
+											vmRecordOptions.publicIpsList = publicIps || [];
 										}
 
 										return callback(null, helper.buildVMRecord(vmRecordOptions));
