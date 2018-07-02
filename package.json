@@ -39,7 +39,6 @@
     "soajs.core.modules": "2.0.5",
     "stdio": "0.2.7",
     "strip-ansi": "^4.0.0",
-    "stub-spawn-once": "^2.3.0",
     "traverse": "0.6.6",
     "ws": "3.3.1"
   },
@@ -60,6 +59,7 @@
     "jsonschema": "1.1.1",
     "mocha": "3.2.0",
     "sinon": "^5.0.10",
-    "shelljs": "0.7.5"
+    "shelljs": "0.7.5",
+    "stub-spawn-once": "^2.3.0"
   }
 }
