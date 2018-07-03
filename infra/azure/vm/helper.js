@@ -364,7 +364,7 @@ const helper = {
 			output.securityGroup = helper.find('name', networkSecurityGroupName, opts.extras.securityGroups);
 		}
 
-		// get the public ip addresses, subnet and network name of the instance (if any) //TODO: double check
+		// get the public ip addresses, subnet and network name of the instance (if any)
 		if(output.networkInterface && output.networkInterface.ipConfigurations && Array.isArray(output.networkInterface.ipConfigurations)) {
 			for (let i = 0; i < output.networkInterface.ipConfigurations.length; i++) {
 				if(output.networkInterface.ipConfigurations[i].primary) {
