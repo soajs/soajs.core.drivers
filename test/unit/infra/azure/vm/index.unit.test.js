@@ -63,11 +63,17 @@ describe("testing /lib/azure/index.js", function () {
 					networkInterfaces: {
 						get: (resourceGroupName, networkInterfaceName, cb) => {
 							return cb(null, info.networkInterface[networkInterfaceName]);
+						},
+						listAll: (cb) => {
+							return cb(null, [info.networkInterface["tester-ni"]]);
 						}
 					},
 					networkSecurityGroups: {
 						get: (resourceGroupName, networkSecurityGroupName, cb) => {
 							return cb(null, info.networkSecurityGroup[networkSecurityGroupName]);
+						},
+						listAll: (cb) => {
+							return cb(null, [info.networkSecurityGroup["tester-sg"]]);
 						}
 					},
 					publicIPAddresses: {
@@ -83,6 +89,11 @@ describe("testing /lib/azure/index.js", function () {
 							return cb(null, []);
 						}
 					},
+					loadBalancers: {
+						listAll: (cb) => {
+							return cb(null, []);
+						}
+					},
 					subnets: {
 						get: (resourceGroupName, vnetName, subnetName, cb) => {
 							return cb(null, info.subnets[vnetName]);
@@ -92,7 +103,6 @@ describe("testing /lib/azure/index.js", function () {
 				});
 			let expectedResponce = {
 				"name": "tester-vm",
-				"network": "tester-vn",
 				"id": "tester-vm",
 				"labels": {
 					"soajs.env.code": "tester",
@@ -116,7 +126,7 @@ describe("testing /lib/azure/index.js", function () {
 						"id": "tester-vm",
 						"name": "tester-vm",
 						"status": {
-							"state": "succeeded",
+							"state": "succeeded"
 						},
 						"ref": {
 							"os": {
@@ -126,19 +136,15 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					}
 				],
-				"env": [],
 				"ip": [
 					{
-						"address": "40.121.55.181",
+						"type": "private",
 						"allocatedTo": "instance",
-						"type": "public"
-					},
-					{
-						"address": "10.0.2.4",
-						"allocatedTo": "instance",
-						"type": "private"
+						"address": "10.0.2.4"
 					}
-				]
+				],
+				"layer": "tester-subnet",
+				"network": "tester-vn"
 			};
 			options.env = 'tester';
 			options.params = {
@@ -178,11 +184,17 @@ describe("testing /lib/azure/index.js", function () {
 					networkInterfaces: {
 						get: (resourceGroupName, networkInterfaceName, cb) => {
 							return cb(null, info.networkInterface[networkInterfaceName]);
+						},
+						listAll: (cb) => {
+							return cb(null, [info.networkInterface["tester-ni"]]);
 						}
 					},
 					networkSecurityGroups: {
 						get: (resourceGroupName, networkSecurityGroupName, cb) => {
 							return cb(null, info.networkSecurityGroup[networkSecurityGroupName]);
+						},
+						listAll: (cb) => {
+							return cb(null, [info.networkSecurityGroup["tester-sg"]]);
 						}
 					},
 					publicIPAddresses: {
@@ -198,6 +210,11 @@ describe("testing /lib/azure/index.js", function () {
 							return cb(null, info.loadBalancerList);
 						}
 					},
+					loadBalancers: {
+						listAll: (cb) => {
+							return cb(null, info.loadBalancerList);
+						}
+					},
 					subnets: {
 						get: (resourceGroupName, vnetName, subnetName, cb) => {
 							return cb(null, info.subnets[vnetName]);
@@ -207,7 +224,6 @@ describe("testing /lib/azure/index.js", function () {
 				});
 			let expectedResponce = {
 				"name": "tester-vm",
-				"network": "tester-vn",
 				"id": "tester-vm",
 				"labels": {
 					"soajs.env.code": "tester",
@@ -231,7 +247,7 @@ describe("testing /lib/azure/index.js", function () {
 						"id": "tester-vm",
 						"name": "tester-vm",
 						"status": {
-							"state": "succeeded",
+							"state": "succeeded"
 						},
 						"ref": {
 							"os": {
@@ -241,42 +257,34 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					}
 				],
-				"env": [],
 				"ip": [
 					{
-						"address": "40.121.55.181",
+						"type": "private",
 						"allocatedTo": "instance",
-						"type": "public"
+						"address": "10.0.2.4"
 					},
 					{
-						"address": "10.0.2.4",
-						"allocatedTo": "instance",
-						"type": "private"
-					},
-					{
-						"address": "23.99.134.149",
+						"type": "public",
 						"allocatedTo": "loadBalancer",
-						"type": "public"
+						"address": "23.99.134.149"
 					}
 				],
+				"layer": "tester-subnet",
+				"network": "tester-vn",
 				"loadBalancers": [
 					{
+						"name": "tester-tester-lb",
 						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-tester-lb",
+						"region": "centralus",
 						"ipAddresses": [
 							{
-								"address": "23.99.134.149",
+								"type": "public",
 								"name": "tester-tester-ip",
-								"type": "public"
+								"address": "23.99.134.149"
 							}
-						],
-						"name": "tester-tester-lb",
-						"region": "centralus"
+						]
 					}
 				]
-			};
-			options.env = 'tester';
-			options.params = {
-				vmName: 'tester-vm'
 			};
 			service.executeDriver('inspectService', options, function (error, response) {
 				assert.ifError(error);
@@ -317,12 +325,18 @@ describe("testing /lib/azure/index.js", function () {
 					},
 					networkInterfaces: {
 						get: (resourceGroupName, networkInterfaceName, cb) => {
-							return cb(null, info.networkInterface[networkInterfaceName])
+							return cb(null, info.networkInterface[networkInterfaceName]);
+						},
+						listAll: (cb) => {
+							return cb(null, [info.networkInterface["tester-ni"]]);
 						}
 					},
 					networkSecurityGroups: {
 						get: (resourceGroupName, networkSecurityGroupName, cb) => {
-							return cb(null, info.networkSecurityGroup[networkSecurityGroupName])
+							return cb(null, info.networkSecurityGroup[networkSecurityGroupName]);
+						},
+						listAll: (cb) => {
+							return cb(null, [info.networkSecurityGroup["tester-sg"]]);
 						}
 					},
 					publicIPAddresses: {
@@ -338,6 +352,11 @@ describe("testing /lib/azure/index.js", function () {
 							return cb(null, []);
 						}
 					},
+					loadBalancers: {
+						listAll: ( cb) => {
+							return cb(null,  info.loadBalancerList);
+						}
+					},
 					subnets: {
 						get: (resourceGroupName, vnetName, subnetName, cb) => {
 							return cb(null, info.subnets[vnetName]);
@@ -348,7 +367,6 @@ describe("testing /lib/azure/index.js", function () {
 			let expectedResponce = [
 				{
 					"name": "tester-vm",
-					"network": "tester-vn",
 					"id": "tester-vm",
 					"labels": {
 						"soajs.env.code": "tester",
@@ -372,7 +390,7 @@ describe("testing /lib/azure/index.js", function () {
 							"id": "tester-vm",
 							"name": "tester-vm",
 							"status": {
-								"state": "succeeded",
+								"state": "succeeded"
 							},
 							"ref": {
 								"os": {
@@ -382,43 +400,25 @@ describe("testing /lib/azure/index.js", function () {
 							}
 						}
 					],
-					"env": [],
 					"ip": [
 						{
-							"address": "40.121.55.181",
+							"type": "private",
 							"allocatedTo": "instance",
-							"type": "public"
-						},
-						{
-							"address": "10.0.2.4",
-							"allocatedTo": "instance",
-							"type": "private"
+							"address": "10.0.2.4"
 						}
-					]
+					],
+					"layer": "tester-subnet",
+					"network": "tester-vn"
 				},
 				{
 					"name": "mongo",
-					"network": "soajs-vn",
 					"id": "mongo",
 					"labels": {
 						"soajs.service.vm.location": "centralus",
 						"soajs.service.vm.group": "SOAJS",
 						"soajs.service.vm.size": "Standard_B1ms"
 					},
-					"ports": [
-						{
-							"protocol": "TCP",
-							"target": "*",
-							"published": "22",
-							"isPublished": true
-						},
-						{
-							"protocol": "tcp/udp",
-							"target": "*",
-							"published": "27017",
-							"isPublished": true
-						}
-					],
+					"ports": [],
 					"voluming": {
 						"volumes": []
 					},
@@ -427,7 +427,7 @@ describe("testing /lib/azure/index.js", function () {
 							"id": "mongo",
 							"name": "mongo",
 							"status": {
-								"state": "succeeded",
+								"state": "succeeded"
 							},
 							"ref": {
 								"os": {
@@ -437,43 +437,17 @@ describe("testing /lib/azure/index.js", function () {
 							}
 						}
 					],
-					"env": [],
-					"ip": [
-						{
-							"address": "104.43.136.85",
-							"allocatedTo": "instance",
-							"type": "public"
-						},
-						{
-							"address": "10.0.0.4",
-							"allocatedTo": "instance",
-							"type": "private"
-						}
-					]
+					"ip": []
 				},
 				{
 					"name": "mysql",
-					"network": "soajs-vn",
 					"id": "mysql",
 					"labels": {
 						"soajs.service.vm.location": "centralus",
 						"soajs.service.vm.group": "SOAJS",
 						"soajs.service.vm.size": "Standard_B1ms"
 					},
-					"ports": [
-						{
-							"protocol": "TCP",
-							"target": "*",
-							"published": "22",
-							"isPublished": true
-						},
-						{
-							"protocol": "tcp/udp",
-							"target": "*",
-							"published": "3306",
-							"isPublished": true
-						}
-					],
+					"ports": [],
 					"voluming": {
 						"volumes": []
 					},
@@ -482,7 +456,7 @@ describe("testing /lib/azure/index.js", function () {
 							"id": "mysql",
 							"name": "mysql",
 							"status": {
-								"state": "succeeded",
+								"state": "succeeded"
 							},
 							"ref": {
 								"os": {
@@ -492,19 +466,7 @@ describe("testing /lib/azure/index.js", function () {
 							}
 						}
 					],
-					"env": [],
-					"ip": [
-						{
-							"address": "104.43.151.227",
-							"allocatedTo": "instance",
-							"type": "public"
-						},
-						{
-							"address": "10.0.1.4",
-							"allocatedTo": "instance",
-							"type": "private"
-						}
-					]
+					"ip": []
 				}
 			];
 			options.env = 'tester';

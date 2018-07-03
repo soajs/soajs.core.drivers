@@ -2,8 +2,6 @@
 
 const async = require('async');
 
-const config = require('./config');
-
 const helper = {
 
 	buildVMRecord: function (opts) {
