@@ -55,7 +55,6 @@ const helper = {
 			}
 		}
 
-		record.env = [];
 		record.ip = [];
 
 		if(opts.publicIp && opts.publicIp.ipAddress) {
@@ -82,8 +81,8 @@ const helper = {
 			record.ports = helper.buildPortsArray(opts.securityGroup.securityRules);
 		}
 
-		if(opts.subnet && opts.subnet.name) {
-			record.layer = opts.subnet.name;
+		if(opts.subnetName) {
+			record.layer = opts.subnetName;
 		}
 
 		if(opts.virtualNetworkName) {
@@ -107,8 +106,6 @@ const helper = {
 				}
 			});
 		}
-
-		// record.servicePortType = "";
 
 		return record;
 	},
@@ -336,11 +333,14 @@ const helper = {
 
 	getVmNetworkInfo: function (networkClient, opts, cb) {
 		let idInfo, resourceGroupName, networkInterfaceName, networkSecurityGroupName, ipName, subnetName, vnetName;
+		let output = {};
+
 		if (opts.vm.id) {
 			idInfo = opts.vm.id.split('/');
 			resourceGroupName = idInfo[idInfo.indexOf('resourceGroups') + 1];
 		}
 
+		// get the network interface of the instance
 		if (opts.vm.networkProfile && opts.vm.networkProfile.networkInterfaces && Array.isArray(opts.vm.networkProfile.networkInterfaces)) {
 			for (let i = 0; i < opts.vm.networkProfile.networkInterfaces.length; i++) {
 				if (opts.vm.networkProfile.networkInterfaces[i].primary) {
@@ -352,78 +352,103 @@ const helper = {
 			if (!networkInterfaceName && opts.vm.networkProfile.networkInterfaces[0] && opts.vm.networkProfile.networkInterfaces[0].id) {
 				networkInterfaceName = opts.vm.networkProfile.networkInterfaces[0].id.split('/').pop();
 			}
+
+			if(networkInterfaceName) {
+				output.networkInterface = helper.find('name', networkInterfaceName, opts.extras.networkInterfaces);
+			}
 		}
 
-		networkClient.networkInterfaces.get(resourceGroupName, networkInterfaceName, function (error, networkInterface) {
-			if (error) return cb(error);
+		// get the security group of the instance
+		if(output.networkInterface && output.networkInterface.networkSecurityGroup && output.networkInterface.networkSecurityGroup.id) {
+			networkSecurityGroupName = output.networkInterface.networkSecurityGroup.id.split('/').pop();
+			output.securityGroup = helper.find('name', networkSecurityGroupName, opts.extras.securityGroups);
+		}
 
-			if (networkInterface && networkInterface.networkSecurityGroup && networkInterface.networkSecurityGroup.id) {
-				networkSecurityGroupName = networkInterface.networkSecurityGroup.id.split('/').pop();
-			}
+		// get the public ip addresses, subnet and network name of the instance (if any) //TODO: double check
+		if(output.networkInterface && output.networkInterface.ipConfigurations && Array.isArray(output.networkInterface.ipConfigurations)) {
+			for (let i = 0; i < output.networkInterface.ipConfigurations.length; i++) {
+				if(output.networkInterface.ipConfigurations[i].primary) {
+					if (output.networkInterface.ipConfigurations[i].publicIPAddress) {
+						ipName = output.networkInterface.ipConfigurations[i].publicIPAddress.id.split('/').pop();
+						output.publicIp = helper.find('name', ipName, opts.extras.publicIps);
+					}
 
-			if (networkInterface && networkInterface.ipConfigurations && Array.isArray(networkInterface.ipConfigurations)) {
-				for (let i = 0; i < networkInterface.ipConfigurations.length; i++) {
-					if(networkInterface.ipConfigurations[i].primary) {
-						if (networkInterface.ipConfigurations[i].publicIPAddress) {
-							ipName = networkInterface.ipConfigurations[i].publicIPAddress.id.split('/').pop();
-						}
-						if(networkInterface.ipConfigurations[i].subnet) {
-							// sample subnet id: /subscriptions/xxxxxxxxx/resourceGroups/test/providers/Microsoft.Network/virtualNetworks/test-vn/subnets/test-subnet
-							let subnetInfo = networkInterface.ipConfigurations[i].subnet.id.split('/');
-							subnetName = subnetInfo.pop();
-							vnetName = subnetInfo[subnetInfo.indexOf('virtualNetworks') + 1];
-						}
-
-						break;
+					if(output.networkInterface.ipConfigurations[i].subnet) {
+						// sample subnet id: /subscriptions/xxxxxxxxx/resourceGroups/test/providers/Microsoft.Network/virtualNetworks/test-vn/subnets/test-subnet
+						let subnetInfo = output.networkInterface.ipConfigurations[i].subnet.id.split('/');
+						output.subnetName = subnetInfo.pop();
+						output.virtualNetworkName = subnetInfo[subnetInfo.indexOf('virtualNetworks') + 1];
 					}
 				}
 			}
+		}
 
-			async.auto({
-				getSecurityGroup: function(callback) {
-					networkClient.networkSecurityGroups.get(resourceGroupName, networkSecurityGroupName, function (error, securityGroup) {
-						if (error) opts.log.warn(`Unable to get security group ${networkSecurityGroupName}`);
-						return callback(null, securityGroup || {});
-					});
-				},
-				getPublicIp: function(callback) {
-					if (!ipName){
-						return callback(null, true);
-					}
-					networkClient.publicIPAddresses.get(resourceGroupName, ipName, function (error, publicIp) {
-						if (error) opts.log.warn(`Unable to get public ip address ${ipName}`);
-						return callback(null, publicIp || {});
-					});
-				},
-				getSubnet: function(callback) {
-					networkClient.subnets.get(resourceGroupName, vnetName, subnetName, function(error, subnet) {
-						if (error) opts.log.warn(`Unable to get subnet ${subnetName} in network ${vnetName}`);
-						return callback(null, subnet || {});
-					});
-				},
-				getLoadBalancers: function(callback) {
-					networkClient.networkInterfaceLoadBalancers.list(resourceGroupName, networkInterfaceName, function(error, loadBalancers) {
-						if (error) opts.log.warn(`Unable to get load balancers for network interface ${networkInterfaceName}`);
-						return callback(null, loadBalancers || []);
-					});
-				}
-			}, function(error, results) {
-				return cb(null, {
-					networkInterface,
-					securityGroup: results.getSecurityGroup,
-					publicIp: results.getPublicIp,
-					subnet: results.getSubnet,
-					loadBalancers: results.getLoadBalancers,
-					virtualNetworkName: vnetName
+		async.auto({
+			getLoadBalancers: function(callback) {
+				networkClient.networkInterfaceLoadBalancers.list(resourceGroupName, networkInterfaceName, function(error, loadBalancers) {
+					if (error) opts.log.warn(`Unable to get load balancers for network interface ${networkInterfaceName}`);
+					return callback(null, loadBalancers || []);
 				});
-			});
+			}
+		}, function(error, results) {
+			output.loadBalancers = results.getLoadBalancers;
+			return cb(null, output);
 		});
 	},
 
-	listPublicIps: function(networkClient, opts, cb) {
-		networkClient.publicIPAddresses.listAll(function (error, publicIps) {
-			if(error) return cb(error);
-			return cb(null, publicIps);
+	find: function(key, value, list) {
+		let output = {};
+		if(list && Array.isArray(list) && list.length > 0) {
+			for(let i = 0; i < list.length; i++) {
+				if(list[i][key] === value) {
+					output = list[i];
+					break;
+				}
+			}
+		}
+
+		return output;
+	},
+
+	listNetworkExtras: function(networkClient, opts, cb) {
+		async.auto({
+
+			listNetworkInterfaces: function(callback) {
+				networkClient.networkInterfaces.listAll(function (error, networkInterfaces) {
+					if (error) opts.log.warn(`Unable to list network interfaces`);
+					return callback(null, networkInterfaces || []);
+				});
+			},
+
+			listSecurityGroups: function(callback) {
+				networkClient.networkSecurityGroups.listAll(function (error, securityGroups) {
+					if (error) opts.log.warn(`Unable to list security groups`);
+					return callback(null, securityGroups || []);
+				});
+			},
+
+			listPublicIps: function(callback) {
+				networkClient.publicIPAddresses.listAll(function (error, publicIps) {
+					if (error) opts.log.warn(`Unable to list public ip addresses`);
+					return callback(null, publicIps || []);
+				});
+			},
+
+			listLoadBalancers: function(callback) {
+				networkClient.loadBalancers.listAll(function (error, loadBalancers) {
+					if (error) opts.log.warn(`Unable to list load balancers`);
+					return callback(null, loadBalancers || []);
+				});
+			}
+
+		}, function(error, results) {
+			// no error to be handled
+			return cb(null, {
+				networkInterfaces: results.listNetworkInterfaces,
+				securityGroups: results.listSecurityGroups,
+				publicIps: results.listPublicIps,
+				loadBalancers: results.listLoadBalancers
+			});
 		});
 	}
 };
