@@ -52,7 +52,7 @@ const networks = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-			resourceClient.virtualNetworks.createOrUpdate(options.params.networkName, params, options, function (error, result) {
+			resourceClient.virtualNetworks.createOrUpdate(options.params.group, options.params.networkName, options.params, function (error, result) {
 					utils.checkError(error, 747, cb, () => {
 						return cb(null, result);
 					});
@@ -77,7 +77,7 @@ const networks = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-			resourceClient.virtualNetworks.createOrUpdate(options.params.networkName, params, options, function (error, result) {
+				resourceClient.virtualNetworks.createOrUpdate(options.params.group, options.params.networkName, options.params, function (error, result) {
 					utils.checkError(error, 748, cb, () => {
 						return cb(null, result);
 					});
@@ -111,3 +111,4 @@ const networks = {
 		});
 	},
 }
+module.exports = networks;
