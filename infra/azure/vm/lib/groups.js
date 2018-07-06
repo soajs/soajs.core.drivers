@@ -44,7 +44,7 @@ const groups = {
     * @return {void}
     */
     create: function(options, cb) {
-        options.soajs.log.debug(`Creating resource group ${options.params.group}`);
+        options.soajs.log.debug(`Creating/Updating resource group ${options.params.group}`);
         driverUtils.authenticate(options, (error, authData) => {
             utils.checkError(error, 700, cb, () => {
                 const resourceClient = driverUtils.getConnector({
@@ -52,7 +52,10 @@ const groups = {
                     credentials: authData.credentials,
                     subscriptionId: options.infra.api.subscriptionId
                 });
-                resourceClient.resourceGroups.createOrUpdate(options.params.group, options.params, options, function (error, response){
+                let params = {
+                    location: options.params.region,
+                };
+                resourceClient.resourceGroups.createOrUpdate(options.params.group, params, options, function (error, response){
                     utils.checkError(error, 753, cb, () => {
                         return cb(null, response);
                     });
@@ -69,21 +72,7 @@ const groups = {
     * @return {void}
     */
     update: function(options, cb) {
-        options.soajs.log.debug(`Updating resource group ${options.params.group}`);
-        driverUtils.authenticate(options, (error, authData) => {
-            utils.checkError(error, 700, cb, () => {
-                const resourceClient = driverUtils.getConnector({
-                    api: 'resource',
-                    credentials: authData.credentials,
-                    subscriptionId: options.infra.api.subscriptionId
-                });
-                resourceClient.resourceGroups.createOrUpdate(options.params.group, options.params, options, function (error, response){
-                    utils.checkError(error, 754, cb, () => {
-                        return cb(null, response);
-                    });
-                });
-            });
-        });
+        return groups.create(options, cb);
     },
 
     /**

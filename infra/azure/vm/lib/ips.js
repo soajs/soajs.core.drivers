@@ -45,7 +45,7 @@ const ips = {
     * @return {void}
     */
     create: function(options, cb) {
-        options.soajs.log.debug(`Creating public ip in group ${options.params.group}`);
+        options.soajs.log.debug(`Creating/Updating public ip in group ${options.params.group}`);
         driverUtils.authenticate(options, (error, authData) => {
             utils.checkError(error, 700, cb, () => {
                 const networkClient = driverUtils.getConnector({
@@ -55,7 +55,7 @@ const ips = {
                 });
 
                 let params = {
-                    location: options.params.location,
+                    location: options.params.region,
                     publicIPAllocationMethod: options.params.publicIPAllocationMethod || 'Dynamic',
                     idleTimeoutInMinutes: options.params.idleTimeoutInMinutes || 30,
                     sku: {
