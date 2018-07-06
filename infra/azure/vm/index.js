@@ -217,7 +217,7 @@ const driver = {
 	* @return {void}
 	*/
 	listGroups: function(options, cb) {
-		return groups.listGroups(options, cb);
+		return groups.list(options, cb);
 	},
 
 	/**
@@ -228,7 +228,7 @@ const driver = {
 	* @return {void}
 	*/
 	createGroup: function (options, cb) {
-		return groups.createGroup(options, cb);
+		return groups.create(options, cb);
 	},
 
 	/**
@@ -239,7 +239,7 @@ const driver = {
 	* @return {void}
 	*/
 	updateGroup: function (options, cb) {
-		return groups.updateGroup(options, cb);
+		return groups.update(options, cb);
 	},
 
 	/**
@@ -250,7 +250,7 @@ const driver = {
 	* @return {void}
 	*/
 	deleteGroup: function (options, cb) {
-		return groups.deleteGroup(options, cb);
+		return groups.delete(options, cb);
 	},
 
 	/**

@@ -14,7 +14,7 @@ const networks = {
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-    listNetworks: function(options, cb) {
+    list: function(options, cb) {
 		options.soajs.log.debug(`Listing Networks for resourcegroup ${options.params.group} `);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
@@ -43,7 +43,7 @@ const networks = {
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-    createNetwork: function(options, cb) {
+    create: function(options, cb) {
 		options.soajs.log.debug(`Creating network ${options.params.networkName}`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
@@ -68,7 +68,7 @@ const networks = {
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-    updateNetwork: function(options, cb) {
+    update: function(options, cb) {
 		options.soajs.log.debug(`Updating network ${options.params.networkName} `);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
@@ -93,7 +93,7 @@ const networks = {
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-    deleteNetwork: function(options, cb) {
+    delete: function(options, cb) {
 		options.soajs.log.debug(`Deleting network ${options.params.networkName}`);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
