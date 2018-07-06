@@ -1,10 +1,48 @@
 'use strict';
 
+const async = require('async');
 const helper = require('./../helper');
 const utils = require('../../../../lib/utils/utils.js');
 const driverUtils = require('../../utils/index.js');
 
 const maintenance = {
+
+    /**
+	* Delete a virtual machine
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
+	deleteService: function (options, cb) {
+		options.soajs.log.debug(`Deleting virtual machine ${options.params.serviceId} in resource group ${options.params.group}`);
+		driverUtils.authenticate(options, (error, authData) => {
+			utils.checkError(error, 700, cb, () => {
+				const computeClient = driverUtils.getConnector({
+					api: 'compute',
+					credentials: authData.credentials,
+					subscriptionId: options.infra.api.subscriptionId
+				});
+
+				//todo: inspect service, get the needed details for the below if any
+				async.series({
+					"deleteVM": (mCb) =>{
+						computeClient.virtualMachines.deleteMethod(options.params.group, options.params.id, mCb);
+					}
+					//todo: missing delete public ip address
+					//todo: missing delete network interface
+					//todo: missing delete network security group
+					//todo: missing delete virtual network
+					//todo: missing delete disk
+				}, (error) => {
+					if(error){
+						options.soajs.log.error(error);
+					}
+				});
+				return cb(null, true);
+			});
+		});
+	},
 
     /**
 	* Restart a virtual machine

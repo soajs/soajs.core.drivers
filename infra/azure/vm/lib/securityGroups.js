@@ -5,32 +5,32 @@ const helper = require('./../helper');
 const utils = require('../../../../lib/utils/utils.js');
 const driverUtils = require('../../utils/index.js');
 
-const lbs = {
+const securityGroups = {
 
     /**
-	* List available load balancers
+	* List available security groups
 
 	* @param  {Object}   options  Data passed to function as params
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
     list: function(options, cb) {
-        options.soajs.log.debug(`Listing laod balancers for resourcegroup ${options.params.group}`);
+        options.soajs.log.debug(`Listing securityGroups for resourcegroup ${options.params.group} `);
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const networkClient = driverUtils.getConnector({
 					api: 'network',
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
-				});
-				networkClient.loadBalancers.list(options.params.group, function (error, loadBalancers) {
-					utils.checkError(error, 732, cb, () => {
-						async.map(loadBalancers, function(oneloadBalancer, callback) {
-							return callback(null, helper.buildLoadBalancerRecord({ loadBalancer: oneloadBalancer }));
-						}, function(error, loadBalancersList) {
-							return cb(null, loadBalancersList);
-						});
 
+				});
+				networkClient.networkSecurityGroups.list(options.params.group,function (error, networkSecurityGroups) {
+					utils.checkError(error, 734, cb, () => {
+						async.map(networkSecurityGroups, function(oneNetworkSecurityGroup, callback) {
+							return callback(null, helper.buildSecurityGroupsRecord({ networkSecurityGroups: oneNetworkSecurityGroup }));
+						}, function(error, securityGroupsList) {
+							return cb(null, securityGroupsList);
+						});
 					});
 				});
 			});
@@ -38,7 +38,7 @@ const lbs = {
     },
 
     /**
-	* Create a new load balancer
+	* Create a new security group
 
 	* @param  {Object}   options  Data passed to function as params
 	* @param  {Function} cb    Callback function
@@ -49,7 +49,7 @@ const lbs = {
     },
 
     /**
-	* Update a load balancer
+	* Update a security group
 
 	* @param  {Object}   options  Data passed to function as params
 	* @param  {Function} cb    Callback function
@@ -60,7 +60,7 @@ const lbs = {
     },
 
     /**
-	* Delete a load balancer
+	* Delete a security group
 
 	* @param  {Object}   options  Data passed to function as params
 	* @param  {Function} cb    Callback function
@@ -72,4 +72,4 @@ const lbs = {
 
 };
 
-module.exports = lbs;
+module.exports = securityGroups;
