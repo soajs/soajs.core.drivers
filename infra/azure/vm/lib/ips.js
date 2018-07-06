@@ -1,7 +1,9 @@
 'use strict';
 
-const utils = require('../../../lib/utils/utils.js');
-const driverUtils = require('../utils/index.js');
+const async = require('async');
+const helper = require('./helper');
+const utils = require('../../../../lib/utils/utils.js');
+const driverUtils = require('../../utils/index.js');
 
 const ips = {
 

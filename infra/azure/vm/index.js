@@ -5,6 +5,11 @@ const helper = require('./helper');
 const utils = require('../../../lib/utils/utils.js');
 const driverUtils = require('../utils/index.js');
 
+const groups = require('./lib/groups');
+const ips = require('./lib/ips');
+const loadBalancers = require('./lib/loadBalancers');
+const networks = require('./lib/networks');
+
 const driver = {
 
 	/**
@@ -282,31 +287,6 @@ const driver = {
 	},
 
 	/**
-	* Delete a resource group
-
-	* @param  {Object}   options  Data passed to function as params
-	* @param  {Function} cb    Callback function
-	* @return {void}
-	*/
-	deleteResourceGroup: function (options, cb) {
-		options.soajs.log.debug(`Deleting resource group ${options.params.group}`);
-		driverUtils.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const resourceClient = driverUtils.getConnector({
-					api: 'resource',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				resourceClient.resourceGroups.deleteMethod(options.params.group, function (error, result) {
-					utils.checkError(error, 708, cb, () => {
-						return cb(null, result);
-					});
-				});
-			});
-		});
-	},
-
-	/**
 	* List available resource groups
 
 	* @param  {Object}   options  Data passed to function as params
@@ -314,25 +294,40 @@ const driver = {
 	* @return {void}
 	*/
 	listGroups: function(options, cb) {
-		options.soajs.log.debug(`Listing available resource groups`);
-		driverUtils.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const resourceClient = driverUtils.getConnector({
-					api: 'resource',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				resourceClient.resourceGroups.list(function (error, resourceGroups) {
-					utils.checkError(error, 714, cb, () => {
-						async.map(resourceGroups, function(oneResourceGroup, callback) {
-							return callback(null, helper.buildResourceGroupRecord({ resourceGroup: oneResourceGroup }));
-						}, function(error, resourceGroupsList) {
-							return cb(null, resourceGroupsList);
-						});
-					});
-				});
-			});
-		});
+		return groups.listGroups(options, cb);
+	},
+
+	/**
+	* Create a resource group
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
+	createGroup: function (options, cb) {
+		return groups.createGroup(options, cb);
+	},
+
+	/**
+	* Update a resource group
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
+	updateGroup: function (options, cb) {
+		return groups.updateGroup(options, cb);
+	},
+
+	/**
+	* Delete a resource group
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
+	deleteGroup: function (options, cb) {
+		return groups.deleteGroup(options, cb);
 	},
 
 	/**

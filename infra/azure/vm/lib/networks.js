@@ -1,54 +1,56 @@
 'use strict';
 
-const utils = require('../../../lib/utils/utils.js');
-const driverUtils = require('../utils/index.js');
+const async = require('async');
+const helper = require('./helper');
+const utils = require('../../../../lib/utils/utils.js');
+const driverUtils = require('../../utils/index.js');
 
-const lbs = {
+const networks = {
 
     /**
-	* List available load balancers
+	* List available networks
 
 	* @param  {Object}   options  Data passed to function as params
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-    listLoadBalancers: function(options, cb) {
+    listNetworks: function(options, cb) {
 
     },
 
     /**
-	* Create a new load balancer
+	* Create a new network
 
 	* @param  {Object}   options  Data passed to function as params
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-    createLoadBalancer: function(options, cb) {
+    createNetwork: function(options, cb) {
 
     },
 
     /**
-	* Update a load balancer
+	* Update a network
 
 	* @param  {Object}   options  Data passed to function as params
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-    updateLoadBalancer: function(options, cb) {
+    updateNetwork: function(options, cb) {
 
     },
 
     /**
-	* Delete a load balancer
+	* Delete a network
 
 	* @param  {Object}   options  Data passed to function as params
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-    deleteLoadBalancer: function(options, cb) {
+    deleteNetwork: function(options, cb) {
 
     }
 
 };
 
-module.exports = lbs;
+module.exports = networks;
