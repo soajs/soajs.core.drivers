@@ -8,107 +8,107 @@ const driverUtils = require('../../utils/index.js');
 const groups = {
 
     /**
-	* List available resource groups
+    * List available resource groups
 
-	* @param  {Object}   options  Data passed to function as params
-	* @param  {Function} cb    Callback function
-	* @return {void}
-	*/
+    * @param  {Object}   options  Data passed to function as params
+    * @param  {Function} cb    Callback function
+    * @return {void}
+    */
     listGroups: function(options, cb) {
-      options.soajs.log.debug(`Listing available resource groups`);
-      driverUtils.authenticate(options, (error, authData) => {
-        utils.checkError(error, 700, cb, () => {
-          const resourceClient = driverUtils.getConnector({
-            api: 'resource',
-            credentials: authData.credentials,
-            subscriptionId: options.infra.api.subscriptionId
-          });
-          resourceClient.resourceGroups.list(function (error, resourceGroups) {
-            utils.checkError(error, 714, cb, () => {
-              async.map(resourceGroups, function(oneResourceGroup, callback) {
-                return callback(null, helper.buildResourceGroupRecord({ resourceGroup: oneResourceGroup }));
-              }, function(error, resourceGroupsList) {
-                return cb(null, resourceGroupsList);
-              });
+        options.soajs.log.debug(`Listing available resource groups`);
+        driverUtils.authenticate(options, (error, authData) => {
+            utils.checkError(error, 700, cb, () => {
+                const resourceClient = driverUtils.getConnector({
+                    api: 'resource',
+                    credentials: authData.credentials,
+                    subscriptionId: options.infra.api.subscriptionId
+                });
+                resourceClient.resourceGroups.list(function (error, resourceGroups) {
+                    utils.checkError(error, 714, cb, () => {
+                        async.map(resourceGroups, function(oneResourceGroup, callback) {
+                            return callback(null, helper.buildResourceGroupRecord({ resourceGroup: oneResourceGroup }));
+                        }, function(error, resourceGroupsList) {
+                            return cb(null, resourceGroupsList);
+                        });
+                    });
+                });
             });
-          });
         });
-      });
     },
 
     /**
-	* Create a new resource group
+    * Create a new resource group
 
-	* @param  {Object}   options  Data passed to function as params
-	* @param  {Function} cb    Callback function
-	* @return {void}
-	*/
+    * @param  {Object}   options  Data passed to function as params
+    * @param  {Function} cb    Callback function
+    * @return {void}
+    */
     createGroup: function(options, cb) {
-      options.soajs.log.debug(`Creating resource group ${options.params.name}`);
-      driverUtils.authenticate(options, (error, authData) => {
-        utils.checkError(error, 700, cb, () => {
-          const resourceClient = driverUtils.getConnector({
-            api: 'resource',
-            credentials: authData.credentials,
-            subscriptionId: options.infra.api.subscriptionId
-          });
-          resourceClient.resourceGroups.createOrUpdate(options.params.name, options.params, options, function (error, response){
-            utils.checkError(error, 753, cb, () => {
-                return cb(null, response);
-              });
+        options.soajs.log.debug(`Creating resource group ${options.params.name}`);
+        driverUtils.authenticate(options, (error, authData) => {
+            utils.checkError(error, 700, cb, () => {
+                const resourceClient = driverUtils.getConnector({
+                    api: 'resource',
+                    credentials: authData.credentials,
+                    subscriptionId: options.infra.api.subscriptionId
+                });
+                resourceClient.resourceGroups.createOrUpdate(options.params.name, options.params, options, function (error, response){
+                    utils.checkError(error, 753, cb, () => {
+                        return cb(null, response);
+                    });
+                });
             });
-          });
         });
     },
 
     /**
-	* Update a resource group
+    * Update a resource group
 
-	* @param  {Object}   options  Data passed to function as params
-	* @param  {Function} cb    Callback function
-	* @return {void}
-	*/
+    * @param  {Object}   options  Data passed to function as params
+    * @param  {Function} cb    Callback function
+    * @return {void}
+    */
     updateGroup: function(options, cb) {
-      options.soajs.log.debug(`Updating resource group ${options.params.name}`);
-      driverUtils.authenticate(options, (error, authData) => {
-        utils.checkError(error, 700, cb, () => {
-          const resourceClient = driverUtils.getConnector({
-            api: 'resource',
-            credentials: authData.credentials,
-            subscriptionId: options.infra.api.subscriptionId
-          });
-          resourceClient.resourceGroups.createOrUpdate(options.params.name, options.params, options, function (error, response){
-            utils.checkError(error, 754, cb, () => {
-                return cb(null, response);
-              });
+        options.soajs.log.debug(`Updating resource group ${options.params.name}`);
+        driverUtils.authenticate(options, (error, authData) => {
+            utils.checkError(error, 700, cb, () => {
+                const resourceClient = driverUtils.getConnector({
+                    api: 'resource',
+                    credentials: authData.credentials,
+                    subscriptionId: options.infra.api.subscriptionId
+                });
+                resourceClient.resourceGroups.createOrUpdate(options.params.name, options.params, options, function (error, response){
+                    utils.checkError(error, 754, cb, () => {
+                        return cb(null, response);
+                    });
+                });
             });
-          });
         });
     },
 
     /**
-	* Delete a resource group
+    * Delete a resource group
 
-	* @param  {Object}   options  Data passed to function as params
-	* @param  {Function} cb    Callback function
-	* @return {void}
-	*/
+    * @param  {Object}   options  Data passed to function as params
+    * @param  {Function} cb    Callback function
+    * @return {void}
+    */
     deleteGroup: function(options, cb) {
-      options.soajs.log.debug(`Deleting resource group ${options.params.name}`);
-      driverUtils.authenticate(options, (error, authData) => {
-        utils.checkError(error, 700, cb, () => {
-          const resourceClient = driverUtils.getConnector({
-            api: 'resource',
-            credentials: authData.credentials,
-            subscriptionId: options.infra.api.subscriptionId
-          });
-          resourceClient.resourceGroups.deleteMethod(options.params.name, function (error, result) {
-            utils.checkError(error, 708, cb, () => {
-              return cb(null, true);
+        options.soajs.log.debug(`Deleting resource group ${options.params.name}`);
+        driverUtils.authenticate(options, (error, authData) => {
+            utils.checkError(error, 700, cb, () => {
+                const resourceClient = driverUtils.getConnector({
+                    api: 'resource',
+                    credentials: authData.credentials,
+                    subscriptionId: options.infra.api.subscriptionId
+                });
+                resourceClient.resourceGroups.deleteMethod(options.params.name, function (error, result) {
+                    utils.checkError(error, 708, cb, () => {
+                        return cb(null, true);
+                    });
+                });
             });
-          });
         });
-      });
 
     }
 
