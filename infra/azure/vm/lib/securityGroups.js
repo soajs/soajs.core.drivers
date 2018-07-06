@@ -2,8 +2,11 @@
 
 const async = require('async');
 const helper = require('./../helper');
+const config = require('../../config');
 const utils = require('../../../../lib/utils/utils.js');
 const driverUtils = require('../../utils/index.js');
+
+const request = require('request');
 
 const securityGroups = {
 
@@ -45,7 +48,45 @@ const securityGroups = {
     * @return {void}
     */
     create: function(options, cb) {
+        options.soajs.log.debug(`Creating/Updating securityGroup in ${options.params.securityGroupName} resource group ${options.params.group} `);
+        driverUtils.authenticate(options, (error, authData) => {
+            utils.checkError(error, 700, cb, () => {
+                let bearerToken = '', subscriptionId = '';
+                if(authData &&
+                    authData.credentials &&
+                    authData.credentials.tokenCache &&
+                    authData.credentials.tokenCache._entries &&
+                    Array.isArray(authData.credentials.tokenCache._entries) &&
+                    authData.credentials.tokenCache._entries[0] &&
+                    authData.credentials.tokenCache._entries[0].accessToken) {
+                        bearerToken = authData.credentials.tokenCache._entries[0].accessToken;
+                }
 
+                if(options.infra && options.infra.api && options.infra.api.subscriptionId) {
+                    subscriptionId = options.infra.api.subscriptionId;
+                }
+
+                let requestOptions = {
+                    method: 'PUT',
+                    uri: `https://management.azure.com/subscriptions/${subscriptionId}/resourceGroups/${options.params.group}/providers/Microsoft.Network/networkSecurityGroups/${options.params.securityGroupName}?api-version=${config.apiVersion2018}`,
+                    headers: { Authorization: `Bearer ${bearerToken}` },
+                    json: true,
+                    body: {
+                        location: options.params.region,
+                        properties: {
+                            securityRules: securityGroups.buildSecurityRules(options.params.ports)
+                        }
+                    }
+                };
+
+                request(requestOptions, function(error, response, body) {
+                    if(error) return cb(error);
+                    if(body && body.error) return cb(body.error);
+
+                    return cb(null, { id: body.id });
+                });
+            });
+        });
     },
 
     /**
@@ -56,7 +97,7 @@ const securityGroups = {
     * @return {void}
     */
     update: function(options, cb) {
-
+        return securityGroups.create(options, cb);
     },
 
     /**
@@ -82,7 +123,39 @@ const securityGroups = {
                 });
             });
         });
-    }
+    },
+
+    /**
+    * Build the security rules based on the input ports
+
+    * @param  {Array}   ports  The list of ports
+    * @return {Array}
+    */
+    buildSecurityRules: function(ports) {
+        let securityRules = [];
+        let priority = 100;
+
+        if(Array.isArray(ports)) {
+            ports.forEach(onePort => {
+                securityRules.push({
+                    name: onePort.name,
+                    properties: {
+                        priority: priority,
+                        protocol: (onePort.protocol) ? onePort.protocol : "*",
+                        access: (onePort.access) ? onePort.access : "Allow", //Allow || Deny
+                        direction: (onePort.direction) ? onePort.direction : "Inbound", //Inboud || Outbound
+                        sourceAddressPrefix: (onePort.sourceAddressPrefix) ? onePort.sourceAddressPrefix : "*",
+                        sourcePortRange: (onePort.sourcePortRange) ? onePort.sourcePortRange : "*",
+                        destinationAddressPrefix: (onePort.destinationAddressPrefix) ? onePort.destinationAddressPrefix : "*",
+                        destinationPortRange: (onePort.published) ? onePort.published : (Math.floor(Math.random() * 2768) + 30000)
+                    }
+                });
+                priority += 10;
+            });
+        }
+
+        return securityRules;
+    },
 };
 
 module.exports = securityGroups;
