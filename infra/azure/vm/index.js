@@ -13,6 +13,7 @@ const images = require('./lib/images');
 const maintenance = require('./lib/maintenance');
 const securityGroups = require('./lib/securityGroups');
 const disks = require('./lib/disks');
+const sizes = require('./lib/sizes');
 
 const driver = {
 
@@ -260,25 +261,7 @@ const driver = {
 	* @return {void}
 	*/
 	listVmSizes: function (options, cb) {
-		options.soajs.log.debug(`Listing available virtual machine sizes in ${options.params.region} location`);
-		driverUtils.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const computeClient = driverUtils.getConnector({
-					api: 'compute',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				computeClient.virtualMachineSizes.list(options.params.region, function (error, vmSizes) {
-					utils.checkError(error, 709, cb, () => {
-						async.map(vmSizes, function(onevmSize, callback) {
-							return callback(null, helper.buildVmSizes({ vmSize: onevmSize }));
-						}, function(error, vmSizesList) {
-							return cb(null, vmSizesList);
-						});
-					});
-				});
-			});
-		});
+		return sizes.list(options, cb);
 	},
 
 	/**
