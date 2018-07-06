@@ -45,7 +45,31 @@ const ips = {
     * @return {void}
     */
     create: function(options, cb) {
+        options.soajs.log.debug(`Creating public ip in group ${options.params.group}`);
+        driverUtils.authenticate(options, (error, authData) => {
+            utils.checkError(error, 700, cb, () => {
+                const networkClient = driverUtils.getConnector({
+                    api: 'network',
+                    credentials: authData.credentials,
+                    subscriptionId: options.infra.api.subscriptionId
+                });
 
+                let params = {
+                    location: options.params.location,
+                    publicIPAllocationMethod: options.params.publicIPAllocationMethod || 'Dynamic',
+                    idleTimeoutInMinutes: options.params.idleTimeoutInMinutes || 30,
+                    sku: {
+                        name: options.params.type || 'Basic'
+                    }
+                };
+
+                return networkClient.publicIPAddresses.createOrUpdate(options.params.group, options.params.publicIpName, params, function(error, response) {
+                    utils.checkError(error, 717, cb, () => {
+                        return cb(null, { id: response.id });
+                    });
+                });
+            });
+        });
     },
 
     /**
@@ -56,7 +80,7 @@ const ips = {
     * @return {void}
     */
     update: function(options, cb) {
-
+        return ips.create(options, cb);
     },
 
     /**
@@ -67,7 +91,7 @@ const ips = {
     * @return {void}
     */
     delete: function(options, cb) {
-        options.soajs.log.debug(`Deleting Public IP ${options.params.publicIp}`);
+        options.soajs.log.debug(`Deleting Public IP ${options.params.publicIpName}`);
         driverUtils.authenticate(options, (error, authData) => {
             utils.checkError(error, 700, cb, () => {
                 const resourceClient = driverUtils.getConnector({
@@ -75,7 +99,7 @@ const ips = {
                     credentials: authData.credentials,
                     subscriptionId: options.infra.api.subscriptionId
                 });
-                resourceClient.publicIPAddresses.deleteMethod(options.params.group, options.params.publicIp, function (error, response) {
+                resourceClient.publicIPAddresses.deleteMethod(options.params.group, options.params.publicIpName, function (error, response) {
                     utils.checkError(error, 743, cb, () => {
                         return cb(null, true);
                     });
