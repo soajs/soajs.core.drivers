@@ -10,6 +10,7 @@ const ips = require('./lib/ips');
 const loadBalancers = require('./lib/loadBalancers');
 const networks = require('./lib/networks');
 const images = require('./lib/images');
+const maintenance = require('./lib/maintenance');
 
 const driver = {
 
@@ -195,21 +196,7 @@ const driver = {
 	* @return {void}
 	*/
 	restartService: function (options, cb) {
-		options.soajs.log.debug(`Restarting virtual machine ${options.params.vmName} in resource group ${options.params.group}`);
-		driverUtils.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const computeClient = driverUtils.getConnector({
-					api: 'compute',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				computeClient.virtualMachines.restart(options.params.group, options.params.vmName, function (error, result) {
-					utils.checkError(error, 706, cb, () => {
-						return cb(null, result);
-					});
-				});
-			});
-		});
+		return maintenance.restartService(options, cb);
 	},
 
 	/**
@@ -220,21 +207,7 @@ const driver = {
 	* @return {void}
 	*/
 	redeployService: function (options, cb) {
-		options.soajs.log.debug(`Redeploying virtual machine ${options.params.vmName} in resource group ${options.params.group}`);
-		driverUtils.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const computeClient = driverUtils.getConnector({
-					api: 'compute',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				computeClient.virtualMachines.redeploy(options.params.group, options.params.vmName, function (error, result) {
-					utils.checkError(error, 706, cb, () => {
-						return cb(null, true);
-					});
-				});
-			});
-		});
+		return maintenance.redeployService(options, cb);
 	},
 
 	/**
@@ -245,21 +218,7 @@ const driver = {
 	* @return {void}
 	*/
 	powerOffVM: function (options, cb) {
-		options.soajs.log.debug(`Powering Off virtual machine ${options.params.vmName} in resource group ${options.params.group}`);
-		driverUtils.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const computeClient = driverUtils.getConnector({
-					api: 'compute',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				computeClient.virtualMachines.powerOff(options.params.group, options.params.vmName, function (error, result) {
-					utils.checkError(error, 702, cb, () => {
-						return cb(null, result);
-					});
-				});
-			});
-		});
+		return maintenance.powerOffVM(options, cb);
 	},
 
 	/**
@@ -270,21 +229,7 @@ const driver = {
 	* @return {void}
 	*/
 	startVM: function (options, cb) {
-		options.soajs.log.debug(`Starting virtual machine ${options.params.vmName} in resource group ${options.params.group}`);
-		driverUtils.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const computeClient = driverUtils.getConnector({
-					api: 'compute',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				computeClient.virtualMachines.start(options.params.group, options.params.vmName, function (error, result) {
-					utils.checkError(error, 703, cb, () => {
-						return cb(null, result);
-					});
-				});
-			});
-		});
+		return maintenance.startVM(options, cb);
 	},
 
 	/**
@@ -553,32 +498,7 @@ const driver = {
 	* @return {void}
 	*/
 	runCommand: function(options, cb) {
-		options.soajs.log.debug(`Running command in virtual machine`);
-		driverUtils.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const computeClient = driverUtils.getConnector({
-					api: 'compute',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-
-				let script = [];
-				if(options.params.env && Array.isArray(options.params.env)) script = script.concat(options.params.env.map(oneEnv => `export ${oneEnv}`)); // export environment variables
-				if(options.params.command && Array.isArray(options.params.command)) script = script.concat(options.params.command); // add command
-				if(options.params.args && Array.isArray(options.params.args)) script = script.concat(options.params.args); // add command arguments
-
-				let params = { commandId: 'RunShellScript', script: script };
-				computeClient.virtualMachines.runCommand(options.params.group, options.params.vmName, params, function(error, result) {
-					utils.checkError(error && error.body && error.body.code === 'Conflict'
-						&& error.body.message.includes("Run command extension execution is in progress. Please wait for completion before invoking a run command."),
-						766, cb, () => {
-						utils.checkError(error, 736, cb, () => {
-							return cb(null, result);
-						});
-					});
-				});
-			});
-		});
+		return maintenance.runCommand(options, cb);
 	},
 
 	/**
@@ -589,12 +509,9 @@ const driver = {
 	* @return {void}
 	*/
 	getLogs: function(options, cb) {
-		utils.checkError(!options.params, 736, cb, () => {
-			let numberOfLines = options.params.numberOfLines || 200;
-			options.params.command = [ `journalctl -r --lines ${numberOfLines}` ];
-			return driver.runCommand(options,cb);
-		});
+		return maintenance.getLogs(options, cb);
 	},
+	
 	/**
 	* List data/os disks of a resource group
 
