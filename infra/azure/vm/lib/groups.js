@@ -44,7 +44,7 @@ const groups = {
 	* @return {void}
 	*/
     createGroup: function(options, cb) {
-      options.soajs.log.debug(`Listing available resource groups`);
+      options.soajs.log.debug(`Creating resource group ${options.params.name}`);
       driverUtils.authenticate(options, (error, authData) => {
         utils.checkError(error, 700, cb, () => {
           const resourceClient = driverUtils.getConnector({
@@ -52,15 +52,13 @@ const groups = {
             credentials: authData.credentials,
             subscriptionId: options.infra.api.subscriptionId
           });
-          resourceClient.resourceGroups.createOrUpdate(options.params.name, params, options, function (error, response) {
+          resourceClient.resourceGroups.createOrUpdate(options.params.name, options.params, options, function (error, response){
             utils.checkError(error, 753, cb, () => {
-            function(error, response) {
                 return cb(null, response);
               });
             });
           });
         });
-      });
     },
 
     /**
@@ -71,7 +69,21 @@ const groups = {
 	* @return {void}
 	*/
     updateGroup: function(options, cb) {
-
+      options.soajs.log.debug(`Updating resource group ${options.params.name}`);
+      driverUtils.authenticate(options, (error, authData) => {
+        utils.checkError(error, 700, cb, () => {
+          const resourceClient = driverUtils.getConnector({
+            api: 'resource',
+            credentials: authData.credentials,
+            subscriptionId: options.infra.api.subscriptionId
+          });
+          resourceClient.resourceGroups.createOrUpdate(options.params.name, options.params, options, function (error, response){
+            utils.checkError(error, 754, cb, () => {
+                return cb(null, response);
+              });
+            });
+          });
+        });
     },
 
     /**
@@ -82,7 +94,7 @@ const groups = {
 	* @return {void}
 	*/
     deleteGroup: function(options, cb) {
-      options.soajs.log.debug(`Deleting resource group ${options.params.group}`);
+      options.soajs.log.debug(`Deleting resource group ${options.params.name}`);
       driverUtils.authenticate(options, (error, authData) => {
         utils.checkError(error, 700, cb, () => {
           const resourceClient = driverUtils.getConnector({
@@ -90,9 +102,9 @@ const groups = {
             credentials: authData.credentials,
             subscriptionId: options.infra.api.subscriptionId
           });
-          resourceClient.resourceGroups.deleteMethod(options.params.group, function (error, result) {
+          resourceClient.resourceGroups.deleteMethod(options.params.name, function (error, result) {
             utils.checkError(error, 708, cb, () => {
-              return cb(null, result);
+              return cb(null, true);
             });
           });
         });
