@@ -321,27 +321,41 @@ const driver = {
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-
 	listNetworks: function (options, cb) {
-		options.soajs.log.debug(`Listing Networks for resourcegroup ${options.params.group} `);
-		driverUtils.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const networkClient = driverUtils.getConnector({
-					api: 'network',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				networkClient.virtualNetworks.list(options.params.group, function (error, networks) {
-					utils.checkError(error, 731, cb, () => {
-						async.map(networks, function(oneNetwork, callback) {
-							return callback(null, helper.buildNetworkRecord({ network: oneNetwork }));
-						}, function(error, networksList) {
-							return cb(null, networksList);
-						});
-					});
-				});
-			});
-		});
+		return networks.list(options, cb);
+	},
+
+	/**
+	* Create network
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
+	createNetwork: function (options, cb) {
+		return networks.create(options, cb);
+	},
+
+	/**
+	* Update network
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
+	updateNetwork: function (options, cb) {
+		return networks.update(options, cb);
+	},
+
+	/**
+	* Delete network
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
+	deleteNetwork: function (options, cb) {
+		return networks.delete(options, cb);
 	},
 
 	/**
@@ -351,9 +365,41 @@ const driver = {
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-
 	listLoadBalancers: function (options, cb) {
 		return loadBalancers.list(options, cb);
+	},
+
+	/**
+	* Create loadbalancer
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
+	createLoadBalancer: function (options, cb) {
+		return loadBalancers.create(options, cb);
+	},
+
+	/**
+	* Update loadbalancer
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
+	updateLoadBalancer: function (options, cb) {
+		return loadBalancers.update(options, cb);
+	},
+
+	/**
+	* Delete loadbalancer
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
+	deleteLoadBalancer: function (options, cb) {
+		return loadBalancers.delete(options, cb);
 	},
 
 	/**
@@ -392,11 +438,42 @@ const driver = {
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-
 	listSecurityGroups: function (options, cb) {
 		return securityGroups.list(options, cb);
 	},
 
+	/**
+	* Create security group
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
+	createSecurityGroup: function (options, cb) {
+		return securityGroups.create(options, cb);
+	},
+
+	/**
+	* Update security group
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
+	updateSecurityGroup: function (options, cb) {
+		return securityGroups.update(options, cb);
+	},
+
+	/**
+	* Delete security group
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
+	deleteSecurityGroup: function (options, cb) {
+		return securityGroups.delete(options, cb);
+	},
 
 	/**
 	* List available public ips
@@ -407,6 +484,39 @@ const driver = {
 	*/
 	listPublicIps: function (options, cb) {
 		return ips.list(options, cb);
+	},
+
+	/**
+	* Create public ip
+
+	* @param  {Object}   options
+	* @param  {Function} cb
+	* @return {void}
+	*/
+	createPublicIp: function (options, cb) {
+		return ips.create(options, cb);
+	},
+
+	/**
+	* Update public ip
+
+	* @param  {Object}   options
+	* @param  {Function} cb
+	* @return {void}
+	*/
+	updatePublicIp: function (options, cb) {
+		return ips.update(options, cb);
+	},
+
+	/**
+	* Delete public ip
+
+	* @param  {Object}   options
+	* @param  {Function} cb
+	* @return {void}
+	*/
+	deletePublicIp: function (options, cb) {
+		return ips.delete(options, cb);
 	},
 
 	/**
