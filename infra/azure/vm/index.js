@@ -11,6 +11,8 @@ const loadBalancers = require('./lib/loadBalancers');
 const networks = require('./lib/networks');
 const images = require('./lib/images');
 const maintenance = require('./lib/maintenance');
+const securityGroups = require('./lib/securityGroups');
+const disks = require('./lib/disks');
 
 const driver = {
 
@@ -159,33 +161,7 @@ const driver = {
 	* @return {void}
 	*/
 	deleteService: function (options, cb) {
-		options.soajs.log.debug(`Deleting virtual machine ${options.params.serviceId} in resource group ${options.params.group}`);
-		driverUtils.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const computeClient = driverUtils.getConnector({
-					api: 'compute',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-
-				//todo: inspect service, get the needed details for the below if any
-				async.series({
-					"deleteVM": (mCb) =>{
-						computeClient.virtualMachines.deleteMethod(options.params.group, options.params.id, mCb);
-					}
-					//todo: missing delete public ip address
-					//todo: missing delete network interface
-					//todo: missing delete network security group
-					//todo: missing delete virtual network
-					//todo: missing delete disk
-				}, (error) => {
-					if(error){
-						options.soajs.log.error(error);
-					}
-				});
-				return cb(null, true);
-			});
-		});
+		return maintenance.deleteService(options, cb);
 	},
 
 	/**
@@ -377,26 +353,7 @@ const driver = {
 	*/
 
 	listLoadBalancers: function (options, cb) {
-		options.soajs.log.debug(`Listing laod balancers for resourcegroup ${options.params.group}`);
-		driverUtils.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const networkClient = driverUtils.getConnector({
-					api: 'network',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				networkClient.loadBalancers.list(options.params.group, function (error, loadBalancers) {
-					utils.checkError(error, 732, cb, () => {
-						async.map(loadBalancers, function(oneloadBalancer, callback) {
-							return callback(null, helper.buildLoadBalancerRecord({ loadBalancer: oneloadBalancer }));
-						}, function(error, loadBalancersList) {
-							return cb(null, loadBalancersList);
-						});
-
-					});
-				});
-			});
-		});
+		return loadBalancers.list(options, cb);
 	},
 
 	/**
@@ -437,26 +394,7 @@ const driver = {
 	*/
 
 	listSecurityGroups: function (options, cb) {
-		options.soajs.log.debug(`Listing securityGroups for resourcegroup ${options.params.group} `);
-		driverUtils.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const networkClient = driverUtils.getConnector({
-					api: 'network',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-
-				});
-				networkClient.networkSecurityGroups.list(options.params.group,function (error, networkSecurityGroups) {
-					utils.checkError(error, 734, cb, () => {
-						async.map(networkSecurityGroups, function(oneNetworkSecurityGroup, callback) {
-							return callback(null, helper.buildSecurityGroupsRecord({ networkSecurityGroups: oneNetworkSecurityGroup }));
-						}, function(error, securityGroupsList) {
-							return cb(null, securityGroupsList);
-						});
-					});
-				});
-			});
-		});
+		return securityGroups.list(options, cb);
 	},
 
 
@@ -468,26 +406,7 @@ const driver = {
 	* @return {void}
 	*/
 	listPublicIps: function (options, cb) {
-		options.soajs.log.debug(`Listing public ips for resourcegroup ${options.params.group} `);
-		driverUtils.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const networkClient = driverUtils.getConnector({
-					api: 'network',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				networkClient.publicIPAddresses.list(options.params.group,function (error, publicIPAddresses) {
-					utils.checkError(error, 735, cb, () => {
-
-						async.map(publicIPAddresses, function(onepublicIPAddresse, callback) {
-							return callback(null, helper.buildPublicIPsRecord({ publicIPAddresse: onepublicIPAddresse }));
-						}, function(error, PublicIpsList) {
-							return cb(null, PublicIpsList);
-						});
-					});
-				});
-			});
-		});
+		return ips.list(options, cb);
 	},
 
 	/**
@@ -511,7 +430,7 @@ const driver = {
 	getLogs: function(options, cb) {
 		return maintenance.getLogs(options, cb);
 	},
-	
+
 	/**
 	* List data/os disks of a resource group
 
@@ -520,41 +439,7 @@ const driver = {
 	* @return {void}
 	*/
 	listDisks: function (options, cb){
-		options.soajs.log.debug(`Listing Data Disks for resourcegroup ${options.params.group}`);
-		driverUtils.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const computeClient = driverUtils.getConnector({
-					api: 'compute',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				computeClient.disks.list(options.params.group, function (error, disks) {
-					utils.checkError(error, 737, cb, () => {
-						async.concat(disks, function(oneDisk, callback) {
-							if(options.params && options.params.type) {
-								// only return disks of type os
-								if(options.params.type === 'os' && oneDisk.osType) {
-									return callback(null, [helper.buildDiskRecord({ disk: oneDisk })]);
-								}
-								// only return disks of type data
-								else if (options.params.type === 'data' && !oneDisk.osType) {
-									return callback(null, [helper.buildDiskRecord({ disk: oneDisk })]);
-								}
-								// ignore disk
-								else {
-									return callback(null, []);
-								}
-							}
-
-							// return all disks if no type is specified
-							return callback(null, [helper.buildDiskRecord({ disk: oneDisk })]);
-						}, function(error, disksList) {
-							return cb(null, disksList);
-						});
-					});
-				});
-			});
-		});
+		return disks.list(options, cb);
 	}
 
 

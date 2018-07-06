@@ -14,8 +14,27 @@ const ips = {
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-    listIpAddresses: function(options, cb) {
+    list: function(options, cb) {
+        options.soajs.log.debug(`Listing public ips for resourcegroup ${options.params.group} `);
+		driverUtils.authenticate(options, (error, authData) => {
+			utils.checkError(error, 700, cb, () => {
+				const networkClient = driverUtils.getConnector({
+					api: 'network',
+					credentials: authData.credentials,
+					subscriptionId: options.infra.api.subscriptionId
+				});
+				networkClient.publicIPAddresses.list(options.params.group,function (error, publicIPAddresses) {
+					utils.checkError(error, 735, cb, () => {
 
+						async.map(publicIPAddresses, function(onepublicIPAddresse, callback) {
+							return callback(null, helper.buildPublicIPsRecord({ publicIPAddresse: onepublicIPAddresse }));
+						}, function(error, PublicIpsList) {
+							return cb(null, PublicIpsList);
+						});
+					});
+				});
+			});
+		});
     },
 
     /**
@@ -25,7 +44,7 @@ const ips = {
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-    creaeteIpAddress: function(options, cb) {
+    create: function(options, cb) {
 
     },
 
@@ -36,7 +55,7 @@ const ips = {
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-    updateIpAddress: function(options, cb) {
+    update: function(options, cb) {
 
     },
 
@@ -47,7 +66,7 @@ const ips = {
 	* @param  {Function} cb    Callback function
 	* @return {void}
 	*/
-    deleteIpAddress: function(options, cb) {
+    delete: function(options, cb) {
 
     }
 
