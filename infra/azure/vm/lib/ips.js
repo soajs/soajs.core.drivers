@@ -67,7 +67,7 @@ const ips = {
 
                 return networkClient.publicIPAddresses.createOrUpdate(options.params.group, options.params.publicIpName, params, function(error, response) {
                     utils.checkError(error, 717, cb, () => {
-                        return cb(null, { id: response.id });
+                        return cb(null, helper.buildPublicIPRecord({ publicIPAddress: response }));
                     });
                 });
             });
