@@ -14,6 +14,7 @@ const maintenance = require('./lib/maintenance');
 const securityGroups = require('./lib/securityGroups');
 const disks = require('./lib/disks');
 const sizes = require('./lib/sizes');
+const services = require('./lib/services');
 
 const driver = {
 
@@ -25,59 +26,7 @@ const driver = {
 	* @return {void}
 	*/
 	inspectService: function (options, cb) {
-		options.soajs.log.debug(`Inspecting virtual machine ${options.params.vmName} in resource group ${options.params.group}`);
-		driverUtils.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const computeClient = driverUtils.getConnector({
-					api: 'compute',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				const networkClient = driverUtils.getConnector({
-					api: 'network',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-
-				async.auto({
-
-					getVirtualMachine: function(callback) {
-						computeClient.virtualMachines.get(options.params.group, options.params.vmName, function (error, vmInfo) {
-							if(error) return callback(error);
-							return callback(null, vmInfo);
-						});
-					},
-
-					listNetworkExtras: function(callback) {
-						return helper.listNetworkExtras(networkClient, { log: options.soajs.log }, callback);
-					}
-
-				}, function(error, results) {
-					utils.checkError(error, 701, cb, () => {
-						let opts = {
-							vm: results.getVirtualMachine,
-							log: options.soajs.log,
-							extras: results.listNetworkExtras
-						};
-						let vmRecordOptions = { vm: results.getVirtualMachine };
-						helper.getVmNetworkInfo(networkClient, opts, function (error, networkInfo) {
-							if (error) {
-								options.soajs.log.error(`Unable to get network information for ${results.getVirtualMachine.name} while inspecting`);
-								options.soajs.log.error(error);
-							}
-							else {
-								vmRecordOptions = Object.assign(vmRecordOptions, networkInfo);
-								if(results.listNetworkExtras && results.listNetworkExtras.publicIps) {
-									vmRecordOptions.publicIpsList = results.listNetworkExtras.publicIps;
-								}
-							}
-
-							return cb(null, helper.buildVMRecord(vmRecordOptions));
-						});
-					});
-				});
-			});
-		});
+		return services.inspect(options, cb);
 	},
 
 	/**
@@ -88,70 +37,7 @@ const driver = {
 	* @return {void}
 	*/
 	listServices: function (options, cb) {
-		options.soajs.log.debug(`Listing all virtual machines in ${options.params.group ? options.params.group : 'all environments'} and all custom vms`);
-		driverUtils.authenticate(options, (error, authData) => {
-			utils.checkError(error, 700, cb, () => {
-				const computeClient = driverUtils.getConnector({
-					api: 'compute',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				const networkClient = driverUtils.getConnector({
-					api: 'network',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-				const resourceClient = driverUtils.getConnector({
-					api: 'resource',
-					credentials: authData.credentials,
-					subscriptionId: options.infra.api.subscriptionId
-				});
-
-				let group = options.params && options.params.group ? options.params.group.toLowerCase() : null;
-
-				async.auto({
-
-					listVirtualMachines: function(callback) {
-						computeClient.virtualMachines.listAll(function (error, vms) {
-							if(error) return callback(error);
-							if (!vms || vms.length === 0) return callback(null, []);
-							return helper.filterVMs(group, vms, callback);
-						});
-					},
-
-					listNetworkExtras: function(callback) {
-						return helper.listNetworkExtras(networkClient, { log: options.soajs.log }, callback);
-					}
-
-				}, function(error, results) {
-					utils.checkError(error, 704, cb, () => {
-						async.map(results.listVirtualMachines, function (oneVm, callback) {
-							let opts = {
-								vm: oneVm,
-								log: options.soajs.log,
-								extras: results.listNetworkExtras
-							};
-
-							let vmRecordOptions = { vm: oneVm };
-							helper.getVmNetworkInfo(networkClient, opts, function (error, networkInfo) {
-								if (error) {
-									options.soajs.log.error(`Unable to get network information for ${oneVm.name} while inspecting`);
-									options.soajs.log.error(error);
-								}
-								else {
-									vmRecordOptions = Object.assign(vmRecordOptions, networkInfo);
-									if(results.listNetworkExtras && results.listNetworkExtras.publicIps) {
-										vmRecordOptions.publicIpsList = results.listNetworkExtras.publicIps;
-									}
-								}
-
-								return callback(null, helper.buildVMRecord(vmRecordOptions));
-							});
-						}, cb);
-					});
-				});
-			});
-		});
+		return services.list(options, cb);
 	},
 
 	/**
