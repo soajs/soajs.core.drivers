@@ -110,5 +110,34 @@ const networks = {
 			});
 		});
 	},
+
+    /**
+	* List available subnets
+
+	* @param  {Object}   options  Data passed to function listsubas params
+	* @param  {Function} cb    Callback fspub
+	* @return {void}listsub
+	*/
+	listSubnets: function (options, cb) {
+		options.soajs.log.debug(`Listing subnets for ${options.params.group} and virtual network name ${options.params.virtualNetworkName}`);
+		driverUtils.authenticate(options, (error, authData) => {
+			utils.checkError(error, 700, cb, () => {
+				const networkClient = driverUtils.getConnector({
+					api: 'network',
+					credentials: authData.credentials,
+					subscriptionId: options.infra.api.subscriptionId
+				});
+				networkClient.subnets.list(options.params.group, options.params.virtualNetworkName, function (error, subnets) {
+					utils.checkError(error, 733, cb, () => {
+						async.map(subnets, function(oneSubnet, callback) {
+							return callback(null, helper.bulidSubnetsRecord({ subnet: oneSubnet }));
+						}, function(error, subnetsList) {
+							return cb(null, subnetsList);
+						});
+					});
+				});
+			});
+		});
+	}
 }
 module.exports = networks;
