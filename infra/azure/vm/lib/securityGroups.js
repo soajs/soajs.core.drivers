@@ -135,7 +135,10 @@ const securityGroups = {
     buildSecurityRules: function(ports) {
         let securityRules = [];
         let priority = 100;
-
+        let defaultDestinationPortRange;
+		if (process.env.SOAJS_CLOOSTRO_TEST){
+			defaultDestinationPortRange = 1;
+		}
         if(Array.isArray(ports)) {
             ports.forEach(onePort => {
                 securityRules.push({
@@ -148,7 +151,7 @@ const securityGroups = {
                         sourceAddressPrefix: (onePort.sourceAddressPrefix) ? onePort.sourceAddressPrefix : "*",
                         sourcePortRange: (onePort.sourcePortRange) ? onePort.sourcePortRange : "*",
                         destinationAddressPrefix: (onePort.destinationAddressPrefix) ? onePort.destinationAddressPrefix : "*",
-                        destinationPortRange: (onePort.published) ? onePort.published : (Math.floor(Math.random() * 2768) + 30000)
+                        destinationPortRange: (onePort.published) ? onePort.published : defaultDestinationPortRange || (Math.floor(Math.random() * 2768) + 30000)
                     }
                 });
                 priority += 10;

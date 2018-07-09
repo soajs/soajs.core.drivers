@@ -277,7 +277,7 @@ const helper = {
 	},
 
 	buildPublicIPsRecord: function (opts) {
-		let record = {}
+		let record = {};
 		if(opts.publicIPAddresse){
 			if (opts.publicIPAddresse.name) record.name = opts.publicIPAddresse.name;
 			if (opts.publicIPAddresse.id) record.id = opts.publicIPAddresse.id;

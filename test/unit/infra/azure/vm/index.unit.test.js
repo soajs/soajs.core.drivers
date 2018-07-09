@@ -929,55 +929,6 @@ describe("testing /lib/azure/index.js", function () {
 		});
 	});
 
-	describe("calling executeDriver - listSecurityGroups", function () {
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		it("Success", function (done) {
-			info = dD();
-			sinon
-				.stub(serviceUtils, 'authenticate')
-				.yields(null, {
-					credentials: {},
-				});
-			sinon
-				.stub(serviceUtils, 'getConnector')
-				.returns({
-					networkSecurityGroups: {
-						list: (resourceGroupName, cb) => {
-							return cb(null, info.networkSecurutyGroup)
-						}
-					},
-				});
-
-			options = info.deployCluster;
-			options.params = {
-				resourceGroupName: "tester",
-				virtualNetworkName: "tester-vn",
-			};
-			let expectedResponce = [
-				{
-					"ports": [{
-						"isPublished": true,
-						"protocol": "tcp",
-						"published": "22",
-						"target": "*",
-					}],
-					"name": "tester-tester-sg",
-					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-tester-sg",
-				}
-			];
-
-			service.executeDriver('listSecurityGroups', options, function (error, response) {
-				assert.ifError(error);
-				assert.ok(response);
-				assert.deepEqual(expectedResponce, response);
-				done();
-			});
-		});
-	});
-
 	describe("calling executeDriver - listPublicIps", function () {
 		afterEach((done) => {
 			sinon.restore();
