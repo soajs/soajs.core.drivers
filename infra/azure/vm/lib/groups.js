@@ -45,8 +45,8 @@ const groups = {
     */
     create: function(options, cb) {
         options.soajs.log.debug(`Creating/Updating resource group ${options.params.group}`);
-        let groupNameRegex = new RegExp('^[-\w\._\(\)]+$', 'g');
-        utils.checkError(!groupNameRegex.match(options.params.group), 755, cb, () => {
+        let groupNameRegex = /^[-\w\._\(\)]+$/;
+        utils.checkError(!options.params.group.match(groupNameRegex), 755, cb, () => {
             driverUtils.authenticate(options, (error, authData) => {
                 utils.checkError(error, 700, cb, () => {
                     const resourceClient = driverUtils.getConnector({
@@ -57,9 +57,9 @@ const groups = {
                     let params = {
                         location: options.params.region,
                     };
-                    resourceClient.resourceGroups.createOrUpdate(options.params.group, params, options, function (error, response){
+                    resourceClient.resourceGroups.createOrUpdate(options.params.group, params, function (error, response){
                         utils.checkError(error, 753, cb, () => {
-                            return cb(null, response);
+                            return cb(null, helper.buildResourceGroupRecord({ resourceGroup: response }));
                         });
                     });
                 });

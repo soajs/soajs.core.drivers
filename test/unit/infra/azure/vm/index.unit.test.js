@@ -676,41 +676,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-
-	describe("calling executeDriver - deleteResourceGroup", function () {
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		it("Success", function (done) {
-			info = dD();
-			sinon
-				.stub(serviceUtils, 'authenticate')
-				.yields(null, {
-					credentials: {},
-				});
-			sinon
-				.stub(serviceUtils, 'getConnector')
-				.returns({
-					resourceGroups: {
-						deleteMethod: (location, cb) => {
-							return cb(null, true)
-						}
-					},
-				});
-
-			options = info.deployCluster;
-			options.params = {
-				env: "tester"
-			};
-			service.executeDriver('deleteResourceGroup', options, function (error, response) {
-				assert.ifError(error);
-				assert.ok(response);
-				done();
-			});
-		});
-	});
-
+	
 	describe("calling executeDriver - listVmSizes", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -1130,71 +1096,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-
-	describe("calling executeDriver - listGroups", function () {
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		it("Success", function (done) {
-			info = dD();
-			sinon
-				.stub(serviceUtils, 'authenticate')
-				.yields(null, {
-					credentials: {},
-				});
-			sinon
-				.stub(serviceUtils, 'getConnector')
-				.returns({
-					resourceGroups: {
-						list: (cb) => {
-							return cb(null, info.Groups)
-						}
-					},
-				});
-				info = dD();
-				options = info.deployCluster;
-				let expected = [
-					{
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/dashboard",
-						"name": "dashboard"
-					},
-					{
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/demo",
-						"name": "demo"
-					},
-					{
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/dynamic-template",
-						"name": "dynamic-template"
-					},
-					{
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/memsql",
-						"name": "memsql"
-					},
-					{
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/mongo",
-						"name": "mongo"
-					},
-					{
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/ragheb",
-						"name": "ragheb"
-					},
-					{
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/soajs",
-						"name": "soajs"
-					}
-				];
-
-			service.executeDriver('listGroups',options, function (error, response) {
-
-				assert.ifError(error);
-				assert.ok(response);
-				assert.deepEqual(expected, response);
-				done();
-			});
-		});
-	});
-
+	
 	describe("calling executeDriver - getLogs", function () {
 		afterEach((done) => {
 			sinon.restore();

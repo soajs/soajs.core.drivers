@@ -264,7 +264,6 @@ const helper = {
 		return record;
 	},
 
-
 	bulidSubnetsRecord: function (opts) {
 		let record = {};
 		if(opts.subnet){
@@ -289,6 +288,7 @@ const helper = {
 		}
 		return record;
 	},
+	
 	buildSecurityGroupsRecord: function (opts) {
 		let record = {};
 		if(opts.networkSecurityGroups){

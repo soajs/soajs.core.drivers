@@ -1,10 +1,5 @@
 'use strict';
 
-const async = require('async');
-const helper = require('./helper');
-const utils = require('../../../lib/utils/utils.js');
-const driverUtils = require('../utils/index.js');
-
 const groups = require('./lib/groups');
 const ips = require('./lib/ips');
 const loadBalancers = require('./lib/loadBalancers');
