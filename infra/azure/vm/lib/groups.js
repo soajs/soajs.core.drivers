@@ -45,19 +45,22 @@ const groups = {
     */
     create: function(options, cb) {
         options.soajs.log.debug(`Creating/Updating resource group ${options.params.group}`);
-        driverUtils.authenticate(options, (error, authData) => {
-            utils.checkError(error, 700, cb, () => {
-                const resourceClient = driverUtils.getConnector({
-                    api: 'resource',
-                    credentials: authData.credentials,
-                    subscriptionId: options.infra.api.subscriptionId
-                });
-                let params = {
-                    location: options.params.region,
-                };
-                resourceClient.resourceGroups.createOrUpdate(options.params.group, params, options, function (error, response){
-                    utils.checkError(error, 753, cb, () => {
-                        return cb(null, response);
+        let groupNameRegex = new RegExp('^[-\w\._\(\)]+$', 'g');
+        utils.checkError(!groupNameRegex.match(options.params.group), 755, cb, () => {
+            driverUtils.authenticate(options, (error, authData) => {
+                utils.checkError(error, 700, cb, () => {
+                    const resourceClient = driverUtils.getConnector({
+                        api: 'resource',
+                        credentials: authData.credentials,
+                        subscriptionId: options.infra.api.subscriptionId
+                    });
+                    let params = {
+                        location: options.params.region,
+                    };
+                    resourceClient.resourceGroups.createOrUpdate(options.params.group, params, options, function (error, response){
+                        utils.checkError(error, 753, cb, () => {
+                            return cb(null, response);
+                        });
                     });
                 });
             });
