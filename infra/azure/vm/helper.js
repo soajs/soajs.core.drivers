@@ -276,19 +276,19 @@ const helper = {
 		return record;
 	},
 
-	buildPublicIPsRecord: function (opts) {
+	buildPublicIPRecord: function (opts) {
 		let record = {}
-		if(opts.publicIPAddresse){
-			if (opts.publicIPAddresse.name) record.name = opts.publicIPAddresse.name;
-			if (opts.publicIPAddresse.id) record.id = opts.publicIPAddresse.id;
-			if (opts.publicIPAddresse.location) record.location = opts.publicIPAddresse.location;
-			if (opts.publicIPAddresse.ipAddress) record.ipAddress = opts.publicIPAddresse.ipAddress;
-			if (opts.publicIPAddresse.publicIPAllocationMethod) record.publicIPAllocationMethod = opts.publicIPAddresse.publicIPAllocationMethod;
-			if (opts.publicIPAddresse.tags) record.tags = opts.publicIPAddresse.tags;
+		if(opts.publicIPAddress){
+			if (opts.publicIPAddress.name) record.name = opts.publicIPAddress.name;
+			if (opts.publicIPAddress.id) record.id = opts.publicIPAddress.id;
+			if (opts.publicIPAddress.location) record.location = opts.publicIPAddress.location;
+			if (opts.publicIPAddress.ipAddress) record.ipAddress = opts.publicIPAddress.ipAddress;
+			if (opts.publicIPAddress.publicIPAllocationMethod) record.publicIPAllocationMethod = opts.publicIPAddress.publicIPAllocationMethod;
+			if (opts.publicIPAddress.tags) record.tags = opts.publicIPAddress.tags;
 		}
 		return record;
 	},
-	
+
 	buildSecurityGroupsRecord: function (opts) {
 		let record = {};
 		if(opts.networkSecurityGroups){
