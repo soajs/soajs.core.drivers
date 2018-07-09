@@ -53,7 +53,6 @@ const networks = {
                     subscriptionId: options.infra.api.subscriptionId
                 });
 
-                //TODO: if options.params.subnets is found, add subnets to network
                 let params = {
                     location: options.params.region,
                     addressSpace: {
