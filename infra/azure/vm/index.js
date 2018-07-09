@@ -15,6 +15,7 @@ const securityGroups = require('./lib/securityGroups');
 const disks = require('./lib/disks');
 const sizes = require('./lib/sizes');
 const services = require('./lib/services');
+const subnets = require('./lib/subnets');
 
 const driver = {
 
@@ -279,7 +280,40 @@ const driver = {
 	* @return {void}listsub
 	*/
 	listSubnets: function (options, cb) {
-		return networks.listSubnets(options, cb);
+		return subnets.list(options, cb);
+	},
+
+	/**
+	* Create subnet
+
+	* @param  {Object}   options  Data passed to function listsubas params
+	* @param  {Function} cb    Callback fspub
+	* @return {void}listsub
+	*/
+	createSubnet: function (options, cb) {
+		return subnets.create(options, cb);
+	},
+
+	/**
+	* Update subnet
+
+	* @param  {Object}   options  Data passed to function listsubas params
+	* @param  {Function} cb    Callback fspub
+	* @return {void}listsub
+	*/
+	updateSubnet: function (options, cb) {
+		return subnets.update(options, cb);
+	},
+
+	/**
+	* Delete subnet
+
+	* @param  {Object}   options  Data passed to function listsubas params
+	* @param  {Function} cb    Callback fspub
+	* @return {void}listsub
+	*/
+	deleteSubnet: function (options, cb) {
+		return subnets.delete(options, cb);
 	},
 
 	/**
