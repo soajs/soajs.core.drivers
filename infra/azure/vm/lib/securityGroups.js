@@ -75,7 +75,8 @@ const securityGroups = {
                         location: options.params.region,
                         properties: {
                             securityRules: securityGroups.buildSecurityRules(options.params.ports)
-                        }
+                        },
+                        tags: options.params.labels || {}
                     }
                 };
 
