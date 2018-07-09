@@ -66,9 +66,13 @@ const networks = {
                     params.dhcpOptions = { dnsServers: options.params.dnsServers };
                 }
 
-                resourceClient.virtualNetworks.createOrUpdate(options.params.group, options.params.networkName, options.params, function (error, result) {
+                if(options.params.subnets && Array.isArray(options.params.subnets) && options.params.subnets.length > 0) {
+                    params.subnets = options.params.subnets;
+                }
+
+                resourceClient.virtualNetworks.createOrUpdate(options.params.group, options.params.networkName, options.params, function (error, network) {
                     utils.checkError(error, 747, cb, () => {
-                        return cb(null, result);
+                        return cb(null, helper.buildNetworkRecord({ network }));
                     });
                 });
             });
@@ -104,13 +108,13 @@ const networks = {
                 });
                 resourceClient.virtualNetworks.deleteMethod(options.params.group, options.params.networkName, function (error, result) {
                     utils.checkError(error, 742, cb, () => {
-                        return cb(null, result);
+                        return cb(null, true);
                     });
                 });
             });
         });
     }
-    
+
 };
 
 module.exports = networks;
