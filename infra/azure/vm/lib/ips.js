@@ -58,9 +58,11 @@ const ips = {
                     location: options.params.region,
                     publicIPAllocationMethod: options.params.publicIPAllocationMethod || 'Dynamic',
                     idleTimeoutInMinutes: options.params.idleTimeoutInMinutes || 30,
+                    publicIPAddressVersion: options.params.ipAddressVersion || 'IPv4',
                     sku: {
                         name: options.params.type || 'Basic'
-                    }
+                    },
+                    tags: options.params.labels || {}
                 };
 
                 return networkClient.publicIPAddresses.createOrUpdate(options.params.group, options.params.publicIpName, params, function(error, response) {
