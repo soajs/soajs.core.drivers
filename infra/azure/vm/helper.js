@@ -220,10 +220,11 @@ const helper = {
 			if (opts.network.location) record.location = opts.network.location;
 			if (opts.network.subnets) {
 				for(let i = 0 ; i < opts.network.subnets.length ; i++){
-					record.subnets.push(  helper.bulidSubnetsRecord({subnets :opts.network.subnets[i] }));
+					record.subnets.push(  helper.bulidSubnetsRecord({subnet :opts.network.subnets[i] }));
 				}
 			}
 			if(opts.network.addressSpace) record.addressSpace = opts.network.addressSpace;
+			if(opts.network.dhcpOptions) record.dhcpOptions = opts.network.dhcpOptions;
 		}
 
 		return record;
