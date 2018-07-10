@@ -152,9 +152,6 @@ const vms = {
 	* @return {void}
 	*/
 	updateVmLabels: function(options, cb) {
-		// options.params.group string
-		// options.params.vmNames array of string
-		// options.params.labels object
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const computeClient = driverUtils.getConnector({
@@ -163,17 +160,33 @@ const vms = {
 					subscriptionId: options.infra.api.subscriptionId
 				});
 
-				async.each(options.params.vmNames, (vm, callback) => {
-					computeClient.virtualMachines.get(options.params.group, vm, function (error, vmInfo) {
+				async.each(options.params.vmNames, (vmName, callback) => {
+					computeClient.virtualMachines.get(options.params.group, vmName, function (error, vmInfo) {
 						if(error) return callback(error);
 						let tags = options.params.labels;
 
 						if(!vmInfo.tags) vmInfo.tags = {};
-						vmInfo.tags = Object.assign(vmInfo.tags, tags);
 
-						computeClient.virtualMachines.createOrUpdate(options.params.group, vm, vmInfo , function (error, response) {
-							if(error) return callback(error);
-							return callback(null, response);
+						// check if tags are already set, return callback and do no update
+						async.every(Object.keys(tags), function(oneTag, callback) {
+							return callback(null, vmInfo.tags[oneTag] && vmInfo.tags[oneTag] === tags[oneTag]);
+						}, function(error, tagsAlreadyFound) {
+							if(tagsAlreadyFound) return callback();
+
+							vmInfo.tags = Object.assign(vmInfo.tags, tags);
+							// vm name label is per vm
+							if(vmInfo.tags && vmInfo.tags['soajs.vm.name']) {
+								vmInfo.tags['soajs.vm.name'] = vmName;
+							}
+
+							computeClient.virtualMachines.createOrUpdate(options.params.group, vmName, vmInfo , function (error, response) {
+								if(error) return callback(error);
+								return callback();
+							});
+						});
+					}, function(error) {
+						utils.checkError(error, 759, cb, () => {
+							return cb(null, true);
 						});
 					});
 				});
