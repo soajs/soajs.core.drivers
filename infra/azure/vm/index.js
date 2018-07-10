@@ -92,6 +92,17 @@ const driver = {
 	},
 
 	/**
+	* Update the tags of one or more virtual machines
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
+	updateVmLabels: function (options, cb) {
+		return vms.updateVmLabels(options, cb);
+	},
+
+	/**
 	* List available resource groups
 
 	* @param  {Object}   options  Data passed to function as params
@@ -431,10 +442,10 @@ const driver = {
 	listDisks: function (options, cb){
 		return disks.list(options, cb);
 	},
-	
+
 	/**
 	 * List data/os disks of a resource group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -442,10 +453,10 @@ const driver = {
 	createDisks: function (options, cb){
 		return disks.create(options, cb);
 	},
-	
+
 	/**
 	 * List data/os disks of a resource group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -453,10 +464,10 @@ const driver = {
 	updateDisks: function (options, cb){
 		return disks.update(options, cb);
 	},
-	
+
 	/**
 	 * List data/os disks of a resource group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
