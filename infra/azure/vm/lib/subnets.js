@@ -94,7 +94,7 @@ const subnets = {
                     subscriptionId: options.infra.api.subscriptionId
                 });
 
-                networkClient.subnets.createOrUpdate(options.params.group, options.params.virtualNetworkName, options.params.subnetName, function (error, subnet) {
+                networkClient.subnets.deleteMethod(options.params.group, options.params.virtualNetworkName, options.params.subnetName, function (error, subnet) {
                     utils.checkError(error, 757, cb, () => {
                         return cb(null, true);
                     });
