@@ -5,7 +5,7 @@ const helper = require('./../helper');
 const utils = require('../../../../lib/utils/utils.js');
 const driverUtils = require('../../utils/index.js');
 
-const services = {
+const vms = {
 
     /**
 	* Get information about deployed vitual machine
@@ -155,8 +155,31 @@ const services = {
 		// options.params.group string
 		// options.params.vmNames array of string
 		// options.params.labels object
-	}
+		driverUtils.authenticate(options, (error, authData) => {
+			utils.checkError(error, 700, cb, () => {
+				const computeClient = driverUtils.getConnector({
+					api: 'compute',
+					credentials: authData.credentials,
+					subscriptionId: options.infra.api.subscriptionId
+				});
 
+				async.each(options.params.vmNames, (vm, callback) => {
+					computeClient.virtualMachines.get(options.params.group, vm, function (error, vmInfo) {
+						if(error) return callback(error);
+						let tags = options.params.labels;
+
+						if(!vmInfo.tags) vmInfo.tags = {};
+						vmInfo.tags = Object.assign(vmInfo.tags, tags);
+
+						computeClient.virtualMachines.createOrUpdate(options.params.group, vm, vmInfo , function (error, response) {
+							if(error) return callback(error);
+							return callback(null, response);
+						});
+					});
+				});
+			});
+		});
+	}
 };
 
-module.exports = services;
+module.exports = vms;
