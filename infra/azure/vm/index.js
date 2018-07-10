@@ -9,7 +9,7 @@ const maintenance = require('./lib/maintenance');
 const securityGroups = require('./lib/securityGroups');
 const disks = require('./lib/disks');
 const sizes = require('./lib/sizes');
-const services = require('./lib/services');
+const vms = require('./lib/vms');
 const subnets = require('./lib/subnets');
 
 const driver = {
@@ -22,7 +22,7 @@ const driver = {
 	* @return {void}
 	*/
 	inspectService: function (options, cb) {
-		return services.inspect(options, cb);
+		return vms.inspect(options, cb);
 	},
 
 	/**
@@ -33,7 +33,7 @@ const driver = {
 	* @return {void}
 	*/
 	listServices: function (options, cb) {
-		return services.list(options, cb);
+		return vms.list(options, cb);
 	},
 
 	/**
