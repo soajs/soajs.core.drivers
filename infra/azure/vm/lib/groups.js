@@ -57,6 +57,9 @@ const groups = {
                     let params = {
                         location: options.params.region,
                     };
+	                if (options.params.labels) {
+		                params.tags = options.params.labels
+	                }
                     resourceClient.resourceGroups.createOrUpdate(options.params.group, params, function (error, response){
                         utils.checkError(error, 753, cb, () => {
                             return cb(null, helper.buildResourceGroupRecord({ resourceGroup: response }));
