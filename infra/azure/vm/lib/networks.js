@@ -69,7 +69,7 @@ const networks = {
                     params.subnets = options.params.subnets;
                 }
 
-                resourceClient.virtualNetworks.createOrUpdate(options.params.group, options.params.networkName, options.params, function (error, network) {
+                resourceClient.virtualNetworks.createOrUpdate(options.params.group, options.params.networkName, params, function (error, network) {
                     utils.checkError(error, 747, cb, () => {
                         return cb(null, helper.buildNetworkRecord({ network }));
                     });
