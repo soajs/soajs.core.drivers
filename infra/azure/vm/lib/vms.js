@@ -142,6 +142,19 @@ const services = {
 				});
 			});
 		});
+	},
+
+	/**
+	* Update labels of one or more vm instances
+
+	* @param  {Object}   options  Data passed to function as params
+	* @param  {Function} cb    Callback function
+	* @return {void}
+	*/
+	updateVmLabels: function(options, cb) {
+		// options.params.group string
+		// options.params.vmNames array of string
+		// options.params.labels object
 	}
 
 };
