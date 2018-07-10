@@ -430,7 +430,40 @@ const driver = {
 	*/
 	listDisks: function (options, cb){
 		return disks.list(options, cb);
-	}
+	},
+	
+	/**
+	 * List data/os disks of a resource group
+	 
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	createDisks: function (options, cb){
+		return disks.create(options, cb);
+	},
+	
+	/**
+	 * List data/os disks of a resource group
+	 
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	updateDisks: function (options, cb){
+		return disks.update(options, cb);
+	},
+	
+	/**
+	 * List data/os disks of a resource group
+	 
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	deleteDisks: function (options, cb){
+		return disks.delete(options, cb);
+	},
 
 
 };
