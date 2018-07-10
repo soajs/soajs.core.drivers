@@ -184,10 +184,10 @@ const vms = {
 								return callback();
 							});
 						});
-					}, function(error) {
-						utils.checkError(error, 759, cb, () => {
-							return cb(null, true);
-						});
+					});
+				}, function(error) {
+					utils.checkError(error, 759, cb, () => {
+						return cb(null, true);
 					});
 				});
 			});
