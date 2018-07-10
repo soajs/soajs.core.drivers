@@ -60,7 +60,7 @@ const disks = {
 	* @return {void}
 	*/
     create: function(options, cb) {
-
+		return cb(null, true);
     },
 
     /**
@@ -71,7 +71,7 @@ const disks = {
 	* @return {void}
 	*/
     update: function(options, cb) {
-
+	    return cb(null, true);
     },
 
     /**
@@ -82,7 +82,7 @@ const disks = {
 	* @return {void}
 	*/
     delete: function(options, cb) {
-
+	    return cb(null, true);
     }
 
 };

@@ -1136,34 +1136,135 @@ module.exports = function () {
 		],
 		"Disks": [
 			{
-				"name": "mongo_OsDisk_1_5aa8030cb6044037b5c8f4d6c75a391a",
 				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/SOAJS/providers/Microsoft.Compute/disks/mongo_OsDisk_1_5aa8030cb6044037b5c8f4d6c75a391a",
+				"name": "mongo_OsDisk_1_5aa8030cb6044037b5c8f4d6c75a391a",
+				"type": "Microsoft.Compute/disks",
 				"location": "centralus",
-				"type": "Microsoft.Compute/disks"
+				"managedBy": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/soajs/providers/Microsoft.Compute/virtualMachines/mongo",
+				"sku": {
+					"name": "Standard_LRS",
+					"tier": "Standard"
+				},
+				"timeCreated": "2018-06-08T08:43:58.918Z",
+				"osType": "Linux",
+				"creationData": {
+					"createOption": "FromImage",
+					"imageReference": {
+						"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/centralus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/UbuntuServer/Skus/17.10/Versions/17.10.201805220"
+					}
+				},
+				"diskSizeGB": 30,
+				"provisioningState": "Succeeded"
 			},
 			{
-				"name": "mysql_OsDisk_1_42ef3a000aff4269988d134e376e0160",
 				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/SOAJS/providers/Microsoft.Compute/disks/mysql_OsDisk_1_42ef3a000aff4269988d134e376e0160",
+				"name": "mysql_OsDisk_1_42ef3a000aff4269988d134e376e0160",
+				"type": "Microsoft.Compute/disks",
 				"location": "centralus",
-				"type": "Microsoft.Compute/disks"
+				"managedBy": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/soajs/providers/Microsoft.Compute/virtualMachines/mysql",
+				"sku": {
+					"name": "Standard_LRS",
+					"tier": "Standard"
+				},
+				"timeCreated": "2018-06-08T08:45:51.415Z",
+				"osType": "Linux",
+				"creationData": {
+					"createOption": "FromImage",
+					"imageReference": {
+						"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/centralus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/UbuntuServer/Skus/17.10/Versions/17.10.201805220"
+					}
+				},
+				"diskSizeGB": 30,
+				"provisioningState": "Succeeded"
 			},
 			{
-				"name": "dynamic-template-tester-osDisk-0",
-				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/DYNAMIC-TEMPLATE/providers/Microsoft.Compute/disks/dynamic-template-tester-osDisk-0",
-				"location": "eastus",
-				"type": "Microsoft.Compute/disks"
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/TESTCASE/providers/Microsoft.Compute/disks/testcase-vm_OsDisk_1_cc20c9245fdd4bf9961aa239d435b9b7",
+				"name": "testcase-vm_OsDisk_1_cc20c9245fdd4bf9961aa239d435b9b7",
+				"type": "Microsoft.Compute/disks",
+				"location": "centralus",
+				"managedBy": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Compute/virtualMachines/testcase-vm",
+				"sku": {
+					"name": "Premium_LRS",
+					"tier": "Premium"
+				},
+				"zones": [
+					"1"
+				],
+				"timeCreated": "2018-07-10T15:05:27.891Z",
+				"osType": "Linux",
+				"creationData": {
+					"createOption": "FromImage",
+					"imageReference": {
+						"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/centralus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/UbuntuServer/Skus/18.04-LTS/Versions/18.04.201806170"
+					}
+				},
+				"diskSizeGB": 30,
+				"provisioningState": "Succeeded"
 			},
 			{
-				"name": "volume_one-0",
-				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/DYNAMIC-TEMPLATE/providers/Microsoft.Compute/disks/volume_one-0",
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/CHARLES/providers/Microsoft.Compute/disks/charles-test3-osDisk-0",
+				"name": "charles-test3-osDisk-0",
+				"type": "Microsoft.Compute/disks",
 				"location": "eastus",
-				"type": "Microsoft.Compute/disks"
+				"tags": {
+					"key": "value",
+					"soajs.env.code": "DEV",
+					"soajs.layer.name": "test3",
+					"soajs.network.name": "charles-vn",
+					"soajs.vm.name": "charles-test3-vm-0"
+				},
+				"managedBy": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/charles/providers/Microsoft.Compute/virtualMachines/charles-test3-vm-0",
+				"sku": {
+					"name": "Standard_LRS",
+					"tier": "Standard"
+				},
+				"timeCreated": "2018-07-10T12:33:57.485Z",
+				"osType": "Linux",
+				"creationData": {
+					"createOption": "FromImage",
+					"imageReference": {
+						"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/UbuntuServer/Skus/16.04-LTS/Versions/16.04.201807030"
+					}
+				},
+				"diskSizeGB": 30,
+				"provisioningState": "Succeeded"
 			},
 			{
-				"name": "myosdisk1",
-				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/TESTER/providers/Microsoft.Compute/disks/myosdisk1",
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/TESTCASE/providers/Microsoft.Compute/disks/test-data-disk-for-ragheb",
+				"name": "test-data-disk-for-ragheb",
+				"type": "Microsoft.Compute/disks",
 				"location": "eastus",
-				"type": "Microsoft.Compute/disks"
+				"sku": {
+					"name": "Standard_LRS",
+					"tier": "Standard"
+				},
+				"timeCreated": "2018-07-10T15:00:28.562Z",
+				"creationData": {
+					"createOption": "Empty"
+				},
+				"diskSizeGB": 5,
+				"provisioningState": "Succeeded"
+			},
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/TESTER/providers/Microsoft.Compute/disks/tester-vm_OsDisk_1_a26c7c89f50e4ccd8cb600324eae5100",
+				"name": "tester-vm_OsDisk_1_a26c7c89f50e4ccd8cb600324eae5100",
+				"type": "Microsoft.Compute/disks",
+				"location": "eastus",
+				"managedBy": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Compute/virtualMachines/tester-vm",
+				"sku": {
+					"name": "Standard_LRS",
+					"tier": "Standard"
+				},
+				"timeCreated": "2018-07-10T10:00:02.647Z",
+				"osType": "Linux",
+				"creationData": {
+					"createOption": "FromImage",
+					"imageReference": {
+						"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/UbuntuServer/Skus/17.10/Versions/17.10.201807060"
+					}
+				},
+				"diskSizeGB": 30,
+				"provisioningState": "Succeeded"
 			}
 		],
 		"loadBalancers": [

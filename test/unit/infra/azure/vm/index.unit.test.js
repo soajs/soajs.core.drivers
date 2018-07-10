@@ -819,40 +819,6 @@ describe("testing /lib/azure/index.js", function () {
 		});
 	});
 	
-	describe("calling executeDriver - listDisks", function () {
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		it("Success", function (done) {
-			sinon
-				.stub(serviceUtils, 'authenticate')
-				.yields(null, {
-					credentials: {},
-				});
-			sinon
-				.stub(serviceUtils, 'getConnector')
-				.returns({
-					disks: {
-						list: (resourceGroupName, cb) => {
-							return cb(null, info.Disks)
-						}
-					},
-				});
-			info = dD();
-			options = info.deployCluster;
-			options.params = {
-				resourceGroupName: "dynamic-template",
-			};
-			service.executeDriver('listDisks', options, function (error, response) {
-				assert.ifError(error);
-				assert.ok(response);
-				assert.deepEqual(info.Disks, response);
-				done();
-			});
-		});
-	});
-	
 	describe("calling executeDriver - runCommand", function () {
 		afterEach((done) => {
 			sinon.restore();
