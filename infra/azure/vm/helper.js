@@ -161,7 +161,7 @@ const helper = {
         if(opts.imagePublisher) {
             if (opts.imagePublisher.name) record.name = opts.imagePublisher.name;
     		if (opts.imagePublisher.id) record.id = opts.imagePublisher.id;
-			if (opts.imagePublisher.location) record.location = opts.imagePublisher.location;
+			if (opts.imagePublisher.location) record.region = opts.imagePublisher.location;
         }
 
 		return record;
@@ -173,7 +173,7 @@ const helper = {
 		if(opts.imageOffer) {
 			if (opts.imageOffer.name) record.name = opts.imageOffer.name;
 			if (opts.imageOffer.id) record.id = opts.imageOffer.id;
-			if (opts.imageOffer.location) record.location = opts.imageOffer.location;
+			if (opts.imageOffer.location) record.region = opts.imageOffer.location;
 			if(opts.imageOffer.publisher) record.publisher = opts.imageOffer.publisher;
 			if(opts.imageOffer.imageName) record.imageName = opts.imageOffer.imageName;
         }
@@ -181,14 +181,13 @@ const helper = {
 		return record;
 	},
 
-
 	buildVmImageVersionsRecord: function (opts) {
 		let record = {};
 
 		if(opts.imageVersion) {
 			if (opts.imageVersion.name) record.name = opts.imageVersion.name;
 			if (opts.imageVersion.id) record.id = opts.imageVersion.id;
-			if (opts.imageVersion.location) record.location = opts.imageVersion.location;
+			if (opts.imageVersion.location) record.region = opts.imageVersion.location;
 			if(opts.imageVersion.publisher) record.publisher = opts.imageVersion.publisher;
 			if(opts.imageVersion.imageName) record.imageName = opts.imageVersion.imageName;
         }
@@ -202,7 +201,7 @@ const helper = {
 		if(opts.disk) {
 			if (opts.disk.name) record.name = opts.disk.name;
 			if (opts.disk.id) record.id = opts.disk.id;
-			if (opts.disk.location) record.location = opts.disk.location;
+			if (opts.disk.location) record.region = opts.disk.location;
 			if (opts.disk.diskSizeGb) record.diskSizeGb = opts.disk.diskSizeGb;
 			if (opts.disk.type) record.type = opts.disk.type;
 			if (opts.disk.storageType) record.storageType = opts.disk.storageType;
@@ -217,7 +216,7 @@ const helper = {
 		if(opts.network) {
 			if (opts.network.name) record.name = opts.network.name;
 			if (opts.network.id) record.id = opts.network.id;
-			if (opts.network.location) record.location = opts.network.location;
+			if (opts.network.location) record.region = opts.network.location;
 			if (opts.network.subnets) {
 				for(let i = 0 ; i < opts.network.subnets.length ; i++){
 					record.subnets.push(  helper.bulidSubnetsRecord({subnet :opts.network.subnets[i] }));
@@ -282,7 +281,7 @@ const helper = {
 		if(opts.publicIPAddress){
 			if (opts.publicIPAddress.name) record.name = opts.publicIPAddress.name;
 			if (opts.publicIPAddress.id) record.id = opts.publicIPAddress.id;
-			if (opts.publicIPAddress.region) record.region = opts.publicIPAddress.region;
+			if (opts.publicIPAddress.location) record.region = opts.publicIPAddress.location;
 			if (opts.publicIPAddress.ipAddress) record.ipAddress = opts.publicIPAddress.ipAddress;
 			if (opts.publicIPAddress.publicIPAllocationMethod) record.publicIPAllocationMethod = opts.publicIPAddress.publicIPAllocationMethod;
 			if (opts.publicIPAddress.labels) record.labels = opts.publicIPAddress.labels;
@@ -295,11 +294,11 @@ const helper = {
 		if(opts.networkSecurityGroups){
 			if (opts.networkSecurityGroups.name) record.name = opts.networkSecurityGroups.name;
 			if (opts.networkSecurityGroups.id) record.id = opts.networkSecurityGroups.id;
-			if (opts.networkSecurityGroups.region) record.region = opts.networkSecurityGroups.region;
+			if (opts.networkSecurityGroups.location) record.region = opts.networkSecurityGroups.location;
 			if (opts.networkSecurityGroups.securityRules && Array.isArray(opts.networkSecurityGroups.securityRules) && opts.networkSecurityGroups.securityRules.length> 0){
 				record.ports = helper.buildPortsArray(opts.networkSecurityGroups.securityRules);
 			}
-			if (opts.networkSecurityGroups.tags) opts.networkSecurityGroups.tags = record.tags;
+			if (opts.networkSecurityGroups.tags) record.labels = record.tags;
 		}
 		return record;
 	},
