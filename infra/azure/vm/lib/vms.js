@@ -174,10 +174,7 @@ const vms = {
 							if(tagsAlreadyFound) return callback();
 
 							vmInfo.tags = Object.assign(vmInfo.tags, tags);
-							// vm name label is per vm
-							if(vmInfo.tags && vmInfo.tags['soajs.vm.name']) {
-								vmInfo.tags['soajs.vm.name'] = vmName;
-							}
+							if(options.params.setVmNameAsLabel) vmInfo.tags['soajs.vm.name'] = vmName;
 
 							computeClient.virtualMachines.createOrUpdate(options.params.group, vmName, vmInfo , function (error, response) {
 								if(error) return callback(error);
