@@ -282,10 +282,10 @@ const helper = {
 		if(opts.publicIPAddress){
 			if (opts.publicIPAddress.name) record.name = opts.publicIPAddress.name;
 			if (opts.publicIPAddress.id) record.id = opts.publicIPAddress.id;
-			if (opts.publicIPAddress.location) record.location = opts.publicIPAddress.location;
+			if (opts.publicIPAddress.region) record.region = opts.publicIPAddress.region;
 			if (opts.publicIPAddress.ipAddress) record.ipAddress = opts.publicIPAddress.ipAddress;
 			if (opts.publicIPAddress.publicIPAllocationMethod) record.publicIPAllocationMethod = opts.publicIPAddress.publicIPAllocationMethod;
-			if (opts.publicIPAddress.tags) record.tags = opts.publicIPAddress.tags;
+			if (opts.publicIPAddress.labels) record.labels = opts.publicIPAddress.labels;
 		}
 		return record;
 	},
