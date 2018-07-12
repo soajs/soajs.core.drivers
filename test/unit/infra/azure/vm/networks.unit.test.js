@@ -12,7 +12,7 @@ let options = {};
 
 describe("testing /lib/azure/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
-	
+
 	describe("calling executeDriver - listNetworks", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -38,15 +38,30 @@ describe("testing /lib/azure/index.js", function () {
 			options.params = {
 				resourceGroupName: "tester",
 			};
+			let expectedReponse = [
+				{
+					"subnets": [
+						{}
+					],
+					"name": "tester-vn",
+					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/virtualNetworks/tester-vn",
+					"region": "eastus",
+					"addressSpace": {
+						"addressPrefixes": [
+							"10.0.0.0/16"
+						]
+					}
+				}
+			];
 			service.executeDriver('listNetworks', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response, info.virtualNetworks);
+				assert.deepEqual(response, expectedReponse);
 				done();
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - createNetwork", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -127,7 +142,7 @@ describe("testing /lib/azure/index.js", function () {
 				],
 				"name": "test-net",
 				"id": "/subscriptions/d6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-net",
-				"location": "centralus",
+				"region": "centralus",
 				"addressSpace": {
 					"addressPrefixes": [
 						"10.0.0.0/16"
@@ -148,7 +163,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - updateNetwork", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -229,7 +244,7 @@ describe("testing /lib/azure/index.js", function () {
 				],
 				"name": "test-net",
 				"id": "/subscriptions/d6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-net",
-				"location": "centralus",
+				"region": "centralus",
 				"addressSpace": {
 					"addressPrefixes": [
 						"10.0.0.0/16"
@@ -250,7 +265,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - deleteNetwork", function () {
 		afterEach((done) => {
 			sinon.restore();

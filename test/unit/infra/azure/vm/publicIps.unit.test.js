@@ -12,7 +12,7 @@ let options = {};
 
 describe("testing /lib/azure/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
-	
+
 	describe("calling executeDriver - listPublicIps", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -34,10 +34,10 @@ describe("testing /lib/azure/index.js", function () {
 								{
 								  "id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-vm-ip",
 								  "ipAddress": "137.117.72.226",
-								   "labels": {},
+								  "tags": {},
 								  "name": "tester-vm-ip",
 								  "publicIPAllocationMethod": "Dynamic",
-								   "region": "eastus"
+								   "location": "eastus"
 								}
 							  ]
 							  )
@@ -92,13 +92,13 @@ describe("calling executeDriver - createPublicIp", function () {
 								{
 								  "id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-vm-ip",
 								  "ipAddress": "137.117.72.226",
-								   "labels": {},
+								   "tags": {},
 								  "name": "tester-vm-ip",
 								  "publicIPAllocationMethod": "Dynamic",
-								   "region": "eastus"
+								   "location": "eastus"
 								}
 							  ]
-							  
+
 						  )
 					}
 				},
@@ -111,7 +111,7 @@ describe("calling executeDriver - createPublicIp", function () {
 			region:"eastus",
 
 		};
-		let expectedResponce = 
+		let expectedResponce =
 		    [
 				{
 				  "id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-vm-ip",
@@ -121,10 +121,10 @@ describe("calling executeDriver - createPublicIp", function () {
 				  "publicIPAllocationMethod": "Dynamic",
 			 	  "region": "eastus"
 				}
-			  
-			 
-	   
-			  
+
+
+
+
 		];
 		service.executeDriver('createPublicIp', options, function (error, response) {
 			assert.ifError(error);
@@ -156,12 +156,12 @@ describe("calling executeDriver - updatePublicIp", function () {
 							{
 								"name": "tester-vm-ip",
 								"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-vm-ip",
-								"region": "eastus",
+								"location": "eastus",
 								"ipAddress": "137.117.72.226",
 								"publicIPAllocationMethod": "Dynamic",
-								"labels": {}
+								"tags": {}
 							  }
-							  
+
 						  ])
 					}
 				},
@@ -183,9 +183,10 @@ describe("calling executeDriver - updatePublicIp", function () {
 				"publicIPAllocationMethod": "Dynamic",
 				"labels": {}
 			}
-			  
+
 		];
 		service.executeDriver('updatePublicIp', options, function (error, response) {
+			console.log(JSON.stringify(response,null,2)+"************");
 			assert.ifError(error);
 			assert.ok(response);
 			assert.deepEqual(response, expectedResponce);

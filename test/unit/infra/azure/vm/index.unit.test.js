@@ -158,7 +158,7 @@ describe("testing /lib/azure/index.js", function () {
 				done();
 			});
 		});
-		
+
 		it("Success loadBalancer", function (done) {
 			info = dD();
 			options = info.deployCluster;
@@ -167,7 +167,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -220,7 +220,7 @@ describe("testing /lib/azure/index.js", function () {
 							return cb(null, info.subnets[vnetName]);
 						}
 					},
-					
+
 				});
 			let expectedResponce = {
 				"name": "tester-vm",
@@ -676,7 +676,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listVmSizes", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -738,10 +738,27 @@ describe("testing /lib/azure/index.js", function () {
 			options.params = {
 				location: "eastus"
 			};
+			let expectedResponse =[
+				{
+					"name": "1e",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/1e",
+					"region": "eastus"
+				},
+				{
+					"name": "4psa",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/4psa",
+					"region": "eastus"
+				},
+				{
+					"name": "5nine-software-inc",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/5nine-software-inc",
+					"region": "eastus"
+				}
+			];
 			service.executeDriver('listVmImagePublishers', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response, info.vmImagePublisher);
+				assert.deepEqual(response, expectedResponse);
 				done();
 			});
 		});
@@ -774,10 +791,42 @@ describe("testing /lib/azure/index.js", function () {
 				location: "eastus",
 				publisher: "Canonical"
 			};
+			let expectedResponse = [
+				{
+					"name": "Ubuntu15.04Snappy",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu15.04Snappy",
+					"region": "eastus"
+				},
+				{
+					"name": "Ubuntu15.04SnappyDocker",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu15.04SnappyDocker",
+					"region": "eastus"
+				},
+				{
+					"name": "UbuntuServer",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/UbuntuServer",
+					"region": "eastus"
+				},
+				{
+					"name": "Ubuntu_Core",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Core",
+					"region": "eastus"
+				},
+				{
+					"name": "Ubuntu_Snappy_Core",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Snappy_Core",
+					"region": "eastus"
+				},
+				{
+					"name": "Ubuntu_Snappy_Core_Docker",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Snappy_Core_Docker",
+					"region": "eastus"
+				}
+			];
 			service.executeDriver('listVmImagePublisherOffers', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response, info.vmPublisherOffers);
+				assert.deepEqual(response, expectedResponse);
 				done();
 			});
 		});
@@ -810,15 +859,22 @@ describe("testing /lib/azure/index.js", function () {
 				publisher: "Canonical",
 				offer: "Ubuntu_Core"
 			};
+			let expectedResponse =[
+				{
+					"name": "16",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Core/Skus/16",
+					"region": "eastus"
+				}
+			];
 			service.executeDriver('listVmImageVersions', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response, info.vmImageVersions);
+				assert.deepEqual(response, expectedResponse);
 				done();
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - runCommand", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -856,7 +912,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - getLogs", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -887,4 +943,51 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
+
+
+	describe("calling executeDriver - updtadeVmLabels", function () {
+		afterEach((done) => {
+			sinon.restore();
+			done();
+		});
+		it("Success", function (done) {
+			info = dD();
+			options = info.deployCluster;
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+
+			sinon
+				.stub(serviceUtils, 'getConnector')
+				.returns({
+
+					virtualMachines: {
+						get: (env, vmName, cb) => {
+							return cb(null, info.virtualMachines[0]);
+						},
+						createOrUpdate: (group, vmName, vmInfo ,cb) =>{
+							return cb(null,true);
+						}
+					},
+				});
+
+			info = dD();
+			options = info.deployCluster;
+			options.params = {
+				group: 'tester',
+				vmNames: ['tester-vm'],
+				labels: {tag1: 'true',
+				tag2: 'false'}
+			};
+			service.executeDriver('updateVmLabels', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				assert.deepEqual(response,true);
+				done();
+			});
+		});
+	});
+
 });

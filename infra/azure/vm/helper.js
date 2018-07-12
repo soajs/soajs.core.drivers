@@ -284,7 +284,8 @@ const helper = {
 			if (opts.publicIPAddress.location) record.region = opts.publicIPAddress.location;
 			if (opts.publicIPAddress.ipAddress) record.ipAddress = opts.publicIPAddress.ipAddress;
 			if (opts.publicIPAddress.publicIPAllocationMethod) record.publicIPAllocationMethod = opts.publicIPAddress.publicIPAllocationMethod;
-			if (opts.publicIPAddress.labels) record.labels = opts.publicIPAddress.labels;
+			if (opts.publicIPAddress.tags) record.labels = opts.publicIPAddress.tags;
+
 		}
 		return record;
 	},
@@ -298,7 +299,7 @@ const helper = {
 			if (opts.networkSecurityGroups.securityRules && Array.isArray(opts.networkSecurityGroups.securityRules) && opts.networkSecurityGroups.securityRules.length> 0){
 				record.ports = helper.buildPortsArray(opts.networkSecurityGroups.securityRules);
 			}
-			if (opts.networkSecurityGroups.tags) record.labels = record.tags;
+			if (opts.networkSecurityGroups.tags) record.labels = opts.networkSecurityGroups.tags;
 		}
 		return record;
 	},
