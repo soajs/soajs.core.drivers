@@ -50,7 +50,7 @@ describe("testing /lib/azure/index.js", function () {
 				}]
 			};
 			let expectedResponce = {
-				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/networkSecurityGroups/testSecurityGroup"
+				"id":  "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/networkSecurityGroups/testSecurityGroup"
 			};
 
 			let nocks = nock('https://management.azure.com')
@@ -239,11 +239,11 @@ describe("testing /lib/azure/index.js", function () {
 							}
 						]
 					}
-				}).log(console.log);
+				});
 			service.executeDriver('createSecurityGroup', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				// assert.deepEqual(expectedResponce, response);
+				assert.deepEqual(expectedResponce, response);
 				done();
 			});
 		});
@@ -478,7 +478,7 @@ describe("testing /lib/azure/index.js", function () {
 			service.executeDriver('updateSecurityGroup', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				// assert.deepEqual(expectedResponce, response);
+				assert.deepEqual(expectedResponce, response);
 				done();
 			});
 		});
