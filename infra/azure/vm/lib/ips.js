@@ -27,7 +27,7 @@ const ips = {
                     utils.checkError(error, 735, cb, () => {
 
                         async.map(publicIPAddresses, function(onepublicIPAddresse, callback) {
-                            return callback(null, helper.buildPublicIPsRecord({ publicIPAddresse: onepublicIPAddresse }));
+                            return callback(null, helper.buildPublicIPRecord({ publicIPAddress: onepublicIPAddresse }));
                         }, function(error, PublicIpsList) {
                             return cb(null, PublicIpsList);
                         });
@@ -67,7 +67,11 @@ const ips = {
 
                 return networkClient.publicIPAddresses.createOrUpdate(options.params.group, options.params.publicIpName, params, function(error, response) {
                     utils.checkError(error, 717, cb, () => {
-                        return cb(null, helper.buildPublicIPRecord({ publicIPAddress: response }));
+                        async.map(response, function(onepublicIPAddresse, callback) {
+                            return callback(null, helper.buildPublicIPRecord({ publicIPAddress: onepublicIPAddresse }));
+                        }, function(error, PublicIpsList) {
+                            return cb(null, PublicIpsList);
+                        });
                     });
                 });
             });

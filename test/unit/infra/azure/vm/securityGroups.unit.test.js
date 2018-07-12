@@ -13,7 +13,7 @@ let options = {};
 
 describe("testing /lib/azure/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
-	
+
 	describe("calling executeDriver - createSecurityGroup", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -33,7 +33,7 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			
+
 			options = info.deployCluster;
 			options.params = {
 				securityGroupName: "testSecurityGroup",
@@ -50,9 +50,9 @@ describe("testing /lib/azure/index.js", function () {
 				}]
 			};
 			let expectedResponce = {
-				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/networkSecurityGroups/testSecurityGroup"
+				"id":  "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/networkSecurityGroups/testSecurityGroup"
 			};
-			
+
 			let nocks = nock('https://management.azure.com')
 				.put(`/subscriptions/${options.infra.api.subscriptionId}/resourceGroups/${options.params.group}/providers/Microsoft.Network/networkSecurityGroups/${options.params.securityGroupName}?api-version=2018-02-01`,
 					{
@@ -239,16 +239,16 @@ describe("testing /lib/azure/index.js", function () {
 							}
 						]
 					}
-				}).log(console.log);
+				});
 			service.executeDriver('createSecurityGroup', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				// assert.deepEqual(expectedResponce, response);
+				assert.deepEqual(expectedResponce, response);
 				done();
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - updateSecurityGroup", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -268,7 +268,7 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			
+
 			options = info.deployCluster;
 			options.params = {
 				securityGroupName: "testSecurityGroup",
@@ -287,7 +287,7 @@ describe("testing /lib/azure/index.js", function () {
 			let expectedResponce = {
 				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/networkSecurityGroups/testSecurityGroup"
 			};
-			
+
 			let nocks = nock('https://management.azure.com')
 				.put(`/subscriptions/${options.infra.api.subscriptionId}/resourceGroups/${options.params.group}/providers/Microsoft.Network/networkSecurityGroups/${options.params.securityGroupName}?api-version=2018-02-01`,
 					{
@@ -478,12 +478,12 @@ describe("testing /lib/azure/index.js", function () {
 			service.executeDriver('updateSecurityGroup', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				// assert.deepEqual(expectedResponce, response);
+				assert.deepEqual(expectedResponce, response);
 				done();
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listSecurityGroups", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -505,7 +505,7 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			
+
 			options = info.deployCluster;
 			options.params = {
 				resourceGroupName: "tester",
@@ -519,11 +519,13 @@ describe("testing /lib/azure/index.js", function () {
 						"published": "22",
 						"target": "*",
 					}],
+					"region": "centralus",
+					"labels": {},
 					"name": "tester-tester-sg",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-tester-sg",
 				}
 			];
-			
+
 			service.executeDriver('listSecurityGroups', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
@@ -532,7 +534,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - deleteSecurityGroup", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -554,13 +556,13 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			
+
 			options = info.deployCluster;
 			options.params = {
 				group: "tester",
 				securityGroupName: "tester-sg",
 			};
-			
+
 			service.executeDriver('deleteSecurityGroup', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
