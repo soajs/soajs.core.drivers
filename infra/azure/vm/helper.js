@@ -449,7 +449,25 @@ const helper = {
 				loadBalancers: results.listLoadBalancers
 			});
 		});
-	}
+	},
+
+	/**
+    * Take an id format as input and return a valid azure resource id
+
+    * @param  {String}   idFormat  The id format
+    * @param  {Object}   values    The values that should be replaced in the id format
+    * @return {String}
+    */
+    buildAzureId: function(idFormat, values) {
+        let outputId = idFormat;
+
+        if(values && typeof(values) === 'object' && Object.keys(values).length > 0) {
+            Object.keys(values).forEach((oneValue) => {
+                outputId = outputId.replace(new RegExp(`%${oneValue}%`, 'g'), values[oneValue]);
+            });
+        }
+        return outputId;
+    }
 };
 
 module.exports = helper;
