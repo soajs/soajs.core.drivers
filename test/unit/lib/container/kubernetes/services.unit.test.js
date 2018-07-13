@@ -129,6 +129,62 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 			});
 		});
 		
+		it("Success with no deployment", function (done) {
+			kubeData = dD();
+			options = kubeData.deployer;
+			options.params = {
+				"env": "testenv"
+			};
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					core : {
+						nodes : {
+							get : (params, cb) => {
+								return cb(null, kubeData.nodeList)
+							}
+						},
+						services : {
+							get : (params, cb) => {
+								return cb(null, kubeData.serviceList)
+							}
+						},
+						pods : {
+							get : (params, cb) => {
+								return cb(null, kubeData.podList)
+							}
+						}
+					},
+					extensions : {
+						deployments : {
+							get : (params, cb) => {
+								return cb(null, kubeData.deploymentMongo)
+							}
+						},
+						daemonsets : {
+							get : (params, cb) => {
+								return cb(null, null)
+							}
+						}
+					},
+					autoscaling: {
+						namespaces : ()=>{
+							return {
+								hpa: {
+									get : (params, cb) => {
+										return cb(null, {})
+									}
+								}
+							}
+						}
+					}
+				});
+			services.listServices(options, function (error, res) {
+				assert.equal(res.length, 1);
+				done();
+			});
+		});
+		
 	});
 	
 	describe("calling deployService", function () {
