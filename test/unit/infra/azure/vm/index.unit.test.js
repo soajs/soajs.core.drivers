@@ -106,9 +106,12 @@ describe("testing /lib/azure/index.js", function () {
 				"id": "tester-vm",
 				"labels": {
 					"soajs.env.code": "tester",
+					"soajs.layer.name": "tester",
+					"soajs.network.name": "tester",
 					"soajs.service.vm.location": "eastus",
 					"soajs.service.vm.group": "TESTER",
-					"soajs.service.vm.size": "Standard_A1"
+					"soajs.service.vm.size": "Standard_A1",
+					"soajs.vm.name": "tester"
 				},
 				"ports": [
 					{
@@ -232,9 +235,12 @@ describe("testing /lib/azure/index.js", function () {
 				"id": "tester-vm",
 				"labels": {
 					"soajs.env.code": "tester",
+					"soajs.layer.name": "tester",
+					"soajs.network.name": "tester",
 					"soajs.service.vm.location": "eastus",
 					"soajs.service.vm.group": "TESTER",
-					"soajs.service.vm.size": "Standard_A1"
+					"soajs.service.vm.size": "Standard_A1",
+					"soajs.vm.name": "tester"
 				},
 				"ports": [
 					{
@@ -396,9 +402,12 @@ describe("testing /lib/azure/index.js", function () {
 					"id": "tester-vm",
 					"labels": {
 						"soajs.env.code": "tester",
+						"soajs.layer.name": "tester",
+						"soajs.network.name": "tester",
 						"soajs.service.vm.location": "eastus",
 						"soajs.service.vm.group": "TESTER",
-						"soajs.service.vm.size": "Standard_A1"
+						"soajs.service.vm.size": "Standard_A1",
+						"soajs.vm.name": "tester"
 					},
 					"ports": [
 						{
@@ -1009,8 +1018,48 @@ describe("testing /lib/azure/index.js", function () {
 			options.params = {
 				group: 'tester',
 				vmNames: ['tester-vm'],
-				labels: {tag1: 'true',
-				tag2: 'false'}
+				labels: {
+					tag1: 'true',
+					tag2: 'false'
+				}
+			};
+			service.executeDriver('updateVmLabels', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				assert.deepEqual(response,true);
+				done();
+			});
+		});
+		
+		it("Success", function (done) {
+			info = dD();
+			options = info.deployCluster;
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+			
+			sinon
+				.stub(serviceUtils, 'getConnector')
+				.returns({
+					
+					virtualMachines: {
+						get: (env, vmName, cb) => {
+							return cb(null, info.virtualMachines[0]);
+						},
+						createOrUpdate: (group, vmName, vmInfo ,cb) =>{
+							return cb(null,true);
+						}
+					},
+				});
+			
+			info = dD();
+			options = info.deployCluster;
+			options.params = {
+				group: 'tester',
+				vmNames: ['tester-vm']
+				
 			};
 			service.executeDriver('updateVmLabels', options, function (error, response) {
 				assert.ifError(error);

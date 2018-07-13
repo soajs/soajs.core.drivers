@@ -71,7 +71,7 @@ describe("testing /lib/azure/index.js", function () {
 										"sourceAddressPrefix": "*",
 										"sourcePortRange": "*",
 										"destinationAddressPrefix": "*",
-										"destinationPortRange": 1
+										"destinationPortRange": "30080"
 									}
 								}
 							]

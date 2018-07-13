@@ -202,7 +202,7 @@ const helper = {
 			if (opts.disk.name) record.name = opts.disk.name;
 			if (opts.disk.id) record.id = opts.disk.id;
 			if (opts.disk.location) record.region = opts.disk.location;
-			if (opts.disk.diskSizeGB) record.diskSizeGb = opts.disk.diskSizeGB;
+			if (opts.disk.diskSizeGB) record.diskSizeGB = opts.disk.diskSizeGB;
 			if (opts.disk.type) record.type = opts.disk.type;
 			if (opts.disk.storageType) record.storageType = opts.disk.storageType;
         }

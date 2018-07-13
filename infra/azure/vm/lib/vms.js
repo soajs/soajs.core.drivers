@@ -163,7 +163,7 @@ const vms = {
 				async.each(options.params.vmNames, (vmName, callback) => {
 					computeClient.virtualMachines.get(options.params.group, vmName, function (error, vmInfo) {
 						if(error) return callback(error);
-						let tags = options.params.labels;
+						let tags = options.params.labels ? options.params.labels : {};
 						if(!vmInfo.tags) vmInfo.tags = {};
 
 						if (Object.keys(tags).length === 0) {

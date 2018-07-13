@@ -43,37 +43,43 @@ describe("testing /lib/azure/index.js", function () {
 					"name": "mongo_OsDisk_1_5aa8030cb6044037b5c8f4d6c75a391a",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/SOAJS/providers/Microsoft.Compute/disks/mongo_OsDisk_1_5aa8030cb6044037b5c8f4d6c75a391a",
 					"region": "centralus",
-					"type": "Microsoft.Compute/disks"
+					"type": "Microsoft.Compute/disks",
+					"diskSizeGB": 30
 				},
 				{
 					"name": "mysql_OsDisk_1_42ef3a000aff4269988d134e376e0160",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/SOAJS/providers/Microsoft.Compute/disks/mysql_OsDisk_1_42ef3a000aff4269988d134e376e0160",
 					"region": "centralus",
-					"type": "Microsoft.Compute/disks"
+					"type": "Microsoft.Compute/disks",
+					"diskSizeGB": 30
 				},
 				{
 					"name": "testcase-vm_OsDisk_1_cc20c9245fdd4bf9961aa239d435b9b7",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/TESTCASE/providers/Microsoft.Compute/disks/testcase-vm_OsDisk_1_cc20c9245fdd4bf9961aa239d435b9b7",
 					"region": "centralus",
-					"type": "Microsoft.Compute/disks"
+					"type": "Microsoft.Compute/disks",
+					"diskSizeGB": 30
 				},
 				{
 					"name": "charles-test3-osDisk-0",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/CHARLES/providers/Microsoft.Compute/disks/charles-test3-osDisk-0",
 					"region": "eastus",
-					"type": "Microsoft.Compute/disks"
+					"type": "Microsoft.Compute/disks",
+					"diskSizeGB": 30
 				},
 				{
 					"name": "test-data-disk-for-ragheb",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/TESTCASE/providers/Microsoft.Compute/disks/test-data-disk-for-ragheb",
 					"region": "eastus",
-					"type": "Microsoft.Compute/disks"
+					"type": "Microsoft.Compute/disks",
+					"diskSizeGB": 5
 				},
 				{
 					"name": "tester-vm_OsDisk_1_a26c7c89f50e4ccd8cb600324eae5100",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/TESTER/providers/Microsoft.Compute/disks/tester-vm_OsDisk_1_a26c7c89f50e4ccd8cb600324eae5100",
 					"region": "eastus",
-					"type": "Microsoft.Compute/disks"
+					"type": "Microsoft.Compute/disks",
+					"diskSizeGB": 30
 				}
 			];
 			service.executeDriver('listDisks', options, function (error, response) {
@@ -111,31 +117,36 @@ describe("testing /lib/azure/index.js", function () {
 					"name": "mongo_OsDisk_1_5aa8030cb6044037b5c8f4d6c75a391a",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/SOAJS/providers/Microsoft.Compute/disks/mongo_OsDisk_1_5aa8030cb6044037b5c8f4d6c75a391a",
 					"region": "centralus",
-					"type": "Microsoft.Compute/disks"
+					"type": "Microsoft.Compute/disks",
+					"diskSizeGB": 30
 				},
 				{
 					"name": "mysql_OsDisk_1_42ef3a000aff4269988d134e376e0160",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/SOAJS/providers/Microsoft.Compute/disks/mysql_OsDisk_1_42ef3a000aff4269988d134e376e0160",
 					"region": "centralus",
-					"type": "Microsoft.Compute/disks"
+					"type": "Microsoft.Compute/disks",
+					"diskSizeGB": 30
 				},
 				{
 					"name": "testcase-vm_OsDisk_1_cc20c9245fdd4bf9961aa239d435b9b7",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/TESTCASE/providers/Microsoft.Compute/disks/testcase-vm_OsDisk_1_cc20c9245fdd4bf9961aa239d435b9b7",
 					"region": "centralus",
-					"type": "Microsoft.Compute/disks"
+					"type": "Microsoft.Compute/disks",
+					"diskSizeGB": 30
 				},
 				{
 					"name": "charles-test3-osDisk-0",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/CHARLES/providers/Microsoft.Compute/disks/charles-test3-osDisk-0",
 					"region": "eastus",
-					"type": "Microsoft.Compute/disks"
+					"type": "Microsoft.Compute/disks",
+					"diskSizeGB": 30
 				},
 				{
 					"name": "tester-vm_OsDisk_1_a26c7c89f50e4ccd8cb600324eae5100",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/TESTER/providers/Microsoft.Compute/disks/tester-vm_OsDisk_1_a26c7c89f50e4ccd8cb600324eae5100",
 					"region": "eastus",
-					"type": "Microsoft.Compute/disks"
+					"type": "Microsoft.Compute/disks",
+					"diskSizeGB": 30
 				}
 			];
 			service.executeDriver('listDisks', options, function (error, response) {
@@ -192,7 +203,8 @@ describe("testing /lib/azure/index.js", function () {
 					"name": "mongo_OsDisk_1_5aa8030cb6044037b5c8f4d6c75a391a",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/SOAJS/providers/Microsoft.Compute/disks/mongo_OsDisk_1_5aa8030cb6044037b5c8f4d6c75a391a",
 					"region": "centralus",
-					"type": "Microsoft.Compute/disks"
+					"type": "Microsoft.Compute/disks",
+					"diskSizeGB": 30
 				}
 			];
 			service.executeDriver('listDisks', options, function (error, response) {

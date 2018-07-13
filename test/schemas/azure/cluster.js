@@ -185,7 +185,10 @@ module.exports = function () {
 				"type": "Microsoft.Compute/virtualMachines",
 				"location": "eastus",
 				"tags": {
-					"soajs.env.code": "tester"
+					"soajs.env.code": "tester",
+					"soajs.layer.name": "tester",
+					"soajs.network.name": "tester",
+					"soajs.vm.name": "tester",
 				},
 				"hardwareProfile": {
 					"vmSize": "Standard_A1"
