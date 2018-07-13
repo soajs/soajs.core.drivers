@@ -222,7 +222,7 @@ const helper = {
 			if (opts.network.location) record.region = opts.network.location;
 			if (opts.network.subnets) {
 				for(let i = 0 ; i < opts.network.subnets.length ; i++){
-					record.subnets.push(  helper.bulidSubnetsRecord({subnet :opts.network.subnets[i] }));
+					record.subnets.push(  helper.buildSubnetRecord({subnet: opts.network.subnets[i] }));
 				}
 			}
 			if(opts.network.addressSpace && opts.network.addressSpace.addressPrefixes && Array.isArray(opts.network.addressSpace.addressPrefixes) && opts.network.addressSpace.addressPrefixes.length > 0) {
@@ -372,7 +372,7 @@ const helper = {
 		return record;
 	},
 
-	bulidSubnetsRecord: function (opts) {
+	buildSubnetRecord: function (opts) {
 		let record = {};
 		if(opts.subnet){
 			if (opts.subnet.name) record.name = opts.subnet.name;
