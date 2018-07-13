@@ -164,23 +164,43 @@ const vms = {
 					computeClient.virtualMachines.get(options.params.group, vmName, function (error, vmInfo) {
 						if(error) return callback(error);
 						let tags = options.params.labels;
-
 						if(!vmInfo.tags) vmInfo.tags = {};
 
-						// check if tags are already set, return callback and do no update
-						async.every(Object.keys(tags), function(oneTag, callback) {
-							return callback(null, vmInfo.tags[oneTag] && vmInfo.tags[oneTag] === tags[oneTag]);
-						}, function(error, tagsAlreadyFound) {
-							if(tagsAlreadyFound) return callback();
+						if (Object.keys(tags).length === 0) {
+                            if (Object.keys(vmInfo.tags).length > 0) {
+                            	if (vmInfo.tags['soajs.env.code']) {
+                            		delete vmInfo.tags['soajs.env.code']
+								}
+								if (vmInfo.tags['soajs.layer.name']) {
+                            		delete vmInfo.tags['soajs.layer.name']
+								}
+								if (vmInfo.tags['soajs.network.name']) {
+                            		delete vmInfo.tags['soajs.network.name']
+								}
+								if (vmInfo.tags['soajs.vm.name']) {
+                            		delete vmInfo.tags['soajs.vm.name']
+								}
+							}
+                            computeClient.virtualMachines.createOrUpdate(options.params.group, vmName, vmInfo , function (error, response) {
+                                if(error) return callback(error);
+                                return callback();
+                            });
+						} else {
+                            // check if tags are already set, return callback and do no update
+                            async.every(Object.keys(tags), function(oneTag, callback) {
+                                return callback(null, vmInfo.tags[oneTag] && vmInfo.tags[oneTag] === tags[oneTag]);
+                            }, function(error, tagsAlreadyFound) {
+                                if(tagsAlreadyFound) return callback();
 
-							vmInfo.tags = Object.assign(vmInfo.tags, tags);
-							if(options.params.setVmNameAsLabel) vmInfo.tags['soajs.vm.name'] = vmName;
+                                vmInfo.tags = Object.assign(vmInfo.tags, tags);
+                                if(options.params.setVmNameAsLabel) vmInfo.tags['soajs.vm.name'] = vmName;
 
-							computeClient.virtualMachines.createOrUpdate(options.params.group, vmName, vmInfo , function (error, response) {
-								if(error) return callback(error);
-								return callback();
-							});
-						});
+                                computeClient.virtualMachines.createOrUpdate(options.params.group, vmName, vmInfo , function (error, response) {
+                                    if(error) return callback(error);
+                                    return callback();
+                                });
+                            });
+						}
 					});
 				}, function(error) {
 					utils.checkError(error, 759, cb, () => {
