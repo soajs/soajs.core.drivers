@@ -216,12 +216,6 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			options.infra.api = {
-				clientId: "cca65dcd-3aa3-44d3-81cb-6b57b764be6a",
-				secret: "QY7TMLyoA6Jjzidtduqbn/4Y2mDlyJUbKZ40c6dBTYw=",
-				domain: "608c3255-376b-47a4-8e8e-9291e506d03e",
-				subscriptionId: "d159e994-8b44-42f7-b100-78c4508c34a6"
-			};
 			options.params = {
 				group: 'testcase',
 				name: 'tester-lb-1',
