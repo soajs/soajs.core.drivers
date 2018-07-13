@@ -510,7 +510,7 @@ describe("calling executeDriver - createLoadBalancer", function () {
 					idleTimeoutInMinutes: 4,
 					frontendIPConfigName: 'private-ip-config' //this name should match one created in ipConfigs []
 				}
-			]
+			],
 		};
 		let expectedRes =
 			{
@@ -524,6 +524,247 @@ describe("calling executeDriver - createLoadBalancer", function () {
 			assert.ifError(error);
 			assert.ok(response);
 			assert.deepEqual(expectedRes, response);
+			done();
+		});
+	});
+	
+	it("failure no ipConfigs and addressPools", function (done) {
+		info = dD();
+		options = info.deployCluster;
+		sinon
+			.stub(serviceUtils, 'authenticate')
+			.yields(null, {
+				credentials: {},
+			});
+		sinon
+			.stub(serviceUtils, 'getConnector')
+			.returns({
+				loadBalancers: {
+					createOrUpdate: (resourceGroupName, name, params, cb) => {
+						return cb(null, true);
+					}
+				},
+			});
+		options.params = {
+			group: 'testcase',
+			name: 'tester-lb-2',
+			region: 'centralus',
+			ports: [
+				{
+					name: 'port-1',
+					protocol: 'Tcp',
+					target: 80,
+					published: 80,
+					idleTimeoutInMinutes: 30,
+					loadDistribution: 'Default',
+					enableFloatingIP: false,
+					disableOutboundSnat: true,
+					addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
+					lbIpConfigName: 'private-ip-config', //this name should match one created in ipConfigs []
+					
+					healthProbePort: 80,
+					healthProbeProtocol: 'Http',
+					healthProbeRequestPath: '/',
+					maxFailureAttempts: 20,
+					healthProbeInterval: 10
+				}
+			],
+			// natPools or natRules, both at the same time doesn't work
+			natRules: [
+				{
+					name: 'nat-rule-1',
+					backendPort: 8081,
+					protocol: 'Tcp',
+					enableFloatingIP: false,
+					frontendPort: 30011,
+					idleTimeoutInMinutes: 4,
+					frontendIPConfigName: 'private-ip-config' //this name should match one created in ipConfigs []
+				}
+			],
+			natPools: [
+				{
+					name: 'nat-pool-1',
+					backendPort: 8080,
+					protocol: 'Tcp',
+					enableFloatingIP: false,
+					frontendPortRangeStart: 30000,
+					frontendPortRangeEnd: 30010,
+					idleTimeoutInMinutes: 4,
+					frontendIPConfigName: 'public-ip-config' //this name should match one created in ipConfigs []
+				}
+			]
+			
+		};
+		service.executeDriver('createLoadBalancer', options, function (error, response) {
+			assert.ok(error);
+			done();
+		});
+	});
+	
+	it("failure ip configurations aren't the same", function (done) {
+		info = dD();
+		options = info.deployCluster;
+		sinon
+			.stub(serviceUtils, 'authenticate')
+			.yields(null, {
+				credentials: {},
+			});
+		sinon
+			.stub(serviceUtils, 'getConnector')
+			.returns({
+				loadBalancers: {
+					createOrUpdate: (resourceGroupName, name, params, cb) => {
+						return cb(null, true);
+					}
+				},
+			});
+		options.params = {
+			group: 'testcase',
+			name: 'tester-lb-2',
+			region: 'centralus',
+			ipConfigs: [
+				// all configs should be public or not, you cannot have one public and the other private
+				{
+					name: 'private-ip-config',
+					privateIpAllocationMethod: 'Static',
+					privateIpAddress: '10.2.0.10',
+					isPublic: false,
+					subnetId: '/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-network/subnets/test-subnet' // existing id from azure
+				},
+				{
+					name: 'private-ip-config',
+					privateIpAllocationMethod: 'Static',
+					privateIpAddress: '10.2.0.10',
+					isPublic: true,
+					subnetId: '/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-network/subnets/test-subnet' // existing id from azure
+				}
+			],
+			ports: [
+				{
+					name: 'port-1',
+					protocol: 'Tcp',
+					target: 80,
+					published: 80,
+					idleTimeoutInMinutes: 30,
+					loadDistribution: 'Default',
+					enableFloatingIP: false,
+					disableOutboundSnat: true,
+					addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
+					lbIpConfigName: 'private-ip-config', //this name should match one created in ipConfigs []
+					
+					healthProbePort: 80,
+					healthProbeProtocol: 'Http',
+					healthProbeRequestPath: '/',
+					maxFailureAttempts: 20,
+					healthProbeInterval: 10
+				}
+			],
+			// natPools or natRules, both at the same time doesn't work
+			natRules: [
+				{
+					name: 'nat-rule-1',
+					backendPort: 8081,
+					protocol: 'Tcp',
+					enableFloatingIP: false,
+					frontendPort: 30011,
+					idleTimeoutInMinutes: 4,
+					frontendIPConfigName: 'private-ip-config' //this name should match one created in ipConfigs []
+				}
+			]
+			
+		};
+		service.executeDriver('createLoadBalancer', options, function (error, response) {
+			assert.ok(error);
+			done();
+		});
+	});
+	
+	it("failure natPools and natRules are both supplied", function (done) {
+		info = dD();
+		options = info.deployCluster;
+		sinon
+			.stub(serviceUtils, 'authenticate')
+			.yields(null, {
+				credentials: {},
+			});
+		sinon
+			.stub(serviceUtils, 'getConnector')
+			.returns({
+				loadBalancers: {
+					createOrUpdate: (resourceGroupName, name, params, cb) => {
+						return cb(null, true);
+					}
+				},
+			});
+		options.params = {
+			group: 'testcase',
+			name: 'tester-lb-2',
+			region: 'centralus',
+			ipConfigs: [
+				// all configs should be public or not, you cannot have one public and the other private
+				{
+					name: 'private-ip-config',
+					privateIpAllocationMethod: 'Static',
+					privateIpAddress: '10.2.0.10',
+					isPublic: false,
+					subnetId: '/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-network/subnets/test-subnet' // existing id from azure
+				},
+				{
+					name: 'private-ip-config',
+					privateIpAllocationMethod: 'Static',
+					privateIpAddress: '10.2.0.10',
+					isPublic: false,
+					subnetId: '/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-network/subnets/test-subnet' // existing id from azure
+				}
+			],
+			ports: [
+				{
+					name: 'port-1',
+					protocol: 'Tcp',
+					target: 80,
+					published: 80,
+					idleTimeoutInMinutes: 30,
+					loadDistribution: 'Default',
+					enableFloatingIP: false,
+					disableOutboundSnat: true,
+					addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
+					lbIpConfigName: 'private-ip-config', //this name should match one created in ipConfigs []
+					
+					healthProbePort: 80,
+					healthProbeProtocol: 'Http',
+					healthProbeRequestPath: '/',
+					maxFailureAttempts: 20,
+					healthProbeInterval: 10
+				}
+			],
+			// natPools or natRules, both at the same time doesn't work
+			natRules: [
+				{
+					name: 'nat-rule-1',
+					backendPort: 8081,
+					protocol: 'Tcp',
+					enableFloatingIP: false,
+					frontendPort: 30011,
+					idleTimeoutInMinutes: 4,
+					frontendIPConfigName: 'private-ip-config' //this name should match one created in ipConfigs []
+				}
+			],
+			natPools: [
+				{
+					name: 'nat-pool-1',
+					backendPort: 8080,
+					protocol: 'Tcp',
+					enableFloatingIP: false,
+					frontendPortRangeStart: 30000,
+					frontendPortRangeEnd: 30010,
+					idleTimeoutInMinutes: 4,
+					frontendIPConfigName: 'public-ip-config' //this name should match one created in ipConfigs []
+				}
+			]
+			
+		};
+		service.executeDriver('createLoadBalancer', options, function (error, response) {
+			assert.ok(error);
 			done();
 		});
 	});
