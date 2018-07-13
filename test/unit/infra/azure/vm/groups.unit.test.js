@@ -102,7 +102,6 @@ describe("testing /lib/azure/index.js", function () {
 			];
 			
 			service.executeDriver('listGroups', options, function (error, response) {
-				
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(expected, response);

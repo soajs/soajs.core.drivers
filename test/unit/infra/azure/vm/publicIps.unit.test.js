@@ -186,7 +186,6 @@ describe("calling executeDriver - updatePublicIp", function () {
 
 		];
 		service.executeDriver('updatePublicIp', options, function (error, response) {
-			console.log(JSON.stringify(response,null,2)+"************");
 			assert.ifError(error);
 			assert.ok(response);
 			assert.deepEqual(response, expectedResponce);
