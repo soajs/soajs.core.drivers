@@ -47,7 +47,8 @@ describe("testing /lib/azure/index.js", function () {
 					protocol: "Tcp",
 					access: "Allow",
 					direction: "Inbound",
-					name: "testPort"
+					name: "testPort",
+					published: "30080"
 				}]
 			};
 			let expectedResponce = {
