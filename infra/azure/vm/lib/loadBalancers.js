@@ -54,8 +54,45 @@ const lbs = {
                     subscriptionId: options.infra.api.subscriptionId
                 });
 
-                function createLb(callback) {
-                    options.soajs.log.debug(`Step 1: Applying laod balancer ${options.params.name} basic settings ...`);
+                function validate(callback) {
+                    options.soajs.log.debug(`Step 1: Validating laod balancer ${options.params.name} configurations ...`);
+                    let validationErrors = [];
+                    if(!options.params.addressPools || !Array.isArray(options.params.addressPools) || options.params.addressPools.length === 0) {
+                        validationErrors.push('There should be at least one backend address pool configured for a load balancer');
+                    }
+
+                    if(!options.params.ipConfigs || !Array.isArray(options.params.ipConfigs) || options.params.ipConfigs.length === 0) {
+                        validationErrors.push('There should be at least one ip configuration for a load balancer');
+                    }
+
+                    if(options.params.ipConfigs.length > 1) {
+                        let validIpConfigs = options.params.ipConfigs.reduce((valid, currentConfig, currentIndex, configsArray) => {
+                            if(configsArray[currentIndex - 1]) {
+                                return (valid && (currentConfig.isPublic === configsArray[currentIndex - 1].isPublic));
+                            }
+
+                            return true;
+                        });
+
+                        if(!validIpConfigs) {
+                            validationErrors.push('All ip configurations should be either public or private');
+                        }
+                    }
+
+                    if(options.params.natPools && Array.isArray(options.params.natPools) && options.params.natPools.length > 0 &&
+                        options.params.natRules && Array.isArray(options.params.natRules) && options.params.natRules.length > 0) {
+                        validationErrors.push('One of NAT pools or NAT rules can be applied to a load balancer, they cannot coexist');
+                    }
+
+                    if(validationErrors.length > 0) {
+                        return callback({ code: 760, value: validationErrors.join(', ') });
+                    }
+
+                    return callback(null, true);
+                }
+
+                function createLb(result, callback) {
+                    options.soajs.log.debug(`Step 2: Applying laod balancer ${options.params.name} basic settings ...`);
                     let params = {
                         location: options.params.region,
                         backendAddressPools: lbs.buildAddressPoolsConfig(options.params.addressPools),
@@ -71,7 +108,7 @@ const lbs = {
                 }
 
                 function applyLbRules(result, callback) {
-                    options.soajs.log.debug(`Step 2: Applying laod balancer ${options.params.name} rules and probes ...`);
+                    options.soajs.log.debug(`Step 3: Applying laod balancer ${options.params.name} rules and probes ...`);
                     let portsConfig = lbs.buildLoadBalancerRules(options.params.ports, { subscriptionId: options.infra.api.subscriptionId, group: options.params.group, lbName: options.params.name });
                     result.createLb.loadBalancingRules = portsConfig.lbRules;
                     result.createLb.probes = portsConfig.lbProbes;
@@ -91,10 +128,11 @@ const lbs = {
                 }
 
                 async.auto({
-                    createLb,
+                    validate,
+                    createLb: ['validate', createLb],
                     applyLbRules: ['createLb', applyLbRules]
                 }, function(error, results) {
-                    utils.checkError(error, 749, cb, () => {
+                    utils.checkError(error, (error && error.code) ? error.code : 749, cb, () => {
                         let lbInfo = results.applyLbRules.id.split('/');
                         return cb(null, {
                             id: results.applyLbRules.id,
