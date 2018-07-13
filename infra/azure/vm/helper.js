@@ -231,32 +231,133 @@ const helper = {
 
 	buildLoadBalancerRecord: function (opts) {
 		let record = {};
+		record.addressPools = [];
+		record.ipAddresses = [];
+		record.ipConfigs = [];
+		record.ports = [];
+		record.natRules = [];
+		record.natPools = [];
+
 		if(opts.loadBalancer){
 			if (opts.loadBalancer.name) record.name = opts.loadBalancer.name;
 			if (opts.loadBalancer.id) record.id = opts.loadBalancer.id;
 			if (opts.loadBalancer.location) record.region = opts.loadBalancer.location;
 
+			// collect backend address pools
+			if(opts.loadBalancer.backendAddressPools && Array.isArray(opts.loadBalancer.backendAddressPools) && opts.loadBalancer.backendAddressPools.length > 0) {
+				opts.loadBalancer.backendAddressPools.forEach((onePool) => {
+					record.addressPools.push({ name: onePool.name });
+				});
+			}
+
+			// collect ip address configurations
 			if(opts.loadBalancer.frontendIPConfigurations && Array.isArray(opts.loadBalancer.frontendIPConfigurations) && opts.loadBalancer.frontendIPConfigurations.length > 0) {
-				record.ipAddresses = [];
 				opts.loadBalancer.frontendIPConfigurations.forEach(function(oneConfig) {
-					let oneEntry = {};
+					let oneIp = {}, ipConfigOutput = {};
+					ipConfigOutput.name = oneConfig.name;
+					ipConfigOutput.privateIPAllocationMethod = oneConfig.privateIPAllocationMethod;
+
+
 					if(oneConfig.privateIPAddress) {
-						oneEntry.address = oneConfig.privateIPAddress;
-						oneEntry.type = 'private';
+						ipConfigOutput.isPublic = false;
+						ipConfigOutput.privateIpAddress = oneConfig.privateIPAddress;
+						if(oneConfig.subnet && oneConfig.subnet.id) {
+							ipConfigOutput.subnetId = oneConfig.subnet.id;
+						}
+
+						oneIp.address = oneConfig.privateIPAddress;
+						oneIp.type = 'private';
 					}
 					if(oneConfig.publicIPAddress && oneConfig.publicIPAddress.id) {
+						ipConfigOutput.isPublic = true;
+						ipConfigOutput.publicIpAddressId = oneConfig.publicIPAddress.id;
+
 						if(opts.publicIpsList) {
 							for (let i = 0; i < opts.publicIpsList.length; i++) {
 								if(opts.publicIpsList[i].id === oneConfig.publicIPAddress.id) {
-									oneEntry.type = 'public';
-									oneEntry.name = opts.publicIpsList[i].name || '';
-									oneEntry.address = opts.publicIpsList[i].ipAddress || '';
+									oneIp.type = 'public';
+									oneIp.name = opts.publicIpsList[i].name || '';
+									oneIp.address = opts.publicIpsList[i].ipAddress || '';
 									break;
 								}
 							}
 						}
 					}
-					record.ipAddresses.push(oneEntry);
+					record.ipAddresses.push(oneIp);
+					record.ipConfigs.push(ipConfigOutput);
+				});
+			}
+
+			// collect load balancing rules (ports)
+			if(opts.loadBalancer.loadBalancingRules && Array.isArray(opts.loadBalancer.loadBalancingRules) && opts.loadBalancer.loadBalancingRules.length > 0) {
+				opts.loadBalancer.loadBalancingRules.forEach((oneRule) => {
+					let onePort = {
+						name: oneRule.name,
+			            protocol: oneRule.protocol,
+			            target: oneRule.backendPort,
+			            published: oneRule.frontendPort,
+			            idleTimeoutInMinutes: oneRule.idleTimeoutInMinutes,
+			            loadDistribution: oneRule.loadDistribution,
+			            enableFloatingIP: oneRule.enableFloatingIP,
+			            disableOutboundSnat: oneRule.disableOutboundSnat
+					};
+
+					if(oneRule.backendAddressPool && oneRule.backendAddressPool.id) {
+						onePort.addressPoolName = oneRule.backendAddressPool.id.split('/').pop();
+					}
+					if(oneRule.frontendIPConfiguration && oneRule.frontendIPConfiguration.id) {
+						onePort.lbIpConfigName = oneRule.frontendIPConfiguration.id.split('/').pop();
+					}
+
+					if(oneRule.probe && oneRule.probe.id) {
+						let probeName = oneRule.probe.id.split('/').pop();
+						if(opts.loadBalancer.probes && Array.isArray(opts.loadBalancer.probes) && opts.loadBalancer.probes.length > 0) {
+							for(let i = 0; i < opts.loadBalancer.probes.length; i++) {
+								let oneProbe = opts.loadBalancer.probes[i];
+								if(oneProbe.name === probeName) {
+									onePort.healthProbePort = oneProbe.port;
+									onePort.healthProbeProtocol = oneProbe.protocol;
+									onePort.healthProbeRequestPath = oneProbe.requestPath;
+									onePort.maxFailureAttempts = oneProbe.numberOfProbes;
+									onePort.healthProbeInterval = oneProbe.intervalInSeconds;
+									break;
+								}
+							}
+						}
+					}
+
+					record.ports.push(onePort);
+				});
+			}
+
+			// collect inbound NAT rules
+			if(opts.loadBalancer.inboundNatRules && Array.isArray(opts.loadBalancer.inboundNatRules) && opts.loadBalancer.inboundNatRules.length > 0) {
+				opts.loadBalancer.inboundNatRules.forEach((oneNatRule) => {
+					record.natRules.push({
+						name: oneNatRule.name,
+						backendPort: oneNatRule.backendPort,
+						frontendPort: oneNatRule.frontendPort,
+						protocol: oneNatRule.protocol,
+						idleTimeoutInMinutes: oneNatRule.idleTimeoutInMinutes,
+						enableFloatingIP: oneNatRule.enableFloatingIP,
+						frontendIPConfigName: (oneNatRule.frontendIPConfiguration && oneNatRule.frontendIPConfiguration.id) ? oneNatRule.frontendIPConfiguration.id.split('/').pop() : ''
+					});
+				});
+			}
+
+			// collect inbound NAT pools
+			if(opts.loadBalancer.inboundNatPools && Array.isArray(opts.loadBalancer.inboundNatPools) && opts.loadBalancer.inboundNatPools.length > 0) {
+				opts.loadBalancer.inboundNatPools.forEach((oneNatPool) => {
+					record.natPools.push({
+						name: oneNatPool.name,
+						backendPort: oneNatPool.backendPort,
+						protocol: oneNatPool.protocol,
+						enableFloatingIP: oneNatPool.enableFloatingIP,
+						frontendPortRangeStart: oneNatPool.frontendPortRangeStart,
+						frontendPortRangeEnd: oneNatPool.frontendPortRangeEnd,
+						idleTimeoutInMinutes: oneNatPool.idleTimeoutInMinutes,
+						frontendIPConfigName: (oneNatPool.frontendIPConfiguration && oneNatPool.frontendIPConfiguration.id) ? oneNatPool.frontendIPConfiguration.id.split('/').pop() : ''
+					});
 				});
 			}
 		}
