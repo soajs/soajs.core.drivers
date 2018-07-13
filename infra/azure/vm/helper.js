@@ -391,6 +391,7 @@ const helper = {
 			if (opts.publicIPAddress.id) record.id = opts.publicIPAddress.id;
 			if (opts.publicIPAddress.location) record.region = opts.publicIPAddress.location;
 			if (opts.publicIPAddress.ipAddress) record.ipAddress = opts.publicIPAddress.ipAddress;
+			if (opts.publicIPAddress.publicIPAddressVersion) record.ipAddressVersion = opts.publicIPAddress.publicIPAddressVersion;
 			if (opts.publicIPAddress.publicIPAllocationMethod) record.publicIPAllocationMethod = opts.publicIPAddress.publicIPAllocationMethod;
 			if (opts.publicIPAddress.tags) record.labels = opts.publicIPAddress.tags;
 
@@ -417,9 +418,14 @@ const helper = {
 
 		securityRules.forEach(function (oneSecurityRule) {
 			output.push({
-				protocol: (oneSecurityRule.protocol && oneSecurityRule.protocol === '*') ? 'tcp/udp' : oneSecurityRule.protocol,
+				protocol: oneSecurityRule.protocol,
+				access: oneSecurityRule.access,
+				priority: oneSecurityRule.priority,
+				direction: oneSecurityRule.direction,
 				target: oneSecurityRule.sourcePortRange,
 				published: oneSecurityRule.destinationPortRange,
+				sourceAddressPrefix: oneSecurityRule.sourceAddressPrefix,
+				destinationAddressPrefix: oneSecurityRule.destinationAddressPrefix,
 				isPublished: (oneSecurityRule.destinationPortRange) ? true : false
 			});
 		});

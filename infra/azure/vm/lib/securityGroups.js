@@ -134,7 +134,6 @@ const securityGroups = {
     */
     buildSecurityRules: function(ports) {
         let securityRules = [];
-        let priority = 100;
         let defaultDestinationPortRange;
 		if (process.env.SOAJS_CLOOSTRO_TEST){
 			defaultDestinationPortRange = 1;
@@ -144,17 +143,16 @@ const securityGroups = {
                 securityRules.push({
                     name: onePort.name,
                     properties: {
-                        priority: priority,
+                        priority: onePort.priority,
                         protocol: (onePort.protocol) ? onePort.protocol : "*",
                         access: (onePort.access) ? onePort.access : "Allow", //Allow || Deny
                         direction: (onePort.direction) ? onePort.direction : "Inbound", //Inboud || Outbound
                         sourceAddressPrefix: (onePort.sourceAddressPrefix) ? onePort.sourceAddressPrefix : "*",
-                        sourcePortRange: (onePort.sourcePortRange) ? onePort.sourcePortRange : "*",
+                        sourcePortRange: (onePort.target) ? onePort.target : "*",
                         destinationAddressPrefix: (onePort.destinationAddressPrefix) ? onePort.destinationAddressPrefix : "*",
                         destinationPortRange: (onePort.published) ? onePort.published : defaultDestinationPortRange || (Math.floor(Math.random() * 2768) + 30000)
                     }
                 });
-                priority += 10;
             });
         }
 
