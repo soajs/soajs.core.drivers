@@ -65,6 +65,20 @@ const lbs = {
 		                validationErrors.push('There should be at least one ip configuration for a load balancer');
 	                }
 	
+	                if(options.params.ipConfigs && Array.isArray(options.params.ipConfigs) && options.params.ipConfigs.length > 1) {
+		                let validIpConfigs = options.params.ipConfigs.reduce((valid, currentConfig, currentIndex, configsArray) => {
+			                if(configsArray[currentIndex - 1]) {
+				                return (valid && (currentConfig.isPublic === configsArray[currentIndex - 1].isPublic));
+			                }
+			
+			                return true;
+		                });
+		
+		                if(!validIpConfigs) {
+			                validationErrors.push('All ip configurations should be either public or private');
+		                }
+	                }
+	                
 	                if (options.params.natPools && Array.isArray(options.params.natPools) && options.params.natPools.length > 0 &&
 		                options.params.natRules && Array.isArray(options.params.natRules) && options.params.natRules.length > 0) {
 		                validationErrors.push('One of NAT pools or NAT rules can be applied to a load balancer, they cannot coexist');
