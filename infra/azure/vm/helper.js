@@ -213,6 +213,9 @@ const helper = {
 	buildNetworkRecord: function (opts) {
 		let record = {};
 		record.subnets = [];
+		record.addressPrefixes = [];
+		record.dnsServers = [];
+
 		if(opts.network) {
 			if (opts.network.name) record.name = opts.network.name;
 			if (opts.network.id) record.id = opts.network.id;
@@ -222,8 +225,12 @@ const helper = {
 					record.subnets.push(  helper.bulidSubnetsRecord({subnet :opts.network.subnets[i] }));
 				}
 			}
-			if(opts.network.addressSpace) record.addressSpace = opts.network.addressSpace;
-			if(opts.network.dhcpOptions) record.dhcpOptions = opts.network.dhcpOptions;
+			if(opts.network.addressSpace && opts.network.addressSpace.addressPrefixes && Array.isArray(opts.network.addressSpace.addressPrefixes) && opts.network.addressSpace.addressPrefixes.length > 0) {
+				record.addressPrefixes = opts.network.addressSpace.addressPrefixes;
+			}
+			if(opts.network.dhcpOptions && opts.network.dhcpOptions.dnsServers && Array.isArray(opts.network.dhcpOptions.dnsServers) && opts.network.dhcpOptions.dnsServers.length > 0) {
+				record.dnsServers = opts.network.dhcpOptions.dnsServers;
+			}
 		}
 
 		return record;
