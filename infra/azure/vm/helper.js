@@ -419,6 +419,7 @@ const helper = {
 
 		securityRules.forEach(function (oneSecurityRule) {
 			output.push({
+				name: oneSecurityRule.name,
 				protocol: oneSecurityRule.protocol,
 				access: oneSecurityRule.access,
 				priority: oneSecurityRule.priority,

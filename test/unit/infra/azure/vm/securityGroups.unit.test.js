@@ -521,6 +521,7 @@ describe("testing /lib/azure/index.js", function () {
 					"region": "centralus",
 					"ports": [
 						{
+							"name": "http",
 							"protocol": "tcp",
 							"access": "Allow",
 							"priority": 100,
