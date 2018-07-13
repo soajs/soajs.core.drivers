@@ -46,11 +46,8 @@ describe("testing /lib/azure/index.js", function () {
 					"name": "tester-vn",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/virtualNetworks/tester-vn",
 					"region": "eastus",
-					"addressSpace": {
-						"addressPrefixes": [
-							"10.0.0.0/16"
-						]
-					}
+					"addressPrefixes": ["10.0.0.0/16"],
+					"dnsServers": []
 				}
 			];
 			service.executeDriver('listNetworks', options, function (error, response) {
@@ -143,17 +140,13 @@ describe("testing /lib/azure/index.js", function () {
 				"name": "test-net",
 				"id": "/subscriptions/d6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-net",
 				"region": "centralus",
-				"addressSpace": {
-					"addressPrefixes": [
-						"10.0.0.0/16"
-					]
-				},
-				"dhcpOptions": {
-					"dnsServers": [
-						"8.8.8.8",
-						"8.8.9.9"
-					]
-				}
+				"addressPrefixes": [
+					"10.0.0.0/16"
+				],
+				"dnsServers": [
+					"8.8.8.8",
+					"8.8.9.9"
+				]
 			};
 			service.executeDriver('createNetwork', options, function (error, response) {
 				assert.ifError(error);
@@ -245,17 +238,13 @@ describe("testing /lib/azure/index.js", function () {
 				"name": "test-net",
 				"id": "/subscriptions/d6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-net",
 				"region": "centralus",
-				"addressSpace": {
-					"addressPrefixes": [
-						"10.0.0.0/16"
-					]
-				},
-				"dhcpOptions": {
-					"dnsServers": [
-						"8.8.8.8",
-						"8.8.9.9"
-					]
-				}
+				"addressPrefixes": [
+					"10.0.0.0/16"
+				],
+				"dnsServers": [
+					"8.8.8.8",
+					"8.8.9.9"
+				]
 			};
 			service.executeDriver('updateNetwork', options, function (error, response) {
 				assert.ifError(error);

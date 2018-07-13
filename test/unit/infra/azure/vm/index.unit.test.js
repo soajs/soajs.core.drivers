@@ -113,8 +113,13 @@ describe("testing /lib/azure/index.js", function () {
 				"ports": [
 					{
 						"protocol": "Tcp",
+						"access": "Allow",
+						"priority": 100,
+						"direction": "Inbound",
 						"target": "*",
 						"published": "22",
+						"sourceAddressPrefix": "*",
+						"destinationAddressPrefix": "*",
 						"isPublished": true
 					}
 				],
@@ -234,8 +239,13 @@ describe("testing /lib/azure/index.js", function () {
 				"ports": [
 					{
 						"protocol": "Tcp",
+						"access": "Allow",
+						"priority": 100,
+						"direction": "Inbound",
 						"target": "*",
 						"published": "22",
+						"sourceAddressPrefix": "*",
+						"destinationAddressPrefix": "*",
 						"isPublished": true
 					}
 				],
@@ -247,7 +257,7 @@ describe("testing /lib/azure/index.js", function () {
 						"id": "tester-vm",
 						"name": "tester-vm",
 						"status": {
-							"state": "succeeded"
+							"state": "succeeded",
 						},
 						"ref": {
 							"os": {
@@ -273,16 +283,32 @@ describe("testing /lib/azure/index.js", function () {
 				"network": "tester-vn",
 				"loadBalancers": [
 					{
-						"name": "tester-tester-lb",
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-tester-lb",
-						"region": "centralus",
+						"addressPools": [
+							{
+								"name": "tester-tester-lb-backend-address-pool"
+							}
+						],
 						"ipAddresses": [
 							{
 								"type": "public",
 								"name": "tester-tester-ip",
 								"address": "23.99.134.149"
 							}
-						]
+						],
+						"ipConfigs": [
+							{
+								"name": "tester-tester-lb-ip",
+								"privateIPAllocationMethod": "Dynamic",
+								"isPublic": true,
+								"publicIpAddressId": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-tester-ip"
+							}
+						],
+						"ports": [],
+						"natRules": [],
+						"natPools": [],
+						"name": "tester-tester-lb",
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-tester-lb",
+						"region": "centralus"
 					}
 				]
 			};
@@ -377,8 +403,13 @@ describe("testing /lib/azure/index.js", function () {
 					"ports": [
 						{
 							"protocol": "Tcp",
+							"access": "Allow",
+							"priority": 100,
+							"direction": "Inbound",
 							"target": "*",
 							"published": "22",
+							"sourceAddressPrefix": "*",
+							"destinationAddressPrefix": "*",
 							"isPublished": true
 						}
 					],
@@ -390,7 +421,7 @@ describe("testing /lib/azure/index.js", function () {
 							"id": "tester-vm",
 							"name": "tester-vm",
 							"status": {
-								"state": "succeeded"
+								"state": "succeeded",
 							},
 							"ref": {
 								"os": {
@@ -427,7 +458,7 @@ describe("testing /lib/azure/index.js", function () {
 							"id": "mongo",
 							"name": "mongo",
 							"status": {
-								"state": "succeeded"
+								"state": "succeeded",
 							},
 							"ref": {
 								"os": {
@@ -456,7 +487,7 @@ describe("testing /lib/azure/index.js", function () {
 							"id": "mysql",
 							"name": "mysql",
 							"status": {
-								"state": "succeeded"
+								"state": "succeeded",
 							},
 							"ref": {
 								"os": {

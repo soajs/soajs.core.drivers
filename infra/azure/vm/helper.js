@@ -305,10 +305,11 @@ const helper = {
 			            published: oneRule.frontendPort,
 			            idleTimeoutInMinutes: oneRule.idleTimeoutInMinutes,
 			            loadDistribution: oneRule.loadDistribution,
-			            enableFloatingIP: oneRule.enableFloatingIP,
-			            disableOutboundSnat: oneRule.disableOutboundSnat
+			            enableFloatingIP: oneRule.enableFloatingIP
 					};
-
+					if (oneRule.disableOutboundSnat) {
+						onePort.disableOutboundSnat = oneRule.disableOutboundSnat;
+					}
 					if(oneRule.backendAddressPool && oneRule.backendAddressPool.id) {
 						onePort.addressPoolName = oneRule.backendAddressPool.id.split('/').pop();
 					}

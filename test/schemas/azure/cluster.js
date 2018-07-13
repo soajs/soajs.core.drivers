@@ -1267,11 +1267,329 @@ module.exports = function () {
 				"provisioningState": "Succeeded"
 			}
 		],
+		"rawLoadBalancers": [
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1",
+				"name": "tester-lb-1",
+				"type": "Microsoft.Network/loadBalancers",
+				"location": "centralus",
+				"tags": {},
+				"sku": {
+					"name": "Basic"
+				},
+				"frontendIPConfigurations": [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1/frontendIPConfigurations/public-ip-config",
+						"inboundNatPools": [
+							{
+								"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1/inboundNatPools/nat-pool-1"
+							}
+						],
+						"loadBalancingRules": [
+							{
+								"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1/loadBalancingRules/port-1"
+							}
+						],
+						"privateIPAllocationMethod": "Dynamic",
+						"publicIPAddress": {
+							"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/publicIPAddresses/test-ipaddress"
+						},
+						"provisioningState": "Succeeded",
+						"name": "public-ip-config",
+						"etag": "W/\"6ff8a904-2a35-499c-955c-a0ba279542c6\""
+					}
+				],
+				"backendAddressPools": [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1/backendAddressPools/tester-lb-address-pool",
+						"loadBalancingRules": [
+							{
+								"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1/loadBalancingRules/port-1"
+							}
+						],
+						"provisioningState": "Succeeded",
+						"name": "tester-lb-address-pool",
+						"etag": "W/\"6ff8a904-2a35-499c-955c-a0ba279542c6\""
+					}
+				],
+				"loadBalancingRules": [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1/loadBalancingRules/port-1",
+						"frontendIPConfiguration": {
+							"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1/frontendIPConfigurations/public-ip-config"
+						},
+						"backendAddressPool": {
+							"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1/backendAddressPools/tester-lb-address-pool"
+						},
+						"probe": {
+							"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1/probes/port-1-probe"
+						},
+						"protocol": "Tcp",
+						"loadDistribution": "Default",
+						"frontendPort": 80,
+						"backendPort": 80,
+						"idleTimeoutInMinutes": 30,
+						"enableFloatingIP": false,
+						"provisioningState": "Succeeded",
+						"name": "port-1",
+						"etag": "W/\"6ff8a904-2a35-499c-955c-a0ba279542c6\""
+					}
+				],
+				"probes": [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1/probes/port-1-probe",
+						"loadBalancingRules": [
+							{
+								"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1/loadBalancingRules/port-1"
+							}
+						],
+						"protocol": "Http",
+						"port": 80,
+						"intervalInSeconds": 10,
+						"numberOfProbes": 20,
+						"requestPath": "/",
+						"provisioningState": "Succeeded",
+						"name": "port-1-probe",
+						"etag": "W/\"6ff8a904-2a35-499c-955c-a0ba279542c6\""
+					}
+				],
+				"inboundNatRules": [],
+				"inboundNatPools": [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1/inboundNatPools/nat-pool-1",
+						"frontendIPConfiguration": {
+							"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1/frontendIPConfigurations/public-ip-config"
+						},
+						"protocol": "Tcp",
+						"frontendPortRangeStart": 30000,
+						"frontendPortRangeEnd": 30010,
+						"backendPort": 8080,
+						"idleTimeoutInMinutes": 4,
+						"enableFloatingIP": false,
+						"provisioningState": "Succeeded",
+						"name": "nat-pool-1",
+						"etag": "W/\"6ff8a904-2a35-499c-955c-a0ba279542c6\""
+					}
+				],
+				"resourceGuid": "6bf98d10-ab2a-45c0-903c-e0ab8b779e44",
+				"provisioningState": "Succeeded",
+				"etag": "W/\"6ff8a904-2a35-499c-955c-a0ba279542c6\""
+			},
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-2",
+				"name": "tester-lb-2",
+				"type": "Microsoft.Network/loadBalancers",
+				"location": "centralus",
+				"tags": {},
+				"sku": {
+					"name": "Basic"
+				},
+				"frontendIPConfigurations": [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-2/frontendIPConfigurations/private-ip-config",
+						"inboundNatRules": [
+							{
+								"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-2/inboundNatRules/nat-rule-1"
+							}
+						],
+						"loadBalancingRules": [
+							{
+								"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-2/loadBalancingRules/port-1"
+							}
+						],
+						"privateIPAddress": "10.2.0.10",
+						"privateIPAllocationMethod": "Static",
+						"subnet": {
+							"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-network/subnets/test-subnet"
+						},
+						"provisioningState": "Succeeded",
+						"name": "private-ip-config",
+						"etag": "W/\"c83d9de7-7371-499c-a4c3-7449205ba1f9\""
+					}
+				],
+				"backendAddressPools": [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-2/backendAddressPools/tester-lb-address-pool",
+						"loadBalancingRules": [
+							{
+								"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-2/loadBalancingRules/port-1"
+							}
+						],
+						"provisioningState": "Succeeded",
+						"name": "tester-lb-address-pool",
+						"etag": "W/\"c83d9de7-7371-499c-a4c3-7449205ba1f9\""
+					}
+				],
+				"loadBalancingRules": [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-2/loadBalancingRules/port-1",
+						"frontendIPConfiguration": {
+							"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-2/frontendIPConfigurations/private-ip-config"
+						},
+						"backendAddressPool": {
+							"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-2/backendAddressPools/tester-lb-address-pool"
+						},
+						"probe": {
+							"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-2/probes/port-1-probe"
+						},
+						"protocol": "Tcp",
+						"loadDistribution": "Default",
+						"frontendPort": 80,
+						"backendPort": 80,
+						"idleTimeoutInMinutes": 30,
+						"enableFloatingIP": false,
+						"provisioningState": "Succeeded",
+						"name": "port-1",
+						"etag": "W/\"c83d9de7-7371-499c-a4c3-7449205ba1f9\""
+					}
+				],
+				"probes": [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-2/probes/port-1-probe",
+						"loadBalancingRules": [
+							{
+								"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-2/loadBalancingRules/port-1"
+							}
+						],
+						"protocol": "Http",
+						"port": 80,
+						"intervalInSeconds": 10,
+						"numberOfProbes": 20,
+						"requestPath": "/",
+						"provisioningState": "Succeeded",
+						"name": "port-1-probe",
+						"etag": "W/\"c83d9de7-7371-499c-a4c3-7449205ba1f9\""
+					}
+				],
+				"inboundNatRules": [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-2/inboundNatRules/nat-rule-1",
+						"frontendIPConfiguration": {
+							"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-2/frontendIPConfigurations/private-ip-config"
+						},
+						"protocol": "Tcp",
+						"frontendPort": 30011,
+						"backendPort": 8081,
+						"idleTimeoutInMinutes": 4,
+						"enableFloatingIP": false,
+						"provisioningState": "Succeeded",
+						"name": "nat-rule-1",
+						"etag": "W/\"c83d9de7-7371-499c-a4c3-7449205ba1f9\""
+					}
+				],
+				"inboundNatPools": [],
+				"resourceGuid": "2b68bb2c-14c0-4b66-bbe2-5652e9b8d6a8",
+				"provisioningState": "Succeeded",
+				"etag": "W/\"c83d9de7-7371-499c-a4c3-7449205ba1f9\""
+			}
+		],
 		"loadBalancers": [
 			{
-				"name": "tester-lb",
-				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-lb",
-				"location": "centralus"
+				"addressPools": [
+					{
+						"name": "tester-lb-address-pool"
+					}
+				],
+				"ipAddresses": [
+					{}
+				],
+				"ipConfigs": [
+					{
+						"name": "public-ip-config",
+						"privateIPAllocationMethod": "Dynamic",
+						"isPublic": true,
+						"publicIpAddressId": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/publicIPAddresses/test-ipaddress"
+					}
+				],
+				"ports": [
+					{
+						"name": "port-1",
+						"protocol": "Tcp",
+						"target": 80,
+						"published": 80,
+						"idleTimeoutInMinutes": 30,
+						"loadDistribution": "Default",
+						"enableFloatingIP": false,
+						"addressPoolName": "tester-lb-address-pool",
+						"lbIpConfigName": "public-ip-config",
+						"healthProbePort": 80,
+						"healthProbeProtocol": "Http",
+						"healthProbeRequestPath": "/",
+						"maxFailureAttempts": 20,
+						"healthProbeInterval": 10
+					}
+				],
+				"natRules": [],
+				"natPools": [
+					{
+						"name": "nat-pool-1",
+						"backendPort": 8080,
+						"protocol": "Tcp",
+						"enableFloatingIP": false,
+						"frontendPortRangeStart": 30000,
+						"frontendPortRangeEnd": 30010,
+						"idleTimeoutInMinutes": 4,
+						"frontendIPConfigName": "public-ip-config"
+					}
+				],
+				"name": "tester-lb-1",
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1",
+				"region": "centralus"
+			},
+			{
+				"addressPools": [
+					{
+						"name": "tester-lb-address-pool"
+					}
+				],
+				"ipAddresses": [
+					{
+						"address": "10.2.0.10",
+						"type": "private"
+					}
+				],
+				"ipConfigs": [
+					{
+						"name": "private-ip-config",
+						"privateIPAllocationMethod": "Static",
+						"isPublic": false,
+						"privateIpAddress": "10.2.0.10",
+						"subnetId": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-network/subnets/test-subnet"
+					}
+				],
+				"ports": [
+					{
+						"name": "port-1",
+						"protocol": "Tcp",
+						"target": 80,
+						"published": 80,
+						"idleTimeoutInMinutes": 30,
+						"loadDistribution": "Default",
+						"enableFloatingIP": false,
+						"addressPoolName": "tester-lb-address-pool",
+						"lbIpConfigName": "private-ip-config",
+						"healthProbePort": 80,
+						"healthProbeProtocol": "Http",
+						"healthProbeRequestPath": "/",
+						"maxFailureAttempts": 20,
+						"healthProbeInterval": 10
+					}
+				],
+				"natRules": [
+					{
+						"name": "nat-rule-1",
+						"backendPort": 8081,
+						"frontendPort": 30011,
+						"protocol": "Tcp",
+						"idleTimeoutInMinutes": 4,
+						"enableFloatingIP": false,
+						"frontendIPConfigName": "private-ip-config"
+					}
+				],
+				"natPools": [],
+				"name": "tester-lb-2",
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-2",
+				"region": "centralus"
 			}
 		],
 		"runCommand": {

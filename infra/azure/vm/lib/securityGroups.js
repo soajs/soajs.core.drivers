@@ -65,7 +65,7 @@ const securityGroups = {
                 if(options.infra && options.infra.api && options.infra.api.subscriptionId) {
                     subscriptionId = options.infra.api.subscriptionId;
                 }
-
+				
                 let requestOptions = {
                     method: 'PUT',
                     uri: `https://management.azure.com/subscriptions/${subscriptionId}/resourceGroups/${options.params.group}/providers/Microsoft.Network/networkSecurityGroups/${options.params.securityGroupName}?api-version=${config.apiVersion2018}`,

@@ -43,6 +43,7 @@ describe("testing /lib/azure/index.js", function () {
 					"test": "case"
 				},
 				ports: [{
+					priority: 100,
 					protocol: "Tcp",
 					access: "Allow",
 					direction: "Inbound",
@@ -278,6 +279,7 @@ describe("testing /lib/azure/index.js", function () {
 					"test": "case"
 				},
 				ports: [{
+					priority: 100,
 					protocol: "Tcp",
 					access: "Allow",
 					direction: "Inbound",
@@ -513,16 +515,23 @@ describe("testing /lib/azure/index.js", function () {
 			};
 			let expectedResponce = [
 				{
-					"ports": [{
-						"isPublished": true,
-						"protocol": "tcp",
-						"published": "22",
-						"target": "*",
-					}],
-					"region": "centralus",
-					"labels": {},
 					"name": "tester-tester-sg",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-tester-sg",
+					"region": "centralus",
+					"ports": [
+						{
+							"protocol": "tcp",
+							"access": "Allow",
+							"priority": 100,
+							"direction": "Inbound",
+							"target": "*",
+							"published": "22",
+							"sourceAddressPrefix": "*",
+							"destinationAddressPrefix": "*",
+							"isPublished": true
+						}
+					],
+					"labels": {}
 				}
 			];
 

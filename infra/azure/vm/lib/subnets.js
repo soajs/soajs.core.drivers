@@ -26,7 +26,7 @@ const subnets = {
                 networkClient.subnets.list(options.params.group, options.params.virtualNetworkName, function (error, subnets) {
                     utils.checkError(error, 733, cb, () => {
                         async.map(subnets, function(oneSubnet, callback) {
-                            return callback(null, helper.bulidSubnetsRecord({ subnet: oneSubnet }));
+                            return callback(null, helper.buildSubnetRecord({ subnet: oneSubnet }));
                         }, function(error, subnetsList) {
                             return cb(null, subnetsList);
                         });
@@ -59,7 +59,7 @@ const subnets = {
 
                 networkClient.subnets.createOrUpdate(options.params.group, options.params.virtualNetworkName, options.params.subnetName, params, function (error, subnet) {
                     utils.checkError(error, 756, cb, () => {
-                        return cb(null, helper.bulidSubnetsRecord({ subnet }));
+                        return cb(null, helper.buildSubnetRecord({ subnet }));
                     });
                 });
             });
