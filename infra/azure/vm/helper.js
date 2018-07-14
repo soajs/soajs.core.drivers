@@ -315,6 +315,11 @@ const helper = {
 			output.push({
 				protocol: (oneSecurityRule.protocol && oneSecurityRule.protocol === '*') ? 'tcp/udp' : oneSecurityRule.protocol,
 				target: oneSecurityRule.sourcePortRange,
+				priority: oneSecurityRule.priority,
+				access: oneSecurityRule.access,
+				direction: oneSecurityRule.direction,
+				description: oneSecurityRule.description,
+				name: oneSecurityRule.name,
 				published: oneSecurityRule.destinationPortRange,
 				isPublished: (oneSecurityRule.destinationPortRange) ? true : false
 			});
