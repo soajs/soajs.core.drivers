@@ -267,8 +267,7 @@ const helper = {
 
 		return record;
 	},
-
-
+	
 	bulidSubnetsRecord: function (opts) {
 		let record = null;
 		if(opts.subnet){
@@ -283,7 +282,7 @@ const helper = {
 	},
 
 	buildPublicIPsRecord: function (opts) {
-		let record = {}
+		let record = {};
 		if(opts.publicIPAddresse){
 			if (opts.publicIPAddresse.name) record.name = opts.publicIPAddresse.name;
 			if (opts.publicIPAddresse.id) record.id = opts.publicIPAddresse.id;
@@ -294,6 +293,7 @@ const helper = {
 		}
 		return record;
 	},
+	
 	buildSecurityGroupsRecord: function (opts) {
 		let record = {};
 		if(opts.networkSecurityGroups){
@@ -302,6 +302,9 @@ const helper = {
 			if (opts.networkSecurityGroups.region) record.region = opts.networkSecurityGroups.region;
 			if (opts.networkSecurityGroups.securityRules && Array.isArray(opts.networkSecurityGroups.securityRules) && opts.networkSecurityGroups.securityRules.length> 0){
 				record.ports = helper.buildPortsArray(opts.networkSecurityGroups.securityRules);
+			}
+			if (opts.networkSecurityGroups.defaultSecurityRules && Array.isArray(opts.networkSecurityGroups.defaultSecurityRules) && opts.networkSecurityGroups.defaultSecurityRules.length> 0){
+				record.ports = record.ports.concat(helper.buildPortsArray(opts.networkSecurityGroups.defaultSecurityRules));
 			}
 			if (opts.networkSecurityGroups.tags) opts.networkSecurityGroups.tags = record.tags;
 		}
