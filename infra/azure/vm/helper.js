@@ -220,7 +220,7 @@ const helper = {
 			if (opts.network.location) record.location = opts.network.location;
 			if (opts.network.subnets) {
 				for(let i = 0 ; i < opts.network.subnets.length ; i++){
-					let subnet = helper.bulidSubnetsRecord({subnets :opts.network.subnets[i] });
+					let subnet = helper.bulidSubnetsRecord({subnet :opts.network.subnets[i] });
 					if(subnet){
 						record.subnets.push(subnet);
 					}
