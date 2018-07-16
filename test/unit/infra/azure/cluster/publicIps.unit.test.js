@@ -13,7 +13,7 @@ let options = {};
 describe("testing /lib/azure/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
 
-	describe("calling executeDriver - listPublicIps", function () {
+	describe("listPublicIps", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -59,7 +59,7 @@ describe("testing /lib/azure/index.js", function () {
 			 	  "region": "eastus"
 				}
 			  ];
-			service.executeDriver('listPublicIps', options, function (error, response) {
+			service.listPublicIps(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(response, expectedResponce);
@@ -70,7 +70,7 @@ describe("testing /lib/azure/index.js", function () {
 
 });
 
-describe("calling executeDriver - createPublicIp", function () {
+describe("createPublicIp", function () {
 	afterEach((done) => {
 		sinon.restore();
 		done();
@@ -126,7 +126,7 @@ describe("calling executeDriver - createPublicIp", function () {
 
 
 		];
-		service.executeDriver('createPublicIp', options, function (error, response) {
+		service.createPublicIp(options, function (error, response) {
 			assert.ifError(error);
 			assert.ok(response);
 			assert.deepEqual(response, expectedResponce);
@@ -185,7 +185,7 @@ describe("calling executeDriver - updatePublicIp", function () {
 			}
 
 		];
-		service.executeDriver('updatePublicIp', options, function (error, response) {
+		service.updatePublicIp(options, function (error, response) {
 			assert.ifError(error);
 			assert.ok(response);
 			assert.deepEqual(response, expectedResponce);
@@ -196,7 +196,7 @@ describe("calling executeDriver - updatePublicIp", function () {
 
 
 
-describe("calling executeDriver - deletePublicIp", function () {
+describe("deletePublicIp", function () {
 	afterEach((done) => {
 		sinon.restore();
 		done();
@@ -222,7 +222,7 @@ describe("calling executeDriver - deletePublicIp", function () {
 			group: "testcase",
 			publicIpName:"tester-vm-ip2",
 		};
-		service.executeDriver('deletePublicIp', options, function (error, response) {
+		service.deletePublicIp(options, function (error, response) {
 			assert.ifError(error);
 			assert.ok(response);
 			done();

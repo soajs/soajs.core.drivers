@@ -13,7 +13,7 @@ let options = {};
 describe("testing /lib/azure/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
 
-	describe("calling executeDriver - listSubnets", function () {
+	describe("listSubnets", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -39,7 +39,7 @@ describe("testing /lib/azure/index.js", function () {
 				resourceGroupName: "tester",
 				virtualNetworkName: "tester-vn",
 			};
-			service.executeDriver('listSubnets', options, function (error, response) {
+			service.listSubnets(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(response, info.subnets);
@@ -47,8 +47,8 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
-	describe("calling executeDriver - createSubnet", function () {
+
+	describe("createSubnet", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -81,7 +81,7 @@ describe("testing /lib/azure/index.js", function () {
 				virtualNetworkName: "test-net",
 				subnetName: "test-sn",
 			};
-			service.executeDriver('createSubnet', options, function (error, response) {
+			service.createSubnet(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(response, {
@@ -93,8 +93,8 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
-	describe("calling executeDriver - updateSubnet", function () {
+
+	describe("updateSubnet", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -128,7 +128,7 @@ describe("testing /lib/azure/index.js", function () {
 				subnetName: "test-sn",
 				addressPrefix: '10.0.0.0/24',
 			};
-			service.executeDriver('updateSubnet', options, function (error, response) {
+			service.updateSubnet(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(response, {
@@ -140,8 +140,8 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
-	describe("calling executeDriver - deleteSubnet", function () {
+
+	describe("deleteSubnet", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -168,7 +168,7 @@ describe("testing /lib/azure/index.js", function () {
 				virtualNetworkName: "tester-vn",
 				subnetName: "tester-sn",
 			};
-			service.executeDriver('deleteSubnet', options, function (error, response) {
+			service.deleteSubnet(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();

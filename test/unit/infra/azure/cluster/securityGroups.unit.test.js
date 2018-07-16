@@ -14,7 +14,7 @@ let options = {};
 describe("testing /lib/azure/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
 
-	describe("calling executeDriver - createSecurityGroup", function () {
+	describe("createSecurityGroup", function () {
 		afterEach((done) => {
 			sinon.restore();
 			nock.cleanAll();
@@ -242,7 +242,7 @@ describe("testing /lib/azure/index.js", function () {
 						]
 					}
 				});
-			service.executeDriver('createSecurityGroup', options, function (error, response) {
+			service.createSecurityGroup(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(expectedResponce, response);
@@ -251,7 +251,7 @@ describe("testing /lib/azure/index.js", function () {
 		});
 	});
 
-	describe("calling executeDriver - updateSecurityGroup", function () {
+	describe("updateSecurityGroup", function () {
 		afterEach((done) => {
 			sinon.restore();
 			nock.cleanAll();
@@ -478,7 +478,7 @@ describe("testing /lib/azure/index.js", function () {
 						]
 					}
 				});
-			service.executeDriver('updateSecurityGroup', options, function (error, response) {
+			service.updateSecurityGroup(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(expectedResponce, response);
@@ -487,7 +487,7 @@ describe("testing /lib/azure/index.js", function () {
 		});
 	});
 
-	describe("calling executeDriver - listSecurityGroups", function () {
+	describe("listSecurityGroups", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -531,22 +531,96 @@ describe("testing /lib/azure/index.js", function () {
 							"sourceAddressPrefix": "*",
 							"destinationAddressPrefix": "*",
 							"isPublished": true
+						},
+						{
+							"name": "AllowVnetInBound",
+							"protocol": "*",
+							"access": "Allow",
+							"priority": 65000,
+							"direction": "Inbound",
+							"target": "*",
+							"published": "*",
+							"sourceAddressPrefix": "VirtualNetwork",
+							"destinationAddressPrefix": "VirtualNetwork",
+							"isPublished": true
+						},
+						{
+							"name": "AllowAzureLoadBalancerInBound",
+							"protocol": "*",
+							"access": "Allow",
+							"priority": 65001,
+							"direction": "Inbound",
+							"target": "*",
+							"published": "*",
+							"sourceAddressPrefix": "AzureLoadBalancer",
+							"destinationAddressPrefix": "*",
+							"isPublished": true
+						},
+						{
+							"name": "DenyAllInBound",
+							"protocol": "*",
+							"access": "Deny",
+							"priority": 65500,
+							"direction": "Inbound",
+							"target": "*",
+							"published": "*",
+							"sourceAddressPrefix": "*",
+							"destinationAddressPrefix": "*",
+							"isPublished": true
+						},
+						{
+							"name": "AllowVnetOutBound",
+							"protocol": "*",
+							"access": "Allow",
+							"priority": 65000,
+							"direction": "Outbound",
+							"target": "*",
+							"published": "*",
+							"sourceAddressPrefix": "VirtualNetwork",
+							"destinationAddressPrefix": "VirtualNetwork",
+							"isPublished": true
+						},
+						{
+							"name": "AllowInternetOutBound",
+							"protocol": "*",
+							"access": "Allow",
+							"priority": 65001,
+							"direction": "Outbound",
+							"target": "*",
+							"published": "*",
+							"sourceAddressPrefix": "*",
+							"destinationAddressPrefix": "Internet",
+							"isPublished": true
+						},
+						{
+							"name": "DenyAllOutBound",
+							"protocol": "*",
+							"access": "Deny",
+							"priority": 65500,
+							"direction": "Outbound",
+							"target": "*",
+							"published": "*",
+							"sourceAddressPrefix": "*",
+							"destinationAddressPrefix": "*",
+							"isPublished": true
 						}
 					],
 					"labels": {}
 				}
-			];
+			]
+			;
 
-			service.executeDriver('listSecurityGroups', options, function (error, response) {
+			service.listSecurityGroups(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(expectedResponce, response);
+
 				done();
 			});
 		});
 	});
 
-	describe("calling executeDriver - deleteSecurityGroup", function () {
+	describe("deleteSecurityGroup", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -574,7 +648,7 @@ describe("testing /lib/azure/index.js", function () {
 				securityGroupName: "tester-sg",
 			};
 
-			service.executeDriver('deleteSecurityGroup', options, function (error, response) {
+			service.deleteSecurityGroup(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();

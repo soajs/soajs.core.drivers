@@ -12,8 +12,8 @@ let options = {};
 
 describe("testing /lib/azure/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
-	
-	describe("calling executeDriver - deleteGroup", function () {
+
+	describe("deleteGroup", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -34,20 +34,20 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			
+
 			options = info.deployCluster;
 			options.params = {
 				env: "tester"
 			};
-			service.executeDriver('deleteGroup', options, function (error, response) {
+			service.deleteGroup(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();
 			});
 		});
 	});
-	
-	describe("calling executeDriver - listGroups", function () {
+
+	describe("listGroups", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -100,8 +100,8 @@ describe("testing /lib/azure/index.js", function () {
 					"name": "soajs"
 				}
 			];
-			
-			service.executeDriver('listGroups', options, function (error, response) {
+
+			service.listGroups(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(expected, response);
@@ -109,8 +109,8 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
-	describe("calling executeDriver - createGroup", function () {
+
+	describe("createGroup", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -152,8 +152,8 @@ describe("testing /lib/azure/index.js", function () {
 				region: 'eastus',
 				tags: {test: "case"}
 			};
-			
-			service.executeDriver('createGroup', options, function (error, response) {
+
+			service.createGroup(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(expected, response);
@@ -161,8 +161,8 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
-	describe("calling executeDriver - updateGroup", function () {
+
+	describe("updateGroup", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -204,8 +204,8 @@ describe("testing /lib/azure/index.js", function () {
 				region: 'eastus',
 				tags: {test: "case"}
 			};
-			
-			service.executeDriver('updateGroup', options, function (error, response) {
+
+			service.updateGroup(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(expected, response);
@@ -213,5 +213,5 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 });

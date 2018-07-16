@@ -23,6 +23,7 @@ describe("testing /lib/azure/utils/index.js", function () {
 			info = dD();
 			options = info.deployCluster;
 			service.authenticate(options, function (error, response) {
+				console.log(error,response);
 				assert.ok(error);
 				done();
 			});
