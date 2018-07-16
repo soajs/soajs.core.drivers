@@ -409,6 +409,9 @@ const helper = {
 			if (opts.networkSecurityGroups.securityRules && Array.isArray(opts.networkSecurityGroups.securityRules) && opts.networkSecurityGroups.securityRules.length> 0){
 				record.ports = helper.buildPortsArray(opts.networkSecurityGroups.securityRules);
 			}
+			if (opts.networkSecurityGroups.defaultSecurityRules && Array.isArray(opts.networkSecurityGroups.defaultSecurityRules) && opts.networkSecurityGroups.defaultSecurityRules.length> 0){
+				record.ports = record.ports.concat(helper.buildPortsArray(opts.networkSecurityGroups.defaultSecurityRules));
+			}
 			if (opts.networkSecurityGroups.tags) record.labels = opts.networkSecurityGroups.tags;
 		}
 		return record;
