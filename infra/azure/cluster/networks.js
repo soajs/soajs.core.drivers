@@ -1,21 +1,21 @@
 'use strict';
 
 const async = require('async');
-const helper = require('./../helper');
-const utils = require('../../../../lib/utils/utils.js');
-const driverUtils = require('../../utils/index.js');
+const helper = require('./helper');
+const utils = require('../../../lib/utils/utils.js');
+const driverUtils = require('../utils/index.js');
 
-const ips = {
+const networks = {
 
     /**
-    * List available ip addresses
+    * List available networks
 
     * @param  {Object}   options  Data passed to function as params
     * @param  {Function} cb    Callback function
     * @return {void}
     */
     list: function(options, cb) {
-        options.soajs.log.debug(`Listing public ips for resourcegroup ${options.params.group} `);
+        options.soajs.log.debug(`Listing Networks for resourcegroup ${options.params.group} `);
         driverUtils.authenticate(options, (error, authData) => {
             utils.checkError(error, 700, cb, () => {
                 const networkClient = driverUtils.getConnector({
@@ -23,13 +23,12 @@ const ips = {
                     credentials: authData.credentials,
                     subscriptionId: options.infra.api.subscriptionId
                 });
-                networkClient.publicIPAddresses.list(options.params.group,function (error, publicIPAddresses) {
-                    utils.checkError(error, 735, cb, () => {
-
-                        async.map(publicIPAddresses, function(onepublicIPAddresse, callback) {
-                            return callback(null, helper.buildPublicIPRecord({ publicIPAddress: onepublicIPAddresse }));
-                        }, function(error, PublicIpsList) {
-                            return cb(null, PublicIpsList);
+                networkClient.virtualNetworks.list(options.params.group, function (error, networks) {
+                    utils.checkError(error, 731, cb, () => {
+                        async.map(networks, function(oneNetwork, callback) {
+                            return callback(null, helper.buildNetworkRecord({ network: oneNetwork }));
+                        }, function(error, networksList) {
+                            return cb(null, networksList);
                         });
                     });
                 });
@@ -38,66 +37,14 @@ const ips = {
     },
 
     /**
-    * Create a new ip address
+    * Create a new network
 
     * @param  {Object}   options  Data passed to function as params
     * @param  {Function} cb    Callback function
     * @return {void}
     */
     create: function(options, cb) {
-        options.soajs.log.debug(`Creating/Updating public ip in group ${options.params.group}`);
-        driverUtils.authenticate(options, (error, authData) => {
-            utils.checkError(error, 700, cb, () => {
-                const networkClient = driverUtils.getConnector({
-                    api: 'network',
-                    credentials: authData.credentials,
-                    subscriptionId: options.infra.api.subscriptionId
-                });
-
-                let params = {
-                    location: options.params.region,
-                    publicIPAllocationMethod: options.params.publicIPAllocationMethod || 'Dynamic',
-                    idleTimeoutInMinutes: options.params.idleTimeoutInMinutes || 30,
-                    publicIPAddressVersion: options.params.ipAddressVersion || 'IPv4',
-                    sku: {
-                        name: options.params.type || 'Basic'
-                    },
-                    tags: options.params.labels || {}
-                };
-
-                return networkClient.publicIPAddresses.createOrUpdate(options.params.group, options.params.publicIpName, params, function(error, response) {
-                    utils.checkError(error, 717, cb, () => {
-                        async.map(response, function(onepublicIPAddresse, callback) {
-                            return callback(null, helper.buildPublicIPRecord({ publicIPAddress: onepublicIPAddresse }));
-                        }, function(error, PublicIpsList) {
-                            return cb(null, PublicIpsList);
-                        });
-                    });
-                });
-            });
-        });
-    },
-
-    /**
-    * Update an ip address
-
-    * @param  {Object}   options  Data passed to function as params
-    * @param  {Function} cb    Callback function
-    * @return {void}
-    */
-    update: function(options, cb) {
-        return ips.create(options, cb);
-    },
-
-    /**
-    * Delete an ip address
-
-    * @param  {Object}   options  Data passed to function as params
-    * @param  {Function} cb    Callback function
-    * @return {void}
-    */
-    delete: function(options, cb) {
-        options.soajs.log.debug(`Deleting Public IP ${options.params.publicIpName}`);
+        options.soajs.log.debug(`Creating/Updating network ${options.params.networkName}`);
         driverUtils.authenticate(options, (error, authData) => {
             utils.checkError(error, 700, cb, () => {
                 const resourceClient = driverUtils.getConnector({
@@ -105,8 +52,61 @@ const ips = {
                     credentials: authData.credentials,
                     subscriptionId: options.infra.api.subscriptionId
                 });
-                resourceClient.publicIPAddresses.deleteMethod(options.params.group, options.params.publicIpName, function (error, response) {
-                    utils.checkError(error, 743, cb, () => {
+
+                let params = {
+                    location: options.params.region,
+                    addressSpace: {
+                        addressPrefixes: options.params.addressPrefixes || ['10.0.0.0/16']
+                    },
+                    tags: options.params.labels || {}
+                };
+
+                if(options.params.dnsServers && Array.isArray(options.params.dnsServers) && options.params.dnsServers.length > 0) {
+                    params.dhcpOptions = { dnsServers: options.params.dnsServers };
+                }
+
+                if(options.params.subnets && Array.isArray(options.params.subnets) && options.params.subnets.length > 0) {
+                    params.subnets = options.params.subnets;
+                }
+
+                resourceClient.virtualNetworks.createOrUpdate(options.params.group, options.params.networkName, params, function (error, network) {
+                    utils.checkError(error, 747, cb, () => {
+                        return cb(null, helper.buildNetworkRecord({ network }));
+                    });
+                });
+            });
+        });
+    },
+
+    /**
+    * Update a network
+
+    * @param  {Object}   options  Data passed to function as params
+    * @param  {Function} cb    Callback function
+    * @return {void}
+    */
+    update: function(options, cb) {
+        return networks.create(options, cb);
+    },
+
+    /**
+    * Delete a network
+
+    * @param  {Object}   options  Data passed to function as params
+    * @param  {Function} cb    Callback function
+    * @return {void}
+    */
+    delete: function(options, cb) {
+        options.soajs.log.debug(`Deleting network ${options.params.networkName}`);
+        driverUtils.authenticate(options, (error, authData) => {
+            utils.checkError(error, 700, cb, () => {
+                const resourceClient = driverUtils.getConnector({
+                    api: 'network',
+                    credentials: authData.credentials,
+                    subscriptionId: options.infra.api.subscriptionId
+                });
+                resourceClient.virtualNetworks.deleteMethod(options.params.group, options.params.networkName, function (error, result) {
+                    utils.checkError(error, 742, cb, () => {
                         return cb(null, true);
                     });
                 });
@@ -116,4 +116,4 @@ const ips = {
 
 };
 
-module.exports = ips;
+module.exports = networks;
