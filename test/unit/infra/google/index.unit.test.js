@@ -1554,7 +1554,6 @@ describe("testing /lib/google/index.js", function () {
 			];
 			options.params.name = 'nginx';
 			options.params.type = 'server';
-			console.log("this is the test case")
 			service.publishPorts(options, function (error, res) {
 				assert.ifError(error);
 				assert.ok(res);

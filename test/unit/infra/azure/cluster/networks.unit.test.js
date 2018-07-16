@@ -46,7 +46,7 @@ describe("testing /lib/azure/index.js", function () {
 					"name": "tester-vn",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/virtualNetworks/tester-vn",
 					"region": "eastus",
-					"addressPrefixes": ["10.0.0.0/16"],
+					"address": ["10.0.0.0/16"],
 					"dnsServers": []
 				}
 			];
@@ -122,7 +122,7 @@ describe("testing /lib/azure/index.js", function () {
 				},
 				group: "testcase",
 				networkName: "test-net",
-				"addressPrefixes": [ "10.0.0.0/16" ],
+				"address": [ "10.0.0.0/16" ],
 				"dnsServers": ["8.8.8.8", "8.8.9.9"],
 				"subnets": [{
 					name: "test-subnet",
@@ -140,7 +140,7 @@ describe("testing /lib/azure/index.js", function () {
 				"name": "test-net",
 				"id": "/subscriptions/d6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-net",
 				"region": "centralus",
-				"addressPrefixes": [
+				"address": [
 					"10.0.0.0/16"
 				],
 				"dnsServers": [
@@ -220,7 +220,7 @@ describe("testing /lib/azure/index.js", function () {
 				},
 				group: "testcase",
 				networkName: "test-net",
-				"addressPrefixes": [ "10.0.0.0/16" ],
+				"address": [ "10.0.0.0/16" ],
 				"dnsServers": ["8.8.8.8", "8.8.9.9"],
 				"subnets": [{
 					name: "test-subnet",
@@ -238,7 +238,7 @@ describe("testing /lib/azure/index.js", function () {
 				"name": "test-net",
 				"id": "/subscriptions/d6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-net",
 				"region": "centralus",
-				"addressPrefixes": [
+				"address": [
 					"10.0.0.0/16"
 				],
 				"dnsServers": [

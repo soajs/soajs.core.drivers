@@ -1,7 +1,7 @@
 'use strict';
 
 const async = require('async');
-const helper = require('./helper');
+const helper = require('../utils/helper.js');
 const utils = require('../../../lib/utils/utils.js');
 const driverUtils = require('../utils/index.js');
 
@@ -65,7 +65,7 @@ const ips = {
                     tags: options.params.labels || {}
                 };
 
-                return networkClient.publicIPAddresses.createOrUpdate(options.params.group, options.params.publicIpName, params, function(error, response) {
+                return networkClient.publicIPAddresses.createOrUpdate(options.params.group, options.params.name, params, function(error, response) {
                     utils.checkError(error, 717, cb, () => {
                         async.map(response, function(onepublicIPAddresse, callback) {
                             return callback(null, helper.buildPublicIPRecord({ publicIPAddress: onepublicIPAddresse }));

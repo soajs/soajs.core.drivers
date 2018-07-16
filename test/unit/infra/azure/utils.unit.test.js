@@ -4,7 +4,6 @@ const assert = require("assert");
 const sinon = require('sinon');
 
 const service = helper.requireModule('./infra/azure/utils/index.js');
-const azureApi = require('ms-rest-azure');
 
 let dD = require('../../../schemas/azure/cluster.js');
 let info = {};
@@ -23,7 +22,6 @@ describe("testing /lib/azure/utils/index.js", function () {
 			info = dD();
 			options = info.deployCluster;
 			service.authenticate(options, function (error, response) {
-				console.log(error,response);
 				assert.ok(error);
 				done();
 			});

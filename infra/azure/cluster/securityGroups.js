@@ -1,7 +1,7 @@
 'use strict';
 
 const async = require('async');
-const helper = require('./helper');
+const helper = require('../utils/helper.js');
 const config = require('./../config');
 const utils = require('../../../lib/utils/utils.js');
 const driverUtils = require('../utils/index.js');
