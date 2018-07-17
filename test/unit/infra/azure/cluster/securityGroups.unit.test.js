@@ -528,8 +528,8 @@ describe("testing /lib/azure/index.js", function () {
 								"direction": "Inbound",
 								"target": "*",
 								"published": "22",
-								"sourceAddressPrefix": "*",
-								"destinationAddressPrefix": "*",
+								"sourceAddress": "*",
+								"destinationAddress": "*",
 								"isPublished": true
 							},
 							{
@@ -540,8 +540,8 @@ describe("testing /lib/azure/index.js", function () {
 								"direction": "Inbound",
 								"target": "*",
 								"published": "*",
-								"sourceAddressPrefix": "VirtualNetwork",
-								"destinationAddressPrefix": "VirtualNetwork",
+								"sourceAddress": "VirtualNetwork",
+								"destinationAddress": "VirtualNetwork",
 								"isPublished": true
 							},
 							{
@@ -552,8 +552,8 @@ describe("testing /lib/azure/index.js", function () {
 								"direction": "Inbound",
 								"target": "*",
 								"published": "*",
-								"sourceAddressPrefix": "AzureLoadBalancer",
-								"destinationAddressPrefix": "*",
+								"sourceAddress": "AzureLoadBalancer",
+								"destinationAddress": "*",
 								"isPublished": true
 							},
 							{
@@ -564,8 +564,8 @@ describe("testing /lib/azure/index.js", function () {
 								"direction": "Inbound",
 								"target": "*",
 								"published": "*",
-								"sourceAddressPrefix": "*",
-								"destinationAddressPrefix": "*",
+								"sourceAddress": "*",
+								"destinationAddress": "*",
 								"isPublished": true
 							},
 							{
@@ -576,8 +576,8 @@ describe("testing /lib/azure/index.js", function () {
 								"direction": "Outbound",
 								"target": "*",
 								"published": "*",
-								"sourceAddressPrefix": "VirtualNetwork",
-								"destinationAddressPrefix": "VirtualNetwork",
+								"sourceAddress": "VirtualNetwork",
+								"destinationAddress": "VirtualNetwork",
 								"isPublished": true
 							},
 							{
@@ -588,8 +588,8 @@ describe("testing /lib/azure/index.js", function () {
 								"direction": "Outbound",
 								"target": "*",
 								"published": "*",
-								"sourceAddressPrefix": "*",
-								"destinationAddressPrefix": "Internet",
+								"sourceAddress": "*",
+								"destinationAddress": "Internet",
 								"isPublished": true
 							},
 							{
@@ -600,8 +600,8 @@ describe("testing /lib/azure/index.js", function () {
 								"direction": "Outbound",
 								"target": "*",
 								"published": "*",
-								"sourceAddressPrefix": "*",
-								"destinationAddressPrefix": "*",
+								"sourceAddress": "*",
+								"destinationAddress": "*",
 								"isPublished": true
 							}
 						],

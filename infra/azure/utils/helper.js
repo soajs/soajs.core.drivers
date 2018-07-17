@@ -463,31 +463,37 @@ const helper = {
 			// collect inbound NAT rules
 			if(opts.loadBalancer.inboundNatRules && Array.isArray(opts.loadBalancer.inboundNatRules) && opts.loadBalancer.inboundNatRules.length > 0) {
 				opts.loadBalancer.inboundNatRules.forEach((oneNatRule) => {
-					record.natRules.push({
+					let rule = {
 						name: oneNatRule.name,
 						backendPort: oneNatRule.backendPort,
 						frontendPort: oneNatRule.frontendPort,
 						protocol: oneNatRule.protocol,
-						idleTimeoutInMinutes: oneNatRule.idleTimeoutInMinutes,
 						enableFloatingIP: oneNatRule.enableFloatingIP,
 						frontendIPConfigName: (oneNatRule.frontendIPConfiguration && oneNatRule.frontendIPConfiguration.id) ? oneNatRule.frontendIPConfiguration.id.split('/').pop() : ''
-					});
+					};
+					if (oneNatRule.idleTimeoutInMinutes){
+						rule.idleTimeout = oneNatRule.idleTimeoutInMinutes * 60
+					}
+					record.natRules.push(rule);
 				});
 			}
 			
 			// collect inbound NAT pools
 			if(opts.loadBalancer.inboundNatPools && Array.isArray(opts.loadBalancer.inboundNatPools) && opts.loadBalancer.inboundNatPools.length > 0) {
 				opts.loadBalancer.inboundNatPools.forEach((oneNatPool) => {
-					record.natPools.push({
+					let rule = {
 						name: oneNatPool.name,
 						backendPort: oneNatPool.backendPort,
 						protocol: oneNatPool.protocol,
 						enableFloatingIP: oneNatPool.enableFloatingIP,
 						frontendPortRangeStart: oneNatPool.frontendPortRangeStart,
 						frontendPortRangeEnd: oneNatPool.frontendPortRangeEnd,
-						idleTimeoutInMinutes: oneNatPool.idleTimeoutInMinutes,
 						frontendIPConfigName: (oneNatPool.frontendIPConfiguration && oneNatPool.frontendIPConfiguration.id) ? oneNatPool.frontendIPConfiguration.id.split('/').pop() : ''
-					});
+					};
+					if (oneNatPool.idleTimeoutInMinutes){
+						rule.idleTimeout = oneNatPool.idleTimeoutInMinutes * 60
+					}
+					record.natPools.push(rule);
 				});
 			}
 		}

@@ -87,7 +87,7 @@ describe("testing /lib/azure/index.js", function () {
 					"region": "eastus",
 					"address": "40.114.121.7",
 					"allocationMethod": "Dynamic",
-					"idleTimeout": "30 * 60",
+					"idleTimeout": 1800,
 					"version": "IPv4",
 					"labels": {},
 					"associated": {
@@ -102,7 +102,7 @@ describe("testing /lib/azure/index.js", function () {
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-lb-ip",
 					"region": "centralus",
 					"allocationMethod": "Dynamic",
-					"idleTimeout": "4 * 60",
+					"idleTimeout": 240,
 					"version": "IPv4",
 					"associated": {
 						"subscription": "d159e994-8b44-42f7-b100-78c4508c34a6",

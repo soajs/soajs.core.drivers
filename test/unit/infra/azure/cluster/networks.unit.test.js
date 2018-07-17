@@ -134,7 +134,7 @@ describe("testing /lib/azure/index.js", function () {
 					{
 						"name": "test-subnet",
 						"id": "/subscriptions/d6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-net/subnets/test-subnet",
-						"addressPrefix": "10.0.0.0/24"
+						"address": "10.0.0.0/24"
 					}
 				],
 				"name": "test-net",
@@ -232,7 +232,7 @@ describe("testing /lib/azure/index.js", function () {
 					{
 						"name": "test-subnet",
 						"id": "/subscriptions/d6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-net/subnets/test-subnet",
-						"addressPrefix": "10.0.0.0/24"
+						"address": "10.0.0.0/24"
 					}
 				],
 				"name": "test-net",

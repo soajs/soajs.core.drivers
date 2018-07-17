@@ -969,7 +969,7 @@ module.exports = function () {
 				},
 				"ipTags": [],
 				"ipAddress": "104.43.136.85",
-				"idleTimeoutInMinutes": 4,
+				"idleTimeout": 60,
 				"resourceGuid": "129630c9-8866-406f-9e95-6c547e561db7",
 				"provisioningState": "Succeeded",
 				"etag": "W/\"bf09fe35-22ca-4a68-a9cb-61e576910cfb\""
@@ -990,7 +990,7 @@ module.exports = function () {
 				},
 				"ipTags": [],
 				"ipAddress": "40.121.55.181",
-				"idleTimeoutInMinutes": 30,
+				"idleTimeout": 1800,
 				"resourceGuid": "3bd95664-f45d-42a7-bae9-34fe4663082e",
 				"provisioningState": "Succeeded",
 				"etag": "W/\"45a00d2f-4449-4793-be17-061c2ba5ba4b\""
@@ -1010,7 +1010,7 @@ module.exports = function () {
 				},
 				"ipTags": [],
 				"ipAddress": "104.43.151.227",
-				"idleTimeoutInMinutes": 4,
+				"idleTimeout": 240,
 				"resourceGuid": "27748f69-bf3f-464f-8a32-a471921b284b",
 				"provisioningState": "Succeeded",
 				"etag": "W/\"4432dc5f-04b1-4dcd-9719-7d76d9e8152f\""
@@ -1031,7 +1031,7 @@ module.exports = function () {
 				},
 				"ipTags": [],
 				"ipAddress": "23.99.134.149",
-				"idleTimeoutInMinutes": 30,
+				"idleTimeout": 1800,
 				"resourceGuid": "9add26f8-ce9b-41ca-85d6-06334392005f",
 				"provisioningState": "Succeeded",
 				"etag": "W/\"f69eddb7-8e59-4d12-ac72-48b65f83277a\""
@@ -1493,9 +1493,7 @@ module.exports = function () {
 						"name": "tester-lb-address-pool"
 					}
 				],
-				"ipAddresses": [
-					{}
-				],
+				"ipAddresses": [],
 				"ipConfigs": [
 					{
 						"name": "public-ip-config",
@@ -1510,7 +1508,7 @@ module.exports = function () {
 						"protocol": "Tcp",
 						"target": 80,
 						"published": 80,
-						"idleTimeoutInMinutes": 30,
+						"idleTimeout": 1800,
 						"loadDistribution": "Default",
 						"enableFloatingIP": false,
 						"addressPoolName": "tester-lb-address-pool",
@@ -1531,7 +1529,7 @@ module.exports = function () {
 						"enableFloatingIP": false,
 						"frontendPortRangeStart": 30000,
 						"frontendPortRangeEnd": 30010,
-						"idleTimeoutInMinutes": 4,
+						"idleTimeout": 240,
 						"frontendIPConfigName": "public-ip-config"
 					}
 				],
@@ -1566,7 +1564,7 @@ module.exports = function () {
 						"protocol": "Tcp",
 						"target": 80,
 						"published": 80,
-						"idleTimeoutInMinutes": 30,
+						"idleTimeout": 1800,
 						"loadDistribution": "Default",
 						"enableFloatingIP": false,
 						"addressPoolName": "tester-lb-address-pool",
@@ -1584,7 +1582,7 @@ module.exports = function () {
 						"backendPort": 8081,
 						"frontendPort": 30011,
 						"protocol": "Tcp",
-						"idleTimeoutInMinutes": 4,
+						"idleTimeout": 240,
 						"enableFloatingIP": false,
 						"frontendIPConfigName": "private-ip-config"
 					}

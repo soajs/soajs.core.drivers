@@ -122,8 +122,8 @@ describe("testing /lib/azure/index.js", function () {
 						"direction": "Inbound",
 						"target": "*",
 						"published": "22",
-						"sourceAddressPrefix": "*",
-						"destinationAddressPrefix": "*",
+						"sourceAddress": "*",
+						"destinationAddress": "*",
 						"isPublished": true
 					}
 				],
@@ -252,8 +252,8 @@ describe("testing /lib/azure/index.js", function () {
 						"direction": "Inbound",
 						"target": "*",
 						"published": "22",
-						"sourceAddressPrefix": "*",
-						"destinationAddressPrefix": "*",
+						"sourceAddress": "*",
+						"destinationAddress": "*",
 						"isPublished": true
 					}
 				],
@@ -420,8 +420,8 @@ describe("testing /lib/azure/index.js", function () {
 							"direction": "Inbound",
 							"target": "*",
 							"published": "22",
-							"sourceAddressPrefix": "*",
-							"destinationAddressPrefix": "*",
+							"sourceAddress": "*",
+							"destinationAddress": "*",
 							"isPublished": true
 						}
 					],

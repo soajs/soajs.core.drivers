@@ -42,7 +42,13 @@ describe("testing /lib/azure/index.js", function () {
 			service.listSubnets(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response, info.subnets);
+				assert.deepEqual(response, [
+					{
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/virtualNetworks/tester-vn/subnets/tester-subnet",
+						"address": "10.0.2.0/24",
+						"name": "tester-subnet",
+					}
+				]);
 				done();
 			});
 		});
@@ -87,7 +93,7 @@ describe("testing /lib/azure/index.js", function () {
 				assert.deepEqual(response, {
 					"name": "test-sn",
 					"id": "/subscriptions/d6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-net/subnets/test-sn",
-					"addressPrefix": "10.0.0.0/24"
+					"address": "10.0.0.0/24"
 				});
 				done();
 			});
@@ -134,7 +140,7 @@ describe("testing /lib/azure/index.js", function () {
 				assert.deepEqual(response, {
 					"name": "test-sn",
 					"id": "/subscriptions/d6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-net/subnets/test-sn",
-					"addressPrefix": "10.0.0.0/24"
+					"address": "10.0.0.0/24"
 				});
 				done();
 			});
