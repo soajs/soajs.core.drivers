@@ -4,7 +4,6 @@ const async = require('async');
 const helper = require('../utils/helper.js');
 const utils = require('../../../lib/utils/utils.js');
 const driverUtils = require('../utils/index.js');
-const math = require('mathjs');
 
 const ips = {
 
@@ -57,10 +56,10 @@ const ips = {
 
                 let params = {
                     location: options.params.region,
-                    publicIPAllocationMethod: helper.capitlaize(options.params.publicIPAllocationMethod,'Dynamic'), // Static || Dynamic
+                    publicIPAllocationMethod: helper.capitalize(options.params.publicIPAllocationMethod,'Dynamic'), // Static || Dynamic
                     publicIPAddressVersion: options.params.ipAddressVersion || 'IPv4',
                     sku: {
-                        name: helper.capitlaize(options.params.type, 'Basic'), // Basic or Standard
+                        name: helper.capitalize(options.params.type, 'Basic'), // Basic or Standard
                     },
                     tags: options.params.labels || {}
                 };

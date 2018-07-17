@@ -244,7 +244,7 @@ const lbs = {
             ipConfigs.forEach((oneEntry) => {
                 let oneConfig = {
                     name: oneEntry.name,
-                    privateIPAllocationMethod: helper.capitlaize(oneEntry.privateIpAllocationMethod,'Dynamic'),
+                    privateIPAllocationMethod: helper.capitalize(oneEntry.privateIpAllocationMethod,'Dynamic'),
                 };
 
                 if(oneConfig.privateIPAllocationMethod === 'Static') {
@@ -300,7 +300,7 @@ const lbs = {
                 natPoolsOutput.push({
                     name: oneNatPool.name,
                     backendPort: oneNatPool.backendPort,
-                    protocol: oneNatPool.protocol || 'All', // Tcp, Udp, All
+                    protocol: helper.capitalize(oneNatPool.protocol, 'All'), // Tcp, Udp, All
                     enableFloatingIP: oneNatPool.enableFloatingIP || false,
                     frontendPortRangeStart: oneNatPool.frontendPortRangeStart,
                     frontendPortRangeEnd: oneNatPool.frontendPortRangeEnd,
@@ -329,7 +329,7 @@ const lbs = {
                 inboundNatRulesOutput.push({
                     name: oneNatRule.name,
                     backendPort: oneNatRule.backendPort,
-                    protocol: oneNatRule.protocol || 'All', //Tcp, Udp, All
+                    protocol: helper.capitalize(oneNatRule.protocol,'All'), //Tcp, Udp, All
                     enableFloatingIP: oneNatRule.enableFloatingIP || false,
                     frontendPort: oneNatRule.frontendPort,
                     idleTimeoutInMinutes: oneNatRule.idleTimeoutInMinutes || 30,

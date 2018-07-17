@@ -65,7 +65,7 @@ const securityGroups = {
                 if(options.infra && options.infra.api && options.infra.api.subscriptionId) {
                     subscriptionId = options.infra.api.subscriptionId;
                 }
-				
+
                 let requestOptions = {
                     method: 'PUT',
                     uri: `https://management.azure.com/subscriptions/${subscriptionId}/resourceGroups/${options.params.group}/providers/Microsoft.Network/networkSecurityGroups/${options.params.name}?api-version=${config.apiVersion2018}`,
@@ -145,8 +145,8 @@ const securityGroups = {
                     properties: {
                         priority: onePort.priority,
                         protocol: (onePort.protocol) ? onePort.protocol : "*",
-                        access: helper.capitlaize(onePort.access, "Allow"), //Allow || Deny
-	                    direction: helper.capitlaize(onePort.direction, "Inbound"), //Inboud || Outbound
+                        access: helper.capitalize(onePort.access, "Allow"), //Allow || Deny
+	                    direction: helper.capitalize(onePort.direction, "Inbound"), //Inboud || Outbound
                         sourceAddress: (onePort.sourceAddressPrefix) ? onePort.sourceAddressPrefix : "*",
                         sourcePortRange: (onePort.target) ? onePort.target : "*",
                         destinationAddress: (onePort.destinationAddressPrefix) ? onePort.destinationAddressPrefix : "*",
