@@ -116,10 +116,10 @@ describe("testing /lib/azure/index.js", function () {
 				"ports": [
 					{
 						"protocol": "Tcp",
-						"access": "Allow",
+						"access": "allow",
 						"priority": 100,
 						"name": "ssh",
-						"direction": "Inbound",
+						"direction": "inbound",
 						"target": "*",
 						"published": "22",
 						"sourceAddress": "*",
@@ -246,10 +246,10 @@ describe("testing /lib/azure/index.js", function () {
 				"ports": [
 					{
 						"protocol": "Tcp",
-						"access": "Allow",
+						"access": "allow",
 						"priority": 100,
 						"name": "ssh",
-						"direction": "Inbound",
+						"direction": "inbound",
 						"target": "*",
 						"published": "22",
 						"sourceAddress": "*",
@@ -306,7 +306,7 @@ describe("testing /lib/azure/index.js", function () {
 						"ipConfigs": [
 							{
 								"name": "tester-tester-lb-ip",
-								"privateIPAllocationMethod": "Dynamic",
+								"privateIPAllocationMethod": "dynamic",
 								"isPublic": true,
 								"publicIpAddressId": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-tester-ip"
 							}
@@ -414,10 +414,10 @@ describe("testing /lib/azure/index.js", function () {
 					"ports": [
 						{
 							"protocol": "Tcp",
-							"access": "Allow",
+							"access": "allow",
 							"priority": 100,
 							"name": "ssh",
-							"direction": "Inbound",
+							"direction": "inbound",
 							"target": "*",
 							"published": "22",
 							"sourceAddress": "*",

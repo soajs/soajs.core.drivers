@@ -380,7 +380,7 @@ const helper = {
 				opts.loadBalancer.frontendIPConfigurations.forEach(function(oneConfig) {
 					let oneIp = {}, ipConfigOutput = {};
 					ipConfigOutput.name = oneConfig.name;
-					ipConfigOutput.privateIPAllocationMethod = oneConfig.privateIPAllocationMethod;
+					ipConfigOutput.privateIPAllocationMethod = oneConfig.privateIPAllocationMethod.toLowerCase();
 
 
 					if(oneConfig.privateIPAddress) {
@@ -422,10 +422,10 @@ const helper = {
 				opts.loadBalancer.loadBalancingRules.forEach((oneRule) => {
 					let onePort = {
 						name: oneRule.name,
-						protocol: oneRule.protocol,
+						protocol: oneRule.protocol.toLowerCase(),
 						target: oneRule.backendPort,
 						published: oneRule.frontendPort,
-						loadDistribution: oneRule.loadDistribution,
+						loadDistribution: oneRule.loadDistribution.toLowerCase(),
 						enableFloatingIP: oneRule.enableFloatingIP
 					};
 					if (oneRule.idleTimeoutInMinutes){
@@ -448,7 +448,7 @@ const helper = {
 								let oneProbe = opts.loadBalancer.probes[i];
 								if(oneProbe.name === probeName) {
 									onePort.healthProbePort = oneProbe.port;
-									onePort.healthProbeProtocol = oneProbe.protocol;
+									onePort.healthProbeProtocol = oneProbe.protocol.toLowerCase();
 									onePort.healthProbeRequestPath = oneProbe.requestPath;
 									onePort.maxFailureAttempts = oneProbe.numberOfProbes;
 									onePort.healthProbeInterval = oneProbe.intervalInSeconds;
@@ -469,7 +469,7 @@ const helper = {
 						name: oneNatRule.name,
 						backendPort: oneNatRule.backendPort,
 						frontendPort: oneNatRule.frontendPort,
-						protocol: oneNatRule.protocol,
+						protocol: oneNatRule.protocol.toLowerCase(),
 						enableFloatingIP: oneNatRule.enableFloatingIP,
 						frontendIPConfigName: (oneNatRule.frontendIPConfiguration && oneNatRule.frontendIPConfiguration.id) ? oneNatRule.frontendIPConfiguration.id.split('/').pop() : ''
 					};
@@ -486,7 +486,7 @@ const helper = {
 					let rule = {
 						name: oneNatPool.name,
 						backendPort: oneNatPool.backendPort,
-						protocol: oneNatPool.protocol,
+						protocol: oneNatPool.protocol.toLowerCase(),
 						enableFloatingIP: oneNatPool.enableFloatingIP,
 						frontendPortRangeStart: oneNatPool.frontendPortRangeStart,
 						frontendPortRangeEnd: oneNatPool.frontendPortRangeEnd,
@@ -522,11 +522,11 @@ const helper = {
 			if (opts.publicIPAddress.id) record.id = opts.publicIPAddress.id;
 			if (opts.publicIPAddress.location) record.region = opts.publicIPAddress.location;
 			if (opts.publicIPAddress.ipAddress) record.address = opts.publicIPAddress.ipAddress;
-			if (opts.publicIPAddress.publicIPAllocationMethod) record.publicIPAllocationMethod = opts.publicIPAddress.publicIPAllocationMethod;
+			if (opts.publicIPAddress.publicIPAllocationMethod) record.publicIPAllocationMethod = opts.publicIPAddress.publicIPAllocationMethod.toLowerCase();
 			if (opts.publicIPAddress.idleTimeoutInMinutes) record.idleTimeout = opts.publicIPAddress.idleTimeoutInMinutes * 60;
 			if (opts.publicIPAddress.publicIPAddressVersion) record.ipAddressVersion = opts.publicIPAddress.publicIPAddressVersion;
 			if (opts.publicIPAddress.tags) record.labels = opts.publicIPAddress.tags;
-			if (opts.publicIPAddress.sku && opts.publicIPAddress.sku.name) record.type = opts.publicIPAddress.sku.name;
+			if (opts.publicIPAddress.sku && opts.publicIPAddress.sku.name) record.type = opts.publicIPAddress.sku.name.toLowerCase();
 			if (opts.publicIPAddress && opts.publicIPAddress.ipConfiguration && opts.publicIPAddress.ipConfiguration.id){
 				let split = opts.publicIPAddress.ipConfiguration.id.split("/");
 				if (split.length > 1){
@@ -586,9 +586,9 @@ const helper = {
 			output.push({
 				name: oneSecurityRule.name,
 				protocol: oneSecurityRule.protocol,
-				access: oneSecurityRule.access,
+				access: oneSecurityRule.access.toLowerCase(),
 				priority: oneSecurityRule.priority,
-				direction: oneSecurityRule.direction,
+				direction: oneSecurityRule.direction.toLowerCase(),
 				target: oneSecurityRule.sourcePortRange,
 				published: oneSecurityRule.destinationPortRange,
 				sourceAddress: oneSecurityRule.sourceAddressPrefix,
