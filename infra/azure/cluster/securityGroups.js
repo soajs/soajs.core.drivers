@@ -68,7 +68,7 @@ const securityGroups = {
 				
                 let requestOptions = {
                     method: 'PUT',
-                    uri: `https://management.azure.com/subscriptions/${subscriptionId}/resourceGroups/${options.params.group}/providers/Microsoft.Network/networkSecurityGroups/${options.params.securityGroupName}?api-version=${config.apiVersion2018}`,
+                    uri: `https://management.azure.com/subscriptions/${subscriptionId}/resourceGroups/${options.params.group}/providers/Microsoft.Network/networkSecurityGroups/${options.params.name}?api-version=${config.apiVersion2018}`,
                     headers: { Authorization: `Bearer ${bearerToken}` },
                     json: true,
                     body: {
@@ -147,9 +147,9 @@ const securityGroups = {
                         protocol: (onePort.protocol) ? onePort.protocol : "*",
                         access: (onePort.access) ? onePort.access : "Allow", //Allow || Deny
                         direction: (onePort.direction) ? onePort.direction : "Inbound", //Inboud || Outbound
-                        sourceAddressPrefix: (onePort.sourceAddressPrefix) ? onePort.sourceAddressPrefix : "*",
+                        sourceAddress: (onePort.sourceAddressPrefix) ? onePort.sourceAddressPrefix : "*",
                         sourcePortRange: (onePort.target) ? onePort.target : "*",
-                        destinationAddressPrefix: (onePort.destinationAddressPrefix) ? onePort.destinationAddressPrefix : "*",
+                        destinationAddress: (onePort.destinationAddressPrefix) ? onePort.destinationAddressPrefix : "*",
                         destinationPortRange: (onePort.published) ? onePort.published : defaultDestinationPortRange || (Math.floor(Math.random() * 2768) + 30000)
                     }
                 });

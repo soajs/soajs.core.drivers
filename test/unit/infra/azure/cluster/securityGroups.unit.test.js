@@ -36,7 +36,7 @@ describe("testing /lib/azure/index.js", function () {
 
 			options = info.deployCluster;
 			options.params = {
-				securityGroupName: "testSecurityGroup",
+				name: "testSecurityGroup",
 				group: "testcase",
 				region: "centralus",
 				labels: {
@@ -56,7 +56,7 @@ describe("testing /lib/azure/index.js", function () {
 			};
 
 			let nocks = nock('https://management.azure.com')
-				.put(`/subscriptions/${options.infra.api.subscriptionId}/resourceGroups/${options.params.group}/providers/Microsoft.Network/networkSecurityGroups/${options.params.securityGroupName}?api-version=2018-02-01`,
+				.put(`/subscriptions/${options.infra.api.subscriptionId}/resourceGroups/${options.params.group}/providers/Microsoft.Network/networkSecurityGroups/${options.params.name}?api-version=2018-02-01`,
 					{
 						"location": options.params.region,
 						"properties": {
@@ -68,9 +68,9 @@ describe("testing /lib/azure/index.js", function () {
 										"protocol": "Tcp",
 										"access": "Allow",
 										"direction": "Inbound",
-										"sourceAddressPrefix": "*",
+										"sourceAddress": "*",
 										"sourcePortRange": "*",
-										"destinationAddressPrefix": "*",
+										"destinationAddress": "*",
 										"destinationPortRange": "30080"
 									}
 								}
@@ -273,7 +273,7 @@ describe("testing /lib/azure/index.js", function () {
 
 			options = info.deployCluster;
 			options.params = {
-				securityGroupName: "testSecurityGroup",
+				name: "testSecurityGroup",
 				group: "testcase",
 				region: "centralus",
 				labels: {
@@ -292,7 +292,7 @@ describe("testing /lib/azure/index.js", function () {
 			};
 
 			let nocks = nock('https://management.azure.com')
-				.put(`/subscriptions/${options.infra.api.subscriptionId}/resourceGroups/${options.params.group}/providers/Microsoft.Network/networkSecurityGroups/${options.params.securityGroupName}?api-version=2018-02-01`,
+				.put(`/subscriptions/${options.infra.api.subscriptionId}/resourceGroups/${options.params.group}/providers/Microsoft.Network/networkSecurityGroups/${options.params.name}?api-version=2018-02-01`,
 					{
 						"location": options.params.region,
 						"properties": {
@@ -304,9 +304,9 @@ describe("testing /lib/azure/index.js", function () {
 										"protocol": "Tcp",
 										"access": "Allow",
 										"direction": "Inbound",
-										"sourceAddressPrefix": "*",
+										"sourceAddress": "*",
 										"sourcePortRange": "*",
-										"destinationAddressPrefix": "*",
+										"destinationAddress": "*",
 										"destinationPortRange": 1
 									}
 								}
@@ -515,100 +515,99 @@ describe("testing /lib/azure/index.js", function () {
 				virtualNetworkName: "tester-vn",
 			};
 			let expectedResponce = [
-				{
-					"name": "tester-tester-sg",
-					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-tester-sg",
-					"region": "centralus",
-					"ports": [
-						{
-							"name": "http",
-							"protocol": "tcp",
-							"access": "Allow",
-							"priority": 100,
-							"direction": "Inbound",
-							"target": "*",
-							"published": "22",
-							"sourceAddressPrefix": "*",
-							"destinationAddressPrefix": "*",
-							"isPublished": true
-						},
-						{
-							"name": "AllowVnetInBound",
-							"protocol": "*",
-							"access": "Allow",
-							"priority": 65000,
-							"direction": "Inbound",
-							"target": "*",
-							"published": "*",
-							"sourceAddressPrefix": "VirtualNetwork",
-							"destinationAddressPrefix": "VirtualNetwork",
-							"isPublished": true
-						},
-						{
-							"name": "AllowAzureLoadBalancerInBound",
-							"protocol": "*",
-							"access": "Allow",
-							"priority": 65001,
-							"direction": "Inbound",
-							"target": "*",
-							"published": "*",
-							"sourceAddressPrefix": "AzureLoadBalancer",
-							"destinationAddressPrefix": "*",
-							"isPublished": true
-						},
-						{
-							"name": "DenyAllInBound",
-							"protocol": "*",
-							"access": "Deny",
-							"priority": 65500,
-							"direction": "Inbound",
-							"target": "*",
-							"published": "*",
-							"sourceAddressPrefix": "*",
-							"destinationAddressPrefix": "*",
-							"isPublished": true
-						},
-						{
-							"name": "AllowVnetOutBound",
-							"protocol": "*",
-							"access": "Allow",
-							"priority": 65000,
-							"direction": "Outbound",
-							"target": "*",
-							"published": "*",
-							"sourceAddressPrefix": "VirtualNetwork",
-							"destinationAddressPrefix": "VirtualNetwork",
-							"isPublished": true
-						},
-						{
-							"name": "AllowInternetOutBound",
-							"protocol": "*",
-							"access": "Allow",
-							"priority": 65001,
-							"direction": "Outbound",
-							"target": "*",
-							"published": "*",
-							"sourceAddressPrefix": "*",
-							"destinationAddressPrefix": "Internet",
-							"isPublished": true
-						},
-						{
-							"name": "DenyAllOutBound",
-							"protocol": "*",
-							"access": "Deny",
-							"priority": 65500,
-							"direction": "Outbound",
-							"target": "*",
-							"published": "*",
-							"sourceAddressPrefix": "*",
-							"destinationAddressPrefix": "*",
-							"isPublished": true
-						}
-					],
-					"labels": {}
-				}
-			]
-			;
+					{
+						"name": "tester-tester-sg",
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-tester-sg",
+						"region": "centralus",
+						"ports": [
+							{
+								"name": "http",
+								"protocol": "tcp",
+								"access": "Allow",
+								"priority": 100,
+								"direction": "Inbound",
+								"target": "*",
+								"published": "22",
+								"sourceAddressPrefix": "*",
+								"destinationAddressPrefix": "*",
+								"isPublished": true
+							},
+							{
+								"name": "AllowVnetInBound",
+								"protocol": "*",
+								"access": "Allow",
+								"priority": 65000,
+								"direction": "Inbound",
+								"target": "*",
+								"published": "*",
+								"sourceAddressPrefix": "VirtualNetwork",
+								"destinationAddressPrefix": "VirtualNetwork",
+								"isPublished": true
+							},
+							{
+								"name": "AllowAzureLoadBalancerInBound",
+								"protocol": "*",
+								"access": "Allow",
+								"priority": 65001,
+								"direction": "Inbound",
+								"target": "*",
+								"published": "*",
+								"sourceAddressPrefix": "AzureLoadBalancer",
+								"destinationAddressPrefix": "*",
+								"isPublished": true
+							},
+							{
+								"name": "DenyAllInBound",
+								"protocol": "*",
+								"access": "Deny",
+								"priority": 65500,
+								"direction": "Inbound",
+								"target": "*",
+								"published": "*",
+								"sourceAddressPrefix": "*",
+								"destinationAddressPrefix": "*",
+								"isPublished": true
+							},
+							{
+								"name": "AllowVnetOutBound",
+								"protocol": "*",
+								"access": "Allow",
+								"priority": 65000,
+								"direction": "Outbound",
+								"target": "*",
+								"published": "*",
+								"sourceAddressPrefix": "VirtualNetwork",
+								"destinationAddressPrefix": "VirtualNetwork",
+								"isPublished": true
+							},
+							{
+								"name": "AllowInternetOutBound",
+								"protocol": "*",
+								"access": "Allow",
+								"priority": 65001,
+								"direction": "Outbound",
+								"target": "*",
+								"published": "*",
+								"sourceAddressPrefix": "*",
+								"destinationAddressPrefix": "Internet",
+								"isPublished": true
+							},
+							{
+								"name": "DenyAllOutBound",
+								"protocol": "*",
+								"access": "Deny",
+								"priority": 65500,
+								"direction": "Outbound",
+								"target": "*",
+								"published": "*",
+								"sourceAddressPrefix": "*",
+								"destinationAddressPrefix": "*",
+								"isPublished": true
+							}
+						],
+						"labels": {}
+					}
+				];
 
 			service.listSecurityGroups(options, function (error, response) {
 				assert.ifError(error);
@@ -619,7 +618,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-
+	
 	describe("deleteSecurityGroup", function () {
 		afterEach((done) => {
 			sinon.restore();
