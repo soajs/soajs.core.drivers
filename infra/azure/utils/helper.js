@@ -408,8 +408,12 @@ const helper = {
 							}
 						}
 					}
-					record.ipAddresses.push(oneIp);
-					record.ipConfigs.push(ipConfigOutput);
+					if (Object.keys(oneIp).length > 0){
+						record.ipAddresses.push(oneIp);
+					}
+					if (Object.keys(ipConfigOutput).length > 0){
+						record.ipConfigs.push(ipConfigOutput);
+					}
 				});
 			}
 			
@@ -421,7 +425,7 @@ const helper = {
 						protocol: oneRule.protocol,
 						target: oneRule.backendPort,
 						published: oneRule.frontendPort,
-						idleTimeoutInMinutes: oneRule.idleTimeoutInMinutes,
+						idleTimeout: oneRule.idleTimeoutInMinutes * 60,
 						loadDistribution: oneRule.loadDistribution,
 						enableFloatingIP: oneRule.enableFloatingIP
 					};
