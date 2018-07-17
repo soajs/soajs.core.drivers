@@ -56,11 +56,11 @@ const ips = {
 
                 let params = {
                     location: options.params.region,
-                    publicIPAllocationMethod: options.params.publicIPAllocationMethod || 'Dynamic',
+                    publicIPAllocationMethod: helper.capitlaize(options.params.publicIPAllocationMethod,'Dynamic'), // Static || Dynamic
                     idleTimeoutInMinutes: options.params.idleTimeoutInMinutes || 30,
                     publicIPAddressVersion: options.params.ipAddressVersion || 'IPv4',
                     sku: {
-                        name: options.params.type || 'Basic'
+                        name: helper.capitlaize(options.params.type, 'Basic'), // Basic or Standard
                     },
                     tags: options.params.labels || {}
                 };
