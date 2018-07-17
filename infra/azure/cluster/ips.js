@@ -4,7 +4,6 @@ const async = require('async');
 const helper = require('../utils/helper.js');
 const utils = require('../../../lib/utils/utils.js');
 const driverUtils = require('../utils/index.js');
-const math = require('mathjs');
 
 const ips = {
 
