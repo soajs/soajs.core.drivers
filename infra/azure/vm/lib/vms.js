@@ -152,6 +152,7 @@ const vms = {
 	* @return {void}
 	*/
 	updateVmLabels: function(options, cb) {
+		let id = '';
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const computeClient = driverUtils.getConnector({
@@ -182,7 +183,10 @@ const vms = {
 								}
 							}
                             computeClient.virtualMachines.createOrUpdate(options.params.group, vmName, vmInfo , function (error, response) {
-                                if(error) return callback(error);
+                                if(error) {
+                                    return callback(error);
+								}
+								id = vmInfo.vmId;
                                 return callback();
                             });
 						} else {
@@ -190,13 +194,16 @@ const vms = {
                             async.every(Object.keys(tags), function(oneTag, callback) {
                                 return callback(null, vmInfo.tags[oneTag] && vmInfo.tags[oneTag] === tags[oneTag]);
                             }, function(error, tagsAlreadyFound) {
-                                if(tagsAlreadyFound) return callback();
+                                if (tagsAlreadyFound) {
+                                    id = vmInfo.vmId;
+                                    return callback()
+                                }
 
                                 vmInfo.tags = Object.assign(vmInfo.tags, tags);
                                 if(options.params.setVmNameAsLabel) vmInfo.tags['soajs.vm.name'] = vmName;
-
                                 computeClient.virtualMachines.createOrUpdate(options.params.group, vmName, vmInfo , function (error, response) {
                                     if(error) return callback(error);
+                                    id = vmInfo.vmId;
                                     return callback();
                                 });
                             });
@@ -204,7 +211,7 @@ const vms = {
 					});
 				}, function(error) {
 					utils.checkError(error, 759, cb, () => {
-						return cb(null, true);
+						return cb(null, id);
 					});
 				});
 			});
