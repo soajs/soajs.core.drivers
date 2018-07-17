@@ -4,6 +4,7 @@ const async = require('async');
 const helper = require('../utils/helper.js');
 const utils = require('../../../lib/utils/utils.js');
 const driverUtils = require('../utils/index.js');
+const math = require('mathjs');
 
 const ips = {
 
@@ -57,7 +58,6 @@ const ips = {
                 let params = {
                     location: options.params.region,
                     publicIPAllocationMethod: options.params.publicIPAllocationMethod || 'Dynamic',
-                    idleTimeoutInMinutes: options.params.idleTimeoutInMinutes || 30,
                     publicIPAddressVersion: options.params.ipAddressVersion || 'IPv4',
                     sku: {
                         name: options.params.type || 'Basic'
@@ -65,6 +65,13 @@ const ips = {
                     tags: options.params.labels || {}
                 };
 
+                if(idleTimeoutInMinutes){
+                    options.params.idleTimeout = Math.round(idleTimeoutInMinutes/60);
+                }
+                else{
+                    options.params.idleTimeout = 30;
+                }
+            
                 return networkClient.publicIPAddresses.createOrUpdate(options.params.group, options.params.name, params, function(error, response) {
                     utils.checkError(error, 717, cb, () => {
                         async.map(response, function(onepublicIPAddresse, callback) {
