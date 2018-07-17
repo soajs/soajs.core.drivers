@@ -497,7 +497,7 @@ const helper = {
 			if (opts.subnet.name) record.name = opts.subnet.name;
 			if (opts.subnet.id) record.id = opts.subnet.id;
 			if (opts.subnet.location) record.region = opts.subnet.location;
-			if (opts.subnet.addressPrefix) record.addressPrefix = opts.subnet.addressPrefix;
+			if (opts.subnet.addressPrefix) record.address = opts.subnet.addressPrefix;
 		}
 		
 		return record;
@@ -578,8 +578,8 @@ const helper = {
 				direction: oneSecurityRule.direction,
 				target: oneSecurityRule.sourcePortRange,
 				published: oneSecurityRule.destinationPortRange,
-				sourceAddressPrefix: oneSecurityRule.sourceAddressPrefix,
-				destinationAddressPrefix: oneSecurityRule.destinationAddressPrefix,
+				sourceAddress: oneSecurityRule.sourceAddressPrefix,
+				destinationAddress: oneSecurityRule.destinationAddressPrefix,
 				isPublished: (oneSecurityRule.destinationPortRange) ? true : false
 			});
 		});
