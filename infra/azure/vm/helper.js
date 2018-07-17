@@ -161,7 +161,7 @@ const helper = {
         if(opts.imagePublisher) {
             if (opts.imagePublisher.name) record.name = opts.imagePublisher.name;
     		if (opts.imagePublisher.id) record.id = opts.imagePublisher.id;
-			if (opts.imagePublisher.location) record.location = opts.imagePublisher.location;
+			if (opts.imagePublisher.location) record.region = opts.imagePublisher.location;
         }
 
 		return record;
@@ -173,7 +173,7 @@ const helper = {
 		if(opts.imageOffer) {
 			if (opts.imageOffer.name) record.name = opts.imageOffer.name;
 			if (opts.imageOffer.id) record.id = opts.imageOffer.id;
-			if (opts.imageOffer.location) record.location = opts.imageOffer.location;
+			if (opts.imageOffer.location) record.region = opts.imageOffer.location;
 			if(opts.imageOffer.publisher) record.publisher = opts.imageOffer.publisher;
 			if(opts.imageOffer.imageName) record.imageName = opts.imageOffer.imageName;
         }
@@ -181,14 +181,13 @@ const helper = {
 		return record;
 	},
 
-
 	buildVmImageVersionsRecord: function (opts) {
 		let record = {};
 
 		if(opts.imageVersion) {
 			if (opts.imageVersion.name) record.name = opts.imageVersion.name;
 			if (opts.imageVersion.id) record.id = opts.imageVersion.id;
-			if (opts.imageVersion.location) record.location = opts.imageVersion.location;
+			if (opts.imageVersion.location) record.region = opts.imageVersion.location;
 			if(opts.imageVersion.publisher) record.publisher = opts.imageVersion.publisher;
 			if(opts.imageVersion.imageName) record.imageName = opts.imageVersion.imageName;
         }
@@ -202,8 +201,8 @@ const helper = {
 		if(opts.disk) {
 			if (opts.disk.name) record.name = opts.disk.name;
 			if (opts.disk.id) record.id = opts.disk.id;
-			if (opts.disk.location) record.location = opts.disk.location;
-			if (opts.disk.diskSizeGb) record.diskSizeGb = opts.disk.diskSizeGb;
+			if (opts.disk.location) record.region = opts.disk.location;
+			if (opts.disk.diskSizeGB) record.diskSizeGB = opts.disk.diskSizeGB;
 			if (opts.disk.type) record.type = opts.disk.type;
 			if (opts.disk.storageType) record.storageType = opts.disk.storageType;
         }
@@ -214,20 +213,24 @@ const helper = {
 	buildNetworkRecord: function (opts) {
 		let record = {};
 		record.subnets = [];
+		record.addressPrefixes = [];
+		record.dnsServers = [];
+
 		if(opts.network) {
 			if (opts.network.name) record.name = opts.network.name;
 			if (opts.network.id) record.id = opts.network.id;
-			if (opts.network.location) record.location = opts.network.location;
+			if (opts.network.location) record.region = opts.network.location;
 			if (opts.network.subnets) {
 				for(let i = 0 ; i < opts.network.subnets.length ; i++){
-					let subnet = helper.bulidSubnetsRecord({subnet :opts.network.subnets[i] });
-					if(subnet){
-						record.subnets.push(subnet);
-					}
+					record.subnets.push(  helper.buildSubnetRecord({subnet: opts.network.subnets[i] }));
 				}
 			}
-			
-			if(opts.network.addressSpace) record.addressPrefixes = opts.network.addressSpace.addressPrefixes;
+			if(opts.network.addressSpace && opts.network.addressSpace.addressPrefixes && Array.isArray(opts.network.addressSpace.addressPrefixes) && opts.network.addressSpace.addressPrefixes.length > 0) {
+				record.addressPrefixes = opts.network.addressSpace.addressPrefixes;
+			}
+			if(opts.network.dhcpOptions && opts.network.dhcpOptions.dnsServers && Array.isArray(opts.network.dhcpOptions.dnsServers) && opts.network.dhcpOptions.dnsServers.length > 0) {
+				record.dnsServers = opts.network.dhcpOptions.dnsServers;
+			}
 		}
 
 		return record;
@@ -235,43 +238,144 @@ const helper = {
 
 	buildLoadBalancerRecord: function (opts) {
 		let record = {};
+		record.addressPools = [];
+		record.ipAddresses = [];
+		record.ipConfigs = [];
+		record.ports = [];
+		record.natRules = [];
+		record.natPools = [];
+
 		if(opts.loadBalancer){
 			if (opts.loadBalancer.name) record.name = opts.loadBalancer.name;
 			if (opts.loadBalancer.id) record.id = opts.loadBalancer.id;
 			if (opts.loadBalancer.location) record.region = opts.loadBalancer.location;
 
+			// collect backend address pools
+			if(opts.loadBalancer.backendAddressPools && Array.isArray(opts.loadBalancer.backendAddressPools) && opts.loadBalancer.backendAddressPools.length > 0) {
+				opts.loadBalancer.backendAddressPools.forEach((onePool) => {
+					record.addressPools.push({ name: onePool.name });
+				});
+			}
+
+			// collect ip address configurations
 			if(opts.loadBalancer.frontendIPConfigurations && Array.isArray(opts.loadBalancer.frontendIPConfigurations) && opts.loadBalancer.frontendIPConfigurations.length > 0) {
-				record.ipAddresses = [];
 				opts.loadBalancer.frontendIPConfigurations.forEach(function(oneConfig) {
-					let oneEntry = {};
+					let oneIp = {}, ipConfigOutput = {};
+					ipConfigOutput.name = oneConfig.name;
+					ipConfigOutput.privateIPAllocationMethod = oneConfig.privateIPAllocationMethod;
+
+
 					if(oneConfig.privateIPAddress) {
-						oneEntry.address = oneConfig.privateIPAddress;
-						oneEntry.type = 'private';
+						ipConfigOutput.isPublic = false;
+						ipConfigOutput.privateIpAddress = oneConfig.privateIPAddress;
+						if(oneConfig.subnet && oneConfig.subnet.id) {
+							ipConfigOutput.subnetId = oneConfig.subnet.id;
+						}
+
+						oneIp.address = oneConfig.privateIPAddress;
+						oneIp.type = 'private';
 					}
 					if(oneConfig.publicIPAddress && oneConfig.publicIPAddress.id) {
+						ipConfigOutput.isPublic = true;
+						ipConfigOutput.publicIpAddressId = oneConfig.publicIPAddress.id;
+
 						if(opts.publicIpsList) {
 							for (let i = 0; i < opts.publicIpsList.length; i++) {
 								if(opts.publicIpsList[i].id === oneConfig.publicIPAddress.id) {
-									oneEntry.type = 'public';
-									oneEntry.name = opts.publicIpsList[i].name || '';
-									oneEntry.address = opts.publicIpsList[i].ipAddress || '';
+									oneIp.type = 'public';
+									oneIp.name = opts.publicIpsList[i].name || '';
+									oneIp.address = opts.publicIpsList[i].ipAddress || '';
 									break;
 								}
 							}
 						}
 					}
-					record.ipAddresses.push(oneEntry);
+					record.ipAddresses.push(oneIp);
+					record.ipConfigs.push(ipConfigOutput);
+				});
+			}
+
+			// collect load balancing rules (ports)
+			if(opts.loadBalancer.loadBalancingRules && Array.isArray(opts.loadBalancer.loadBalancingRules) && opts.loadBalancer.loadBalancingRules.length > 0) {
+				opts.loadBalancer.loadBalancingRules.forEach((oneRule) => {
+					let onePort = {
+						name: oneRule.name,
+			            protocol: oneRule.protocol,
+			            target: oneRule.backendPort,
+			            published: oneRule.frontendPort,
+			            idleTimeoutInMinutes: oneRule.idleTimeoutInMinutes,
+			            loadDistribution: oneRule.loadDistribution,
+			            enableFloatingIP: oneRule.enableFloatingIP
+					};
+					if (oneRule.disableOutboundSnat) {
+						onePort.disableOutboundSnat = oneRule.disableOutboundSnat;
+					}
+					if(oneRule.backendAddressPool && oneRule.backendAddressPool.id) {
+						onePort.addressPoolName = oneRule.backendAddressPool.id.split('/').pop();
+					}
+					if(oneRule.frontendIPConfiguration && oneRule.frontendIPConfiguration.id) {
+						onePort.lbIpConfigName = oneRule.frontendIPConfiguration.id.split('/').pop();
+					}
+
+					if(oneRule.probe && oneRule.probe.id) {
+						let probeName = oneRule.probe.id.split('/').pop();
+						if(opts.loadBalancer.probes && Array.isArray(opts.loadBalancer.probes) && opts.loadBalancer.probes.length > 0) {
+							for(let i = 0; i < opts.loadBalancer.probes.length; i++) {
+								let oneProbe = opts.loadBalancer.probes[i];
+								if(oneProbe.name === probeName) {
+									onePort.healthProbePort = oneProbe.port;
+									onePort.healthProbeProtocol = oneProbe.protocol;
+									onePort.healthProbeRequestPath = oneProbe.requestPath;
+									onePort.maxFailureAttempts = oneProbe.numberOfProbes;
+									onePort.healthProbeInterval = oneProbe.intervalInSeconds;
+									break;
+								}
+							}
+						}
+					}
+
+					record.ports.push(onePort);
+				});
+			}
+
+			// collect inbound NAT rules
+			if(opts.loadBalancer.inboundNatRules && Array.isArray(opts.loadBalancer.inboundNatRules) && opts.loadBalancer.inboundNatRules.length > 0) {
+				opts.loadBalancer.inboundNatRules.forEach((oneNatRule) => {
+					record.natRules.push({
+						name: oneNatRule.name,
+						backendPort: oneNatRule.backendPort,
+						frontendPort: oneNatRule.frontendPort,
+						protocol: oneNatRule.protocol,
+						idleTimeoutInMinutes: oneNatRule.idleTimeoutInMinutes,
+						enableFloatingIP: oneNatRule.enableFloatingIP,
+						frontendIPConfigName: (oneNatRule.frontendIPConfiguration && oneNatRule.frontendIPConfiguration.id) ? oneNatRule.frontendIPConfiguration.id.split('/').pop() : ''
+					});
+				});
+			}
+
+			// collect inbound NAT pools
+			if(opts.loadBalancer.inboundNatPools && Array.isArray(opts.loadBalancer.inboundNatPools) && opts.loadBalancer.inboundNatPools.length > 0) {
+				opts.loadBalancer.inboundNatPools.forEach((oneNatPool) => {
+					record.natPools.push({
+						name: oneNatPool.name,
+						backendPort: oneNatPool.backendPort,
+						protocol: oneNatPool.protocol,
+						enableFloatingIP: oneNatPool.enableFloatingIP,
+						frontendPortRangeStart: oneNatPool.frontendPortRangeStart,
+						frontendPortRangeEnd: oneNatPool.frontendPortRangeEnd,
+						idleTimeoutInMinutes: oneNatPool.idleTimeoutInMinutes,
+						frontendIPConfigName: (oneNatPool.frontendIPConfiguration && oneNatPool.frontendIPConfiguration.id) ? oneNatPool.frontendIPConfiguration.id.split('/').pop() : ''
+					});
 				});
 			}
 		}
 
 		return record;
 	},
-	
-	bulidSubnetsRecord: function (opts) {
-		let record = null;
+
+	buildSubnetRecord: function (opts) {
+		let record = {};
 		if(opts.subnet){
-			record = {};
 			if (opts.subnet.name) record.name = opts.subnet.name;
 			if (opts.subnet.id) record.id = opts.subnet.id;
 			if (opts.subnet.location) record.region = opts.subnet.location;
@@ -281,32 +385,34 @@ const helper = {
 		return record;
 	},
 
-	buildPublicIPsRecord: function (opts) {
+	buildPublicIPRecord: function (opts) {
 		let record = {};
-		if(opts.publicIPAddresse){
-			if (opts.publicIPAddresse.name) record.name = opts.publicIPAddresse.name;
-			if (opts.publicIPAddresse.id) record.id = opts.publicIPAddresse.id;
-			if (opts.publicIPAddresse.location) record.location = opts.publicIPAddresse.location;
-			if (opts.publicIPAddresse.ipAddress) record.ipAddress = opts.publicIPAddresse.ipAddress;
-			if (opts.publicIPAddresse.publicIPAllocationMethod) record.publicIPAllocationMethod = opts.publicIPAddresse.publicIPAllocationMethod;
-			if (opts.publicIPAddresse.tags) record.tags = opts.publicIPAddresse.tags;
+		if(opts.publicIPAddress){
+			if (opts.publicIPAddress.name) record.name = opts.publicIPAddress.name;
+			if (opts.publicIPAddress.id) record.id = opts.publicIPAddress.id;
+			if (opts.publicIPAddress.location) record.region = opts.publicIPAddress.location;
+			if (opts.publicIPAddress.ipAddress) record.ipAddress = opts.publicIPAddress.ipAddress;
+			if (opts.publicIPAddress.publicIPAddressVersion) record.ipAddressVersion = opts.publicIPAddress.publicIPAddressVersion;
+			if (opts.publicIPAddress.publicIPAllocationMethod) record.publicIPAllocationMethod = opts.publicIPAddress.publicIPAllocationMethod;
+			if (opts.publicIPAddress.tags) record.labels = opts.publicIPAddress.tags;
+
 		}
 		return record;
 	},
-	
+
 	buildSecurityGroupsRecord: function (opts) {
 		let record = {};
 		if(opts.networkSecurityGroups){
 			if (opts.networkSecurityGroups.name) record.name = opts.networkSecurityGroups.name;
 			if (opts.networkSecurityGroups.id) record.id = opts.networkSecurityGroups.id;
-			if (opts.networkSecurityGroups.region) record.region = opts.networkSecurityGroups.region;
+			if (opts.networkSecurityGroups.location) record.region = opts.networkSecurityGroups.location;
 			if (opts.networkSecurityGroups.securityRules && Array.isArray(opts.networkSecurityGroups.securityRules) && opts.networkSecurityGroups.securityRules.length> 0){
 				record.ports = helper.buildPortsArray(opts.networkSecurityGroups.securityRules);
 			}
 			if (opts.networkSecurityGroups.defaultSecurityRules && Array.isArray(opts.networkSecurityGroups.defaultSecurityRules) && opts.networkSecurityGroups.defaultSecurityRules.length> 0){
 				record.ports = record.ports.concat(helper.buildPortsArray(opts.networkSecurityGroups.defaultSecurityRules));
 			}
-			if (opts.networkSecurityGroups.tags) opts.networkSecurityGroups.tags = record.tags;
+			if (opts.networkSecurityGroups.tags) record.labels = opts.networkSecurityGroups.tags;
 		}
 		return record;
 	},
@@ -316,14 +422,15 @@ const helper = {
 
 		securityRules.forEach(function (oneSecurityRule) {
 			output.push({
-				protocol: (oneSecurityRule.protocol && oneSecurityRule.protocol === '*') ? 'tcp/udp' : oneSecurityRule.protocol,
-				target: oneSecurityRule.sourcePortRange,
-				priority: oneSecurityRule.priority,
-				access: oneSecurityRule.access,
-				direction: oneSecurityRule.direction,
-				description: oneSecurityRule.description,
 				name: oneSecurityRule.name,
+				protocol: oneSecurityRule.protocol,
+				access: oneSecurityRule.access,
+				priority: oneSecurityRule.priority,
+				direction: oneSecurityRule.direction,
+				target: oneSecurityRule.sourcePortRange,
 				published: oneSecurityRule.destinationPortRange,
+				sourceAddressPrefix: oneSecurityRule.sourceAddressPrefix,
+				destinationAddressPrefix: oneSecurityRule.destinationAddressPrefix,
 				isPublished: (oneSecurityRule.destinationPortRange) ? true : false
 			});
 		});
@@ -461,7 +568,25 @@ const helper = {
 				loadBalancers: results.listLoadBalancers
 			});
 		});
-	}
+	},
+
+	/**
+    * Take an id format as input and return a valid azure resource id
+
+    * @param  {String}   idFormat  The id format
+    * @param  {Object}   values    The values that should be replaced in the id format
+    * @return {String}
+    */
+    buildAzureId: function(idFormat, values) {
+        let outputId = idFormat;
+
+        if(values && typeof(values) === 'object' && Object.keys(values).length > 0) {
+            Object.keys(values).forEach((oneValue) => {
+                outputId = outputId.replace(new RegExp(`%${oneValue}%`, 'g'), values[oneValue]);
+            });
+        }
+        return outputId;
+    }
 };
 
 module.exports = helper;

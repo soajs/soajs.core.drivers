@@ -2033,7 +2033,8 @@ module.exports = function () {
 							"soajs.service.mode": "deployment",
 							"soajs.service.name": "mongo",
 							"soajs.service.subtype": "mongo",
-							"soajs.service.type": "cluster"
+							"soajs.service.type": "cluster",
+							"soajs.content": true
 						}
 					},
 					"spec": {

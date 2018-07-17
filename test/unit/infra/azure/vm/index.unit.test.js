@@ -106,15 +106,24 @@ describe("testing /lib/azure/index.js", function () {
 				"id": "tester-vm",
 				"labels": {
 					"soajs.env.code": "tester",
+					"soajs.layer.name": "tester",
+					"soajs.network.name": "tester",
 					"soajs.service.vm.location": "eastus",
 					"soajs.service.vm.group": "TESTER",
-					"soajs.service.vm.size": "Standard_A1"
+					"soajs.service.vm.size": "Standard_A1",
+					"soajs.vm.name": "tester"
 				},
 				"ports": [
 					{
 						"protocol": "Tcp",
+						"access": "Allow",
+						"priority": 100,
+						"name": "ssh",
+						"direction": "Inbound",
 						"target": "*",
 						"published": "22",
+						"sourceAddressPrefix": "*",
+						"destinationAddressPrefix": "*",
 						"isPublished": true
 					}
 				],
@@ -158,7 +167,7 @@ describe("testing /lib/azure/index.js", function () {
 				done();
 			});
 		});
-		
+
 		it("Success loadBalancer", function (done) {
 			info = dD();
 			options = info.deployCluster;
@@ -167,7 +176,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -220,22 +229,31 @@ describe("testing /lib/azure/index.js", function () {
 							return cb(null, info.subnets[vnetName]);
 						}
 					},
-					
+
 				});
 			let expectedResponce = {
 				"name": "tester-vm",
 				"id": "tester-vm",
 				"labels": {
 					"soajs.env.code": "tester",
+					"soajs.layer.name": "tester",
+					"soajs.network.name": "tester",
 					"soajs.service.vm.location": "eastus",
 					"soajs.service.vm.group": "TESTER",
-					"soajs.service.vm.size": "Standard_A1"
+					"soajs.service.vm.size": "Standard_A1",
+					"soajs.vm.name": "tester"
 				},
 				"ports": [
 					{
 						"protocol": "Tcp",
+						"access": "Allow",
+						"priority": 100,
+						"name": "ssh",
+						"direction": "Inbound",
 						"target": "*",
 						"published": "22",
+						"sourceAddressPrefix": "*",
+						"destinationAddressPrefix": "*",
 						"isPublished": true
 					}
 				],
@@ -247,7 +265,7 @@ describe("testing /lib/azure/index.js", function () {
 						"id": "tester-vm",
 						"name": "tester-vm",
 						"status": {
-							"state": "succeeded"
+							"state": "succeeded",
 						},
 						"ref": {
 							"os": {
@@ -273,16 +291,32 @@ describe("testing /lib/azure/index.js", function () {
 				"network": "tester-vn",
 				"loadBalancers": [
 					{
-						"name": "tester-tester-lb",
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-tester-lb",
-						"region": "centralus",
+						"addressPools": [
+							{
+								"name": "tester-tester-lb-backend-address-pool"
+							}
+						],
 						"ipAddresses": [
 							{
 								"type": "public",
 								"name": "tester-tester-ip",
 								"address": "23.99.134.149"
 							}
-						]
+						],
+						"ipConfigs": [
+							{
+								"name": "tester-tester-lb-ip",
+								"privateIPAllocationMethod": "Dynamic",
+								"isPublic": true,
+								"publicIpAddressId": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-tester-ip"
+							}
+						],
+						"ports": [],
+						"natRules": [],
+						"natPools": [],
+						"name": "tester-tester-lb",
+						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-tester-lb",
+						"region": "centralus"
 					}
 				]
 			};
@@ -370,15 +404,24 @@ describe("testing /lib/azure/index.js", function () {
 					"id": "tester-vm",
 					"labels": {
 						"soajs.env.code": "tester",
+						"soajs.layer.name": "tester",
+						"soajs.network.name": "tester",
 						"soajs.service.vm.location": "eastus",
 						"soajs.service.vm.group": "TESTER",
-						"soajs.service.vm.size": "Standard_A1"
+						"soajs.service.vm.size": "Standard_A1",
+						"soajs.vm.name": "tester"
 					},
 					"ports": [
 						{
 							"protocol": "Tcp",
+							"access": "Allow",
+							"priority": 100,
+							"name": "ssh",
+							"direction": "Inbound",
 							"target": "*",
 							"published": "22",
+							"sourceAddressPrefix": "*",
+							"destinationAddressPrefix": "*",
 							"isPublished": true
 						}
 					],
@@ -390,7 +433,7 @@ describe("testing /lib/azure/index.js", function () {
 							"id": "tester-vm",
 							"name": "tester-vm",
 							"status": {
-								"state": "succeeded"
+								"state": "succeeded",
 							},
 							"ref": {
 								"os": {
@@ -427,7 +470,7 @@ describe("testing /lib/azure/index.js", function () {
 							"id": "mongo",
 							"name": "mongo",
 							"status": {
-								"state": "succeeded"
+								"state": "succeeded",
 							},
 							"ref": {
 								"os": {
@@ -456,7 +499,7 @@ describe("testing /lib/azure/index.js", function () {
 							"id": "mysql",
 							"name": "mysql",
 							"status": {
-								"state": "succeeded"
+								"state": "succeeded",
 							},
 							"ref": {
 								"os": {
@@ -677,40 +720,6 @@ describe("testing /lib/azure/index.js", function () {
 		});
 	});
 
-	describe("calling executeDriver - deleteResourceGroup", function () {
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		it("Success", function (done) {
-			info = dD();
-			sinon
-				.stub(serviceUtils, 'authenticate')
-				.yields(null, {
-					credentials: {},
-				});
-			sinon
-				.stub(serviceUtils, 'getConnector')
-				.returns({
-					resourceGroups: {
-						deleteMethod: (location, cb) => {
-							return cb(null, true)
-						}
-					},
-				});
-
-			options = info.deployCluster;
-			options.params = {
-				env: "tester"
-			};
-			service.executeDriver('deleteResourceGroup', options, function (error, response) {
-				assert.ifError(error);
-				assert.ok(response);
-				done();
-			});
-		});
-	});
-
 	describe("calling executeDriver - listVmSizes", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -772,10 +781,27 @@ describe("testing /lib/azure/index.js", function () {
 			options.params = {
 				location: "eastus"
 			};
+			let expectedResponse =[
+				{
+					"name": "1e",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/1e",
+					"region": "eastus"
+				},
+				{
+					"name": "4psa",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/4psa",
+					"region": "eastus"
+				},
+				{
+					"name": "5nine-software-inc",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/5nine-software-inc",
+					"region": "eastus"
+				}
+			];
 			service.executeDriver('listVmImagePublishers', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response, info.vmImagePublisher);
+				assert.deepEqual(response, expectedResponse);
 				done();
 			});
 		});
@@ -808,10 +834,42 @@ describe("testing /lib/azure/index.js", function () {
 				location: "eastus",
 				publisher: "Canonical"
 			};
+			let expectedResponse = [
+				{
+					"name": "Ubuntu15.04Snappy",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu15.04Snappy",
+					"region": "eastus"
+				},
+				{
+					"name": "Ubuntu15.04SnappyDocker",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu15.04SnappyDocker",
+					"region": "eastus"
+				},
+				{
+					"name": "UbuntuServer",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/UbuntuServer",
+					"region": "eastus"
+				},
+				{
+					"name": "Ubuntu_Core",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Core",
+					"region": "eastus"
+				},
+				{
+					"name": "Ubuntu_Snappy_Core",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Snappy_Core",
+					"region": "eastus"
+				},
+				{
+					"name": "Ubuntu_Snappy_Core_Docker",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Snappy_Core_Docker",
+					"region": "eastus"
+				}
+			];
 			service.executeDriver('listVmImagePublisherOffers', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response, info.vmPublisherOffers);
+				assert.deepEqual(response, expectedResponse);
 				done();
 			});
 		});
@@ -844,254 +902,21 @@ describe("testing /lib/azure/index.js", function () {
 				publisher: "Canonical",
 				offer: "Ubuntu_Core"
 			};
+			let expectedResponse =[
+				{
+					"name": "16",
+					"id": "/Subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/Providers/Microsoft.Compute/Locations/eastus/Publishers/Canonical/ArtifactTypes/VMImage/Offers/Ubuntu_Core/Skus/16",
+					"region": "eastus"
+				}
+			];
 			service.executeDriver('listVmImageVersions', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response, info.vmImageVersions);
+				assert.deepEqual(response, expectedResponse);
 				done();
 			});
 		});
 	});
-
-	describe("calling executeDriver - listNetworks", function () {
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		it("Success", function (done) {
-			sinon
-				.stub(serviceUtils, 'authenticate')
-				.yields(null, {
-					credentials: {},
-				});
-			sinon
-				.stub(serviceUtils, 'getConnector')
-				.returns({
-					virtualNetworks: {
-						list: (resourceGroupName, cb) => {
-							return cb(null, info.virtualNetworks);
-						}
-					},
-				});
-			info = dD();
-			options = info.deployCluster;
-			options.params = {
-				resourceGroupName: "tester",
-			};
-			service.executeDriver('listNetworks', options, function (error, response) {
-				assert.ifError(error);
-				assert.ok(response);
-				assert.deepEqual(response, info.virtualNetworks);
-				done();
-			});
-		});
-	});
-
-	describe("calling executeDriver - listLoadBalancers", function () {
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		it("Success", function (done) {
-			info = dD();
-			options = info.deployCluster;
-			sinon
-				.stub(serviceUtils, 'authenticate')
-				.yields(null, {
-					credentials: {},
-				});
-			sinon
-				.stub(serviceUtils, 'getConnector')
-				.returns({
-					loadBalancers: {
-						list: (resourceGroupName, cb) => {
-							return cb(null, info.loadBalancers)
-						}
-					},
-				});
-			options.params = {
-				resourceGroupName: "tester",
-			};
-			let expectedRes = [
-				{
-					"name": "tester-lb",
-					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-lb",
-					"region": "centralus"
-				}
-			];
-			service.executeDriver('listLoadBalancers', options, function (error, response) {
-				assert.ifError(error);
-				assert.ok(response);
-				assert.deepEqual(expectedRes, response);
-				done();
-			});
-		});
-	});
-
-	describe("calling executeDriver - listSubnets", function () {
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		it("Success", function (done) {
-			info = dD();
-			options = info.deployCluster;
-			sinon
-				.stub(serviceUtils, 'authenticate')
-				.yields(null, {
-					credentials: {},
-				});
-			sinon
-				.stub(serviceUtils, 'getConnector')
-				.returns({
-					subnets: {
-						list: (resourceGroupName, virtualNetworkName, cb) => {
-							return cb(null, info.subnets)
-						}
-					},
-				});
-			options.params = {
-				resourceGroupName: "tester",
-				virtualNetworkName: "tester-vn",
-			};
-			service.executeDriver('listSubnets', options, function (error, response) {
-				assert.ifError(error);
-				assert.ok(response);
-				assert.deepEqual(response, info.subnets);
-				done();
-			});
-		});
-	});
-
-	describe("calling executeDriver - listSecurityGroups", function () {
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		it("Success", function (done) {
-			info = dD();
-			sinon
-				.stub(serviceUtils, 'authenticate')
-				.yields(null, {
-					credentials: {},
-				});
-			sinon
-				.stub(serviceUtils, 'getConnector')
-				.returns({
-					networkSecurityGroups: {
-						list: (resourceGroupName, cb) => {
-							return cb(null, info.networkSecurutyGroup)
-						}
-					},
-				});
-
-			options = info.deployCluster;
-			options.params = {
-				resourceGroupName: "tester",
-				virtualNetworkName: "tester-vn",
-			};
-			let expectedResponce = [
-				{
-					"ports": [{
-						"isPublished": true,
-						"protocol": "tcp",
-						"published": "22",
-						"target": "*",
-					}],
-					"name": "tester-tester-sg",
-					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-tester-sg",
-				}
-			];
-
-			service.executeDriver('listSecurityGroups', options, function (error, response) {
-				assert.ifError(error);
-				assert.ok(response);
-				assert.deepEqual(expectedResponce, response);
-				done();
-			});
-		});
-	});
-
-	describe("calling executeDriver - listPublicIps", function () {
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		it("Success", function (done) {
-			info = dD();
-			sinon
-				.stub(serviceUtils, 'authenticate')
-				.yields(null, {
-					credentials: {},
-				});
-			sinon
-				.stub(serviceUtils, 'getConnector')
-				.returns({
-					publicIPAddresses: {
-						list: (resourceGroupName, cb) => {
-							return cb(null, [info.publicIp["tester-ip"]])
-						}
-					},
-				});
-
-			options = info.deployCluster;
-			options.params = {
-				resourceGroupName: "tester",
-			};
-			let expectedResponce = [
-				{
-					"name": "tester-ip",
-					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-ip",
-					"location": "eastus",
-					"ipAddress": "40.121.55.181",
-					"publicIPAllocationMethod": "Dynamic",
-					"tags": {}
-				}
-			];
-			service.executeDriver('listPublicIps', options, function (error, response) {
-				assert.ifError(error);
-				assert.ok(response);
-				assert.deepEqual(response, expectedResponce);
-				done();
-			});
-		});
-	});
-
-
-	describe("calling executeDriver - listDisks", function () {
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		it("Success", function (done) {
-			sinon
-				.stub(serviceUtils, 'authenticate')
-				.yields(null, {
-					credentials: {},
-				});
-			sinon
-				.stub(serviceUtils, 'getConnector')
-				.returns({
-					disks: {
-						list: (resourceGroupName, cb) => {
-							return cb(null, info.Disks)
-						}
-					},
-				});
-			info = dD();
-			options = info.deployCluster;
-			options.params = {
-				resourceGroupName: "dynamic-template",
-			};
-			service.executeDriver('listDisks', options, function (error, response) {
-				assert.ifError(error);
-				assert.ok(response);
-				assert.deepEqual(info.Disks, response);
-				done();
-			});
-		});
-	});
-
 
 	describe("calling executeDriver - runCommand", function () {
 		afterEach((done) => {
@@ -1131,70 +956,6 @@ describe("testing /lib/azure/index.js", function () {
 		});
 	});
 
-	describe("calling executeDriver - listGroups", function () {
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		it("Success", function (done) {
-			info = dD();
-			sinon
-				.stub(serviceUtils, 'authenticate')
-				.yields(null, {
-					credentials: {},
-				});
-			sinon
-				.stub(serviceUtils, 'getConnector')
-				.returns({
-					resourceGroups: {
-						list: (cb) => {
-							return cb(null, info.Groups)
-						}
-					},
-				});
-				info = dD();
-				options = info.deployCluster;
-				let expected = [
-					{
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/dashboard",
-						"name": "dashboard"
-					},
-					{
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/demo",
-						"name": "demo"
-					},
-					{
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/dynamic-template",
-						"name": "dynamic-template"
-					},
-					{
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/memsql",
-						"name": "memsql"
-					},
-					{
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/mongo",
-						"name": "mongo"
-					},
-					{
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/ragheb",
-						"name": "ragheb"
-					},
-					{
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/soajs",
-						"name": "soajs"
-					}
-				];
-
-			service.executeDriver('listGroups',options, function (error, response) {
-
-				assert.ifError(error);
-				assert.ok(response);
-				assert.deepEqual(expected, response);
-				done();
-			});
-		});
-	});
-
 	describe("calling executeDriver - getLogs", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -1225,4 +986,91 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
+
+
+	describe("calling executeDriver - updtadeVmLabels", function () {
+		afterEach((done) => {
+			sinon.restore();
+			done();
+		});
+		it("Success", function (done) {
+			info = dD();
+			options = info.deployCluster;
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+
+			sinon
+				.stub(serviceUtils, 'getConnector')
+				.returns({
+
+					virtualMachines: {
+						get: (env, vmName, cb) => {
+							return cb(null, info.virtualMachines[0]);
+						},
+						createOrUpdate: (group, vmName, vmInfo ,cb) =>{
+							return cb(null,true);
+						}
+					},
+				});
+
+			info = dD();
+			options = info.deployCluster;
+			options.params = {
+				group: 'tester',
+				vmNames: ['tester-vm'],
+				labels: {
+					tag1: 'true',
+					tag2: 'false'
+				}
+			};
+			service.executeDriver('updateVmLabels', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				assert.deepEqual(response,true);
+				done();
+			});
+		});
+		
+		it("Success", function (done) {
+			info = dD();
+			options = info.deployCluster;
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+			
+			sinon
+				.stub(serviceUtils, 'getConnector')
+				.returns({
+					
+					virtualMachines: {
+						get: (env, vmName, cb) => {
+							return cb(null, info.virtualMachines[0]);
+						},
+						createOrUpdate: (group, vmName, vmInfo ,cb) =>{
+							return cb(null,true);
+						}
+					},
+				});
+			
+			info = dD();
+			options = info.deployCluster;
+			options.params = {
+				group: 'tester',
+				vmNames: ['tester-vm']
+				
+			};
+			service.executeDriver('updateVmLabels', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				assert.deepEqual(response,true);
+				done();
+			});
+		});
+	});
+
 });
