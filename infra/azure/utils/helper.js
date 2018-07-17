@@ -511,7 +511,7 @@ const helper = {
 			if (opts.publicIPAddress.location) record.region = opts.publicIPAddress.location;
 			if (opts.publicIPAddress.ipAddress) record.address = opts.publicIPAddress.ipAddress;
 			if (opts.publicIPAddress.publicIPAllocationMethod) record.allocationMethod = opts.publicIPAddress.publicIPAllocationMethod;
-			if (opts.publicIPAddress.idleTimeoutInMinutes) record.idleTimeout = opts.publicIPAddress.idleTimeoutInMinutes;
+			if (opts.publicIPAddress.idleTimeoutInMinutes) record.idleTimeout = opts.publicIPAddress.idleTimeoutInMinutes * 60;
 			if (opts.publicIPAddress.publicIPAddressVersion) record.version = opts.publicIPAddress.publicIPAddressVersion;
 			if (opts.publicIPAddress.tags) record.labels = opts.publicIPAddress.tags;
 			if (opts.publicIPAddress && opts.publicIPAddress.ipConfiguration && opts.publicIPAddress.ipConfiguration.id){
