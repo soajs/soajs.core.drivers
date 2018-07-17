@@ -56,7 +56,7 @@ const ips = {
 
                 let params = {
                     location: options.params.region,
-                    publicIPAllocationMethod: helper.capitalize(options.params.publicIPAllocationMethod,'Dynamic'), // Static || Dynamic
+                    publicIPAllocationMethod: helper.capitalize(options.params.publicIPAllocationMethod, 'Dynamic'), // Static || Dynamic
                     publicIPAddressVersion: options.params.ipAddressVersion || 'IPv4',
                     sku: {
                         name: helper.capitalize(options.params.type, 'Basic'), // Basic or Standard
@@ -65,10 +65,10 @@ const ips = {
                 };
 
                 if(options.params.idleTimeout){
-                    options.params.idleTimeout = Math.round(options.params.idleTimeout/60);
+                	params.idleTimeout = Math.round(options.params.idleTimeout/60);
                 }
-                else{
-                    options.params.idleTimeout = 30;
+                else {
+	                options.params.idleTimeout = 30;
                 }
 
                 return networkClient.publicIPAddresses.createOrUpdate(options.params.group, options.params.name, params, function(error, response) {

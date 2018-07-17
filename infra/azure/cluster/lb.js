@@ -198,11 +198,11 @@ const lbs = {
                     backendAddressPool: {
                         id: helper.buildAzureId(config.lbAddressPoolIdFormat, { SUBSCRIPTION_ID: options.subscriptionId, GROUP_NAME: options.group, LB_NAME: options.lbName, ADDRESS_POOL_NAME: onePort.addressPoolName })
                     },
-                    protocol: onePort.protocol || 'All', //Tcp, Udp, All
+                    protocol: helper.capitalize(onePort.protocol, 'All'), //Tcp, Udp, All
                     backendPort: onePort.target,
                     frontendPort: onePort.published || (Math.floor(Math.random() * 2768) + 30000),
                     idleTimeoutInMinutes: onePort.idleTimeoutInMinutes || 30,
-                    loadDistribution: onePort.loadDistribution || 'Default', // Default, SourceIP, SourceIPProtocol
+                    loadDistribution: helper.capitalize(onePort.loadDistribution, 'Default'), // Default, SourceIP, SourceIPProtocol
                     enableFloatingIP: onePort.enableFloatingIP || false,
                     disableOutboundSnat: onePort.disableOutboundSnat || false,
                     frontendIPConfiguration: {
@@ -214,7 +214,7 @@ const lbs = {
                 let oneProbe = {
                     name: `${onePort.name}-probe`,
                     port: onePort.healthProbePort || onePort.target,
-                    protocol: onePort.healthProbeProtocol || 'Http', // Http, Tcp, Https
+                    protocol: helper.capitalize(onePort.healthProbeProtocol, 'Http'), // Http, Tcp, Https
                     requestPath: onePort.healthProbeRequestPath,
 
                     numberOfProbes: onePort.maxFailureAttempts || 5,
@@ -329,7 +329,7 @@ const lbs = {
                 inboundNatRulesOutput.push({
                     name: oneNatRule.name,
                     backendPort: oneNatRule.backendPort,
-                    protocol: helper.capitalize(oneNatRule.protocol,'All'), //Tcp, Udp, All
+                    protocol: helper.capitalize(oneNatRule.protocol, 'All'), //Tcp, Udp, All
                     enableFloatingIP: oneNatRule.enableFloatingIP || false,
                     frontendPort: oneNatRule.frontendPort,
                     idleTimeoutInMinutes: oneNatRule.idleTimeoutInMinutes || 30,
