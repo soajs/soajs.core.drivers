@@ -145,8 +145,8 @@ const securityGroups = {
                     properties: {
                         priority: onePort.priority,
                         protocol: (onePort.protocol) ? onePort.protocol : "*",
-                        access: (onePort.access) ? onePort.access : "Allow", //Allow || Deny
-                        direction: (onePort.direction) ? onePort.direction : "Inbound", //Inboud || Outbound
+                        access: helper.capitlaize(onePort.access, "Allow"), //Allow || Deny
+	                    direction: helper.capitlaize(onePort.direction, "Inbound"), //Inboud || Outbound
                         sourceAddress: (onePort.sourceAddressPrefix) ? onePort.sourceAddressPrefix : "*",
                         sourcePortRange: (onePort.target) ? onePort.target : "*",
                         destinationAddress: (onePort.destinationAddressPrefix) ? onePort.destinationAddressPrefix : "*",

@@ -425,10 +425,12 @@ const helper = {
 						protocol: oneRule.protocol,
 						target: oneRule.backendPort,
 						published: oneRule.frontendPort,
-						idleTimeout: oneRule.idleTimeoutInMinutes * 60,
 						loadDistribution: oneRule.loadDistribution,
 						enableFloatingIP: oneRule.enableFloatingIP
 					};
+					if (oneRule.idleTimeoutInMinutes){
+						onePort.idleTimeout = oneRule.idleTimeoutInMinutes * 60;
+					}
 					if (oneRule.disableOutboundSnat) {
 						onePort.disableOutboundSnat = oneRule.disableOutboundSnat;
 					}
@@ -609,6 +611,15 @@ const helper = {
 		}
 		
 		return output;
+	},
+	
+	capitlaize: function (word, def){
+		if (word && typeof word) {
+			return `${word[0].toUpperCase()}${word.slice(1)}`
+		}
+		else {
+			return def;
+		}
 	},
 	
 	/**
