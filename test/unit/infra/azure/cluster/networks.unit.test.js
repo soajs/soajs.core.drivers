@@ -13,7 +13,7 @@ let options = {};
 describe("testing /lib/azure/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
 
-	describe("calling executeDriver - listNetworks", function () {
+	describe("listNetworks", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -46,11 +46,11 @@ describe("testing /lib/azure/index.js", function () {
 					"name": "tester-vn",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/virtualNetworks/tester-vn",
 					"region": "eastus",
-					"addressPrefixes": ["10.0.0.0/16"],
+					"address": ["10.0.0.0/16"],
 					"dnsServers": []
 				}
 			];
-			service.executeDriver('listNetworks', options, function (error, response) {
+			service.listNetworks( options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(response, expectedReponse);
@@ -59,7 +59,7 @@ describe("testing /lib/azure/index.js", function () {
 		});
 	});
 
-	describe("calling executeDriver - createNetwork", function () {
+	describe("createNetwork", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -122,7 +122,7 @@ describe("testing /lib/azure/index.js", function () {
 				},
 				group: "testcase",
 				networkName: "test-net",
-				"addressPrefixes": [ "10.0.0.0/16" ],
+				"address": [ "10.0.0.0/16" ],
 				"dnsServers": ["8.8.8.8", "8.8.9.9"],
 				"subnets": [{
 					name: "test-subnet",
@@ -140,7 +140,7 @@ describe("testing /lib/azure/index.js", function () {
 				"name": "test-net",
 				"id": "/subscriptions/d6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-net",
 				"region": "centralus",
-				"addressPrefixes": [
+				"address": [
 					"10.0.0.0/16"
 				],
 				"dnsServers": [
@@ -148,7 +148,7 @@ describe("testing /lib/azure/index.js", function () {
 					"8.8.9.9"
 				]
 			};
-			service.executeDriver('createNetwork', options, function (error, response) {
+			service.createNetwork(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(response, expectedReponse);
@@ -157,7 +157,7 @@ describe("testing /lib/azure/index.js", function () {
 		});
 	});
 
-	describe("calling executeDriver - updateNetwork", function () {
+	describe("updateNetwork", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -220,7 +220,7 @@ describe("testing /lib/azure/index.js", function () {
 				},
 				group: "testcase",
 				networkName: "test-net",
-				"addressPrefixes": [ "10.0.0.0/16" ],
+				"address": [ "10.0.0.0/16" ],
 				"dnsServers": ["8.8.8.8", "8.8.9.9"],
 				"subnets": [{
 					name: "test-subnet",
@@ -238,7 +238,7 @@ describe("testing /lib/azure/index.js", function () {
 				"name": "test-net",
 				"id": "/subscriptions/d6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-net",
 				"region": "centralus",
-				"addressPrefixes": [
+				"address": [
 					"10.0.0.0/16"
 				],
 				"dnsServers": [
@@ -246,7 +246,7 @@ describe("testing /lib/azure/index.js", function () {
 					"8.8.9.9"
 				]
 			};
-			service.executeDriver('updateNetwork', options, function (error, response) {
+			service.updateNetwork( options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(response, expectedReponse);
@@ -255,7 +255,7 @@ describe("testing /lib/azure/index.js", function () {
 		});
 	});
 
-	describe("calling executeDriver - deleteNetwork", function () {
+	describe("deleteNetwork", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -281,7 +281,7 @@ describe("testing /lib/azure/index.js", function () {
 				group: "testcase",
 				networkName: "test-net",
 			};
-			service.executeDriver('deleteNetwork', options, function (error, response) {
+			service.deleteNetwork(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();

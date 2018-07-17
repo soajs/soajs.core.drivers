@@ -1,9 +1,9 @@
 'use strict';
 
 const async = require('async');
-const helper = require('./../helper');
-const utils = require('../../../../lib/utils/utils.js');
-const driverUtils = require('../../utils/index.js');
+const helper = require('../utils/helper.js');;
+const utils = require('../../../lib/utils/utils.js');
+const driverUtils = require('../utils/index.js');
 
 const networks = {
 
@@ -56,7 +56,7 @@ const networks = {
                 let params = {
                     location: options.params.region,
                     addressSpace: {
-                        addressPrefixes: options.params.addressPrefixes || ['10.0.0.0/16']
+                        addressPrefixes: options.params.address || ['10.0.0.0/16']
                     },
                     tags: options.params.labels || {}
                 };
@@ -69,7 +69,7 @@ const networks = {
                     params.subnets = options.params.subnets;
                 }
 
-                resourceClient.virtualNetworks.createOrUpdate(options.params.group, options.params.networkName, params, function (error, network) {
+                resourceClient.virtualNetworks.createOrUpdate(options.params.group, options.params.name, params, function (error, network) {
                     utils.checkError(error, 747, cb, () => {
                         return cb(null, helper.buildNetworkRecord({ network }));
                     });

@@ -4,7 +4,6 @@ const assert = require("assert");
 const sinon = require('sinon');
 
 const service = helper.requireModule('./infra/azure/utils/index.js');
-const azureApi = require('ms-rest-azure');
 
 let dD = require('../../../schemas/azure/cluster.js');
 let info = {};

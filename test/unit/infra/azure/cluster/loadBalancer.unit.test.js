@@ -12,8 +12,8 @@ let options = {};
 
 describe("testing /lib/azure/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
-	
-	describe("calling executeDriver - listLoadBalancers", function () {
+
+	describe("listLoadBalancers", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -38,7 +38,7 @@ describe("testing /lib/azure/index.js", function () {
 			options.params = {
 				group: "testcase",
 			};
-			service.executeDriver('listLoadBalancers', options, function (error, response) {
+			service.listLoadBalancers(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(info.loadBalancers, response );
@@ -46,8 +46,8 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
-	describe("calling executeDriver - createLoadBalancer", function () {
+
+	describe("createLoadBalancer", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -246,7 +246,7 @@ describe("testing /lib/azure/index.js", function () {
 						disableOutboundSnat: true,
 						addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
 						lbIpConfigName: 'public-ip-config', //this name should match one created in ipConfigs []
-						
+
 						healthProbePort: 80,
 						healthProbeProtocol: 'Http',
 						healthProbeRequestPath: '/',
@@ -274,14 +274,14 @@ describe("testing /lib/azure/index.js", function () {
 				"region": "centralus",
 				"group": "testcase"
 			};
-			service.executeDriver('createLoadBalancer', options, function (error, response) {
+			service.createLoadBalancer(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(expectedRes, response);
 				done();
 			});
 		});
-		
+
 		it("Success 2", function (done) {
 			info = dD();
 			options = info.deployCluster;
@@ -478,7 +478,7 @@ describe("testing /lib/azure/index.js", function () {
 						disableOutboundSnat: true,
 						addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
 						lbIpConfigName: 'private-ip-config', //this name should match one created in ipConfigs []
-						
+
 						healthProbePort: 80,
 						healthProbeProtocol: 'Http',
 						healthProbeRequestPath: '/',
@@ -507,14 +507,14 @@ describe("testing /lib/azure/index.js", function () {
 					"group": "testcase"
 				}
 			;
-			service.executeDriver('createLoadBalancer', options, function (error, response) {
+			service.createLoadBalancer(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(expectedRes, response);
 				done();
 			});
 		});
-		
+
 		it("failure no ipConfigs and addressPools", function (done) {
 			info = dD();
 			options = info.deployCluster;
@@ -548,7 +548,7 @@ describe("testing /lib/azure/index.js", function () {
 						disableOutboundSnat: true,
 						addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
 						lbIpConfigName: 'private-ip-config', //this name should match one created in ipConfigs []
-						
+
 						healthProbePort: 80,
 						healthProbeProtocol: 'Http',
 						healthProbeRequestPath: '/',
@@ -580,14 +580,14 @@ describe("testing /lib/azure/index.js", function () {
 						frontendIPConfigName: 'public-ip-config' //this name should match one created in ipConfigs []
 					}
 				]
-				
+
 			};
-			service.executeDriver('createLoadBalancer', options, function (error, response) {
+			service.createLoadBalancer(options, function (error, response) {
 				assert.ok(error);
 				done();
 			});
 		});
-		
+
 		it("failure ip configurations aren't the same", function (done) {
 			info = dD();
 			options = info.deployCluster;
@@ -638,7 +638,7 @@ describe("testing /lib/azure/index.js", function () {
 						disableOutboundSnat: true,
 						addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
 						lbIpConfigName: 'private-ip-config', //this name should match one created in ipConfigs []
-						
+
 						healthProbePort: 80,
 						healthProbeProtocol: 'Http',
 						healthProbeRequestPath: '/',
@@ -658,14 +658,14 @@ describe("testing /lib/azure/index.js", function () {
 						frontendIPConfigName: 'private-ip-config' //this name should match one created in ipConfigs []
 					}
 				]
-				
+
 			};
-			service.executeDriver('createLoadBalancer', options, function (error, response) {
+			service.createLoadBalancer(options, function (error, response) {
 				assert.ok(error);
 				done();
 			});
 		});
-		
+
 		it("failure natPools and natRules are both supplied", function (done) {
 			info = dD();
 			options = info.deployCluster;
@@ -716,7 +716,7 @@ describe("testing /lib/azure/index.js", function () {
 						disableOutboundSnat: true,
 						addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
 						lbIpConfigName: 'private-ip-config', //this name should match one created in ipConfigs []
-						
+
 						healthProbePort: 80,
 						healthProbeProtocol: 'Http',
 						healthProbeRequestPath: '/',
@@ -748,16 +748,16 @@ describe("testing /lib/azure/index.js", function () {
 						frontendIPConfigName: 'public-ip-config' //this name should match one created in ipConfigs []
 					}
 				]
-				
+
 			};
-			service.executeDriver('createLoadBalancer', options, function (error, response) {
+			service.createLoadBalancer(options, function (error, response) {
 				assert.ok(error);
 				done();
 			});
 		});
 	});
-	
-	describe("calling executeDriver - updateLoadBalancer", function () {
+
+	describe("updateLoadBalancer", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -926,12 +926,6 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			options.infra.api = {
-				clientId: "cca65dcd-3aa3-44d3-81cb-6b57b764be6a",
-				secret: "QY7TMLyoA6Jjzidtduqbn/4Y2mDlyJUbKZ40c6dBTYw=",
-				domain: "608c3255-376b-47a4-8e8e-9291e506d03e",
-				subscriptionId: "d159e994-8b44-42f7-b100-78c4508c34a6"
-			};
 			options.params = {
 				group: 'testcase',
 				name: 'tester-lb-1',
@@ -962,7 +956,7 @@ describe("testing /lib/azure/index.js", function () {
 						disableOutboundSnat: true,
 						addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
 						lbIpConfigName: 'public-ip-config', //this name should match one created in ipConfigs []
-						
+
 						healthProbePort: 80,
 						healthProbeProtocol: 'Http',
 						healthProbeRequestPath: '/',
@@ -990,7 +984,7 @@ describe("testing /lib/azure/index.js", function () {
 				"region": "centralus",
 				"group": "testcase"
 			};
-			service.executeDriver('updateLoadBalancer', options, function (error, response) {
+			service.updateLoadBalancer(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(expectedRes, response);
@@ -998,7 +992,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - deleteLoadBalancer", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -1025,7 +1019,7 @@ describe("testing /lib/azure/index.js", function () {
 				group: "tester",
 				loadBalancerName: "tester-lb",
 			};
-			service.executeDriver('deleteLoadBalancer', options, function (error, response) {
+			service.deleteLoadBalancer(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();
