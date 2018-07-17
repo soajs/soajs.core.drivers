@@ -64,8 +64,8 @@ const ips = {
                     tags: options.params.labels || {}
                 };
 
-                if(idleTimeoutInMinutes){
-                    options.params.idleTimeout = Math.round(idleTimeoutInMinutes/60);
+                if(options.params.idleTimeout){
+                    options.params.idleTimeout = Math.round(options.params.idleTimeout/60);
                 }
                 else{
                     options.params.idleTimeout = 30;
@@ -73,8 +73,8 @@ const ips = {
 
                 return networkClient.publicIPAddresses.createOrUpdate(options.params.group, options.params.name, params, function(error, response) {
                     utils.checkError(error, 717, cb, () => {
-                        async.map(response, function(onepublicIPAddresse, callback) {
-                            return callback(null, helper.buildPublicIPRecord({ publicIPAddress: onepublicIPAddresse }));
+                        async.map(response, function(onePublicIPAddress, callback) {
+                            return callback(null, helper.buildPublicIPRecord({ publicIPAddress: onePublicIPAddress }));
                         }, function(error, PublicIpsList) {
                             return cb(null, PublicIpsList);
                         });

@@ -1029,7 +1029,7 @@ describe("testing /lib/azure/index.js", function () {
 			service.executeDriver('updateVmLabels', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response,true);
+				assert.deepEqual(response, 'f79b8165-53fa-4694-9e82-788c3b630fb3');
 				done();
 			});
 		});
@@ -1067,7 +1067,7 @@ describe("testing /lib/azure/index.js", function () {
 			service.executeDriver('updateVmLabels', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response,true);
+				assert.deepEqual(response, 'f79b8165-53fa-4694-9e82-788c3b630fb3');
 				done();
 			});
 		});

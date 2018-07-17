@@ -86,10 +86,11 @@ describe("testing /lib/azure/index.js", function () {
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-ip",
 					"region": "eastus",
 					"address": "40.114.121.7",
-					"allocationMethod": "Dynamic",
+					"publicIPAllocationMethod": "Dynamic",
 					"idleTimeout": 1800,
-					"version": "IPv4",
+					"ipAddressVersion": "IPv4",
 					"labels": {},
+					"type": "Basic",
 					"associated": {
 						"subscription": "d159e994-8b44-42f7-b100-78c4508c34a6",
 						"group": "tester",
@@ -101,9 +102,10 @@ describe("testing /lib/azure/index.js", function () {
 					"name": "tester-lb-ip",
 					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-lb-ip",
 					"region": "centralus",
-					"allocationMethod": "Dynamic",
+					"publicIPAllocationMethod": "Dynamic",
 					"idleTimeout": 240,
-					"version": "IPv4",
+					"ipAddressVersion": "IPv4",
+					"type": "Basic",
 					"associated": {
 						"subscription": "d159e994-8b44-42f7-b100-78c4508c34a6",
 						"group": "tester",
@@ -170,7 +172,7 @@ describe("createPublicIp", function () {
 					"address": "137.117.72.226",
 					"labels": {},
 					"name": "tester-vm-ip",
-					"allocationMethod": "Dynamic",
+					"publicIPAllocationMethod": "Dynamic",
 					"region": "eastus"
 				}
 			];
@@ -227,7 +229,7 @@ describe("calling executeDriver - updatePublicIp", function () {
 				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-vm-ip",
 				"region": "eastus",
 				"address": "137.117.72.226",
-				"allocationMethod": "Dynamic",
+				"publicIPAllocationMethod": "Dynamic",
 				"labels": {}
 			}
 		
