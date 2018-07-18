@@ -44,7 +44,7 @@ const networks = {
     * @return {void}
     */
     create: function(options, cb) {
-        options.soajs.log.debug(`Creating/Updating network ${options.params.networkName}`);
+        options.soajs.log.debug(`Creating/Updating network ${options.params.name}`);
         driverUtils.authenticate(options, (error, authData) => {
             utils.checkError(error, 700, cb, () => {
                 const resourceClient = driverUtils.getConnector({
@@ -97,7 +97,7 @@ const networks = {
     * @return {void}
     */
     delete: function(options, cb) {
-        options.soajs.log.debug(`Deleting network ${options.params.networkName}`);
+        options.soajs.log.debug(`Deleting network ${options.params.name}`);
         driverUtils.authenticate(options, (error, authData) => {
             utils.checkError(error, 700, cb, () => {
                 const resourceClient = driverUtils.getConnector({
@@ -105,7 +105,7 @@ const networks = {
                     credentials: authData.credentials,
                     subscriptionId: options.infra.api.subscriptionId
                 });
-                resourceClient.virtualNetworks.deleteMethod(options.params.group, options.params.networkName, function (error, result) {
+                resourceClient.virtualNetworks.deleteMethod(options.params.group, options.params.name, function (error, result) {
                     utils.checkError(error, 742, cb, () => {
                         return cb(null, true);
                     });

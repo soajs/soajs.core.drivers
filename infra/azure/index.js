@@ -95,10 +95,10 @@ const driver = {
 	"deleteExternalLB": function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	/**
 	 * List available Networks
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -106,10 +106,10 @@ const driver = {
 	listNetworks: function (options, cb) {
 		return networks.list(options, cb);
 	},
-	
+
 	/**
 	 * Create network
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -117,10 +117,10 @@ const driver = {
 	createNetwork: function (options, cb) {
 		return networks.create(options, cb);
 	},
-	
+
 	/**
 	 * Update network
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -128,10 +128,10 @@ const driver = {
 	updateNetwork: function (options, cb) {
 		return networks.update(options, cb);
 	},
-	
+
 	/**
 	 * Delete network
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -139,10 +139,10 @@ const driver = {
 	deleteNetwork: function (options, cb) {
 		return networks.delete(options, cb);
 	},
-	
+
 	/**
 	 * List available loadbalancers
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -150,10 +150,10 @@ const driver = {
 	listLoadBalancers: function (options, cb) {
 		return loadBalancers.list(options, cb);
 	},
-	
+
 	/**
 	 * Create loadbalancer
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -161,10 +161,10 @@ const driver = {
 	createLoadBalancer: function (options, cb) {
 		return loadBalancers.create(options, cb);
 	},
-	
+
 	/**
 	 * Update loadbalancer
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -172,10 +172,10 @@ const driver = {
 	updateLoadBalancer: function (options, cb) {
 		return loadBalancers.update(options, cb);
 	},
-	
+
 	/**
 	 * Delete loadbalancer
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -183,10 +183,10 @@ const driver = {
 	deleteLoadBalancer: function (options, cb) {
 		return loadBalancers.delete(options, cb);
 	},
-	
+
 	/**
 	 * List available subnets
-	 
+
 	 * @param  {Object}   options  Data passed to function listsubas params
 	 * @param  {Function} cb    Callback fspub
 	 * @return {void}listsub
@@ -194,10 +194,10 @@ const driver = {
 	listSubnets: function (options, cb) {
 		return subnets.list(options, cb);
 	},
-	
+
 	/**
 	 * Create subnet
-	 
+
 	 * @param  {Object}   options  Data passed to function listsubas params
 	 * @param  {Function} cb    Callback fspub
 	 * @return {void}listsub
@@ -205,10 +205,10 @@ const driver = {
 	createSubnet: function (options, cb) {
 		return subnets.create(options, cb);
 	},
-	
+
 	/**
 	 * Update subnet
-	 
+
 	 * @param  {Object}   options  Data passed to function listsubas params
 	 * @param  {Function} cb    Callback fspub
 	 * @return {void}listsub
@@ -216,10 +216,10 @@ const driver = {
 	updateSubnet: function (options, cb) {
 		return subnets.update(options, cb);
 	},
-	
+
 	/**
 	 * Delete subnet
-	 
+
 	 * @param  {Object}   options  Data passed to function listsubas params
 	 * @param  {Function} cb    Callback fspub
 	 * @return {void}listsub
@@ -227,10 +227,10 @@ const driver = {
 	deleteSubnet: function (options, cb) {
 		return subnets.delete(options, cb);
 	},
-	
+
 	/**
 	 * List available securitygroups
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -238,10 +238,10 @@ const driver = {
 	listSecurityGroups: function (options, cb) {
 		return securityGroups.list(options, cb);
 	},
-	
+
 	/**
 	 * Create security group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -249,10 +249,10 @@ const driver = {
 	createSecurityGroup: function (options, cb) {
 		return securityGroups.create(options, cb);
 	},
-	
+
 	/**
 	 * Update security group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -260,10 +260,10 @@ const driver = {
 	updateSecurityGroup: function (options, cb) {
 		return securityGroups.update(options, cb);
 	},
-	
+
 	/**
 	 * Delete security group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -271,10 +271,10 @@ const driver = {
 	deleteSecurityGroup: function (options, cb) {
 		return securityGroups.delete(options, cb);
 	},
-	
+
 	/**
 	 * List available public ips
-	 
+
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
@@ -282,10 +282,10 @@ const driver = {
 	listPublicIps: function (options, cb) {
 		return ips.list(options, cb);
 	},
-	
+
 	/**
 	 * Create public ip
-	 
+
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
@@ -293,10 +293,10 @@ const driver = {
 	createPublicIp: function (options, cb) {
 		return ips.create(options, cb);
 	},
-	
+
 	/**
 	 * Update public ip
-	 
+
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
@@ -304,10 +304,10 @@ const driver = {
 	updatePublicIp: function (options, cb) {
 		return ips.update(options, cb);
 	},
-	
+
 	/**
 	 * Delete public ip
-	 
+
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
@@ -315,10 +315,10 @@ const driver = {
 	deletePublicIp: function (options, cb) {
 		return ips.delete(options, cb);
 	},
-	
+
 	/**
 	 * List available resource groups
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -326,10 +326,10 @@ const driver = {
 	listGroups: function(options, cb) {
 		return groups.list(options, cb);
 	},
-	
+
 	/**
 	 * Create a resource group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -337,10 +337,10 @@ const driver = {
 	createGroup: function (options, cb) {
 		return groups.create(options, cb);
 	},
-	
+
 	/**
 	 * Update a resource group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -348,10 +348,10 @@ const driver = {
 	updateGroup: function (options, cb) {
 		return groups.update(options, cb);
 	},
-	
+
 	/**
 	 * Delete a resource group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -359,7 +359,51 @@ const driver = {
 	deleteGroup: function (options, cb) {
 		return groups.delete(options, cb);
 	},
-	
+
+	/**
+	 * Create Network and Security Group
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	createNetworkAndSecurityGroup: function (options, cb) {
+		//create network
+		networks.create(options, (error, netResponse) => {
+			utils.checkError(error, error ? error.code : null, cb, () => {
+				//list security groups
+				securityGroups.list(options, (error, secResponse) => {
+					utils.checkError(error, error ? error.code : null, cb, () => {
+						//search if security group with same name as network exists
+						let found = false;
+
+						secResponse.forEach((oneSecurityGroup) => {
+							if (oneSecurityGroup.name === options.name) {
+								found = true;
+							}
+						});
+
+						//if found return callback
+						if (found) {
+							return cb(null, netResponse);
+						}
+
+						//if not found
+						else {
+							//reset labels and add one that points to network created
+							options.params.labels = {
+								"soajs.network.name": netResponse.name
+							};
+
+							//create security group
+							return securityGroups.create(options, cb);
+						}
+					});
+				});
+			});
+		});
+	},
+
 	"executeDriver": function(method, options, cb){
 		runCorrespondingDriver(method, options, cb);
 	}
