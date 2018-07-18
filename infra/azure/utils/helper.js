@@ -572,7 +572,9 @@ const helper = {
 				record.ports = helper.buildPortsArray(opts.networkSecurityGroups.securityRules);
 			}
 			if (opts.networkSecurityGroups.defaultSecurityRules && Array.isArray(opts.networkSecurityGroups.defaultSecurityRules) && opts.networkSecurityGroups.defaultSecurityRules.length> 0){
-				record.ports = record.ports.concat(helper.buildPortsArray(opts.networkSecurityGroups.defaultSecurityRules));
+				let defaultSecurityRules = helper.buildPortsArray(opts.networkSecurityGroups.defaultSecurityRules);
+				defaultSecurityRules.map((oneSecurityRule) => { oneSecurityRule.readonly = true; });
+				record.ports = record.ports.concat(defaultSecurityRules);
 			}
 			if (opts.networkSecurityGroups.tags) record.labels = opts.networkSecurityGroups.tags;
 		}
