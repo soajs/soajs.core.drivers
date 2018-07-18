@@ -48,7 +48,7 @@ const securityGroups = {
     * @return {void}
     */
     create: function(options, cb) {
-        options.soajs.log.debug(`Creating/Updating securityGroup in ${options.params.securityGroupName} resource group ${options.params.group} `);
+        options.soajs.log.debug(`Creating/Updating securityGroup in ${options.params.name} resource group ${options.params.group} `);
         driverUtils.authenticate(options, (error, authData) => {
             utils.checkError(error, 700, cb, () => {
                 let bearerToken = '', subscriptionId = '';
