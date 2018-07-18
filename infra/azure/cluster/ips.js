@@ -65,12 +65,11 @@ const ips = {
                 };
 
                 if(options.params.idleTimeout){
-                	params.idleTimeout = Math.round(options.params.idleTimeout/60);
+                	params.idleTimeoutInMinutes = Math.round(options.params.idleTimeout/60);
                 }
                 else {
-	                options.params.idleTimeout = 30;
+	               params.idleTimeoutInMinutes = 30;
                 }
-
                 return networkClient.publicIPAddresses.createOrUpdate(options.params.group, options.params.name, params, function(error, response) {
                     utils.checkError(error, 717, cb, () => {
                         async.map(response, function(onePublicIPAddress, callback) {
