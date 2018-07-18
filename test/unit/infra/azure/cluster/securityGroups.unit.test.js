@@ -48,7 +48,7 @@ describe("testing /lib/azure/index.js", function () {
 					access: "Allow",
 					direction: "Inbound",
 					name: "testPort",
-					published: "30080"
+					published: 30080
 				}]
 			};
 			let expectedResponce = {
@@ -68,10 +68,10 @@ describe("testing /lib/azure/index.js", function () {
 										"protocol": "Tcp",
 										"access": "Allow",
 										"direction": "Inbound",
-										"sourceAddress": "*",
+										"sourceAddressPrefix": "*",
 										"sourcePortRange": "*",
-										"destinationAddress": "*",
-										"destinationPortRange": "30080"
+										"destinationAddressPrefix": "*",
+										"destinationPortRange": 30080
 									}
 								}
 							]
@@ -304,9 +304,9 @@ describe("testing /lib/azure/index.js", function () {
 										"protocol": "Tcp",
 										"access": "Allow",
 										"direction": "Inbound",
-										"sourceAddress": "*",
+										"sourceAddressPrefix": "*",
 										"sourcePortRange": "*",
-										"destinationAddress": "*",
+										"destinationAddressPrefix": "*",
 										"destinationPortRange": 1
 									}
 								}
@@ -542,6 +542,7 @@ describe("testing /lib/azure/index.js", function () {
 								"published": "*",
 								"sourceAddress": "VirtualNetwork",
 								"destinationAddress": "VirtualNetwork",
+								"readonly": true,
 								"isPublished": true
 							},
 							{
@@ -554,6 +555,7 @@ describe("testing /lib/azure/index.js", function () {
 								"published": "*",
 								"sourceAddress": "AzureLoadBalancer",
 								"destinationAddress": "*",
+								"readonly": true,
 								"isPublished": true
 							},
 							{
@@ -566,6 +568,7 @@ describe("testing /lib/azure/index.js", function () {
 								"published": "*",
 								"sourceAddress": "*",
 								"destinationAddress": "*",
+								"readonly": true,
 								"isPublished": true
 							},
 							{
@@ -578,6 +581,7 @@ describe("testing /lib/azure/index.js", function () {
 								"published": "*",
 								"sourceAddress": "VirtualNetwork",
 								"destinationAddress": "VirtualNetwork",
+								"readonly": true,
 								"isPublished": true
 							},
 							{
@@ -590,6 +594,7 @@ describe("testing /lib/azure/index.js", function () {
 								"published": "*",
 								"sourceAddress": "*",
 								"destinationAddress": "Internet",
+								"readonly": true,
 								"isPublished": true
 							},
 							{
@@ -602,6 +607,7 @@ describe("testing /lib/azure/index.js", function () {
 								"published": "*",
 								"sourceAddress": "*",
 								"destinationAddress": "*",
+								"readonly": true,
 								"isPublished": true
 							}
 						],
@@ -613,7 +619,6 @@ describe("testing /lib/azure/index.js", function () {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(expectedResponce, response);
-
 				done();
 			});
 		});
