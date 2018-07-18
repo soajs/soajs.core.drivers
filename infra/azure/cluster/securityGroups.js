@@ -147,9 +147,9 @@ const securityGroups = {
                         protocol: (onePort.protocol) ? onePort.protocol : "*",
                         access: helper.capitalize(onePort.access, "Allow"), //Allow || Deny
 	                    direction: helper.capitalize(onePort.direction, "Inbound"), //Inboud || Outbound
-                        sourceAddress: (onePort.sourceAddressPrefix) ? onePort.sourceAddressPrefix : "*",
+	                    sourceAddressPrefix: (onePort.sourceAddress) ? onePort.sourceAddress : "*",
                         sourcePortRange: (onePort.target) ? onePort.target : "*",
-                        destinationAddress: (onePort.destinationAddressPrefix) ? onePort.destinationAddressPrefix : "*",
+	                    destinationAddressPrefix: (onePort.destinationAddress) ? onePort.destinationAddress : "*",
                         destinationPortRange: (onePort.published) ? onePort.published : defaultDestinationPortRange || (Math.floor(Math.random() * 2768) + 30000)
                     }
                 });
