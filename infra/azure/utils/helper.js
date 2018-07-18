@@ -63,16 +63,22 @@ const helper = {
 			});
 		}
 
-		if(opts.networkInterface && opts.networkInterface.ipConfigurations){
-			opts.networkInterface.ipConfigurations.forEach(function(oneIpConfig) {
-				if(oneIpConfig.privateIPAddress) {
-					record.ip.push({
-						type: 'private',
-						allocatedTo: 'instance',
-						address: oneIpConfig.privateIPAddress
-					});
-				}
-			});
+		record.securityGroup = '';
+		if(opts.networkInterface){
+			if(opts.networkInterface.ipConfigurations) {
+				opts.networkInterface.ipConfigurations.forEach(function(oneIpConfig) {
+					if(oneIpConfig.privateIPAddress) {
+						record.ip.push({
+							type: 'private',
+							allocatedTo: 'instance',
+							address: oneIpConfig.privateIPAddress
+						});
+					}
+				});
+			}
+			if(opts.networkInterface.networkSecurityGroup && opts.networkInterface.networkSecurityGroup.id) {
+				record.securityGroup = opts.networkInterface.networkSecurityGroup.id.split('/').pop();
+			}
 		}
 
 		if (opts.securityGroup && opts.securityGroup.securityRules) {
