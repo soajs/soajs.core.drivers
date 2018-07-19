@@ -244,7 +244,7 @@ const lbs = {
             ipConfigs.forEach((oneEntry) => {
                 let oneConfig = {
                     name: oneEntry.name,
-                    privateIPAllocationMethod: helper.capitalize(oneEntry.privateIpAllocationMethod,'Dynamic'),
+                    privateIPAllocationMethod: helper.capitalize(oneEntry.privateIpAllocationMethod, 'Dynamic'),
                 };
 
                 if(oneConfig.privateIPAllocationMethod === 'Static') {
