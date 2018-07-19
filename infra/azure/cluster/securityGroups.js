@@ -79,7 +79,6 @@ const securityGroups = {
                         tags: options.params.labels || {}
                     }
                 };
-
                 request(requestOptions, function(error, response, body) {
                     if(error) return cb(error);
                     if(body && body.error) return cb(body.error);
@@ -117,7 +116,7 @@ const securityGroups = {
                     credentials: authData.credentials,
                     subscriptionId: options.infra.api.subscriptionId
                 });
-                resourceClient.networkSecurityGroups.deleteMethod(options.params.group, options.params.securityGroupName, function (error, response) {
+                resourceClient.networkSecurityGroups.deleteMethod(options.params.group, options.params.name, function (error) {
                     utils.checkError(error, 744, cb, () => {
                         return cb(null, true);
                     });

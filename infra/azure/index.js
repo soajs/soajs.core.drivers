@@ -396,7 +396,9 @@ const driver = {
 							};
 
 							//create security group
-							return securityGroups.create(options, cb);
+							return securityGroups.create(options, (err)=>{
+								return cb(err, netResponse)
+							});
 						}
 					});
 				});

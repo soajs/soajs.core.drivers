@@ -110,7 +110,7 @@ const ips = {
                     credentials: authData.credentials,
                     subscriptionId: options.infra.api.subscriptionId
                 });
-                resourceClient.publicIPAddresses.deleteMethod(options.params.group, options.params.publicIpName, function (error, response) {
+                resourceClient.publicIPAddresses.deleteMethod(options.params.group, options.params.name, function (error, response) {
                     utils.checkError(error, 743, cb, () => {
                         return cb(null, true);
                     });
