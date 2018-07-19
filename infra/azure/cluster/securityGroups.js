@@ -41,6 +41,32 @@ const securityGroups = {
     },
 
     /**
+    * Get one network security group
+
+    * @param  {Object}   options  Data passed to function as params
+    * @param  {Function} cb    Callback function
+    * @return {void}
+    */
+    get: function(options, cb) {
+        options.soajs.log.debug(`Getting security group ${options.params.name} in resource group ${options.params.group}`);
+        driverUtils.authenticate(options, (error, authData) => {
+            utils.checkError(error, 700, cb, () => {
+                const networkClient = driverUtils.getConnector({
+                    api: 'network',
+                    credentials: authData.credentials,
+                    subscriptionId: options.infra.api.subscriptionId
+
+                });
+                networkClient.networkSecurityGroups.get(options.params.group, options.params.name, function (error, networkSecurityGroup) {
+                    utils.checkError(error, 734, cb, () => {
+                        return cb(null, helper.buildSecurityGroupsRecord({ networkSecurityGroups: networkSecurityGroup }));
+                    });
+                });
+            });
+        });
+    },
+
+    /**
     * Create a new security group
 
     * @param  {Object}   options  Data passed to function as params

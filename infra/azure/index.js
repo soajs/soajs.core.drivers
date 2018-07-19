@@ -240,6 +240,17 @@ const driver = {
 	},
 
 	/**
+	 * Get existing security group
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	getSecurityGroup: function (options, cb) {
+		return securityGroups.get(options, cb);
+	},
+
+	/**
 	 * Create security group
 
 	 * @param  {Object}   options  Data passed to function as params
