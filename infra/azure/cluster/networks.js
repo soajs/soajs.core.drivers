@@ -66,6 +66,7 @@ const networks = {
                 }
 
                 if(options.params.subnets && Array.isArray(options.params.subnets) && options.params.subnets.length > 0) {
+	                params.subnets = [];
 	                options.params.subnets.forEach(function (oneSubnet) {
 		                params.subnets.push({
 			                addressPrefix: oneSubnet.address,
