@@ -370,52 +370,7 @@ const driver = {
 	deleteGroup: function (options, cb) {
 		return groups.delete(options, cb);
 	},
-
-	/**
-	 * Create Network and Security Group
-
-	 * @param  {Object}   options  Data passed to function as params
-	 * @param  {Function} cb    Callback function
-	 * @return {void}
-	 */
-	createNetworkAndSecurityGroup: function (options, cb) {
-		//create network
-		networks.create(options, (error, netResponse) => {
-			utils.checkError(error, error ? error.code : null, cb, () => {
-				//list security groups
-				securityGroups.list(options, (error, secResponse) => {
-					utils.checkError(error, error ? error.code : null, cb, () => {
-						//search if security group with same name as network exists
-						let found = false;
-
-						secResponse.forEach((oneSecurityGroup) => {
-							if (oneSecurityGroup.name === options.name) {
-								found = true;
-							}
-						});
-
-						//if found return callback
-						if (found) {
-							return cb(null, netResponse);
-						}
-
-						//if not found
-						else {
-							//reset labels and add one that points to network created
-							options.params.labels = {
-								"soajs.network.name": netResponse.name
-							};
-
-							//create security group
-							return securityGroups.create(options, (err)=>{
-								return cb(err, netResponse)
-							});
-						}
-					});
-				});
-			});
-		});
-	},
+	
 
 	"executeDriver": function(method, options, cb){
 		runCorrespondingDriver(method, options, cb);
