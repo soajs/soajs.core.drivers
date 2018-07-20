@@ -364,10 +364,7 @@ const helper = {
 		let record = {};
 		record.addressPools = [];
 		record.ipAddresses = [];
-		record.ipConfigs = [];
-		record.ports = [];
-		record.natRules = [];
-		record.natPools = [];
+		record.rules = [];
 
 		if(opts.loadBalancer){
 			if (opts.loadBalancer.name) record.name = opts.loadBalancer.name;
@@ -384,24 +381,38 @@ const helper = {
 			// collect ip address configurations
 			if(opts.loadBalancer.frontendIPConfigurations && Array.isArray(opts.loadBalancer.frontendIPConfigurations) && opts.loadBalancer.frontendIPConfigurations.length > 0) {
 				opts.loadBalancer.frontendIPConfigurations.forEach(function(oneConfig) {
-					let oneIp = {}, ipConfigOutput = {};
-					ipConfigOutput.name = oneConfig.name;
-					ipConfigOutput.privateIPAllocationMethod = oneConfig.privateIPAllocationMethod.toLowerCase();
-
+					let oneIp = {};
+					let oneRule = {
+						config: {},
+						ports: [],
+						natRules: [],
+						natPools: []
+					};
+					oneRule.name = oneConfig.name;
+					oneRule.config.privateIPAllocationMethod = oneConfig.privateIPAllocationMethod.toLowerCase();
 
 					if(oneConfig.privateIPAddress) {
-						ipConfigOutput.isPublic = false;
-						ipConfigOutput.privateIpAddress = oneConfig.privateIPAddress;
+						oneRule.config.isPublic = false;
+						oneRule.config.privateIpAddress = oneConfig.privateIPAddress;
 						if(oneConfig.subnet && oneConfig.subnet.id) {
-							ipConfigOutput.subnetId = oneConfig.subnet.id;
+							oneRule.config.subnet = { id: oneConfig.subnet.id };
+							oneRule.config.subnet = Object.assign(oneRule.config.subnet, helper.getInfoFromAzureId(oneConfig.subnet.id, [
+								{ v: 'resourceGroups', l: 'group' },
+								{ v: 'virtualNetworks', l: 'network' },
+								{ v: 'subnets', l: 'name' }
+							]));
 						}
 
 						oneIp.address = oneConfig.privateIPAddress;
 						oneIp.type = 'private';
 					}
 					if(oneConfig.publicIPAddress && oneConfig.publicIPAddress.id) {
-						ipConfigOutput.isPublic = true;
-						ipConfigOutput.publicIpAddressId = oneConfig.publicIPAddress.id;
+						oneRule.config.isPublic = true;
+						oneRule.config.publicIpAddress = { id: oneConfig.publicIPAddress.id };
+						oneRule.config.publicIpAddress = Object.assign(oneRule.config.publicIpAddress, helper.getInfoFromAzureId(oneConfig.publicIPAddress.id, [
+							{ v: 'resourceGroups', l: 'group' },
+							{ v: 'publicIPAddresses', l: 'name' }
+						]));
 
 						if(opts.publicIpsList) {
 							for (let i = 0; i < opts.publicIpsList.length; i++) {
@@ -417,8 +428,8 @@ const helper = {
 					if (Object.keys(oneIp).length > 0){
 						record.ipAddresses.push(oneIp);
 					}
-					if (Object.keys(ipConfigOutput).length > 0){
-						record.ipConfigs.push(ipConfigOutput);
+					if (Object.keys(oneRule).length > 0){
+						record.rules.push(oneRule);
 					}
 				});
 			}
@@ -444,7 +455,7 @@ const helper = {
 						onePort.addressPoolName = oneRule.backendAddressPool.id.split('/').pop();
 					}
 					if(oneRule.frontendIPConfiguration && oneRule.frontendIPConfiguration.id) {
-						onePort.lbIpConfigName = oneRule.frontendIPConfiguration.id.split('/').pop();
+						onePort.ipConfigName = oneRule.frontendIPConfiguration.id.split('/').pop();
 					}
 
 					if(oneRule.probe && oneRule.probe.id) {
@@ -464,44 +475,64 @@ const helper = {
 						}
 					}
 
-					record.ports.push(onePort);
+					//find the rule/ipconfig of this port and add it to its record
+					for(let i = 0; i < record.rules.length; i++) {
+						if(record.rules[i].name === onePort.ipConfigName) {
+							record.rules[i].ports.push(onePort);
+							break;
+						}
+					}
 				});
 			}
 
 			// collect inbound NAT rules
 			if(opts.loadBalancer.inboundNatRules && Array.isArray(opts.loadBalancer.inboundNatRules) && opts.loadBalancer.inboundNatRules.length > 0) {
 				opts.loadBalancer.inboundNatRules.forEach((oneNatRule) => {
-					let rule = {
+					let natRule = {
 						name: oneNatRule.name,
 						backendPort: oneNatRule.backendPort,
 						frontendPort: oneNatRule.frontendPort,
 						protocol: oneNatRule.protocol.toLowerCase(),
 						enableFloatingIP: oneNatRule.enableFloatingIP,
-						frontendIPConfigName: (oneNatRule.frontendIPConfiguration && oneNatRule.frontendIPConfiguration.id) ? oneNatRule.frontendIPConfiguration.id.split('/').pop() : ''
+						ipConfigName: (oneNatRule.frontendIPConfiguration && oneNatRule.frontendIPConfiguration.id) ? oneNatRule.frontendIPConfiguration.id.split('/').pop() : ''
 					};
 					if (oneNatRule.idleTimeoutInMinutes){
-						rule.idleTimeout = oneNatRule.idleTimeoutInMinutes * 60
+						natRule.idleTimeout = oneNatRule.idleTimeoutInMinutes * 60
 					}
-					record.natRules.push(rule);
+
+					//find the rule/ipconfig of this nat rule and add it to its record
+					for(let i = 0; i < record.rules.length; i++) {
+						if(record.rules[i].name === natRule.ipConfigName) {
+							record.rules[i].natRules.push(natRule);
+							break;
+						}
+					}
 				});
 			}
 
 			// collect inbound NAT pools
 			if(opts.loadBalancer.inboundNatPools && Array.isArray(opts.loadBalancer.inboundNatPools) && opts.loadBalancer.inboundNatPools.length > 0) {
 				opts.loadBalancer.inboundNatPools.forEach((oneNatPool) => {
-					let rule = {
+					let natPool = {
 						name: oneNatPool.name,
 						backendPort: oneNatPool.backendPort,
 						protocol: oneNatPool.protocol.toLowerCase(),
 						enableFloatingIP: oneNatPool.enableFloatingIP,
 						frontendPortRangeStart: oneNatPool.frontendPortRangeStart,
 						frontendPortRangeEnd: oneNatPool.frontendPortRangeEnd,
-						frontendIPConfigName: (oneNatPool.frontendIPConfiguration && oneNatPool.frontendIPConfiguration.id) ? oneNatPool.frontendIPConfiguration.id.split('/').pop() : ''
+						ipConfigName: (oneNatPool.frontendIPConfiguration && oneNatPool.frontendIPConfiguration.id) ? oneNatPool.frontendIPConfiguration.id.split('/').pop() : ''
 					};
 					if (oneNatPool.idleTimeoutInMinutes){
-						rule.idleTimeout = oneNatPool.idleTimeoutInMinutes * 60
+						natPool.idleTimeout = oneNatPool.idleTimeoutInMinutes * 60
 					}
-					record.natPools.push(rule);
+
+					//find the rule/ipconfig of this nat rule and add it to its record
+					for(let i = 0; i < record.rules.length; i++) {
+						if(record.rules[i].name === natPool.ipConfigName) {
+							record.rules[i].natPools.push(natPool);
+							break;
+						}
+					}
 				});
 			}
 		}
@@ -650,6 +681,30 @@ const helper = {
 			});
 		}
 		return outputId;
+	},
+
+	/**
+	 * Take an id as input and return the requested data from it
+
+	 * @param  {String}   id		The id format
+	 * @param  {Array}   values    The values that should be extracted from the id
+	 * @return {Object}
+	 */
+	getInfoFromAzureId: function(id, values) {
+		let idInfo = id.split('/');
+		let output = {};
+
+		if(idInfo.length > 0) {
+			for(let i = 0; i < idInfo.length; i++) {
+				let match = values.find((oneValue) => { return oneValue.v ===  idInfo[i]; });
+
+				if(match && idInfo[i + 1]) {
+					output[match.l] = idInfo[i + 1];
+				}
+			}
+		}
+
+		return output;
 	}
 };
 
