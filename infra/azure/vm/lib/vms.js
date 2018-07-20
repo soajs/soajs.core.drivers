@@ -181,6 +181,9 @@ const vms = {
 								if (vmInfo.tags['soajs.vm.name']) {
                             		delete vmInfo.tags['soajs.vm.name']
 								}
+								if (vmInfo.tags['soajs.onBoard']) {
+                            		delete vmInfo.tags['soajs.onBoard']
+								}
 							}
                             computeClient.virtualMachines.createOrUpdate(options.params.group, vmName, vmInfo , function (error, response) {
                                 if(error) {
