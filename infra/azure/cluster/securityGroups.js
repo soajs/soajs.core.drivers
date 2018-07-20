@@ -41,6 +41,32 @@ const securityGroups = {
     },
 
     /**
+    * Get one network security group
+
+    * @param  {Object}   options  Data passed to function as params
+    * @param  {Function} cb    Callback function
+    * @return {void}
+    */
+    get: function(options, cb) {
+        options.soajs.log.debug(`Getting security group ${options.params.name} in resource group ${options.params.group}`);
+        driverUtils.authenticate(options, (error, authData) => {
+            utils.checkError(error, 700, cb, () => {
+                const networkClient = driverUtils.getConnector({
+                    api: 'network',
+                    credentials: authData.credentials,
+                    subscriptionId: options.infra.api.subscriptionId
+
+                });
+                networkClient.networkSecurityGroups.get(options.params.group, options.params.name, function (error, networkSecurityGroup) {
+                    utils.checkError(error, 734, cb, () => {
+                        return cb(null, helper.buildSecurityGroupsRecord({ networkSecurityGroups: networkSecurityGroup }));
+                    });
+                });
+            });
+        });
+    },
+
+    /**
     * Create a new security group
 
     * @param  {Object}   options  Data passed to function as params
@@ -79,7 +105,6 @@ const securityGroups = {
                         tags: options.params.labels || {}
                     }
                 };
-
                 request(requestOptions, function(error, response, body) {
                     if(error) return cb(error);
                     if(body && body.error) return cb(body.error);
@@ -117,7 +142,7 @@ const securityGroups = {
                     credentials: authData.credentials,
                     subscriptionId: options.infra.api.subscriptionId
                 });
-                resourceClient.networkSecurityGroups.deleteMethod(options.params.group, options.params.securityGroupName, function (error, response) {
+                resourceClient.networkSecurityGroups.deleteMethod(options.params.group, options.params.name, function (error) {
                     utils.checkError(error, 744, cb, () => {
                         return cb(null, true);
                     });

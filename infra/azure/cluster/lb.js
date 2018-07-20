@@ -16,7 +16,7 @@ const lbs = {
     * @return {void}
     */
     list: function(options, cb) {
-        options.soajs.log.debug(`Listing laod balancers for resourcegroup ${options.params.group}`);
+        options.soajs.log.debug(`Listing load balancers for resource group ${options.params.group}`);
         driverUtils.authenticate(options, (error, authData) => {
             utils.checkError(error, 700, cb, () => {
                 const networkClient = driverUtils.getConnector({
@@ -24,10 +24,25 @@ const lbs = {
                     credentials: authData.credentials,
                     subscriptionId: options.infra.api.subscriptionId
                 });
-                networkClient.loadBalancers.list(options.params.group, function (error, loadBalancers) {
+
+                function listLoadBalancers(callback) {
+                    networkClient.loadBalancers.list(options.params.group, function (error, loadBalancers) {
+                        if(error) return callback(error);
+                        return callback(null, { loadBalancers });
+                    });
+                }
+
+                function listPublicIps(callback) {
+                    networkClient.publicIPAddresses.list(options.params.group, function (error, ipAddresses) {
+                        if(error) return callback(error);
+                        return callback(null, { ipAddresses });
+                    });
+                }
+
+                async.auto({ listLoadBalancers, listPublicIps }, function(error, results) {
                     utils.checkError(error, 732, cb, () => {
-                        async.map(loadBalancers, function(oneloadBalancer, callback) {
-                            return callback(null, helper.buildLoadBalancerRecord({ loadBalancer: oneloadBalancer }));
+                        async.map(results.listLoadBalancers.loadBalancers, function(oneloadBalancer, callback) {
+                            return callback(null, helper.buildLoadBalancerRecord({ loadBalancer: oneloadBalancer, publicIpsList: results.listPublicIps.ipAddresses }));
                         }, function(error, loadBalancersList) {
                             return cb(null, loadBalancersList);
                         });
@@ -54,8 +69,62 @@ const lbs = {
                     subscriptionId: options.infra.api.subscriptionId
                 });
 
-                function validate(callback) {
-	                options.soajs.log.debug(`Step 1: Validating laod balancer ${options.params.name} configurations ...`);
+                function map(callback) {
+                    options.soajs.log.debug(`Step 1: Mapping laod balancer ${options.params.name} configurations from input ...`);
+                    let mapping = {};
+                    mapping.group = options.params.group;
+                    mapping.name = options.params.name;
+                    mapping.region = options.params.region;
+                    mapping.addressPools = options.params.addressPools;
+
+                    mapping.ipConfigs = [];
+                    mapping.ports = [];
+                    mapping.natRules = [];
+                    mapping.natPools = [];
+
+                    options.params.rules.forEach((oneRule) => {
+                        if(oneRule.name && oneRule.config) {
+                            let oneIpConfig = {
+                                name: oneRule.name,
+                                privateIpAllocationMethod: oneRule.config.privateIpAllocationMethod,
+                                isPublic: oneRule.config.isPublic
+                            };
+                            if(oneRule.config.privateIpAddress) {
+                                oneIpConfig.privateIpAddress = oneRule.config.privateIpAddress;
+                            }
+
+                            if(oneIpConfig.isPublic && oneRule.config.publicIpAddress && oneRule.config.publicIpAddress.id) {
+                                oneIpConfig.publicIpAddressId = oneRule.config.publicIpAddress.id;
+                            }
+                            else if(!oneIpConfig.isPublic && oneRule.config.subnet && oneRule.config.subnet.id) {
+                                oneIpConfig.subnetId = oneRule.config.subnet.id;
+                            }
+
+                            mapping.ipConfigs.push(oneIpConfig);
+                        }
+
+                        if(oneRule.ports && Array.isArray(oneRule.ports) && oneRule.ports.length > 0) {
+                            oneRule.ports.map((onePort) => { onePort.ipConfigName = oneRule.name; });
+                            mapping.ports = mapping.ports.concat(oneRule.ports);
+                        }
+
+                        if(oneRule.natRules && Array.isArray(oneRule.natRules) && oneRule.natRules.length > 0) {
+                            oneRule.natRules.map((oneNatRule) => { oneNatRule.ipConfigName = oneRule.name; });
+                            mapping.natRules = mapping.natRules.concat(oneRule.natRules);
+                        }
+
+                        if(oneRule.natPools && Array.isArray(oneRule.natPools) && oneRule.natPools.length > 0) {
+                            oneRule.natPools.map((oneNatPool) => { oneNatPool.ipConfigName = oneRule.name; });
+                            mapping.natPools = mapping.natPools.concat(oneRule.natPools);
+                        }
+                    });
+
+                    options.params = mapping;
+                    return callback(null, true);
+                }
+
+                function validate(result, callback) {
+	                options.soajs.log.debug(`Step 2: Validating laod balancer ${options.params.name} configurations ...`);
 	                let validationErrors = [];
 	                if (!options.params.addressPools || !Array.isArray(options.params.addressPools) || options.params.addressPools.length === 0) {
 		                validationErrors.push('There should be at least one backend address pool configured for a load balancer');
@@ -92,7 +161,7 @@ const lbs = {
                 }
 
                 function createLb(result, callback) {
-                    options.soajs.log.debug(`Step 2: Applying laod balancer ${options.params.name} basic settings ...`);
+                    options.soajs.log.debug(`Step 3: Applying laod balancer ${options.params.name} basic settings ...`);
                     let params = {
                         location: options.params.region,
                         backendAddressPools: lbs.buildAddressPoolsConfig(options.params.addressPools),
@@ -108,7 +177,7 @@ const lbs = {
                 }
 
                 function applyLbRules(result, callback) {
-                    options.soajs.log.debug(`Step 3: Applying laod balancer ${options.params.name} rules and probes ...`);
+                    options.soajs.log.debug(`Step 4: Applying laod balancer ${options.params.name} rules and probes ...`);
                     let portsConfig = lbs.buildLoadBalancerRules(options.params.ports, { subscriptionId: options.infra.api.subscriptionId, group: options.params.group, lbName: options.params.name });
                     result.createLb.loadBalancingRules = portsConfig.lbRules;
                     result.createLb.probes = portsConfig.lbProbes;
@@ -128,7 +197,8 @@ const lbs = {
                 }
 
                 async.auto({
-                    validate,
+                    map,
+                    validate: ['map', validate],
                     createLb: ['validate', createLb],
                     applyLbRules: ['createLb', applyLbRules]
                 }, function(error, results) {
@@ -206,7 +276,7 @@ const lbs = {
                     enableFloatingIP: onePort.enableFloatingIP || false,
                     disableOutboundSnat: onePort.disableOutboundSnat || false,
                     frontendIPConfiguration: {
-                        id: helper.buildAzureId(config.lbIpConfigIdFormat, { SUBSCRIPTION_ID: options.subscriptionId, GROUP_NAME: options.group, LB_NAME: options.lbName, CONFIG_NAME: onePort.lbIpConfigName })
+                        id: helper.buildAzureId(config.lbIpConfigIdFormat, { SUBSCRIPTION_ID: options.subscriptionId, GROUP_NAME: options.group, LB_NAME: options.lbName, CONFIG_NAME: onePort.ipConfigName })
                     },
                     probe: { id: '' }
                 };
@@ -244,7 +314,7 @@ const lbs = {
             ipConfigs.forEach((oneEntry) => {
                 let oneConfig = {
                     name: oneEntry.name,
-                    privateIPAllocationMethod: helper.capitalize(oneEntry.privateIpAllocationMethod,'Dynamic'),
+                    privateIPAllocationMethod: helper.capitalize(oneEntry.privateIpAllocationMethod, 'Dynamic'),
                 };
 
                 if(oneConfig.privateIPAllocationMethod === 'Static') {
@@ -306,7 +376,7 @@ const lbs = {
                     frontendPortRangeEnd: oneNatPool.frontendPortRangeEnd,
                     idleTimeoutInMinutes: oneNatPool.idleTimeoutInMinutes || 30,
                     frontendIPConfiguration: {
-                        id: helper.buildAzureId(config.lbIpConfigIdFormat, { SUBSCRIPTION_ID: options.subscriptionId, GROUP_NAME: options.group, LB_NAME: options.lbName, CONFIG_NAME: oneNatPool.frontendIPConfigName })
+                        id: helper.buildAzureId(config.lbIpConfigIdFormat, { SUBSCRIPTION_ID: options.subscriptionId, GROUP_NAME: options.group, LB_NAME: options.lbName, CONFIG_NAME: oneNatPool.ipConfigName })
                     }
                 });
             });
@@ -334,7 +404,7 @@ const lbs = {
                     frontendPort: oneNatRule.frontendPort,
                     idleTimeoutInMinutes: oneNatRule.idleTimeoutInMinutes || 30,
                     frontendIPConfiguration: {
-                        id: helper.buildAzureId(config.lbIpConfigIdFormat, { SUBSCRIPTION_ID: options.subscriptionId, GROUP_NAME: options.group, LB_NAME: options.lbName, CONFIG_NAME: oneNatRule.frontendIPConfigName })
+                        id: helper.buildAzureId(config.lbIpConfigIdFormat, { SUBSCRIPTION_ID: options.subscriptionId, GROUP_NAME: options.group, LB_NAME: options.lbName, CONFIG_NAME: oneNatRule.ipConfigName })
                     }
                 });
             });

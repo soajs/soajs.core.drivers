@@ -13,26 +13,6 @@ let options = {};
 describe("testing /lib/azure/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
 	
-	describe("calling executeDriver - authenticate", function () {
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		it("Success", function (done) {
-			done();
-		});
-	});
-	
-	describe("calling executeDriver -  deployService", function () {
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		it("Success", function (done) {
-			done();
-		});
-	});
-	
 	describe("calling executeDriver - inspectService", function () {
 		afterEach((done) => {
 			sinon.restore();

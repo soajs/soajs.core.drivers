@@ -66,7 +66,13 @@ const networks = {
                 }
 
                 if(options.params.subnets && Array.isArray(options.params.subnets) && options.params.subnets.length > 0) {
-                    params.subnets = options.params.subnets;
+	                params.subnets = [];
+	                options.params.subnets.forEach(function (oneSubnet) {
+		                params.subnets.push({
+			                addressPrefix: oneSubnet.address,
+			                name: oneSubnet.name
+		                });
+	                });
                 }
 
                 resourceClient.virtualNetworks.createOrUpdate(options.params.group, options.params.name, params, function (error, network) {

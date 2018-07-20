@@ -45,7 +45,7 @@ const ips = {
     * @return {void}
     */
     create: function(options, cb) {
-        options.soajs.log.debug(`Creating/Updating public ip in group ${options.params.group}`);
+        options.soajs.log.debug(`Creating/Updating public ip ${options.params.name} in group ${options.params.group}`);
         driverUtils.authenticate(options, (error, authData) => {
             utils.checkError(error, 700, cb, () => {
                 const networkClient = driverUtils.getConnector({
@@ -65,12 +65,11 @@ const ips = {
                 };
 
                 if(options.params.idleTimeout){
-                	params.idleTimeout = Math.round(options.params.idleTimeout/60);
+                	params.idleTimeoutInMinutes = Math.round(options.params.idleTimeout/60);
                 }
                 else {
-	                options.params.idleTimeout = 30;
+	               params.idleTimeoutInMinutes = 30;
                 }
-
                 return networkClient.publicIPAddresses.createOrUpdate(options.params.group, options.params.name, params, function(error, response) {
                     utils.checkError(error, 717, cb, () => {
                         async.map(response, function(onePublicIPAddress, callback) {
@@ -103,7 +102,7 @@ const ips = {
     * @return {void}
     */
     delete: function(options, cb) {
-        options.soajs.log.debug(`Deleting Public IP ${options.params.publicIpName}`);
+        options.soajs.log.debug(`Deleting Public IP ${options.params.name}`);
         driverUtils.authenticate(options, (error, authData) => {
             utils.checkError(error, 700, cb, () => {
                 const resourceClient = driverUtils.getConnector({
@@ -111,7 +110,7 @@ const ips = {
                     credentials: authData.credentials,
                     subscriptionId: options.infra.api.subscriptionId
                 });
-                resourceClient.publicIPAddresses.deleteMethod(options.params.group, options.params.publicIpName, function (error, response) {
+                resourceClient.publicIPAddresses.deleteMethod(options.params.group, options.params.name, function (error) {
                     utils.checkError(error, 743, cb, () => {
                         return cb(null, true);
                     });
