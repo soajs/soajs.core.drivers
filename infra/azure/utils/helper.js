@@ -43,7 +43,7 @@ const helper = {
 					if (opts.vm.storageProfile.imageReference.publisher) record.tasks[0].ref.os.image.prefix = opts.vm.storageProfile.imageReference.publisher;
 					if (opts.vm.storageProfile.imageReference.offer) {
 						record.tasks[0].ref.os.image.name = opts.vm.storageProfile.imageReference.offer;
-						if (opts.vm.storageProfile.imageReference.sku) record.tasks[0].ref.os.image.name += "-" + opts.vm.storageProfile.imageReference.sku;
+						if (opts.vm.storageProfile.imageReference.sku) record.tasks[0].ref.os.image.name += "__" + opts.vm.storageProfile.imageReference.sku;
 					}
 					if (opts.vm.storageProfile.imageReference.version) record.tasks[0].ref.os.image.version = opts.vm.storageProfile.imageReference.version;
 				}
