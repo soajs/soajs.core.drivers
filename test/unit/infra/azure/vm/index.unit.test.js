@@ -121,7 +121,13 @@ describe("testing /lib/azure/index.js", function () {
 						"ref": {
 							"os": {
 								"type": "Linux",
-								"diskSizeGB": 30
+								"diskSizeGB": 30,
+								"image": {
+									"name": "UbuntuServer__16.04-LTS",
+									"prefix": "Canonical",
+									"version": "latest"
+								}
+								
 							}
 						}
 					}
@@ -251,7 +257,13 @@ describe("testing /lib/azure/index.js", function () {
 						"ref": {
 							"os": {
 								"type": "Linux",
-								"diskSizeGB": 30
+								"diskSizeGB": 30,
+								"image": {
+									"name": "UbuntuServer__16.04-LTS",
+									"prefix": "Canonical",
+									"version": "latest"
+								}
+								
 							}
 						}
 					}
@@ -426,7 +438,13 @@ describe("testing /lib/azure/index.js", function () {
 							"ref": {
 								"os": {
 									"type": "Linux",
-									"diskSizeGB": 30
+									"diskSizeGB": 30,
+									"image": {
+										"name": "UbuntuServer__16.04-LTS",
+										"prefix": "Canonical",
+										"version": "latest"
+									}
+									
 								}
 							}
 						}
@@ -464,7 +482,13 @@ describe("testing /lib/azure/index.js", function () {
 							"ref": {
 								"os": {
 									"type": "Linux",
-									"diskSizeGB": 30
+									"diskSizeGB": 30,
+									"image": {
+										"name": "UbuntuServer__17.10",
+										"prefix": "Canonical",
+										"version": "latest"
+									}
+									
 								}
 							}
 						}
@@ -495,7 +519,13 @@ describe("testing /lib/azure/index.js", function () {
 							"ref": {
 								"os": {
 									"type": "Linux",
-									"diskSizeGB": 30
+									"diskSizeGB": 30,
+									"image": {
+										"name": "UbuntuServer__17.10",
+										"prefix": "Canonical",
+										"version": "latest"
+									}
+									
 								}
 							}
 						}
