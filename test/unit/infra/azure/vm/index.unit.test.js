@@ -219,17 +219,17 @@ describe("testing /lib/azure/index.js", function () {
 					"soajs.env.code": "tester",
 					"soajs.layer.name": "tester",
 					"soajs.network.name": "tester",
+					"soajs.vm.name": "tester",
 					"soajs.service.vm.location": "eastus",
 					"soajs.service.vm.group": "TESTER",
-					"soajs.service.vm.size": "Standard_A1",
-					"soajs.vm.name": "tester"
+					"soajs.service.vm.size": "Standard_A1"
 				},
 				"ports": [
 					{
+						"name": "ssh",
 						"protocol": "Tcp",
 						"access": "allow",
 						"priority": 100,
-						"name": "ssh",
 						"direction": "inbound",
 						"target": "*",
 						"published": "22",
@@ -268,9 +268,9 @@ describe("testing /lib/azure/index.js", function () {
 						"address": "23.99.134.149"
 					}
 				],
+				"securityGroup": "tester-sg",
 				"layer": "tester-subnet",
 				"network": "tester-vn",
-				"securityGroup": "tester-sg",
 				"loadBalancers": [
 					{
 						"addressPools": [
@@ -285,17 +285,23 @@ describe("testing /lib/azure/index.js", function () {
 								"address": "23.99.134.149"
 							}
 						],
-						"ipConfigs": [
+						"rules": [
 							{
-								"name": "tester-tester-lb-ip",
-								"privateIPAllocationMethod": "dynamic",
-								"isPublic": true,
-								"publicIpAddressId": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-tester-ip"
+								"config": {
+									"privateIPAllocationMethod": "dynamic",
+									"isPublic": true,
+									"publicIpAddress": {
+										"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-tester-ip",
+										"group": "tester",
+										"name": "tester-tester-ip"
+									}
+								},
+								"ports": [],
+								"natRules": [],
+								"natPools": [],
+								"name": "tester-tester-lb-ip"
 							}
 						],
-						"ports": [],
-						"natRules": [],
-						"natPools": [],
 						"name": "tester-tester-lb",
 						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-tester-lb",
 						"region": "centralus"

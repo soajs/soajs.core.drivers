@@ -81,43 +81,45 @@ const lbs = {
                     mapping.ports = [];
                     mapping.natRules = [];
                     mapping.natPools = [];
-
-                    options.params.rules.forEach((oneRule) => {
-                        if(oneRule.name && oneRule.config) {
-                            let oneIpConfig = {
-                                name: oneRule.name,
-                                privateIpAllocationMethod: oneRule.config.privateIpAllocationMethod,
-                                isPublic: oneRule.config.isPublic
-                            };
-                            if(oneRule.config.privateIpAddress) {
-                                oneIpConfig.privateIpAddress = oneRule.config.privateIpAddress;
-                            }
-
-                            if(oneIpConfig.isPublic && oneRule.config.publicIpAddress && oneRule.config.publicIpAddress.id) {
-                                oneIpConfig.publicIpAddressId = oneRule.config.publicIpAddress.id;
-                            }
-                            else if(!oneIpConfig.isPublic && oneRule.config.subnet && oneRule.config.subnet.id) {
-                                oneIpConfig.subnetId = oneRule.config.subnet.id;
-                            }
-
-                            mapping.ipConfigs.push(oneIpConfig);
-                        }
-
-                        if(oneRule.ports && Array.isArray(oneRule.ports) && oneRule.ports.length > 0) {
-                            oneRule.ports.map((onePort) => { onePort.ipConfigName = oneRule.name; });
-                            mapping.ports = mapping.ports.concat(oneRule.ports);
-                        }
-
-                        if(oneRule.natRules && Array.isArray(oneRule.natRules) && oneRule.natRules.length > 0) {
-                            oneRule.natRules.map((oneNatRule) => { oneNatRule.ipConfigName = oneRule.name; });
-                            mapping.natRules = mapping.natRules.concat(oneRule.natRules);
-                        }
-
-                        if(oneRule.natPools && Array.isArray(oneRule.natPools) && oneRule.natPools.length > 0) {
-                            oneRule.natPools.map((oneNatPool) => { oneNatPool.ipConfigName = oneRule.name; });
-                            mapping.natPools = mapping.natPools.concat(oneRule.natPools);
-                        }
-                    });
+                    if (options.params.rules && Array.isArray(options.params.rules) && options.params.rules.length > 0){
+	                    options.params.rules.forEach((oneRule) => {
+		                    if(oneRule.name && oneRule.config) {
+			                    let oneIpConfig = {
+				                    name: oneRule.name,
+				                    privateIpAllocationMethod: oneRule.config.privateIpAllocationMethod,
+				                    isPublic: oneRule.config.isPublic
+			                    };
+			                    if(oneRule.config.privateIpAddress) {
+				                    oneIpConfig.privateIpAddress = oneRule.config.privateIpAddress;
+			                    }
+			
+			                    if(oneIpConfig.isPublic && oneRule.config.publicIpAddress && oneRule.config.publicIpAddress.id) {
+				                    oneIpConfig.publicIpAddressId = oneRule.config.publicIpAddress.id;
+			                    }
+			                    else if(!oneIpConfig.isPublic && oneRule.config.subnet && oneRule.config.subnet.id) {
+				                    oneIpConfig.subnetId = oneRule.config.subnet.id;
+			                    }
+			
+			                    mapping.ipConfigs.push(oneIpConfig);
+		                    }
+		
+		                    if(oneRule.ports && Array.isArray(oneRule.ports) && oneRule.ports.length > 0) {
+			                    oneRule.ports.map((onePort) => { onePort.ipConfigName = oneRule.name; });
+			                    mapping.ports = mapping.ports.concat(oneRule.ports);
+		                    }
+		
+		                    if(oneRule.natRules && Array.isArray(oneRule.natRules) && oneRule.natRules.length > 0) {
+			                    oneRule.natRules.map((oneNatRule) => { oneNatRule.ipConfigName = oneRule.name; });
+			                    mapping.natRules = mapping.natRules.concat(oneRule.natRules);
+		                    }
+		
+		                    if(oneRule.natPools && Array.isArray(oneRule.natPools) && oneRule.natPools.length > 0) {
+			                    oneRule.natPools.map((oneNatPool) => { oneNatPool.ipConfigName = oneRule.name; });
+			                    mapping.natPools = mapping.natPools.concat(oneRule.natPools);
+		                    }
+	                    });
+                    }
+                   
 
                     options.params = mapping;
                     return callback(null, true);

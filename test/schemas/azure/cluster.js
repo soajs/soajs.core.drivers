@@ -1295,7 +1295,7 @@ module.exports = function () {
 						],
 						"privateIPAllocationMethod": "Dynamic",
 						"publicIPAddress": {
-							"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/publicIPAddresses/test-ipaddress"
+							"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/publicIPAddresses/test-ip"
 						},
 						"provisioningState": "Succeeded",
 						"name": "public-ip-config",
@@ -1494,43 +1494,49 @@ module.exports = function () {
 					}
 				],
 				"ipAddresses": [],
-				"ipConfigs": [
+				"rules": [
 					{
-						"name": "public-ip-config",
-						"privateIPAllocationMethod": "dynamic",
-						"isPublic": true,
-						"publicIpAddressId": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/publicIPAddresses/test-ipaddress"
-					}
-				],
-				"ports": [
-					{
-						"name": "port-1",
-						"protocol": "tcp",
-						"target": 80,
-						"published": 80,
-						"idleTimeout": 1800,
-						"loadDistribution": "default",
-						"enableFloatingIP": false,
-						"addressPoolName": "tester-lb-address-pool",
-						"lbIpConfigName": "public-ip-config",
-						"healthProbePort": 80,
-						"healthProbeProtocol": "http",
-						"healthProbeRequestPath": "/",
-						"maxFailureAttempts": 20,
-						"healthProbeInterval": 10
-					}
-				],
-				"natRules": [],
-				"natPools": [
-					{
-						"name": "nat-pool-1",
-						"backendPort": 8080,
-						"protocol": "tcp",
-						"enableFloatingIP": false,
-						"frontendPortRangeStart": 30000,
-						"frontendPortRangeEnd": 30010,
-						"idleTimeout": 240,
-						"frontendIPConfigName": "public-ip-config"
+						"config": {
+							"privateIPAllocationMethod": "dynamic",
+							"isPublic": true,
+							"publicIpAddress": {
+								"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/publicIPAddresses/test-ip",
+								"group": "testcase",
+								"name": "test-ip"
+							}
+						},
+						"ports": [
+							{
+								"name": "port-1",
+								"protocol": "tcp",
+								"target": 80,
+								"published": 80,
+								"loadDistribution": "default",
+								"enableFloatingIP": false,
+								"idleTimeout": 1800,
+								"addressPoolName": "tester-lb-address-pool",
+								"ipConfigName": "public-ip-config",
+								"healthProbePort": 80,
+								"healthProbeProtocol": "http",
+								"healthProbeRequestPath": "/",
+								"maxFailureAttempts": 20,
+								"healthProbeInterval": 10
+							}
+						],
+						"natRules": [],
+						"natPools": [
+							{
+								"name": "nat-pool-1",
+								"backendPort": 8080,
+								"protocol": "tcp",
+								"enableFloatingIP": false,
+								"frontendPortRangeStart": 30000,
+								"frontendPortRangeEnd": 30010,
+								"ipConfigName": "public-ip-config",
+								"idleTimeout": 240
+							}
+						],
+						"name": "public-ip-config"
 					}
 				],
 				"name": "tester-lb-1",
@@ -1549,45 +1555,52 @@ module.exports = function () {
 						"type": "private"
 					}
 				],
-				"ipConfigs": [
+				"rules": [
 					{
-						"name": "private-ip-config",
-						"privateIPAllocationMethod": "static",
-						"isPublic": false,
-						"privateIpAddress": "10.2.0.10",
-						"subnetId": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-network/subnets/test-subnet"
+						"config": {
+							"privateIPAllocationMethod": "static",
+							"isPublic": false,
+							"privateIpAddress": "10.2.0.10",
+							"subnet": {
+								"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-network/subnets/test-subnet",
+								"group": "testcase",
+								"network": "test-network",
+								"name": "test-subnet"
+							}
+						},
+						"ports": [
+							{
+								"name": "port-1",
+								"protocol": "tcp",
+								"target": 80,
+								"published": 80,
+								"loadDistribution": "default",
+								"enableFloatingIP": false,
+								"idleTimeout": 1800,
+								"addressPoolName": "tester-lb-address-pool",
+								"ipConfigName": "private-ip-config",
+								"healthProbePort": 80,
+								"healthProbeProtocol": "http",
+								"healthProbeRequestPath": "/",
+								"maxFailureAttempts": 20,
+								"healthProbeInterval": 10
+							}
+						],
+						"natRules": [
+							{
+								"name": "nat-rule-1",
+								"backendPort": 8081,
+								"frontendPort": 30011,
+								"protocol": "tcp",
+								"enableFloatingIP": false,
+								"ipConfigName": "private-ip-config",
+								"idleTimeout": 240
+							}
+						],
+						"natPools": [],
+						"name": "private-ip-config"
 					}
 				],
-				"ports": [
-					{
-						"name": "port-1",
-						"protocol": "tcp",
-						"target": 80,
-						"published": 80,
-						"idleTimeout": 1800,
-						"loadDistribution": "default",
-						"enableFloatingIP": false,
-						"addressPoolName": "tester-lb-address-pool",
-						"lbIpConfigName": "private-ip-config",
-						"healthProbePort": 80,
-						"healthProbeProtocol": "http",
-						"healthProbeRequestPath": "/",
-						"maxFailureAttempts": 20,
-						"healthProbeInterval": 10
-					}
-				],
-				"natRules": [
-					{
-						"name": "nat-rule-1",
-						"backendPort": 8081,
-						"frontendPort": 30011,
-						"protocol": "tcp",
-						"idleTimeout": 240,
-						"enableFloatingIP": false,
-						"frontendIPConfigName": "private-ip-config"
-					}
-				],
-				"natPools": [],
 				"name": "tester-lb-2",
 				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-2",
 				"region": "centralus"

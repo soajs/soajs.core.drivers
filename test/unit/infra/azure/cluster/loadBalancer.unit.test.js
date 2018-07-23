@@ -12,7 +12,7 @@ let options = {};
 
 describe("testing /lib/azure/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
-
+	
 	describe("listLoadBalancers", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -34,6 +34,53 @@ describe("testing /lib/azure/index.js", function () {
 							return cb(null, info.rawLoadBalancers)
 						}
 					},
+					publicIPAddresses: {
+						list: (resourceGroupName, cb) => {
+							return cb(null, [
+									{
+										"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-ip", //id
+										"name": "tester-ip",                                 // public ip name
+										"type": "Microsoft.Network/publicIPAddresses",
+										"location": "eastus",                               // the location where the public ip is created.
+										"tags": {},
+										"sku": {                                            // sku is the identification code for a machine
+											"name": "Basic"
+										},
+										"publicIPAllocationMethod": "Dynamic",
+										"publicIPAddressVersion": "IPv4",
+										"ipConfiguration": {                               //reference the IP configuration
+											"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/loadBalancers/tester-lb-1/frontendIPConfigurations/LoadBalancerFrontEnd"
+											
+										},
+										"ipTags": [],
+										"ipAddress": "40.114.121.7",
+										"idleTimeoutInMinutes": 30,
+										"resourceGuid": "2659d8ca-dba2-4b8e-8a1d-fb922c71f432",
+										"provisioningState": "Succeeded",
+										"etag": "W/\"a606e103-19e7-4c17-b92f-7ed88be91968\""
+									}, {
+										"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/publicIPAddresses/tester-lb-ip",
+										"name": "tester-lb-ip",
+										"type": "Microsoft.Network/publicIPAddresses",
+										"location": "centralus",
+										"sku": {
+											"name": "Basic"
+										},
+										"publicIPAllocationMethod": "Dynamic",
+										"publicIPAddressVersion": "IPv4",
+										"ipConfiguration": {
+											"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkInterfaces/tester-ni/ipConfigurations/testconfiguration1"
+										},
+										"ipTags": [],
+										"idleTimeoutInMinutes": 4,
+										"resourceGuid": "b259942c-01ce-4693-a583-68ed737885bb",
+										"provisioningState": "Succeeded",
+										"etag": "W/\"3eebeb0c-d2e3-45b3-ac3e-f50b8e7fa569\""
+									}
+								]
+							)
+						}
+					},
 				});
 			options.params = {
 				group: "testcase",
@@ -41,12 +88,12 @@ describe("testing /lib/azure/index.js", function () {
 			service.listLoadBalancers(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(info.loadBalancers, response );
+				assert.deepEqual(info.loadBalancers, response);
 				done();
 			});
 		});
 	});
-
+	
 	describe("createLoadBalancer", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -225,48 +272,53 @@ describe("testing /lib/azure/index.js", function () {
 						name: 'tester-lb-address-pool'
 					}
 				],
-				ipConfigs: [
+				rules: [{
+					name: 'public-ip-config',
+					config:
 					// all configs should be public or not, you cannot have one public and the other private
-					{
-						name: 'public-ip-config',
-						privateIpAllocationMethod: 'Dynamic',
-						isPublic: true,
-						publicIpAddressId: '/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/publicIPAddresses/test-ipaddress' // existing id from azure
-					}
-				],
-				ports: [
-					{
-						name: 'port-1',
-						protocol: 'Tcp',
-						target: 80,
-						published: 80,
-						idleTimeoutInMinutes: 30,
-						loadDistribution: 'Default',
-						enableFloatingIP: false,
-						disableOutboundSnat: true,
-						addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
-						lbIpConfigName: 'public-ip-config', //this name should match one created in ipConfigs []
-
-						healthProbePort: 80,
-						healthProbeProtocol: 'Http',
-						healthProbeRequestPath: '/',
-						maxFailureAttempts: 20,
-						healthProbeInterval: 10
-					}
-				],
-				// natPools or natRules, both at the same time doesn't work
-				natPools: [
-					{
-						name: 'nat-pool-1',
-						backendPort: 8080,
-						protocol: 'Tcp',
-						enableFloatingIP: false,
-						frontendPortRangeStart: 30000,
-						frontendPortRangeEnd: 30010,
-						idleTimeoutInMinutes: 4,
-						frontendIPConfigName: 'public-ip-config' //this name should match one created in ipConfigs []
-					}
-				]
+						{
+							
+							privateIpAllocationMethod: 'Dynamic',
+							isPublic: true,
+							publicIpAddress: {
+								id: '/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/publicIPAddresses/test-ipaddress' // existing id from azure
+							}
+						},
+					ports: [
+						{
+							name: 'port-1',
+							protocol: 'Tcp',
+							target: 80,
+							published: 80,
+							idleTimeoutInMinutes: 30,
+							loadDistribution: 'Default',
+							enableFloatingIP: false,
+							disableOutboundSnat: true,
+							addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
+							lbIpConfigName: 'public-ip-config', //this name should match one created in ipConfigs []
+							
+							healthProbePort: 80,
+							healthProbeProtocol: 'Http',
+							healthProbeRequestPath: '/',
+							maxFailureAttempts: 20,
+							healthProbeInterval: 10
+						}
+					],
+					// natPools or natRules, both at the same time doesn't work
+					natPools: [
+						{
+							name: 'nat-pool-1',
+							backendPort: 8080,
+							protocol: 'Tcp',
+							enableFloatingIP: false,
+							frontendPortRangeStart: 30000,
+							frontendPortRangeEnd: 30010,
+							idleTimeoutInMinutes: 4,
+							frontendIPConfigName: 'public-ip-config' //this name should match one created in ipConfigs []
+						}
+					]
+				}]
+				
 			};
 			let expectedRes = {
 				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1",
@@ -281,7 +333,7 @@ describe("testing /lib/azure/index.js", function () {
 				done();
 			});
 		});
-
+		
 		it("Success 2", function (done) {
 			info = dD();
 			options = info.deployCluster;
@@ -456,48 +508,52 @@ describe("testing /lib/azure/index.js", function () {
 						name: 'tester-lb-address-pool'
 					}
 				],
-				ipConfigs: [
+				rules: [{
+					name: 'private-ip-config',
+					config:
 					// all configs should be public or not, you cannot have one public and the other private
-					{
-						name: 'private-ip-config',
-						privateIpAllocationMethod: 'Static',
-						privateIpAddress: '10.2.0.10',
-						isPublic: false,
-						subnetId: '/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-network/subnets/test-subnet' // existing id from azure
-					}
-				],
-				ports: [
-					{
-						name: 'port-1',
-						protocol: 'Tcp',
-						target: 80,
-						published: 80,
-						idleTimeoutInMinutes: 30,
-						loadDistribution: 'Default',
-						enableFloatingIP: false,
-						disableOutboundSnat: true,
-						addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
-						lbIpConfigName: 'private-ip-config', //this name should match one created in ipConfigs []
-
-						healthProbePort: 80,
-						healthProbeProtocol: 'Http',
-						healthProbeRequestPath: '/',
-						maxFailureAttempts: 20,
-						healthProbeInterval: 10
-					}
-				],
-				// natPools or natRules, both at the same time doesn't work
-				natRules: [
-					{
-						name: 'nat-rule-1',
-						backendPort: 8081,
-						protocol: 'Tcp',
-						enableFloatingIP: false,
-						frontendPort: 30011,
-						idleTimeoutInMinutes: 4,
-						frontendIPConfigName: 'private-ip-config' //this name should match one created in ipConfigs []
-					}
-				],
+						{
+							privateIpAllocationMethod: 'Static',
+							privateIpAddress: '10.2.0.10',
+							isPublic: false,
+							subnet: {
+								id: '/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-network/subnets/test-subnet' // existing id from azure
+							}
+						},
+					ports: [
+						{
+							name: 'port-1',
+							protocol: 'Tcp',
+							target: 80,
+							published: 80,
+							idleTimeoutInMinutes: 30,
+							loadDistribution: 'Default',
+							enableFloatingIP: false,
+							disableOutboundSnat: true,
+							addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
+							lbIpConfigName: 'private-ip-config', //this name should match one created in ipConfigs []
+							
+							healthProbePort: 80,
+							healthProbeProtocol: 'Http',
+							healthProbeRequestPath: '/',
+							maxFailureAttempts: 20,
+							healthProbeInterval: 10
+						}
+					],
+					// natPools or natRules, both at the same time doesn't work
+					natRules: [
+						{
+							name: 'nat-rule-1',
+							backendPort: 8081,
+							protocol: 'Tcp',
+							enableFloatingIP: false,
+							frontendPort: 30011,
+							idleTimeoutInMinutes: 4,
+							frontendIPConfigName: 'private-ip-config' //this name should match one created in ipConfigs []
+						}
+					],
+				}],
+				
 			};
 			let expectedRes =
 				{
@@ -514,7 +570,7 @@ describe("testing /lib/azure/index.js", function () {
 				done();
 			});
 		});
-
+		
 		it("failure no ipConfigs and addressPools", function (done) {
 			info = dD();
 			options = info.deployCluster;
@@ -536,58 +592,59 @@ describe("testing /lib/azure/index.js", function () {
 				group: 'testcase',
 				name: 'tester-lb-2',
 				region: 'centralus',
-				ports: [
-					{
-						name: 'port-1',
-						protocol: 'Tcp',
-						target: 80,
-						published: 80,
-						idleTimeoutInMinutes: 30,
-						loadDistribution: 'Default',
-						enableFloatingIP: false,
-						disableOutboundSnat: true,
-						addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
-						lbIpConfigName: 'private-ip-config', //this name should match one created in ipConfigs []
-
-						healthProbePort: 80,
-						healthProbeProtocol: 'Http',
-						healthProbeRequestPath: '/',
-						maxFailureAttempts: 20,
-						healthProbeInterval: 10
-					}
-				],
-				// natPools or natRules, both at the same time doesn't work
-				natRules: [
-					{
-						name: 'nat-rule-1',
-						backendPort: 8081,
-						protocol: 'Tcp',
-						enableFloatingIP: false,
-						frontendPort: 30011,
-						idleTimeoutInMinutes: 4,
-						frontendIPConfigName: 'private-ip-config' //this name should match one created in ipConfigs []
-					}
-				],
-				natPools: [
-					{
-						name: 'nat-pool-1',
-						backendPort: 8080,
-						protocol: 'Tcp',
-						enableFloatingIP: false,
-						frontendPortRangeStart: 30000,
-						frontendPortRangeEnd: 30010,
-						idleTimeoutInMinutes: 4,
-						frontendIPConfigName: 'public-ip-config' //this name should match one created in ipConfigs []
-					}
-				]
-
+				rules: [{
+					ports: [
+						{
+							name: 'port-1',
+							protocol: 'Tcp',
+							target: 80,
+							published: 80,
+							idleTimeoutInMinutes: 30,
+							loadDistribution: 'Default',
+							enableFloatingIP: false,
+							disableOutboundSnat: true,
+							addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
+							lbIpConfigName: 'private-ip-config', //this name should match one created in ipConfigs []
+							
+							healthProbePort: 80,
+							healthProbeProtocol: 'Http',
+							healthProbeRequestPath: '/',
+							maxFailureAttempts: 20,
+							healthProbeInterval: 10
+						}
+					],
+					// natPools or natRules, both at the same time doesn't work
+					natRules: [
+						{
+							name: 'nat-rule-1',
+							backendPort: 8081,
+							protocol: 'Tcp',
+							enableFloatingIP: false,
+							frontendPort: 30011,
+							idleTimeoutInMinutes: 4,
+							frontendIPConfigName: 'private-ip-config' //this name should match one created in ipConfigs []
+						}
+					],
+					natPools: [
+						{
+							name: 'nat-pool-1',
+							backendPort: 8080,
+							protocol: 'Tcp',
+							enableFloatingIP: false,
+							frontendPortRangeStart: 30000,
+							frontendPortRangeEnd: 30010,
+							idleTimeoutInMinutes: 4,
+							frontendIPConfigName: 'public-ip-config' //this name should match one created in ipConfigs []
+						}
+					]
+				}],
 			};
 			service.createLoadBalancer(options, function (error, response) {
 				assert.ok(error);
 				done();
 			});
 		});
-
+		
 		it("failure ip configurations aren't the same", function (done) {
 			info = dD();
 			options = info.deployCluster;
@@ -609,63 +666,109 @@ describe("testing /lib/azure/index.js", function () {
 				group: 'testcase',
 				name: 'tester-lb-2',
 				region: 'centralus',
-				ipConfigs: [
+				rules: [{
+					name: 'private-ip-config',
+					config:
 					// all configs should be public or not, you cannot have one public and the other private
+						{
+							
+							privateIpAllocationMethod: 'Static',
+							privateIpAddress: '10.2.0.10',
+							isPublic: false,
+							subnet: {
+								id: '/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-network/subnets/test-subnet' // existing id from azure
+							}
+							
+						},
+					ports: [
+						{
+							name: 'port-1',
+							protocol: 'Tcp',
+							target: 80,
+							published: 80,
+							idleTimeoutInMinutes: 30,
+							loadDistribution: 'Default',
+							enableFloatingIP: false,
+							disableOutboundSnat: true,
+							addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
+							lbIpConfigName: 'private-ip-config', //this name should match one created in ipConfigs []
+							
+							healthProbePort: 80,
+							healthProbeProtocol: 'Http',
+							healthProbeRequestPath: '/',
+							maxFailureAttempts: 20,
+							healthProbeInterval: 10
+						}
+					],
+					// natPools or natRules, both at the same time doesn't work
+					natRules: [
+						{
+							name: 'nat-rule-1',
+							backendPort: 8081,
+							protocol: 'Tcp',
+							enableFloatingIP: false,
+							frontendPort: 30011,
+							idleTimeoutInMinutes: 4,
+							frontendIPConfigName: 'private-ip-config' //this name should match one created in ipConfigs []
+						}
+					]
+				},
 					{
 						name: 'private-ip-config',
-						privateIpAllocationMethod: 'Static',
-						privateIpAddress: '10.2.0.10',
-						isPublic: false,
-						subnetId: '/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-network/subnets/test-subnet' // existing id from azure
-					},
-					{
-						name: 'private-ip-config',
-						privateIpAllocationMethod: 'Static',
-						privateIpAddress: '10.2.0.10',
-						isPublic: true,
-						subnetId: '/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-network/subnets/test-subnet' // existing id from azure
-					}
-				],
-				ports: [
-					{
-						name: 'port-1',
-						protocol: 'Tcp',
-						target: 80,
-						published: 80,
-						idleTimeoutInMinutes: 30,
-						loadDistribution: 'Default',
-						enableFloatingIP: false,
-						disableOutboundSnat: true,
-						addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
-						lbIpConfigName: 'private-ip-config', //this name should match one created in ipConfigs []
-
-						healthProbePort: 80,
-						healthProbeProtocol: 'Http',
-						healthProbeRequestPath: '/',
-						maxFailureAttempts: 20,
-						healthProbeInterval: 10
-					}
-				],
-				// natPools or natRules, both at the same time doesn't work
-				natRules: [
-					{
-						name: 'nat-rule-1',
-						backendPort: 8081,
-						protocol: 'Tcp',
-						enableFloatingIP: false,
-						frontendPort: 30011,
-						idleTimeoutInMinutes: 4,
-						frontendIPConfigName: 'private-ip-config' //this name should match one created in ipConfigs []
-					}
-				]
-
+						config:
+						// all configs should be public or not, you cannot have one public and the other private
+							
+							{
+								name: 'private-ip-config',
+								privateIpAllocationMethod: 'Static',
+								privateIpAddress: '10.2.0.10',
+								isPublic: true,
+								subnet: {
+									id: '/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-network/subnets/test-subnet' // existing id from azure
+								}
+							},
+						ports: [
+							{
+								name: 'port-1',
+								protocol: 'Tcp',
+								target: 80,
+								published: 80,
+								idleTimeoutInMinutes: 30,
+								loadDistribution: 'Default',
+								enableFloatingIP: false,
+								disableOutboundSnat: true,
+								addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
+								lbIpConfigName: 'private-ip-config', //this name should match one created in ipConfigs []
+								
+								healthProbePort: 80,
+								healthProbeProtocol: 'Http',
+								healthProbeRequestPath: '/',
+								maxFailureAttempts: 20,
+								healthProbeInterval: 10
+							}
+						],
+						// natPools or natRules, both at the same time doesn't work
+						natRules: [
+							{
+								name: 'nat-rule-1',
+								backendPort: 8081,
+								protocol: 'Tcp',
+								enableFloatingIP: false,
+								frontendPort: 30011,
+								idleTimeoutInMinutes: 4,
+								frontendIPConfigName: 'private-ip-config' //this name should match one created in ipConfigs []
+							}
+						]
+					}],
+				
+				
 			};
 			service.createLoadBalancer(options, function (error, response) {
 				assert.ok(error);
 				done();
 			});
 		});
-
+		
 		it("failure natPools and natRules are both supplied", function (done) {
 			info = dD();
 			options = info.deployCluster;
@@ -687,68 +790,155 @@ describe("testing /lib/azure/index.js", function () {
 				group: 'testcase',
 				name: 'tester-lb-2',
 				region: 'centralus',
-				ipConfigs: [
+				rules: [{
+					name: 'private-ip-config',
+					config:
 					// all configs should be public or not, you cannot have one public and the other private
+						{
+							name: 'private-ip-config',
+							privateIpAllocationMethod: 'Static',
+							privateIpAddress: '10.2.0.10',
+							isPublic: false,
+							subnet: {
+								id: '/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-network/subnets/test-subnet' // existing id from azure
+							}
+						},
+					ports: [
+						{
+							name: 'port-1',
+							protocol: 'Tcp',
+							target: 80,
+							published: 80,
+							idleTimeoutInMinutes: 30,
+							loadDistribution: 'Default',
+							enableFloatingIP: false,
+							disableOutboundSnat: true,
+							addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
+							lbIpConfigName: 'private-ip-config', //this name should match one created in ipConfigs []
+							
+							healthProbePort: 80,
+							healthProbeProtocol: 'Http',
+							healthProbeRequestPath: '/',
+							maxFailureAttempts: 20,
+							healthProbeInterval: 10
+						}
+					],
+					// natPools or natRules, both at the same time doesn't work
+					natRules: [
+						{
+							name: 'nat-rule-1',
+							backendPort: 8081,
+							protocol: 'Tcp',
+							enableFloatingIP: false,
+							frontendPort: 30011,
+							idleTimeoutInMinutes: 4,
+							frontendIPConfigName: 'private-ip-config' //this name should match one created in ipConfigs []
+						}
+					],
+					natPools: [
+						{
+							name: 'nat-pool-1',
+							backendPort: 8080,
+							protocol: 'Tcp',
+							enableFloatingIP: false,
+							frontendPortRangeStart: 30000,
+							frontendPortRangeEnd: 30010,
+							idleTimeoutInMinutes: 4,
+							frontendIPConfigName: 'public-ip-config' //this name should match one created in ipConfigs []
+						}
+					]
+				},
 					{
 						name: 'private-ip-config',
-						privateIpAllocationMethod: 'Static',
-						privateIpAddress: '10.2.0.10',
-						isPublic: false,
-						subnetId: '/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-network/subnets/test-subnet' // existing id from azure
+						config:
+							
+							{
+								
+								privateIpAllocationMethod: 'Static',
+								privateIpAddress: '10.2.0.10',
+								isPublic: false,
+								subnet: {
+									subnetId: '/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-network/subnets/test-subnet' // existing id from azure
+								}
+							},
+						ports: [
+							{
+								name: 'port-1',
+								protocol: 'Tcp',
+								target: 80,
+								published: 80,
+								idleTimeoutInMinutes: 30,
+								loadDistribution: 'Default',
+								enableFloatingIP: false,
+								disableOutboundSnat: true,
+								addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
+								lbIpConfigName: 'private-ip-config', //this name should match one created in ipConfigs []
+								
+								healthProbePort: 80,
+								healthProbeProtocol: 'Http',
+								healthProbeRequestPath: '/',
+								maxFailureAttempts: 20,
+								healthProbeInterval: 10
+							}
+						],
+						// natPools or natRules, both at the same time doesn't work
+						natRules: [
+							{
+								name: 'nat-rule-1',
+								backendPort: 8081,
+								protocol: 'Tcp',
+								enableFloatingIP: false,
+								frontendPort: 30011,
+								idleTimeoutInMinutes: 4,
+								frontendIPConfigName: 'private-ip-config' //this name should match one created in ipConfigs []
+							}
+						],
+						natPools: [
+							{
+								name: 'nat-pool-1',
+								backendPort: 8080,
+								protocol: 'Tcp',
+								enableFloatingIP: false,
+								frontendPortRangeStart: 30000,
+								frontendPortRangeEnd: 30010,
+								idleTimeoutInMinutes: 4,
+								frontendIPConfigName: 'public-ip-config' //this name should match one created in ipConfigs []
+							}
+						]
+					}],
+			};
+			service.createLoadBalancer(options, function (error, response) {
+				assert.ok(error);
+				done();
+			});
+		});
+		
+		it("failure no rules", function (done) {
+			info = dD();
+			options = info.deployCluster;
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+			sinon
+				.stub(serviceUtils, 'getConnector')
+				.returns({
+					loadBalancers: {
+						createOrUpdate: (resourceGroupName, name, params, cb) => {
+							return cb(null, true);
+						}
 					},
+				});
+			options.params = {
+				group: 'testcase',
+				name: 'tester-lb-2',
+				region: 'centralus',
+				addressPools: [
 					{
-						name: 'private-ip-config',
-						privateIpAllocationMethod: 'Static',
-						privateIpAddress: '10.2.0.10',
-						isPublic: false,
-						subnetId: '/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/virtualNetworks/test-network/subnets/test-subnet' // existing id from azure
-					}
-				],
-				ports: [
-					{
-						name: 'port-1',
-						protocol: 'Tcp',
-						target: 80,
-						published: 80,
-						idleTimeoutInMinutes: 30,
-						loadDistribution: 'Default',
-						enableFloatingIP: false,
-						disableOutboundSnat: true,
-						addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
-						lbIpConfigName: 'private-ip-config', //this name should match one created in ipConfigs []
-
-						healthProbePort: 80,
-						healthProbeProtocol: 'Http',
-						healthProbeRequestPath: '/',
-						maxFailureAttempts: 20,
-						healthProbeInterval: 10
-					}
-				],
-				// natPools or natRules, both at the same time doesn't work
-				natRules: [
-					{
-						name: 'nat-rule-1',
-						backendPort: 8081,
-						protocol: 'Tcp',
-						enableFloatingIP: false,
-						frontendPort: 30011,
-						idleTimeoutInMinutes: 4,
-						frontendIPConfigName: 'private-ip-config' //this name should match one created in ipConfigs []
-					}
-				],
-				natPools: [
-					{
-						name: 'nat-pool-1',
-						backendPort: 8080,
-						protocol: 'Tcp',
-						enableFloatingIP: false,
-						frontendPortRangeStart: 30000,
-						frontendPortRangeEnd: 30010,
-						idleTimeoutInMinutes: 4,
-						frontendIPConfigName: 'public-ip-config' //this name should match one created in ipConfigs []
+						name: 'tester-lb-address-pool'
 					}
 				]
-
 			};
 			service.createLoadBalancer(options, function (error, response) {
 				assert.ok(error);
@@ -756,7 +946,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-
+	
 	describe("updateLoadBalancer", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -935,48 +1125,51 @@ describe("testing /lib/azure/index.js", function () {
 						name: 'tester-lb-address-pool'
 					}
 				],
-				ipConfigs: [
-					// all configs should be public or not, you cannot have one public and the other private
-					{
-						name: 'public-ip-config',
-						privateIpAllocationMethod: 'Dynamic',
-						isPublic: true,
-						publicIpAddressId: '/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/publicIPAddresses/test-ipaddress' // existing id from azure
-					}
-				],
-				ports: [
-					{
-						name: 'port-1',
-						protocol: 'Tcp',
-						target: 80,
-						published: 80,
-						idleTimeoutInMinutes: 30,
-						loadDistribution: 'Default',
-						enableFloatingIP: false,
-						disableOutboundSnat: true,
-						addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
-						lbIpConfigName: 'public-ip-config', //this name should match one created in ipConfigs []
-
-						healthProbePort: 80,
-						healthProbeProtocol: 'Http',
-						healthProbeRequestPath: '/',
-						maxFailureAttempts: 20,
-						healthProbeInterval: 10
-					}
-				],
-				// natPools or natRules, both at the same time doesn't work
-				natPools: [
-					{
-						name: 'nat-pool-1',
-						backendPort: 8080,
-						protocol: 'Tcp',
-						enableFloatingIP: false,
-						frontendPortRangeStart: 30000,
-						frontendPortRangeEnd: 30010,
-						idleTimeoutInMinutes: 4,
-						frontendIPConfigName: 'public-ip-config' //this name should match one created in ipConfigs []
-					}
-				]
+				rules: [{
+					name: 'public-ip-config',
+					config: [
+						// all configs should be public or not, you cannot have one public and the other private
+						{
+							privateIpAllocationMethod: 'Dynamic',
+							isPublic: true,
+							publicIpAddressId: '/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/publicIPAddresses/test-ipaddress' // existing id from azure
+						}
+					],
+					ports: [
+						{
+							name: 'port-1',
+							protocol: 'Tcp',
+							target: 80,
+							published: 80,
+							idleTimeoutInMinutes: 30,
+							loadDistribution: 'Default',
+							enableFloatingIP: false,
+							disableOutboundSnat: true,
+							addressPoolName: 'tester-lb-address-pool', //this name should match one created in addressPools []
+							lbIpConfigName: 'public-ip-config', //this name should match one created in ipConfigs []
+							
+							healthProbePort: 80,
+							healthProbeProtocol: 'Http',
+							healthProbeRequestPath: '/',
+							maxFailureAttempts: 20,
+							healthProbeInterval: 10
+						}
+					],
+					// natPools or natRules, both at the same time doesn't work
+					natPools: [
+						{
+							name: 'nat-pool-1',
+							backendPort: 8080,
+							protocol: 'Tcp',
+							enableFloatingIP: false,
+							frontendPortRangeStart: 30000,
+							frontendPortRangeEnd: 30010,
+							idleTimeoutInMinutes: 4,
+							frontendIPConfigName: 'public-ip-config' //this name should match one created in ipConfigs []
+						}
+					]
+				}]
+				
 			};
 			let expectedRes = {
 				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1",
@@ -992,7 +1185,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-
+	
 	describe("calling executeDriver - deleteLoadBalancer", function () {
 		afterEach((done) => {
 			sinon.restore();
