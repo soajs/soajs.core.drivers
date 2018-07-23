@@ -38,6 +38,15 @@ const helper = {
 					if (opts.vm.storageProfile.osDisk.osType) record.tasks[0].ref.os.type = opts.vm.storageProfile.osDisk.osType;
 					if (opts.vm.storageProfile.osDisk.diskSizeGB) record.tasks[0].ref.os.diskSizeGB = opts.vm.storageProfile.osDisk.diskSizeGB;
 				}
+				if (opts.vm.storageProfile.imageReference) {
+					record.tasks[0].ref.os.image = {};
+					if (opts.vm.storageProfile.imageReference.publisher) record.tasks[0].ref.os.image.prefix = opts.vm.storageProfile.imageReference.publisher;
+					if (opts.vm.storageProfile.imageReference.offer) {
+						record.tasks[0].ref.os.image.name = opts.vm.storageProfile.imageReference.offer;
+						if (opts.vm.storageProfile.imageReference.sku) record.tasks[0].ref.os.image.name += "-" + opts.vm.storageProfile.imageReference.sku;
+					}
+					if (opts.vm.storageProfile.imageReference.version) record.tasks[0].ref.os.image.version = opts.vm.storageProfile.imageReference.version;
+				}
 				if(opts.vm.storageProfile.dataDisks) {
 					record.voluming.volumes = [];
 					opts.vm.storageProfile.dataDisks.forEach(function(oneDisk) {
