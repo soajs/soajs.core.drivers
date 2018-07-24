@@ -92,34 +92,34 @@ const lbs = {
 			                    if(oneRule.config.privateIpAddress) {
 				                    oneIpConfig.privateIpAddress = oneRule.config.privateIpAddress;
 			                    }
-			
+
 			                    if(oneIpConfig.isPublic && oneRule.config.publicIpAddress && oneRule.config.publicIpAddress.id) {
 				                    oneIpConfig.publicIpAddressId = oneRule.config.publicIpAddress.id;
 			                    }
 			                    else if(!oneIpConfig.isPublic && oneRule.config.subnet && oneRule.config.subnet.id) {
 				                    oneIpConfig.subnetId = oneRule.config.subnet.id;
 			                    }
-			
+
 			                    mapping.ipConfigs.push(oneIpConfig);
 		                    }
-		
+
 		                    if(oneRule.ports && Array.isArray(oneRule.ports) && oneRule.ports.length > 0) {
 			                    oneRule.ports.map((onePort) => { onePort.ipConfigName = oneRule.name; });
 			                    mapping.ports = mapping.ports.concat(oneRule.ports);
 		                    }
-		
+
 		                    if(oneRule.natRules && Array.isArray(oneRule.natRules) && oneRule.natRules.length > 0) {
 			                    oneRule.natRules.map((oneNatRule) => { oneNatRule.ipConfigName = oneRule.name; });
 			                    mapping.natRules = mapping.natRules.concat(oneRule.natRules);
 		                    }
-		
+
 		                    if(oneRule.natPools && Array.isArray(oneRule.natPools) && oneRule.natPools.length > 0) {
 			                    oneRule.natPools.map((oneNatPool) => { oneNatPool.ipConfigName = oneRule.name; });
 			                    mapping.natPools = mapping.natPools.concat(oneRule.natPools);
 		                    }
 	                    });
                     }
-                   
+
 
                     options.params = mapping;
                     return callback(null, true);
@@ -162,7 +162,7 @@ const lbs = {
                     return callback(null, true);
                 }
 
-                function createLb(result, callback) {
+                function applyLbConfig(result, callback) {
                     options.soajs.log.debug(`Step 3: Applying laod balancer ${options.params.name} basic settings ...`);
                     let params = {
                         location: options.params.region,
@@ -181,35 +181,50 @@ const lbs = {
                 function applyLbRules(result, callback) {
                     options.soajs.log.debug(`Step 4: Applying laod balancer ${options.params.name} rules and probes ...`);
                     let portsConfig = lbs.buildLoadBalancerRules(options.params.ports, { subscriptionId: options.infra.api.subscriptionId, group: options.params.group, lbName: options.params.name });
-                    result.createLb.loadBalancingRules = portsConfig.lbRules;
-                    result.createLb.probes = portsConfig.lbProbes;
+                    let params = {
+                        location: options.params.region,
+                        loadBalancingRules: portsConfig.lbRules,
+                        probes: portsConfig.lbProbes,
+                        inboundNatPools: [],
+                        inboundNatRules: [],
+
+                        backendAddressPools: lbs.buildAddressPoolsConfig(options.params.addressPools),
+                        frontendIPConfigurations: lbs.computeFrontendIpConfigs(options.params.ipConfigs, { subscriptionId: options.infra.api.subscriptionId, group: options.params.group }),
+                    };
 
                     // one of NAT pools or NAT rules can be applied, they cannot coexist on the same load balancer
                     if(options.params.natPools && Array.isArray(options.params.natPools) && options.params.natPools.length > 0) {
-                        result.createLb.inboundNatPools = lbs.buildInboundNATPools(options.params.natPools, { subscriptionId: options.infra.api.subscriptionId, group: options.params.group, lbName: options.params.name });
+                        params.inboundNatPools = lbs.buildInboundNATPools(options.params.natPools, { subscriptionId: options.infra.api.subscriptionId, group: options.params.group, lbName: options.params.name });
                     }
                     else if(options.params.natRules && Array.isArray(options.params.natRules) && options.params.natRules.length > 0) {
-                        result.createLb.inboundNatRules = lbs.buildInboundNATRules(options.params.natRules, { subscriptionId: options.infra.api.subscriptionId, group: options.params.group, lbName: options.params.name });
+                        params.inboundNatRules = lbs.buildInboundNATRules(options.params.natRules, { subscriptionId: options.infra.api.subscriptionId, group: options.params.group, lbName: options.params.name });
                     }
 
-                    networkClient.loadBalancers.createOrUpdate(options.params.group, options.params.name, result.createLb, function (error, response) {
+                    networkClient.loadBalancers.createOrUpdate(options.params.group, options.params.name, params, function (error, response) {
                         if(error) return callback(error);
                         return callback(null, response);
                     });
                 }
 
-                async.auto({
+                let steps = {
                     map,
                     validate: ['map', validate],
-                    createLb: ['validate', createLb],
-                    applyLbRules: ['createLb', applyLbRules]
-                }, function(error, results) {
+                    stepOne: ['validate', applyLbConfig],
+                    stepTwo: ['stepOne', applyLbRules]
+                };
+
+                if(options.params.reverseUpdate) {
+                    steps.stepOne = ['validate', applyLbRules];
+                    steps.stepTwo = ['stepOne', applyLbConfig];
+                }
+
+                async.auto(steps, function(error, results) {
                     utils.checkError(error, (error && error.code) ? error.code : 749, cb, () => {
-                        let lbInfo = results.applyLbRules.id.split('/');
+                        let lbInfo = results.stepTwo.id.split('/');
                         return cb(null, {
-                            id: results.applyLbRules.id,
-                            name: results.applyLbRules.name,
-                            region: results.applyLbRules.location,
+                            id: results.stepTwo.id,
+                            name: results.stepTwo.name,
+                            region: results.stepTwo.location,
                             group: lbInfo[lbInfo.indexOf('resourceGroups') + 1]
                         });
                     });
@@ -226,7 +241,27 @@ const lbs = {
     * @return {void}
     */
     update: function(options, cb) {
-        return lbs.create(options, cb);
+        driverUtils.authenticate(options, (error, authData) => {
+            utils.checkError(error, 700, cb, () => {
+                const networkClient = driverUtils.getConnector({
+                    api: 'network',
+                    credentials: authData.credentials,
+                    subscriptionId: options.infra.api.subscriptionId
+                });
+                networkClient.loadBalancers.get(options.params.group, options.params.name, function (error, lbRecord) {
+                    utils.checkError(error, 732, cb, () => {
+                        // if one or more ip rules were deleted:
+                        // -> delete ports/nats for this ip rule
+                        // -> then delete ip rule config
+                        // if one or more ip rules were added:
+                        // -> create ip rule config
+                        // -> create ports/nats for the ip rule
+                        options.params.reverseUpdate = lbs.detectReverseUpdate(options, lbRecord);
+                        return lbs.create(options, cb);
+                    });
+                });
+            });
+        });
     },
 
     /**
@@ -240,12 +275,12 @@ const lbs = {
         options.soajs.log.debug(`Deleting load Balancer ${options.params.name}`);
         driverUtils.authenticate(options, (error, authData) => {
             utils.checkError(error, 700, cb, () => {
-                const resourceClient = driverUtils.getConnector({
+                const networkClient = driverUtils.getConnector({
                     api: 'network',
                     credentials: authData.credentials,
                     subscriptionId: options.infra.api.subscriptionId
                 });
-                resourceClient.loadBalancers.deleteMethod(options.params.group, options.params.name, function (error, response) {
+                networkClient.loadBalancers.deleteMethod(options.params.group, options.params.name, function (error, response) {
                     utils.checkError(error, 741, cb, () => {
                         return cb(null, true);
                     });
@@ -414,6 +449,37 @@ const lbs = {
 
         return inboundNatRulesOutput;
     },
+
+    /**
+    * Detect if the lb rules should be applied before the configuration
+
+    * @param  {Object}   options  Data passed to function as params
+    * @param  {Object}   lbRecord The record of the current load balancer
+    * @return {boolean}
+    */
+    detectReverseUpdate: function(options, lbRecord) {
+        let reverseUpdate = false;
+
+        if(lbRecord && lbRecord.frontendIPConfigurations && Array.isArray(lbRecord.frontendIPConfigurations) && lbRecord.frontendIPConfigurations.length > 0) {
+            if(options.params && options.params.rules && Array.isArray(options.params.rules) && options.params.rules.length > 0) {
+                let detectDeletedRules = false;
+                lbRecord.frontendIPConfigurations.forEach((oneIpConfig) => {
+                    let foundRule = options.params.rules.find((oneRule) => {
+                        return oneRule.name === oneIpConfig.name;
+                    });
+
+                    if(!foundRule) detectDeletedRules = true;
+                });
+
+                if(detectDeletedRules) reverseUpdate = true;
+            }
+            else {
+                reverseUpdate = true;
+            }
+        }
+
+        return reverseUpdate;
+    }
 
 };
 
