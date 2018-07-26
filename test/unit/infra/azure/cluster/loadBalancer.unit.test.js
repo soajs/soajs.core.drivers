@@ -1113,6 +1113,45 @@ describe("testing /lib/azure/index.js", function () {
 									"etag": "W/\"6ff8a904-2a35-499c-955c-a0ba279542c6\""
 								})
 							}
+						},
+						get: (resourceGroupName, name, cb) => {
+							return cb(null, {
+								"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1",
+								"name": "tester-lb-1",
+								"type": "Microsoft.Network/loadBalancers",
+								"location": "centralus",
+								"tags": {},
+								"sku": {
+									"name": "Basic"
+								},
+								"frontendIPConfigurations": [
+									{
+										"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1/frontendIPConfigurations/public-ip-config",
+										"privateIPAllocationMethod": "Dynamic",
+										"publicIPAddress": {
+											"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/publicIPAddresses/test-ipaddress"
+										},
+										"provisioningState": "Succeeded",
+										"name": "public-ip-config",
+										"etag": "W/\"b7e3974e-4950-49da-b328-d09c330d7a32\""
+									}
+								],
+								"backendAddressPools": [
+									{
+										"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/testcase/providers/Microsoft.Network/loadBalancers/tester-lb-1/backendAddressPools/tester-lb-address-pool",
+										"provisioningState": "Succeeded",
+										"name": "tester-lb-address-pool",
+										"etag": "W/\"b7e3974e-4950-49da-b328-d09c330d7a32\""
+									}
+								],
+								"loadBalancingRules": [],
+								"probes": [],
+								"inboundNatRules": [],
+								"inboundNatPools": [],
+								"resourceGuid": "6bf98d10-ab2a-45c0-903c-e0ab8b779e44",
+								"provisioningState": "Succeeded",
+								"etag": "W/\"b7e3974e-4950-49da-b328-d09c330d7a32\""
+							})
 						}
 					},
 				});
