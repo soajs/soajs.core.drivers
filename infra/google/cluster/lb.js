@@ -46,9 +46,10 @@ const GCLB = {
 		
 		let project = request.project;
 		delete request.project;
-		request.zone = stack.options.zone;
+		request.zone = [];
 		request.clusterId = stack.id;
 		options.soajs.log.debug("Getting Cluster network name...");
+		request.name = `projects/${options.infra.api.project}/locations/${stack.options.zone}/clusters/${stack.id}`;
 		v1Container().projects.zones.clusters.get(request, function (err, clusterInformation) {
 			if (err) {
 				options.soajs.log.error(err);

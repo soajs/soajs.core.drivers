@@ -412,7 +412,8 @@ let driver = {
 						//Ref https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1beta1/projects.locations.clusters/get
 						let request = getConnector(options.infra.api);
 						delete request.project;
-						request.zone = cluster.options.zone;
+						request.zone = [];
+						request.name = `projects/${options.infra.api.project}/locations/${cluster.options.zone}/clusters/${cluster.id}`;
 						request.clusterId = cluster.id;
 						options.soajs.log.debug("Getting Cluster Information.");
 						v1Container().projects.zones.clusters.get(request, function (err, clusterInformation) {
@@ -702,10 +703,11 @@ let driver = {
 		//Ref: https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1beta1/projects.zones.clusters/delete
 		let request = getConnector(options.infra.api);
 		let stack = options.infra.stack;
-		request.zone = stack.options.zone;
+		request.zone = [];
 		request.clusterId = stack.id;
 		delete request.project;
 		options.soajs.log.debug("Removing Cluster:", request.clusterId);
+		request.name = `projects/${options.infra.api.project}/locations/${stack.options.zone}/clusters/${stack.id}`;
 		v1Container().projects.zones.clusters.get(request, function (err, clusterInformation) {
 			if (err) {
 				return cb(err);
