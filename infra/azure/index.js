@@ -346,7 +346,11 @@ const driver = {
 	 * @return {void}
 	 */
 	createGroup: function (options, cb) {
-		return groups.create(options, cb);
+		driverUtils.validateInput(options.soajs, options.params, 'group', (error, response) => {
+			utils.checkError(error, (error && error.code) ? error.code : 761, cb, () => {
+				return groups.create(options, cb);
+			});
+		});
 	},
 
 	/**
@@ -370,7 +374,7 @@ const driver = {
 	deleteGroup: function (options, cb) {
 		return groups.delete(options, cb);
 	},
-	
+
 
 	"executeDriver": function(method, options, cb){
 		runCorrespondingDriver(method, options, cb);
