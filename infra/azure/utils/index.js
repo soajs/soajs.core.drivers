@@ -12,7 +12,7 @@ const driver = {
 		if (options && options.infra && options.infra.api && options.infra.api.clientId &&  options.infra.api.secret &&  options.infra.api.domain){
 			azureApi.loginWithServicePrincipalSecret(options.infra.api.clientId, options.infra.api.secret, options.infra.api.domain, function (error, credentials, subscriptions) {
 				if(error) return cb(error);
-				
+
 				return cb(null, { credentials, subscriptions });
 			});
 		}
@@ -20,6 +20,7 @@ const driver = {
 			return cb(new Error("Invalid credentials"));
 		}
 	},
+
 	/**
 	 * Gets the connector to the appropriate azure api
 	 * @param  {Object}   opts  Options passed to function as params
@@ -39,6 +40,42 @@ const driver = {
 				return new AzureComputeManagementClient(opts.credentials, opts.subscriptionId);
 		}
 	},
+
+	validateInput: function (soajs, inputs, extra, cb) {
+		let myValidator = new soajs.validator.Validator();
+		let schema;
+
+		//create a copy of the inputs
+		let inputsCopy = JSON.parse(JSON.stringify(inputs));
+
+		try {
+			schema = require('../schemas/' + extra + '.js')
+		} catch (e) {
+			return cb({
+				code: 761,
+				msg: 'No schema found to validate inputs.'
+			});
+		}
+
+		//delete group from params in case the extra is of type group
+		if (extra === 'group') delete inputsCopy.group;
+
+		let status = myValidator.validate(inputsCopy, schema);
+
+		soajs.log.debug(status);
+
+		if (!status.valid) {
+			let errors = [];
+			status.errors.forEach(function (err) {
+				errors.push(err.stack);
+			});
+			return cb({
+				code: 173,
+				msg: errors.join(" - ")
+			});
+		}
+		else return cb(null, true);
+	}
 };
 
 module.exports = driver;
