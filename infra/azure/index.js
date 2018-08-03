@@ -115,15 +115,7 @@ const driver = {
 	 * @return {void}
 	 */
 	createNetwork: function (options, cb) {
-		utils.validateInput(options.soajs, {
-			'inputs': options.params,
-			'infra': 'azure',
-			'extra': 'network'
-		}, (error, response) => {
-			utils.checkError(error, (error && error.code) ? error.code : 761, cb, () => {
-				return networks.create(options, cb);
-			});
-		});
+		return networks.create(options, cb);
 	},
 
 	/**
@@ -134,15 +126,7 @@ const driver = {
 	 * @return {void}
 	 */
 	updateNetwork: function (options, cb) {
-		utils.validateInput(options.soajs, {
-			'inputs': options.params,
-			'infra': 'azure',
-			'extra': 'network'
-		}, (error, response) => {
-			utils.checkError(error, (error && error.code) ? error.code : 761, cb, () => {
-				return networks.update(options, cb);
-			});
-		});
+		return networks.update(options, cb);
 	},
 
 	/**
@@ -175,15 +159,7 @@ const driver = {
 	 * @return {void}
 	 */
 	createLoadBalancer: function (options, cb) {
-		utils.validateInput(options.soajs, {
-			'inputs': options.params,
-			'infra': 'azure',
-			'extra': 'loadBalancer'
-		}, (error, response) => {
-			utils.checkError(error, (error && error.code) ? error.code : 761, cb, () => {
-				return loadBalancers.create(options, cb);
-			});
-		});
+		return loadBalancers.create(options, cb);
 	},
 
 	/**
@@ -194,15 +170,7 @@ const driver = {
 	 * @return {void}
 	 */
 	updateLoadBalancer: function (options, cb) {
-		utils.validateInput(options.soajs, {
-			'inputs': options.params,
-			'infra': 'azure',
-			'extra': 'loadBalancer'
-		}, (error, response) => {
-			utils.checkError(error, (error && error.code) ? error.code : 761, cb, () => {
-				return loadBalancers.update(options, cb);
-			});
-		});
+		return loadBalancers.update(options, cb);
 	},
 
 	/**
@@ -290,15 +258,7 @@ const driver = {
 	 * @return {void}
 	 */
 	createSecurityGroup: function (options, cb) {
-		utils.validateInput(options.soajs, {
-			'inputs': options.params,
-			'infra': 'azure',
-			'extra': 'securityGroup'
-		}, (error, response) => {
-			utils.checkError(error, (error && error.code) ? error.code : 761, cb, () => {
-				return securityGroups.create(options, cb);
-			});
-		});
+		return securityGroups.create(options, cb);
 	},
 
 	/**
@@ -309,15 +269,7 @@ const driver = {
 	 * @return {void}
 	 */
 	updateSecurityGroup: function (options, cb) {
-		utils.validateInput(options.soajs, {
-			'inputs': options.params,
-			'infra': 'azure',
-			'extra': 'securityGroup'
-		}, (error, response) => {
-			utils.checkError(error, (error && error.code) ? error.code : 761, cb, () => {
-				return securityGroups.update(options, cb);
-			});
-		});
+		return securityGroups.update(options, cb);
 	},
 
 	/**
@@ -350,15 +302,7 @@ const driver = {
 	 * @return {void}
 	 */
 	createPublicIp: function (options, cb) {
-		utils.validateInput(options.soajs, {
-			'inputs': options.params,
-			'infra': 'azure',
-			'extra': 'publicIp'
-		}, (error, response) => {
-			utils.checkError(error, (error && error.code) ? error.code : 761, cb, () => {
-				return ips.create(options, cb);
-			});
-		});
+		return ips.create(options, cb);
 	},
 
 	/**
@@ -369,15 +313,7 @@ const driver = {
 	 * @return {void}
 	 */
 	updatePublicIp: function (options, cb) {
-		utils.validateInput(options.soajs, {
-			'inputs': options.params,
-			'infra': 'azure',
-			'extra': 'publicIp'
-		}, (error, response) => {
-			utils.checkError(error, (error && error.code) ? error.code : 761, cb, () => {
-				return ips.update(options, cb);
-			});
-		});
+		utils.checkError(error, (error && error.code) ? error.code : 761, cb, () => {
 	},
 
 	/**
@@ -410,15 +346,7 @@ const driver = {
 	 * @return {void}
 	 */
 	createGroup: function (options, cb) {
-		utils.validateInput(options.soajs, {
-			'inputs': options.params,
-			'infra': 'azure',
-			'extra': 'group'
-		}, (error, response) => {
-			utils.checkError(error, (error && error.code) ? error.code : 761, cb, () => {
-				return groups.create(options, cb);
-			});
-		});
+		return groups.create(options, cb);
 	},
 
 	/**
@@ -429,15 +357,7 @@ const driver = {
 	 * @return {void}
 	 */
 	updateGroup: function (options, cb) {
-		utils.validateInput(options.soajs, {
-			'inputs': options.params,
-			'infra': 'azure',
-			'extra': 'group'
-		}, (error, response) => {
-			utils.checkError(error, (error && error.code) ? error.code : 761, cb, () => {
-				return groups.update(options, cb);
-			});
-		});
+		return groups.update(options, cb);
 	},
 
 	/**
