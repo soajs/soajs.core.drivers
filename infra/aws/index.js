@@ -12,26 +12,6 @@ const LBDriver = require("./cluster/lb.js");
 const utils = require("./utils/utils");
 function getConnector(opts) {
 	return utils.getConnector(opts, config);
-	// AWS.config.update({
-	// 	credentials: {
-	// 		accessKeyId: opts.keyId,
-	// 		secretAccessKey: opts.secretAccessKey
-	// 	},
-	// 	region: opts.region || config.api.region
-	// });
-	//
-	// switch (opts.api) {
-	// 	case 'ec2':
-	// 		return new AWS.EC2({apiVersion: '2016-11-15'});
-	// 	case 'cloudFormation':
-	// 		return new AWS.CloudFormation({apiVersion: '2010-05-15'});
-	// 	case 'acm':
-	// 		return new AWS.ACM({apiVersion: "2016-11-15"});
-	// 	case 'elb':
-	// 		return new AWS.ELB({apiVersion: '2015-12-01'});
-	// 	default:
-	// 		return new AWS.EC2({apiVersion: '2016-11-15'});
-	// }
 }
 
 function runCorrespondingDriver(method, options, cb) {

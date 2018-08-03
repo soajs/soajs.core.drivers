@@ -65,7 +65,7 @@ const driver = {
 	"getRegions": function (options, cb) {
 		//Ref: https://cloud.google.com/compute/docs/reference/latest/zones/list
 		let request = getConnector(options.infra.api);
-		v1Compute().zones.list(request, function (err, response) {
+		v1Compute().regions.list(request, function (err, response) {
 			if (err) {
 				return cb(err);
 			}

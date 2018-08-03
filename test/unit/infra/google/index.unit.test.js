@@ -374,18 +374,13 @@ describe("testing /lib/google/index.js", function () {
 		let info = dD();
 		let options = info.deployCluster;
 		
-		it("Success", function (done) {
+		it("Success 1", function (done) {
 			let machineip = options.registry.deployer.container.kubernetes.remote.nodes;
 			sinon
 				.stub(googleApi, 'container')
 				.returns({
 					'projects': {
 						'zones': {
-							'operations': {
-								'get': (params, cb) => {
-									return cb(null, { operationType: 'CREATE_CLUSTER', status: 'DONE'})
-								}
-							},
 							'clusters': {
 								'get': (params, cb) => {
 									return cb(null, {
@@ -397,7 +392,19 @@ describe("testing /lib/google/index.js", function () {
 						}
 					}
 				});
-			
+			sinon
+				.stub(googleApi, 'v1beta1container')
+				.returns({
+					'projects': {
+						'zones': {
+							'operations': {
+								'get': (params, cb) => {
+									return cb(null, { operationType: 'CREATE_CLUSTER', status: 'DONE'})
+								}
+							}
+						}
+					}
+				});
 			sinon
 				.stub(K8Api, 'Core')
 				.returns({
@@ -450,18 +457,13 @@ describe("testing /lib/google/index.js", function () {
 		});
 		
 		//need a test case where options2.registry.deployer.container.kubernetes.remote.nodes is not '';
-		it("Success", function (done) {
+		it("Success 2", function (done) {
 			let machineip = options.registry.deployer.container.kubernetes.remote.nodes;
 			sinon
 				.stub(googleApi, 'container')
 				.returns({
 					'projects': {
 						'zones': {
-							'operations': {
-								'get': (params, cb) => {
-									return cb(null, { operationType: 'CREATE_CLUSTER', status: 'DONE'})
-								}
-							},
 							'clusters': {
 								'get': (params, cb) => {
 									return cb(null, {
@@ -473,7 +475,19 @@ describe("testing /lib/google/index.js", function () {
 						}
 					}
 				});
-			
+			sinon
+				.stub(googleApi, 'v1beta1container')
+				.returns({
+					'projects': {
+						'zones': {
+							'operations': {
+								'get': (params, cb) => {
+									return cb(null, { operationType: 'CREATE_CLUSTER', status: 'DONE'})
+								}
+							}
+						}
+					}
+				});
 			sinon
 				.stub(K8Api, 'Core')
 				.returns({
@@ -524,18 +538,13 @@ describe("testing /lib/google/index.js", function () {
 		});
 		
 		//need a test case where v1Container().projects.zones.clusters.get is null
-		it("Success", function (done) {
+		it("Success 3", function (done) {
 			let machineip = options.registry.deployer.container.kubernetes.remote.nodes;
 			sinon
 				.stub(googleApi, 'container')
 				.returns({
 					'projects': {
 						'zones': {
-							'operations': {
-								'get': (params, cb) => {
-									return cb(null, { operationType: 'CREATE_CLUSTER', status: 'DONE'})
-								}
-							},
 							'clusters': {
 								'get': (params, cb) => {
 									return cb(null, null);
@@ -544,7 +553,19 @@ describe("testing /lib/google/index.js", function () {
 						}
 					}
 				});
-			
+			sinon
+				.stub(googleApi, 'v1beta1container')
+				.returns({
+					'projects': {
+						'zones': {
+							'operations': {
+								'get': (params, cb) => {
+									return cb(null, { operationType: 'CREATE_CLUSTER', status: 'DONE'})
+								}
+							}
+						}
+					}
+				});
 			sinon
 				.stub(K8Api, 'Core')
 				.returns({
@@ -596,18 +617,12 @@ describe("testing /lib/google/index.js", function () {
 		});
 		
 		//need a test case where v1Container().projects.zones.operations.get is pending
-		it("Success", function (done) {
-			let machineip = options.registry.deployer.container.kubernetes.remote.nodes;
+		it("Success 4", function (done) {
 			sinon
 				.stub(googleApi, 'container')
 				.returns({
 					'projects': {
 						'zones': {
-							'operations': {
-								'get': (params, cb) => {
-									return cb(null, { operationType: 'CREATE_CLUSTER', status: 'PENDING'})
-								}
-							},
 							'clusters': {
 								'get': (params, cb) => {
 									return cb(null, null);
@@ -616,7 +631,19 @@ describe("testing /lib/google/index.js", function () {
 						}
 					}
 				});
-			
+			sinon
+				.stub(googleApi, 'v1beta1container')
+				.returns({
+					'projects': {
+						'zones': {
+							'operations': {
+								'get': (params, cb) => {
+									return cb(null, { operationType: 'CREATE_CLUSTER', status: 'DONE'})
+								}
+							}
+						}
+					}
+				});
 			sinon
 				.stub(K8Api, 'Core')
 				.returns({
