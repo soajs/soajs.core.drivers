@@ -39,42 +39,6 @@ const driver = {
 			default:
 				return new AzureComputeManagementClient(opts.credentials, opts.subscriptionId);
 		}
-	},
-
-	validateInput: function (soajs, inputs, extra, cb) {
-		let myValidator = new soajs.validator.Validator();
-		let schema;
-
-		//create a copy of the inputs
-		let inputsCopy = JSON.parse(JSON.stringify(inputs));
-
-		try {
-			schema = require('../schemas/' + extra + '.js')
-		} catch (e) {
-			return cb({
-				code: 761,
-				msg: 'No schema found to validate inputs.'
-			});
-		}
-
-		//delete group from params in case the extra is of type group
-		if (extra === 'group') delete inputsCopy.group;
-
-		let status = myValidator.validate(inputsCopy, schema);
-
-		soajs.log.debug(status);
-
-		if (!status.valid) {
-			let errors = [];
-			status.errors.forEach(function (err) {
-				errors.push(err.stack);
-			});
-			return cb({
-				code: 173,
-				msg: errors.join(" - ")
-			});
-		}
-		else return cb(null, true);
 	}
 };
 
