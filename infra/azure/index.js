@@ -313,7 +313,7 @@ const driver = {
 	 * @return {void}
 	 */
 	updatePublicIp: function (options, cb) {
-		utils.checkError(error, (error && error.code) ? error.code : 761, cb, () => {
+		return ips.update(options, cb);
 	},
 
 	/**
