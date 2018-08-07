@@ -167,12 +167,13 @@ const helper = {
 		let record = {};
 
 		if(opts.disk) {
-			if (opts.disk.name) record.name = opts.disk.name;
-			if (opts.disk.id) record.id = opts.disk.id;
-			if (opts.disk.location) record.region = opts.disk.location;
-			if (opts.disk.diskSizeGB) record.diskSizeGB = opts.disk.diskSizeGB;
-			if (opts.disk.type) record.type = opts.disk.type;
-			if (opts.disk.storageType) record.storageType = opts.disk.storageType;
+			if(opts.disk.name) record.name = opts.disk.name;
+			if(opts.disk.id) record.id = opts.disk.id;
+			if(opts.disk.location) record.region = opts.disk.location;
+			if(opts.disk.diskSizeGB) record.diskSizeGB = opts.disk.diskSizeGB;
+			record.type = (opts.disk.osType) ? 'os' : 'data';
+			if(opts.disk.sku && opts.disk.sku.name) record.storageType = opts.disk.sku.name;
+			if(opts.disk.timeCreated) record.created = opts.disk.timeCreated;
 		}
 
 		return record;
