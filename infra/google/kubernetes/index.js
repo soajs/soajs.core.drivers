@@ -411,6 +411,7 @@ let driver = {
 			setTimeout(function () {
 				options.soajs.log.debug("Checking if Cluster is Ready.");
 				//Ref: https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.operations/get
+				request.operationId = cluster.options.operationId;
 				request.name = `projects/${options.infra.api.project}/locations/${cluster.options.zone}/operations/${cluster.options.operationId}`;
 				v1beta1container().projects[type].operations.get(request, function (err, response) {
 					if (err) {
@@ -779,22 +780,89 @@ let driver = {
 								options.soajs.log.error(error);
 							}
 							else {
-								options.soajs.log.debug("waiting 10 min for network propagation before deleting network.");
+								options.soajs.log.debug("waiting 1 min for network propagation before deleting Firewalls.");
 								setTimeout(function () {
 									//cluster deleted, save to remove network
 									//Ref: https://cloud.google.com/compute/docs/reference/latest/networks/delete
-									let request = getConnector(options.infra.api);
-									request.network = clusterInformation.network;
-									options.soajs.log.debug("Removing Network:", clusterInformation.network);
-									v1Compute().networks.delete(request, (error) => {
-										if (error) {
-											options.soajs.log.error(error);
+									let newRequest = getConnector(options.infra.api);
+									newRequest.filter = `network eq .*${clusterInformation.network}`;
+									newRequest.project = options.infra.api.project;
+									options.soajs.log.debug("Removing Firewalls from network: ", clusterInformation.network);
+									
+									//list firewalls
+									//Ref: https://cloud.google.com/compute/docs/reference/rest/v1/firewalls/list
+									v1Compute().firewalls.list(newRequest, function (err, firewalls) {
+										if (err) {
+											options.soajs.log.error(err);
 										}
-										else {
-											options.soajs.log.debug("Cluster and Network Deleted Successfully.");
+										if (!firewalls || !firewalls.items){
+											firewalls.items = [];
 										}
+										async.map(firewalls.items, function (oneFirewall, callback) {
+											delete newRequest.filter;
+											delete newRequest.network;
+											newRequest.firewall = oneFirewall.name;
+											
+											//delete each firewall in parallel calls
+											//Ref: https://cloud.google.com/compute/docs/reference/rest/v1/firewalls/delete
+											v1Compute().firewalls.delete(newRequest, callback);
+										}, function (err, operations) {
+											delete newRequest.firewall;
+											async.each(operations, function (oneOperation, callback) {
+												//check each firewall operation if done
+												globalOperations(newRequest, oneOperation, "Firewall", callback);
+											}, function (err) {
+												if (err){
+													options.soajs.log.error(err);
+												}
+												else {
+													setTimeout(function () {
+														delete newRequest.operation;
+														newRequest.network = clusterInformation.network;
+														request.project = options.infra.api.project;
+														options.soajs.log.debug("Removing Network: ", clusterInformation.network);
+														//delete network
+														//Ref: https://cloud.google.com/compute/docs/reference/latest/networks/delete
+														v1Compute().networks.delete(newRequest, (error, response) => {
+															if (error) {
+																options.soajs.log.error(error);
+															}
+															else {
+																delete newRequest.network;
+																//check each network operation operations is done
+																globalOperations(newRequest, response, "Network", ()=>{
+																	options.soajs.log.debug("Cluster and Network Deleted Successfully.");
+																});
+															}
+														});
+													}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 1000);
+												}
+											});
+											
+										});
 									});
-								}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 10 * 60 * 1000);
+									function globalOperations(request, operation, type, cb){
+										request.operation = operation.name;
+										setTimeout(function () {
+											//Ref: https://cloud.google.com/compute/docs/reference/rest/v1/globalOperations/get
+											v1Compute().globalOperations.get(request, (err, response)=>{
+												if (err){
+													return cb(err);
+												}
+												else {
+													if (response &&  response.status === "DONE"){
+														let links = response.targetLink.split("/");
+														options.soajs.log.debug(`${type} ${links[links.length-1]} deleted Successfully!`);
+														return cb(null, true);
+													}
+													else {
+														globalOperations(request, operation, type, cb);
+													}
+												}
+											});
+										}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 5 * 1000);
+									}
+								}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 60 * 1000);
 							}
 						});
 					}
@@ -803,7 +871,6 @@ let driver = {
 				});
 			});
 		});
-		
 		function checkIfDeleteIsDone(operation, type, vCb) {
 			//Ref: https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.operations/get
 			let request = getConnector(options.infra.api);
@@ -811,6 +878,7 @@ let driver = {
 			options.soajs.log.debug("Checking if Cluster was removed:", stack.id);
 			request.zone = [];
 			request.name = `projects/${options.infra.api.project}/locations/${stack.options.zone}/operations/${operation.name}`;
+			request.operationId = operation.name;
 			v1beta1container().projects[type].operations.get(request, function (err, response) {
 				if (err) {
 					return vCb(err);
@@ -821,7 +889,7 @@ let driver = {
 				}
 				else {
 					setTimeout(function () {
-						checkIfDeleteIsDone(operation, vCb);
+						checkIfDeleteIsDone(operation, type, vCb);
 					}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 60 * 1000);
 				}
 			});
