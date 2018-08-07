@@ -855,10 +855,6 @@ let driver = {
 												}
 												else {
 													if (response && response.status === "DONE") {
-														if (response && response.targetLink) {
-															let links = response.targetLink.split("/");
-															options.soajs.log.debug(`${type} ${links[links.length - 1]} deleted Successfully!`);
-														}
 														return cb(null, true);
 													}
 													else {
