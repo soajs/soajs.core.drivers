@@ -15,58 +15,6 @@ function getConnector(opts) {
 
 const extras = {
 	/**
-	 * List regions available
-	 * @param options
-	 * @param cb
-	 */
-	regionsList: (options, cb) => {
-		let request = getConnector(options.infra.api);
-		v1Compute().regions.list(request, function (err, response) {
-			if (err) {
-				return cb(err);
-			}
-			let regions = [];
-			response.items.forEach(function (oneZone) {
-				if (oneZone.status === 'UP') {
-					regions.push({
-						'l': oneZone.description,
-						'v': oneZone.name
-					})
-				}
-			});
-			return cb(null, {
-				"regions": regions
-			});
-		});
-	},
-	
-	/**
-	 * List zones available
-	 * @param options
-	 * @param cb
-	 */
-	zoneList: (options, cb) => {
-		let request = getConnector(options.infra.api);
-		v1Compute().zones.list(request, function (err, response) {
-			if (err) {
-				return cb(err);
-			}
-			let zones = [];
-			response.items.forEach(function (oneZone) {
-				if (oneZone.status === 'UP') {
-					zones.push({
-						'l': oneZone.description,
-						'v': oneZone.name
-					})
-				}
-			});
-			return cb(null, {
-				"zones": zones
-			});
-		});
-	},
-	
-	/**
 	 * Check if Region exists
 	 * @param options
 	 * @param region

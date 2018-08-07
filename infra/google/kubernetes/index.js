@@ -407,6 +407,7 @@ let driver = {
 		let request = getConnector(options.infra.api);
 		delete request.project;
 		request.zone = [];
+		
 		function checkIfClusterisReady(type, miniCB) {
 			setTimeout(function () {
 				options.soajs.log.debug("Checking if Cluster is Ready.");
@@ -678,7 +679,7 @@ let driver = {
 			}
 			//loop over all the zone ang get the ip of each location found in the zone
 			//if zonal we only have to loop once
-			async.each(zones, function(oneZone, callback) {
+			async.each(zones, function (oneZone, callback) {
 				request.zone = oneZone;
 				v1Compute().instances.list(request, (error, instances) => {
 					if (error) {
@@ -710,8 +711,8 @@ let driver = {
 					}
 					callback();
 				});
-			}, function(err) {
-				if( err ) {
+			}, function (err) {
+				if (err) {
 					return cb(err)
 				} else {
 					return cb(null, response);
@@ -795,8 +796,10 @@ let driver = {
 										if (err) {
 											options.soajs.log.error(err);
 										}
-										if (!firewalls || !firewalls.items){
-											firewalls.items = [];
+										if (!firewalls || !firewalls.items) {
+											firewalls = {
+												items: []
+											}
 										}
 										async.map(firewalls.items, function (oneFirewall, callback) {
 											delete newRequest.filter;
@@ -812,7 +815,7 @@ let driver = {
 												//check each firewall operation if done
 												globalOperations(newRequest, oneOperation, "Firewall", callback);
 											}, function (err) {
-												if (err){
+												if (err) {
 													options.soajs.log.error(err);
 												}
 												else {
@@ -830,7 +833,7 @@ let driver = {
 															else {
 																delete newRequest.network;
 																//check each network operation operations is done
-																globalOperations(newRequest, response, "Network", ()=>{
+																globalOperations(newRequest, response, "Network", () => {
 																	options.soajs.log.debug("Cluster and Network Deleted Successfully.");
 																});
 															}
@@ -841,18 +844,21 @@ let driver = {
 											
 										});
 									});
-									function globalOperations(request, operation, type, cb){
+									
+									function globalOperations(request, operation, type, cb) {
 										request.operation = operation.name;
 										setTimeout(function () {
 											//Ref: https://cloud.google.com/compute/docs/reference/rest/v1/globalOperations/get
-											v1Compute().globalOperations.get(request, (err, response)=>{
-												if (err){
+											v1Compute().globalOperations.get(request, (err, response) => {
+												if (err) {
 													return cb(err);
 												}
 												else {
-													if (response &&  response.status === "DONE"){
-														let links = response.targetLink.split("/");
-														options.soajs.log.debug(`${type} ${links[links.length-1]} deleted Successfully!`);
+													if (response && response.status === "DONE") {
+														if (response && response.targetLink) {
+															let links = response.targetLink.split("/");
+															options.soajs.log.debug(`${type} ${links[links.length - 1]} deleted Successfully!`);
+														}
 														return cb(null, true);
 													}
 													else {
@@ -871,6 +877,7 @@ let driver = {
 				});
 			});
 		});
+		
 		function checkIfDeleteIsDone(operation, type, vCb) {
 			//Ref: https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.operations/get
 			let request = getConnector(options.infra.api);
