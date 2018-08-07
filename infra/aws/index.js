@@ -8,6 +8,7 @@ const ClusterDriver = require("./cluster/cluster.js");
 const utilGlobal = require("../../lib/utils/utils");
 const S3Driver = require("./cluster/s3.js");
 const LBDriver = require("./cluster/lb.js");
+const terraform = require('./terraform');
 
 const utils = require("./utils/utils");
 function getConnector(opts) {
@@ -49,7 +50,7 @@ const driver = {
 		let aws = options.infra.api;
 		let ec2 = getConnector({api: 'ec2', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey});
 		let params = {};
-		
+
 		// Retrieves all regions/endpoints that work with EC2
 		ec2.describeRegions(params, function (error, data) {
 			if (error) {
@@ -63,7 +64,7 @@ const driver = {
 	},
 
 	"getExtras": function (options, cb) {
-		return cb(null, {technologies: ['docker'], templates: ['external'], drivers: ['Cloud Formation'] });
+		return cb(null, {technologies: ['docker', 'vm'], templates: ['external', 'local'], drivers: ['Cloud Formation', 'Terraform'] });
 	},
 
 	/**
@@ -82,11 +83,11 @@ const driver = {
 				return mCb(error, oneDeployment);
 			});
 		}
-		
+
 		function preAPICall(mCb) {
 			runCorrespondingDriver('deployClusterPre', options, mCb);
 		}
-		
+
 		function postAPICall(mCb) {
 			if(myDeployment){
 				runCorrespondingDriver('deployClusterPost', options, mCb);
@@ -95,7 +96,7 @@ const driver = {
 				return mCb();
 			}
 		}
-		
+
 		let stages = [preAPICall, callAPI, postAPICall];
 		async.series(stages, (error) => {
 			if (error) {
@@ -104,7 +105,7 @@ const driver = {
 			return cb(null, myDeployment);
 		});
 	},
-	
+
 	/**
 	 * This method takes the id of the stack as an input and check if the stack has been deployed
 	 * it returns the ip that can be used to access the machine
@@ -115,7 +116,7 @@ const driver = {
 	"getDeployClusterStatus": function (options, cb) {
 		options.soajs.log.debug("Checking if Cluster is healthy ...");
 		let stack = options.infra.stack;
-		
+
 		//get the environment record
 		if (options.soajs.registry.deployer.container[stack.technology].remote.nodes && options.soajs.registry.deployer.container[stack.technology].remote.nodes !== '') {
 			let machineIp = options.soajs.registry.deployer.container[stack.technology].remote.nodes;
@@ -148,11 +149,11 @@ const driver = {
 			});
 		}
 	},
-	
+
 	"getDNSInfo": function (options, cb) {
 		LBDriver.getDNSInfo(options, cb);
 	},
-	
+
 	/**
 	 * This method returns the available deployment regions at aws
 	 * @param options
@@ -179,58 +180,58 @@ const driver = {
 			{v: 'ap-southeast-2', 'l': 'Asia Pacific (Sydney)'},
 			{v: 'sa-east-1', 'l': 'South America (São Paulo)'}
 		];
-		
+
 		return cb(null, response);
 	},
-	
+
 	"scaleCluster": function (options, cb) {
 		ClusterDriver.scaleCluster(options, cb);
 	},
-	
+
 	"getCluster": function (options, cb) {
 		ClusterDriver.getCluster(options, cb);
 	},
-	
+
 	"updateCluster": function (options, cb) {
 		ClusterDriver.updateCluster(options, cb);
 	},
-	
+
 	"deleteCluster": function (options, cb) {
 		ClusterDriver.deleteCluster(options, cb);
 	},
-	
+
 	"publishPorts": function (options, cb) {
 		LBDriver.publishPorts(options, cb);
 	},
-	
+
 	"deployExternalLb": function (options, cb) {
 		LBDriver.deployExternalLb(options, cb);
 	},
-	
+
 	"updateExternalLB": function (options, cb) {
 		LBDriver.updateExternalLB(options, cb);
 	},
-	
+
 	"deleteExternalLB": function (options, cb) {
 		LBDriver.deleteExternalLB(options, cb);
 	},
-	
+
 	"getFiles": function (options, cb) {
 		S3Driver.getFiles(options, cb);
 	},
-	
+
 	'downloadFile': function (options, cb) {
 		S3Driver.downloadFile(options, cb);
 	},
-	
+
 	'deleteFile': function (options, cb) {
 		S3Driver.deleteFile(options, cb);
 	},
-	
+
 	"uploadFile": function (options, cb) {
 		S3Driver.uploadFile(options, cb);
 	},
-	
+
 	"executeDriver": function(method, options, cb){
 		runCorrespondingDriver(method, options, cb);
 	}
