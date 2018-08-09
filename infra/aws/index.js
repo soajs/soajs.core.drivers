@@ -8,7 +8,7 @@ const ClusterDriver = require("./cluster/cluster.js");
 const utilGlobal = require("../../lib/utils/utils");
 const S3Driver = require("./cluster/s3.js");
 const LBDriver = require("./cluster/lb.js");
-const terraform = require('./terraform');
+const Terraform = require('./terraform');
 
 const utils = require("./utils/utils");
 function getConnector(opts) {
@@ -76,7 +76,14 @@ const driver = {
 	"deployCluster": function (options, cb) {
 		let myDeployment;
 		function callAPI(mCb) {
-			ClusterDriver.deployCluster(options, (error, oneDeployment) => {
+			let driver = ClusterDriver.deployCluster;
+
+			// check if a terrafrom template is included in input and invoke terraform driver
+			if(options.params && options.params.template && options.params.template.driver && options.params.template.driver.toLowerCase() === 'terraform') {
+				driver = Terraform.deployCluster;
+			}
+
+			driver(options, (error, oneDeployment) => {
 				if(oneDeployment){
 					myDeployment = oneDeployment;
 				}
@@ -193,11 +200,23 @@ const driver = {
 	},
 
 	"updateCluster": function (options, cb) {
-		ClusterDriver.updateCluster(options, cb);
+		// check if a terrafrom template is included in input and invoke terraform driver
+		let driver = ClusterDriver.updateCluster;
+		if(options.params && options.params.template && options.params.template.driver && options.params.template.driver.toLowerCase() === 'terraform') {
+			driver = Terraform.updateCluster;
+		}
+
+		return driver(options, cb);
 	},
 
 	"deleteCluster": function (options, cb) {
-		ClusterDriver.deleteCluster(options, cb);
+		// check if a terrafrom template is included in input and invoke terraform driver
+		let driver = ClusterDriver.deleteCluster;
+		if(options.params && options.params.template && options.params.template.driver && options.params.template.driver.toLowerCase() === 'terraform') {
+			driver = Terraform.deleteCluster;
+		}
+
+		return driver(options, cb);
 	},
 
 	"publishPorts": function (options, cb) {
