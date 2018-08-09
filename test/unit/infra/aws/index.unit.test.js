@@ -10,8 +10,8 @@ const AWSDriver = helper.requireModule('./infra/aws/utils/utils.js');
 const dockerUtils = helper.requireModule("./lib/container/docker/utils.js");
 const dockerDriver = helper.requireModule("./lib/container/docker/index.js");
 const LBDriver = helper.requireModule("./infra/aws/cluster/lb.js");
-const ClusterDriver = helper.requireModule("./infra/aws/cluster/cluster.js");
 
+//TODO : Move to seperate files (cluster, lb, s3)
 describe("testing /infra/aws/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
 	
