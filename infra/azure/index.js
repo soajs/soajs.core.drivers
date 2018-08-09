@@ -370,7 +370,7 @@ const driver = {
 	deleteGroup: function (options, cb) {
 		return groups.delete(options, cb);
 	},
-	
+
 
 	"executeDriver": function(method, options, cb){
 		runCorrespondingDriver(method, options, cb);
