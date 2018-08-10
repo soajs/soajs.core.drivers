@@ -26,15 +26,16 @@ const helper = {
 				record.IsDefault = !!opts.network.IsDefault;
 			}
 			if (opts.network.State) {
-				record.state = opts.network.available;
+				record.state = opts.network.State;
 			}
 			record.address = [];
-			if (opts.network.opts.CidrBlockAssociationSet
-				&& Array.isArray(opts.network.opts.CidrBlockAssociationSet)
-				&& opts.network.opts.CidrBlockAssociationSet.length > 0) {
-				opts.network.opts.CidrBlockAssociationSet.forEach((oneAddress)=>{
+			if (opts.network.CidrBlockAssociationSet
+				&& Array.isArray(opts.network.CidrBlockAssociationSet)
+				&& opts.network.CidrBlockAssociationSet.length > 0) {
+				opts.network.CidrBlockAssociationSet.forEach((oneAddress)=>{
 					if (oneAddress && oneAddress.CidrBlock){
-						record.address.push(oneAddress);
+						record.address.push(oneAddress.CidrBlock
+						);
 					}
 				});
 			}
@@ -49,7 +50,7 @@ const helper = {
 	
 	buildSubnetkRecord: function (opts) {
 		let record = {};
-		if (opts.subnets){
+		if (opts.subnet){
 			if(opts.subnet.SubnetId){
 				record.id = opts.subnet.SubnetId;
 				record.name = opts.subnet.SubnetId;

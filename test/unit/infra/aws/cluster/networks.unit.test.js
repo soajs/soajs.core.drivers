@@ -17,79 +17,66 @@ describe("testing /lib/aws/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
 			sinon
 				.stub(AWSDriver, 'getConnector')
 				.returns({
 					describeVpcs: (params, cb) => {
-						return cb(null, {
-							"Vpcs": [
-								{
-									"CidrBlock": "172.31.0.0/16",
-									"DhcpOptionsId": "dopt-5ab4fc23",
-									"State": "available",
-									"VpcId": "vpc-a5e482dd",
-									"InstanceTenancy": "default",
-									"Ipv6CidrBlockAssociationSet": [],
-									"CidrBlockAssociationSet": [
-										{
-											"AssociationId": "vpc-cidr-assoc-ec3e5a86",
-											"CidrBlock": "172.31.0.0/16",
-											"CidrBlockState": {
-												"State": "associated"
-											}
-										}
-									],
-									"IsDefault": true,
-									"Tags": []
-								}
-							]
-						});
+						return cb(null, info.listNetworkRaw);
 					},
 					describeSubnets: (params, cb) => {
-						return cb(null, {
-							"Subnets": [
-								{
-									"AvailabilityZone": "us-east-1a",
-									"AvailableIpAddressCount": 4091,
-									"CidrBlock": "172.31.0.0/20",
-									"DefaultForAz": true,
-									"MapPublicIpOnLaunch": true,
-									"State": "available",
-									"SubnetId": "subnet-97c7abf3",
-									"VpcId": "vpc-a5e482dd",
-									"AssignIpv6AddressOnCreation": false,
-									"Ipv6CidrBlockAssociationSet": [],
-									"Tags": []
-								},
-								{
-									"AvailabilityZone": "us-east-1b",
-									"AvailableIpAddressCount": 4090,
-									"CidrBlock": "172.31.80.0/20",
-									"DefaultForAz": true,
-									"MapPublicIpOnLaunch": true,
-									"State": "available",
-									"SubnetId": "subnet-1336e83c",
-									"VpcId": "vpc-a5e482dd",
-									"AssignIpv6AddressOnCreation": false,
-									"Ipv6CidrBlockAssociationSet": [],
-									"Tags": []
-								}
-							
-							]
-						});
+						return cb(null, info.listSubnetRaw);
 					}
 				});
-			let info = dD();
-			let options = info.deployCluster;
+			
 			options.params = {
-				address: '10.0.0.0/16', /* required */
-				AmazonProvidedIpv6CidrBlock: false,
-				DryRun: false,
-				InstanceTenancy: "default",
+				region: 'us-east-1', /* required */
 			};
-			service.createNetwork(options, function (error, response) {
+			service.listNetworks(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
+				assert.deepEqual(response, info.listNetwork)
+				done();
+			});
+		});
+		it("Success empty", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeVpcs: (params, cb) => {
+						return cb(null, null);
+					}
+				});
+			
+			options.params = {
+				region: 'us-east-1'
+			};
+			service.listNetworks(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				assert.deepEqual(response, [])
+				done();
+			});
+		});
+		it("fail", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeVpcs: (params, cb) => {
+						return cb(new Error("test error"));
+					}
+				});
+			
+			options.params = {
+				region: 'us-east-1'
+			};
+			service.listNetworks(options, function (error, response) {
+				assert.ok(error);
 				done();
 			});
 		});
@@ -111,6 +98,7 @@ describe("testing /lib/aws/index.js", function () {
 			let info = dD();
 			let options = info.deployCluster;
 			options.params = {
+				region: 'us-east-1',
 				address: '10.0.0.0/16', /* required */
 				AmazonProvidedIpv6CidrBlock: false,
 				DryRun: false,
@@ -119,6 +107,29 @@ describe("testing /lib/aws/index.js", function () {
 			service.createNetwork(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
+				done();
+			});
+		});
+		it("fail", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					createVpc: (params, cb) => {
+						return cb(new Error("test error"));
+					}
+				});
+			
+			options.params = {
+				address: '10.0.0.0/16', /* required */
+				region: 'us-east-1', /* required */
+				AmazonProvidedIpv6CidrBlock: false,
+				DryRun: false,
+				InstanceTenancy: "default",
+			};
+			service.createNetwork(options, function (error, response) {
+				assert.ok(error);
 				done();
 			});
 		});
@@ -155,6 +166,24 @@ describe("testing /lib/aws/index.js", function () {
 			service.deleteNetwork(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
+				done();
+			});
+		});
+		it("fail", function (done) {
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					deleteVpc: (params, cb) => {
+						return cb(new Error("test error"));
+					}
+				});
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				network: "vpc-a01106c2", /* required */
+			};
+			service.deleteNetwork(options, function (error, response) {
+				assert.ok(error);
 				done();
 			});
 		});

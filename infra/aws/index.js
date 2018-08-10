@@ -309,9 +309,9 @@ const driver = {
 	 * @param  {Function} cb    Callback fspub
 	 * @return {void}listsub
 	 */
-	// listSubnets: function (options, cb) {
-	// 	return subnets.list(options, cb);
-	// },
+	listSubnets: function (options, cb) {
+		return subnets.list(options, cb);
+	},
 	
 	/**
 	 * Create subnet

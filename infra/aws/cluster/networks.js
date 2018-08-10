@@ -35,16 +35,20 @@ const networks = {
 				return cb(err);
 			}
 			if (networks && networks.Vpcs && Array.isArray(networks.Vpcs) && networks.Vpcs.length > 0) {
-				async.map(networks.Vpc, function (network, callback) {
+				async.map(networks.Vpcs, function (network, callback) {
 					options.params.network = network.VpcId;
 					subnetDriver.list(options, (err, subnets) => {
-						return callback(null, helper.buildNetworkRecord({network, region: options.params.region, subnets}));
+						return callback(err, helper.buildNetworkRecord({
+							network,
+							region: options.params.region,
+							subnets
+						}));
 					});
-				}, function (err, networkList) {
-					return cb(null, networkList);
-				});
+				}, cb);
 			}
-			
+			else {
+				return cb(null, []);
+			}
 		});
 	},
 	
