@@ -10,7 +10,7 @@ let dD = require('../../../../schemas/aws/cluster.js');
 
 describe("testing /lib/aws/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
-
+	
 	describe("listSubnets", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -76,34 +76,77 @@ describe("testing /lib/aws/index.js", function () {
 			});
 		});
 	});
-
+	
 	describe("createSubnet", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
 		it("Success", function (done) {
-			done();
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					createSubnet: (params, cb) => {
+						return cb(null, true);
+					}
+				});
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				CidrBlock: '192.168.1.0/16', /* required */
+				VpcId: 'vpc-09fcf25a62b4d020f', /* required */
+				DryRun: false,
+				zone: "us-east-2a",
+				ipv6Address: '2001:cdba:0000:0000:0000:0000:3257:9652'
+				
+			};
+			service.createSubnet(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
 		});
 	});
-
+	
 	describe("updateSubnet", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
 		it("Success", function (done) {
-			done();
+			let info = dD();
+			let options = info.deployCluster;
+			service.updateSubnet(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
 		});
 	});
-
+	
 	describe("deleteSubnet", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
 		it("Success", function (done) {
-			done();
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					deleteSubnet: (params, cb) => {
+						return cb(null, true);
+					}
+				});
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				network: 'vpc-a5e482dd', /* required */
+			};
+			service.deleteSubnet(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
 		});
 	});
 });
