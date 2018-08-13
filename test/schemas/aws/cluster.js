@@ -413,9 +413,9 @@ module.exports = function () {
 					"Tags": []
 				},
 				{
-					"PublicIp": "18.188.243.47",
-					"AllocationId": "eipalloc-01f4e47f257d7316e",
-					"Domain": "vpc",
+					"InstanceId": "i-1234567890abcdef0",
+					"NetworkInterfaceId": "eni-12345678",
+					"PrivateIpAddress": "10.0.1.241",
 					"Tags": []
 				}
 			],
@@ -428,10 +428,10 @@ module.exports = function () {
 				"type": "vpc"
 			},
 			{
-				"id": "eipalloc-01f4e47f257d7316e",
 				"region": "us-east-2",
-				"address": "18.188.243.47",
-				"type": "vpc"
+				"instanceId": "i-1234567890abcdef0",
+				"network": "eni-12345678",
+				"privateAddress": "10.0.1.241"
 			}
 		],
 		"createPublicIpResponse": {
