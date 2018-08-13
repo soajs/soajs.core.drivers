@@ -31,7 +31,7 @@ let infra = {
 				"AWS"
 			],
 			"loadBalancers" : {
-			
+
 			},
 			"name" : "htlocal1234abcdefgh",
 			"id" : "arn:aws:cloudformation:us-east-1:1234567890:stack/htlocal1234abcdefgh/f801dd40-64da-11e8-bf66-50fae98a2435"
@@ -42,7 +42,7 @@ let infra = {
 	],
 	"info": [
 		[
-		
+
 		],
 		[
 			{
@@ -385,7 +385,7 @@ module.exports = function () {
 					"Ipv6CidrBlockAssociationSet": [],
 					"Tags": []
 				}
-			
+
 			]
 		},
 		"listSubnets": [
@@ -403,7 +403,42 @@ module.exports = function () {
 				"state": "available",
 				"availabilityZone": "us-east-1b"
 			}
-		]
+		],
+		"listIpsRaw": {
+			"Addresses": [
+				{
+					"PublicIp": "13.58.241.28",
+					"AllocationId": "eipalloc-0bb2a617994518740",
+					"Domain": "vpc",
+					"Tags": []
+				},
+				{
+					"PublicIp": "18.188.243.47",
+					"AllocationId": "eipalloc-01f4e47f257d7316e",
+					"Domain": "vpc",
+					"Tags": []
+				}
+			],
+		},
+		"listIps": [
+			{
+				"id": "eipalloc-0bb2a617994518740",
+				"region": "us-east-2",
+				"address": "13.58.241.28",
+				"type": "vpc"
+			},
+			{
+				"id": "eipalloc-01f4e47f257d7316e",
+				"region": "us-east-2",
+				"address": "18.188.243.47",
+				"type": "vpc"
+			}
+		],
+		"createPublicIpResponse": {
+			"PublicIp": "18.216.147.194",
+			"AllocationId": "eipalloc-0da3553f242237241",
+			"Domain": "vpc"
+		},
 	};
 	return data;
 };

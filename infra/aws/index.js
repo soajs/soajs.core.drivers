@@ -400,51 +400,51 @@ const driver = {
 	// deleteSecurityGroup: function (options, cb) {
 	// 	return securityGroups.delete(options, cb);
 	// },
-	
+
 	/**
 	 * List available public ips
-	 
+
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
 	 */
-	// listPublicIps: function (options, cb) {
-	// 	return ips.list(options, cb);
-	// },
-	
+	listPublicIps: function (options, cb) {
+		return ips.list(options, cb);
+	},
+
 	/**
 	 * Create public ip
-	 
+
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
 	 */
-	// createPublicIp: function (options, cb) {
-	// 	return ips.create(options, cb);
-	// },
-	
+	createPublicIp: function (options, cb) {
+		return ips.create(options, cb);
+	},
+
 	/**
 	 * Update public ip
-	 
+
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
 	 */
-	// updatePublicIp: function (options, cb) {
-	// 	return ips.update(options, cb);
-	// },
-	
+	updatePublicIp: function (options, cb) {
+		return ips.update(options, cb);
+	},
+
 	/**
 	 * Delete public ip
-	 
+
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
 	 */
-	// deletePublicIp: function (options, cb) {
-	// 	return ips.delete(options, cb);
-	// },
-	
+	deletePublicIp: function (options, cb) {
+		return ips.delete(options, cb);
+	},
+
 	"executeDriver": function(method, options, cb){
 		runCorrespondingDriver(method, options, cb);
 	}
