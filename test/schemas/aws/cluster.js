@@ -440,6 +440,35 @@ module.exports = function () {
 			"AllocationId": "eipalloc-0da3553f242237241",
 			"Domain": "vpc"
 		},
+		"listKeyPairsRaw": {
+			"KeyPairs": [
+				{
+					"KeyFingerprint": "1f:51:ae:28:bf:89:e9:d8:1f:25:5d:37:2d:7d:b8:ca:9f:f5:f1:6f",
+					"KeyName": "my-key-pair"
+				}
+			]
+		},
+		"listKeyPairsRaw2": {
+			"KeyPairs": []
+		},
+		"listKeyPairs": [
+			{
+				"fingerprint": "1f:51:ae:28:bf:89:e9:d8:1f:25:5d:37:2d:7d:b8:ca:9f:f5:f1:6f",
+				"name": "my-key-pair",
+				"region": "us-east-2"
+			}
+		],
+		"createKeyPairRaw": {
+			"KeyFingerprint": "1f:51:ae:28:bf:89:e9:d8:1f:25:5d:37:2d:7d:b8:ca:9f:f5:f1:6f",
+			"KeyName": "my-key-pair",
+			"KeyMaterial": "RSA PRIVATE KEY"
+		},
+		"createKeyPair": {
+			"fingerprint": "1f:51:ae:28:bf:89:e9:d8:1f:25:5d:37:2d:7d:b8:ca:9f:f5:f1:6f",
+			"name": "my-key-pair",
+			"region": "us-east-2"
+			// "KeyMaterial": "RSA PRIVATE KEY"
+		}
 	};
 	return data;
 };

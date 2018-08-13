@@ -12,6 +12,7 @@ const ips = require('./cluster/ips.js');
 const networks = require('./cluster/networks.js');
 const securityGroups = require('./cluster/securityGroups.js');
 const subnets = require('./cluster/subnets.js');
+const keyPairs = require('./cluster/keyPairs.js');
 const utils = require("./utils/utils");
 function getConnector(opts) {
 	return utils.getConnector(opts, config);
@@ -443,6 +444,50 @@ const driver = {
 	 */
 	deletePublicIp: function (options, cb) {
 		return ips.delete(options, cb);
+	},
+
+	/**
+	 * List available public ips
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	listKeyPairs: function (options, cb) {
+		return keyPairs.list(options, cb);
+	},
+
+	/**
+	 * Create Key Pair
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	createKeyPair: function (options, cb) {
+		return keyPairs.create(options, cb);
+	},
+
+	/**
+	 * Update Key Pair
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	updateKeyPair: function (options, cb) {
+		return keyPairs.update(options, cb);
+	},
+
+	/**
+	 * Delete public ip
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	deleteKeyPair: function (options, cb) {
+		return keyPairs.delete(options, cb);
 	},
 
 	"executeDriver": function(method, options, cb){
