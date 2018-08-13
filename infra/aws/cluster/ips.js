@@ -45,7 +45,7 @@ const ips = {
 
 						//TODO: confirm if the below parameters need to be mapped or not
 						if (oneIP.InstanceId) tempObj.instanceId = oneIP.InstanceId;
-						if (oneIP.NetworkInterfaceId) tempObj.networkInterfaceId = oneIP.NetworkInterfaceId;
+						if (oneIP.NetworkInterfaceId) tempObj.network = oneIP.NetworkInterfaceId;
 						if (oneIP.PrivateIpAddress) tempObj.privateAddress = oneIP.PrivateIpAddress;
 
 						ipList.push(tempObj);
