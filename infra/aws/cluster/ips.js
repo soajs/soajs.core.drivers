@@ -38,7 +38,7 @@ const ips = {
 
 					ips.Addresses.forEach((oneIP) => {
 						let tempObj = {};
-						if (oneIP.PublicIp) tempObj.publicAddress = oneIP.PublicIp;
+						if (oneIP.PublicIp) tempObj.address = oneIP.PublicIp;
 						if (oneIP.AllocationId) tempObj.id = oneIP.AllocationId;
 						if (oneIP.Domain) tempObj.type = oneIP.Domain;
 						tempObj.region = options.params.region;
