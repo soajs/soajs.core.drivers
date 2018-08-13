@@ -168,7 +168,6 @@ describe("testing /lib/azure/index.js", function () {
 			service.deletePublicIp(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response, true);
 				done();
 			});
 		});

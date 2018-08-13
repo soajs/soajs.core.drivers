@@ -32,31 +32,29 @@ const ips = {
 			if (error) {
 				return cb(error);
 			}
-			if (ips && ips.Addresses && Array.isArray(ips.Addresses)) {
-				if (ips.Addresses.length > 0) {
-					let ipList = [];
+			if (ips && ips.Addresses && Array.isArray(ips.Addresses) && ips.Addresses.length > 0) {
+				let ipList = [];
 
-					ips.Addresses.forEach((oneIP) => {
-						let tempObj = {};
-						if (oneIP.PublicIp) tempObj.publicAddress = oneIP.PublicIp;
-						if (oneIP.AllocationId) tempObj.id = oneIP.AllocationId;
-						if (oneIP.Domain) tempObj.type = oneIP.Domain;
-						tempObj.region = options.params.region;
+				ips.Addresses.forEach((oneIP) => {
+					let tempObj = {};
+					if (oneIP.PublicIp) tempObj.address = oneIP.PublicIp;
+					if (oneIP.AllocationId) tempObj.id = oneIP.AllocationId;
+					if (oneIP.Domain) tempObj.type = oneIP.Domain;
+					tempObj.region = options.params.region;
 
-						//TODO: confirm if the below parameters need to be mapped or not
-						if (oneIP.InstanceId) tempObj.instanceId = oneIP.InstanceId;
-						if (oneIP.NetworkInterfaceId) tempObj.networkInterfaceId = oneIP.NetworkInterfaceId;
-						if (oneIP.PrivateIpAddress) tempObj.privateAddress = oneIP.PrivateIpAddress;
+					//TODO: confirm if the below parameters need to be mapped or not
+					if (oneIP.InstanceId) tempObj.instanceId = oneIP.InstanceId;
+					if (oneIP.NetworkInterfaceId) tempObj.network = oneIP.NetworkInterfaceId;
+					if (oneIP.PrivateIpAddress) tempObj.privateAddress = oneIP.PrivateIpAddress;
 
-						ipList.push(tempObj);
-					});
+					ipList.push(tempObj);
+				});
 
-					return cb(null, ipList);
-				}
-				else if (ips.Addresses.length === 0){
-					return cb (null, []);
-				}
-		    }
+				return cb(null, ipList);
+			}
+			else {
+				return cb (null, []);
+			}
 		});
     },
 
@@ -80,14 +78,7 @@ const ips = {
 			Domain: options.params.addressType
 		};
 
-		ec2.allocateAddress(params, function (error, response) {
-			if (error) {
-				return cb(error);
-			}
-			else {
-				return cb(null, response);
-			}
-		});
+		ec2.allocateAddress(params, cb);
     },
 
     /**
@@ -121,14 +112,7 @@ const ips = {
 			AllocationId: options.params.id
 		};
 
-		ec2.releaseAddress(params, function (error, response) {
-			if (error) {
-				return cb(error);
-			}
-			else {
-				return cb(null, true);
-			}
-		});
+		ec2.releaseAddress(params, cb);
     }
 };
 
