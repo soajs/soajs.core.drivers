@@ -61,7 +61,26 @@ const subnets = {
 	 * @return {void}listsub
 	 */
 	create: function (options, cb) {
-		return cb(null, true);
+		const aws = options.infra.api;
+		const ec2 = getConnector({
+			api: 'ec2',
+			region: options.params.region,
+			keyId: aws.keyId,
+			secretAccessKey: aws.secretAccessKey
+		});
+		let params = {
+			CidrBlock: options.params.address, /* required */
+			VpcId: options.params.network, /* required */
+			DryRun: false,
+		};
+		if (options.params.zone){
+			params.AvailabilityZone = options.params.zone
+		}
+		if (options.params.ipv6Address){
+			params.Ipv6CidrBlock = options.params.ipv6Address
+		}
+		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#createSubnet-property
+		ec2.createSubnet(params, cb);
 	},
 	
 	/**
@@ -83,7 +102,19 @@ const subnets = {
 	 * @return {void}listsub
 	 */
 	delete: function (options, cb) {
-		return cb(null, true);
+		const aws = options.infra.api;
+		const ec2 = getConnector({
+			api: 'ec2',
+			region: options.params.region,
+			keyId: aws.keyId,
+			secretAccessKey: aws.secretAccessKey
+		});
+		let params = {
+			SubnetId: options.params.subnet, /* required */
+			DryRun: false,
+		};
+		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#createSubnet-property
+		ec2.deleteSubnet(params, cb);
 	}
 	
 };

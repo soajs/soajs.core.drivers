@@ -22,6 +22,9 @@ const helper = {
 			if (opts.network.CidrBlock) {
 				record.primaryAddress = opts.network.CidrBlock;
 			}
+			if (opts.network.InstanceTenancy) {
+				record.instanceTenancy = opts.network.InstanceTenancy;
+			}
 			if (opts.network.IsDefault) {
 				record.IsDefault = !!opts.network.IsDefault;
 			}

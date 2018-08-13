@@ -312,7 +312,7 @@ module.exports = function () {
 					"DhcpOptionsId": "dopt-5ab4fc23",
 					"State": "available",
 					"VpcId": "vpc-a5e482dd",
-					"InstanceTenancy": "default",
+					"InstanceTenancy": "dedicated",
 					"Ipv6CidrBlockAssociationSet": [],
 					"CidrBlockAssociationSet": [
 						{
@@ -350,6 +350,7 @@ module.exports = function () {
 				"name": "vpc-a5e482dd",
 				"id": "vpc-a5e482dd",
 				"state": "available",
+				"instanceTenancy": "dedicated",
 				"primaryAddress": "172.31.0.0/16",
 				"IsDefault": true,
 				"address": [

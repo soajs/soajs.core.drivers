@@ -243,9 +243,9 @@ const driver = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	// updateNetwork: function (options, cb) {
-	// 	return networks.update(options, cb);
-	// },
+	updateNetwork: function (options, cb) {
+		return networks.update(options, cb);
+	},
 	
 	/**
 	 * Delete network
@@ -320,9 +320,9 @@ const driver = {
 	 * @param  {Function} cb    Callback fspub
 	 * @return {void}listsub
 	 */
-	// createSubnet: function (options, cb) {
-	// 	return subnets.create(options, cb);
-	// },
+	createSubnet: function (options, cb) {
+		return subnets.create(options, cb);
+	},
 	
 	/**
 	 * Update subnet
@@ -331,9 +331,9 @@ const driver = {
 	 * @param  {Function} cb    Callback fspub
 	 * @return {void}listsub
 	 */
-	// updateSubnet: function (options, cb) {
-	// 	return subnets.update(options, cb);
-	// },
+	updateSubnet: function (options, cb) {
+		return subnets.update(options, cb);
+	},
 	
 	/**
 	 * Delete subnet
@@ -342,9 +342,9 @@ const driver = {
 	 * @param  {Function} cb    Callback fspub
 	 * @return {void}listsub
 	 */
-	// deleteSubnet: function (options, cb) {
-	// 	return subnets.delete(options, cb);
-	// },
+	deleteSubnet: function (options, cb) {
+		return subnets.delete(options, cb);
+	},
 	
 	/**
 	 * List available securitygroups
