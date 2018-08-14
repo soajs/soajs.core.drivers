@@ -51,7 +51,16 @@ const driver = {
 	},
 
 	"getExtras": function (options, cb) {
-		return cb(null, {technologies: ['docker', 'vm'], templates: ['external', 'local'], drivers: ['Cloud Formation', 'Terraform'] });
+		return cb(null, {
+			technologies: ['docker', 'vm'],
+			templates: ['external', 'local'],
+			drivers: ['Cloud Formation', 'Terraform'],
+			override: {
+				'Cloud Formation': {
+					templates: ['external']
+				}
+			}
+		});
 	},
 
 	/**
