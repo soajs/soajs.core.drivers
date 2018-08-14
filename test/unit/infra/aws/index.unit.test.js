@@ -10,8 +10,8 @@ const AWSDriver = helper.requireModule('./infra/aws/utils/utils.js');
 const dockerUtils = helper.requireModule("./lib/container/docker/utils.js");
 const dockerDriver = helper.requireModule("./lib/container/docker/index.js");
 const LBDriver = helper.requireModule("./infra/aws/cluster/lb.js");
-const ClusterDriver = helper.requireModule("./infra/aws/cluster/cluster.js");
 
+//TODO : Move to seperate files (cluster, lb, s3)
 describe("testing /infra/aws/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
 	
@@ -111,7 +111,7 @@ describe("testing /infra/aws/index.js", function () {
 				.stub(AWSDriver, 'getConnector')
 				.returns({
 					createStack: (params, cb) => {
-						return cb(null, { stackId: options.infra.stack.id });
+						return cb(null, {stackId: options.infra.stack.id});
 					},
 					listObjectsV2: (params, cb) => {
 						return cb(null, {
@@ -425,7 +425,7 @@ describe("testing /infra/aws/index.js", function () {
 						return cb(null, true);
 					},
 					describeInstances: (params, cb) => {
-						if(attempts === 0){
+						if (attempts === 0) {
 							return cb(null, {
 								Reservations: [
 									{
@@ -440,7 +440,7 @@ describe("testing /infra/aws/index.js", function () {
 								]
 							});
 						}
-						else{
+						else {
 							return cb(null, {
 								Reservations: [
 									{
@@ -462,7 +462,7 @@ describe("testing /infra/aws/index.js", function () {
 						}
 					},
 					describeStacks: (params, cb) => {
-						if(attempts === 0){
+						if (attempts === 0) {
 							attempts++;
 							return cb(null, {
 								Stacks: [
@@ -490,7 +490,7 @@ describe("testing /infra/aws/index.js", function () {
 								]
 							});
 						}
-						else{
+						else {
 							return cb(null, {
 								Stacks: [
 									{
@@ -547,7 +547,7 @@ describe("testing /infra/aws/index.js", function () {
 	 */
 	
 	describe("calling publishPorts", function () {
-
+		
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -593,7 +593,7 @@ describe("testing /infra/aws/index.js", function () {
 								{
 									ListenerDescriptions: [
 										{
-											Listener:{
+											Listener: {
 												LoadBalancerPort: 80,
 												InstancePort: 80
 											}
@@ -672,7 +672,7 @@ describe("testing /infra/aws/index.js", function () {
 								{
 									ListenerDescriptions: [
 										{
-											Listener:{
+											Listener: {
 												LoadBalancerPort: 80,
 												InstancePort: 80
 											}
@@ -752,13 +752,13 @@ describe("testing /infra/aws/index.js", function () {
 								{
 									ListenerDescriptions: [
 										{
-											Listener:{
+											Listener: {
 												LoadBalancerPort: 80,
 												InstancePort: 80
 											}
 										}
 									],
-									HealthCheck:{
+									HealthCheck: {
 										Target: "tcp:80"
 									}
 								}
@@ -835,7 +835,7 @@ describe("testing /infra/aws/index.js", function () {
 								{
 									ListenerDescriptions: [
 										{
-											Listener:{
+											Listener: {
 												LoadBalancerPort: 80,
 												InstancePort: 80
 											}
@@ -866,9 +866,7 @@ describe("testing /infra/aws/index.js", function () {
 					target: 80
 				}
 			];
-			options.infra.stack.loadBalancers.AWS = {
-			
-			};
+			options.infra.stack.loadBalancers.AWS = {};
 			
 			driver.publishPorts(options, function (error, response) {
 				assert.ifError(error);
@@ -913,7 +911,7 @@ describe("testing /infra/aws/index.js", function () {
 								{
 									ListenerDescriptions: [
 										{
-											Listener:{
+											Listener: {
 												LoadBalancerPort: 80,
 												InstancePort: 80
 											}
@@ -956,7 +954,7 @@ describe("testing /infra/aws/index.js", function () {
 			});
 		});
 	});
-
+	
 	describe("calling deployExternalLb", function () {
 		
 		afterEach((done) => {
@@ -966,7 +964,7 @@ describe("testing /infra/aws/index.js", function () {
 		
 		let info = dD();
 		let options = info.deployCluster;
-
+		
 		it("Success", function (done) {
 			sinon
 				.stub(AWSDriver, 'getConnector')
@@ -1015,9 +1013,9 @@ describe("testing /infra/aws/index.js", function () {
 			});
 		});
 	});
-
+	
 	describe("calling updateExternalLB", function () {
-
+		
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -1036,7 +1034,7 @@ describe("testing /infra/aws/index.js", function () {
 								{
 									ListenerDescriptions: [
 										{
-											Listener:{
+											Listener: {
 												LoadBalancerPort: 80,
 												InstancePort: 80
 											}
@@ -1079,9 +1077,9 @@ describe("testing /infra/aws/index.js", function () {
 			});
 		});
 	});
-
+	
 	describe("calling deleteExternalLB", function () {
-
+		
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -1194,7 +1192,7 @@ describe("testing /infra/aws/index.js", function () {
 	});
 	
 	describe("calling getFiles", function () {
-
+		
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -1202,7 +1200,7 @@ describe("testing /infra/aws/index.js", function () {
 		
 		let info = dD();
 		let options = info.deployCluster;
-
+		
 		it("Success", function (done) {
 			
 			sinon
@@ -1248,7 +1246,7 @@ describe("testing /infra/aws/index.js", function () {
 			});
 		});
 	});
-
+	
 	describe("calling deleteFile", function () {
 		
 		afterEach((done) => {
@@ -1275,7 +1273,7 @@ describe("testing /infra/aws/index.js", function () {
 			});
 		});
 	});
-
+	
 	describe("calling uploadFile", function () {
 		
 		afterEach((done) => {
@@ -1315,7 +1313,7 @@ describe("testing /infra/aws/index.js", function () {
 			options.params.tags = JSON.stringify({
 				"type": "template"
 			});
-			fs.writeFileSync(__dirname + "/testFile.tmpl", "test file content", { encoding: "utf8" });
+			fs.writeFileSync(__dirname + "/testFile.tmpl", "test file content", {encoding: "utf8"});
 			options.params.stream = fs.createReadStream(__dirname + "/testFile.tmpl");
 			
 			driver.uploadFile(options, function (error, response) {
@@ -1348,7 +1346,7 @@ describe("testing /infra/aws/index.js", function () {
 			
 			sinon
 				.stub(dockerDriver, 'inspectService')
-				.yields(null,{
+				.yields(null, {
 					service: {
 						labels: {
 							'soajs.service.name': 'nginx'
@@ -1381,7 +1379,7 @@ describe("testing /infra/aws/index.js", function () {
 			
 			sinon
 				.stub(dockerDriver, 'inspectService')
-				.yields(null,null);
+				.yields(null, null);
 			
 			sinon
 				.stub(dockerDriver, 'deleteService')
@@ -1408,7 +1406,7 @@ describe("testing /infra/aws/index.js", function () {
 			
 			sinon
 				.stub(dockerDriver, 'inspectService')
-				.yields(null,{
+				.yields(null, {
 					service: {
 						labels: {
 							'soajs.service.name': 'nginx'
@@ -1459,7 +1457,7 @@ describe("testing /infra/aws/index.js", function () {
 			
 			sinon
 				.stub(dockerDriver, 'listNodes')
-				.yields(null,[
+				.yields(null, [
 					{
 						hostname: 'localdockermachine'
 					}
@@ -1478,7 +1476,7 @@ describe("testing /infra/aws/index.js", function () {
 		it("Success", function (done) {
 			sinon
 				.stub(dockerDriver, 'listServices')
-				.yields(null,[
+				.yields(null, [
 					{
 						labels: {
 							'soajs.service.type': 'server',
@@ -1522,7 +1520,7 @@ describe("testing /infra/aws/index.js", function () {
 		it("Success", function (done) {
 			sinon
 				.stub(dockerDriver, 'inspectService')
-				.yields(null,{
+				.yields(null, {
 					id: '1234567890',
 					labels: {
 						'soajs.service.type': 'server',
@@ -1540,7 +1538,7 @@ describe("testing /infra/aws/index.js", function () {
 			
 			sinon
 				.stub(dockerDriver, 'deployService')
-				.yields(null,{ id: '1234567890' });
+				.yields(null, {id: '1234567890'});
 			
 			driver.executeDriver('deployService', options, function (error, response) {
 				assert.ifError(error);
@@ -1555,7 +1553,7 @@ describe("testing /infra/aws/index.js", function () {
 		it("Success", function (done) {
 			sinon
 				.stub(dockerDriver, 'inspectService')
-				.yields(null,{
+				.yields(null, {
 					id: '1234567890',
 					labels: {
 						'soajs.service.type': 'server',
@@ -1573,7 +1571,7 @@ describe("testing /infra/aws/index.js", function () {
 			
 			sinon
 				.stub(dockerDriver, 'redeployService')
-				.yields(null,{ id: '1234567890' });
+				.yields(null, {id: '1234567890'});
 			
 			driver.executeDriver('redeployService', options, function (error, response) {
 				assert.ifError(error);
@@ -1585,7 +1583,7 @@ describe("testing /infra/aws/index.js", function () {
 		it("Success", function (done) {
 			sinon
 				.stub(dockerDriver, 'inspectService')
-				.yields(null,{
+				.yields(null, {
 					id: '1234567890',
 					labels: {
 						'soajs.service.type': 'server',
@@ -1603,7 +1601,7 @@ describe("testing /infra/aws/index.js", function () {
 			
 			sinon
 				.stub(dockerDriver, 'redeployService')
-				.yields(null,{ id: '1234567890' });
+				.yields(null, {id: '1234567890'});
 			
 			options.params.action = 'redeploy';
 			driver.executeDriver('redeployService', options, function (error, response) {

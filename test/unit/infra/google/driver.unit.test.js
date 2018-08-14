@@ -11,9 +11,11 @@ describe("testing google library /infra/google/utils/utils.js", function () {
 	it("success", (done) => {
 		let compute = googleDriver.compute();
 		let container = googleDriver.container();
+		let v1beta1container = googleDriver.v1beta1container();
 		
 		assert.ok(compute);
 		assert.ok(container);
+		assert.ok(v1beta1container);
 		done();
 	});
 });

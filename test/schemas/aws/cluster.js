@@ -31,7 +31,7 @@ let infra = {
 				"AWS"
 			],
 			"loadBalancers" : {
-			
+
 			},
 			"name" : "htlocal1234abcdefgh",
 			"id" : "arn:aws:cloudformation:us-east-1:1234567890:stack/htlocal1234abcdefgh/f801dd40-64da-11e8-bf66-50fae98a2435"
@@ -42,7 +42,7 @@ let infra = {
 	],
 	"info": [
 		[
-		
+
 		],
 		[
 			{
@@ -294,7 +294,7 @@ module.exports = function () {
 				"resourceDriver": "atlas",
 				"bypassInfoCheck": true,
 				"headers": {
-					"key": "cc9390e7b7bb0a360c899aa904382def1e7cbc8886fe43c89b5541fc6ad1ec9f0dff78e327f9007c718864d7ce71076ac07223a1c59c0d180a4520200917fe9c84917cf63f1579fb66fa60c661e62e293516d0ef95eb24095d366511d2335a8d"
+					"key": "123"
 				},
 				"soajs_project": "local",
 				"protocol": "http",
@@ -304,6 +304,169 @@ module.exports = function () {
 					"driver": "atlas"
 				}
 			}
+		},
+		"listNetworkRaw": {
+			"Vpcs": [
+				{
+					"CidrBlock": "172.31.0.0/16",
+					"DhcpOptionsId": "dopt-5ab4fc23",
+					"State": "available",
+					"VpcId": "vpc-a5e482dd",
+					"InstanceTenancy": "dedicated",
+					"Ipv6CidrBlockAssociationSet": [],
+					"CidrBlockAssociationSet": [
+						{
+							"AssociationId": "vpc-cidr-assoc-ec3e5a86",
+							"CidrBlock": "172.31.0.0/16",
+							"CidrBlockState": {
+								"State": "associated"
+							}
+						}
+					],
+					"IsDefault": true,
+					"Tags": []
+				}
+			]
+		},
+		"listNetwork": [
+			{
+				"region": "us-east-1",
+				"subnets": [
+					{
+						"id": "subnet-97c7abf3",
+						"name": "subnet-97c7abf3",
+						"address": "172.31.0.0/20",
+						"state": "available",
+						"availabilityZone": "us-east-1a"
+					},
+					{
+						"id": "subnet-1336e83c",
+						"name": "subnet-1336e83c",
+						"address": "172.31.80.0/20",
+						"state": "available",
+						"availabilityZone": "us-east-1b"
+					}
+				],
+				"name": "vpc-a5e482dd",
+				"id": "vpc-a5e482dd",
+				"state": "available",
+				"instanceTenancy": "dedicated",
+				"primaryAddress": "172.31.0.0/16",
+				"IsDefault": true,
+				"address": [
+					"172.31.0.0/16"
+				]
+			}
+		],
+		"listSubnetRaw": {
+			"Subnets": [
+				{
+					"AvailabilityZone": "us-east-1a",
+					"AvailableIpAddressCount": 4091,
+					"CidrBlock": "172.31.0.0/20",
+					"DefaultForAz": true,
+					"MapPublicIpOnLaunch": true,
+					"State": "available",
+					"SubnetId": "subnet-97c7abf3",
+					"VpcId": "vpc-a5e482dd",
+					"AssignIpv6AddressOnCreation": false,
+					"Ipv6CidrBlockAssociationSet": [],
+					"Tags": []
+				},
+				{
+					"AvailabilityZone": "us-east-1b",
+					"AvailableIpAddressCount": 4090,
+					"CidrBlock": "172.31.80.0/20",
+					"DefaultForAz": true,
+					"MapPublicIpOnLaunch": true,
+					"State": "available",
+					"SubnetId": "subnet-1336e83c",
+					"VpcId": "vpc-a5e482dd",
+					"AssignIpv6AddressOnCreation": false,
+					"Ipv6CidrBlockAssociationSet": [],
+					"Tags": []
+				}
+
+			]
+		},
+		"listSubnets": [
+			{
+				"id": "subnet-97c7abf3",
+				"name": "subnet-97c7abf3",
+				"address": "172.31.0.0/20",
+				"state": "available",
+				"availabilityZone": "us-east-1a"
+			},
+			{
+				"id": "subnet-1336e83c",
+				"name": "subnet-1336e83c",
+				"address": "172.31.80.0/20",
+				"state": "available",
+				"availabilityZone": "us-east-1b"
+			}
+		],
+		"listIpsRaw": {
+			"Addresses": [
+				{
+					"PublicIp": "13.58.241.28",
+					"AllocationId": "eipalloc-0bb2a617994518740",
+					"Domain": "vpc",
+					"Tags": []
+				},
+				{
+					"InstanceId": "i-1234567890abcdef0",
+					"NetworkInterfaceId": "eni-12345678",
+					"PrivateIpAddress": "10.0.1.241",
+					"Tags": []
+				}
+			],
+		},
+		"listIps": [
+			{
+				"id": "eipalloc-0bb2a617994518740",
+				"region": "us-east-2",
+				"address": "13.58.241.28",
+				"type": "vpc"
+			},
+			{
+				"region": "us-east-2",
+				"instanceId": "i-1234567890abcdef0",
+				"privateAddress": "10.0.1.241"
+			}
+		],
+		"createPublicIpResponse": {
+			"PublicIp": "18.216.147.194",
+			"AllocationId": "eipalloc-0da3553f242237241",
+			"Domain": "vpc"
+		},
+		"listKeyPairsRaw": {
+			"KeyPairs": [
+				{
+					"KeyFingerprint": "1f:51:ae:28:bf:89:e9:d8:1f:25:5d:37:2d:7d:b8:ca:9f:f5:f1:6f",
+					"KeyName": "my-key-pair"
+				}
+			]
+		},
+		"listKeyPairsRaw2": {
+			"KeyPairs": []
+		},
+		"listKeyPairs": [
+			{
+				"fingerprint": "1f:51:ae:28:bf:89:e9:d8:1f:25:5d:37:2d:7d:b8:ca:9f:f5:f1:6f",
+				"name": "my-key-pair",
+				"region": "us-east-2"
+			}
+		],
+		"createKeyPairRaw": {
+			"KeyFingerprint": "1f:51:ae:28:bf:89:e9:d8:1f:25:5d:37:2d:7d:b8:ca:9f:f5:f1:6f",
+			"KeyName": "my-key-pair",
+			"KeyMaterial": "RSA PRIVATE KEY"
+		},
+		"createKeyPair": {
+			"fingerprint": "1f:51:ae:28:bf:89:e9:d8:1f:25:5d:37:2d:7d:b8:ca:9f:f5:f1:6f",
+			"name": "my-key-pair",
+			"region": "us-east-2"
+			// "KeyMaterial": "RSA PRIVATE KEY"
 		}
 	};
 	return data;

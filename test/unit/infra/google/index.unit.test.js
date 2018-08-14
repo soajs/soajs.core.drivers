@@ -65,14 +65,22 @@ describe("testing /lib/google/index.js", function () {
 			sinon
 				.stub(googleApi, 'compute')
 				.returns({
-					'zones': {
+					'regions': {
 						'list': (params, cb) => {
 							return cb (null, {
 								items: [
 									{
-										status: 'UP',
-										name: 'us-central',
-										description: 'US Central'
+										"kind": "compute#region",
+										"id": "1220",
+										"creationTimestamp": "1969-12-31T16:00:00.000-08:00",
+										"name": "asia-east1",
+										"description": "asia-east1",
+										"status": "UP",
+										"zones": [
+											"https://www.googleapis.com/compute/v1/projects/herrontech-rnd/zones/asia-east1-a",
+											"https://www.googleapis.com/compute/v1/projects/herrontech-rnd/zones/asia-east1-b",
+											"https://www.googleapis.com/compute/v1/projects/herrontech-rnd/zones/asia-east1-c"
+										]
 									}
 								]
 							});
@@ -102,6 +110,17 @@ describe("testing /lib/google/index.js", function () {
 				.stub(googleApi, 'compute')
 				.returns({
 					'zones': {
+						'list': (params, cb) => {
+							return cb (null, true);
+						},
+						'get': (params, cb) => {
+							return cb (null, true);
+						}
+					},
+					'regions': {
+						'get': (params, cb) => {
+							return cb (null, true);
+						},
 						'list': (params, cb) => {
 							return cb (null, true);
 						}
@@ -153,6 +172,28 @@ describe("testing /lib/google/index.js", function () {
 					}
 				});
 			
+			sinon
+				.stub(googleApi, 'v1beta1container')
+				.returns({
+					'projects': {
+						'zones': {
+							'clusters': {
+								'create': (params, cb) => {
+									return cb(null, {name: options.infra.stack.options.operationId });
+								}
+							}
+						},
+						'locations': {
+							'clusters': {
+								'create': (params, cb) => {
+									return cb(null, {name: options.infra.stack.options.operationId });
+								}
+							}
+						}
+					}
+				});
+			
+			
 			let options2 = dD().deployCluster;
 			delete options2.infra.deployments;
 			
@@ -170,6 +211,17 @@ describe("testing /lib/google/index.js", function () {
 				.stub(googleApi, 'compute')
 				.returns({
 					'zones': {
+						'list': (params, cb) => {
+							return cb (null, true);
+						},
+						'get': (params, cb) => {
+							return cb (null, true);
+						}
+					},
+					'regions': {
+						'get': (params, cb) => {
+							return cb (null, true);
+						},
 						'list': (params, cb) => {
 							return cb (null, true);
 						}
@@ -221,6 +273,27 @@ describe("testing /lib/google/index.js", function () {
 					}
 				});
 			
+			sinon
+				.stub(googleApi, 'v1beta1container')
+				.returns({
+					'projects': {
+						'zones': {
+							'clusters': {
+								'create': (params, cb) => {
+									return cb(null, {name: options.infra.stack.options.operationId });
+								}
+							}
+						},
+						'locations': {
+							'clusters': {
+								'create': (params, cb) => {
+									return cb(null, {name: options.infra.stack.options.operationId });
+								}
+							}
+						}
+					}
+				});
+			
 			let options2 = dD().deployCluster;
 			delete options2.infra.deployments;
 			
@@ -238,6 +311,17 @@ describe("testing /lib/google/index.js", function () {
 				.stub(googleApi, 'compute')
 				.returns({
 					'zones': {
+						'list': (params, cb) => {
+							return cb (null, true);
+						},
+						'get': (params, cb) => {
+							return cb (null, true);
+						}
+					},
+					'regions': {
+						'get': (params, cb) => {
+							return cb (null, true);
+						},
 						'list': (params, cb) => {
 							return cb (null, true);
 						}
@@ -289,6 +373,27 @@ describe("testing /lib/google/index.js", function () {
 					}
 				});
 			
+			sinon
+				.stub(googleApi, 'v1beta1container')
+				.returns({
+					'projects': {
+						'zones': {
+							'clusters': {
+								'create': (params, cb) => {
+									return cb(null, {name: options.infra.stack.options.operationId });
+								}
+							}
+						},
+						'locations': {
+							'clusters': {
+								'create': (params, cb) => {
+									return cb(null, {name: options.infra.stack.options.operationId });
+								}
+							}
+						}
+					}
+				});
+			
 			let options2 = dD().deployCluster;
 			delete options2.infra.deployments;
 			
@@ -305,6 +410,17 @@ describe("testing /lib/google/index.js", function () {
 				.stub(googleApi, 'compute')
 				.returns({
 					'zones': {
+						'list': (params, cb) => {
+							return cb (null, true);
+						},
+						'get': (params, cb) => {
+							return cb (null, true);
+						}
+					},
+					'regions': {
+						'get': (params, cb) => {
+							return cb (null, true);
+						},
 						'list': (params, cb) => {
 							return cb (null, true);
 						}
@@ -355,12 +471,31 @@ describe("testing /lib/google/index.js", function () {
 						}
 					}
 				});
-			
+			sinon
+				.stub(googleApi, 'v1beta1container')
+				.returns({
+					'projects': {
+						'zones': {
+							'clusters': {
+								'create': (params, cb) => {
+									return cb(null, {name: options.infra.stack.options.operationId });
+								}
+							}
+						},
+						'locations': {
+							'clusters': {
+								'create': (params, cb) => {
+									return cb(null, {name: options.infra.stack.options.operationId });
+								}
+							}
+						}
+					}
+				});
 			let options2 = dD().deployCluster;
 			delete options2.infra.deployments;
 			
 			service.deployCluster(options2, function (error, res) {
-				assert.ok(error);
+				assert.ok(res);
 				done();
 			});
 		});
@@ -374,10 +509,46 @@ describe("testing /lib/google/index.js", function () {
 		let info = dD();
 		let options = info.deployCluster;
 		
-		it("Success", function (done) {
+		it("Success 1", function (done) {
 			let machineip = options.registry.deployer.container.kubernetes.remote.nodes;
 			sinon
+				.stub(googleApi, 'compute')
+				.returns({
+					'zones': {
+						'list': (params, cb) => {
+							return cb (null, true);
+						},
+						'get': (params, cb) => {
+							return cb (null, true);
+						}
+					},
+					'regions': {
+						'get': (params, cb) => {
+							return cb (null, true);
+						},
+						'list': (params, cb) => {
+							return cb (null, true);
+						}
+					}
+				});
+			sinon
 				.stub(googleApi, 'container')
+				.returns({
+					'projects': {
+						'zones': {
+							'clusters': {
+								'get': (params, cb) => {
+									return cb(null, {
+										'endpoint': machineip,
+										'masterAuth': options.registry.deployer.container.kubernetes.remote.auth.token
+									});
+								}
+							}
+						}
+					}
+				});
+			sinon
+				.stub(googleApi, 'v1beta1container')
 				.returns({
 					'projects': {
 						'zones': {
@@ -394,10 +565,24 @@ describe("testing /lib/google/index.js", function () {
 									});
 								}
 							}
+						},
+						'locations': {
+							'operations': {
+								'get': (params, cb) => {
+									return cb(null, { operationType: 'CREATE_CLUSTER', status: 'DONE'})
+								}
+							},
+							'clusters': {
+								'get': (params, cb) => {
+									return cb(null, {
+										'endpoint': machineip,
+										'masterAuth': options.registry.deployer.container.kubernetes.remote.auth.token
+									});
+								}
+							}
 						}
 					}
 				});
-			
 			sinon
 				.stub(K8Api, 'Core')
 				.returns({
@@ -450,10 +635,46 @@ describe("testing /lib/google/index.js", function () {
 		});
 		
 		//need a test case where options2.registry.deployer.container.kubernetes.remote.nodes is not '';
-		it("Success", function (done) {
+		it("Success 2", function (done) {
 			let machineip = options.registry.deployer.container.kubernetes.remote.nodes;
 			sinon
+				.stub(googleApi, 'compute')
+				.returns({
+					'zones': {
+						'list': (params, cb) => {
+							return cb (null, true);
+						},
+						'get': (params, cb) => {
+							return cb (null, true);
+						}
+					},
+					'regions': {
+						'get': (params, cb) => {
+							return cb (null, true);
+						},
+						'list': (params, cb) => {
+							return cb (null, true);
+						}
+					}
+				});
+			sinon
 				.stub(googleApi, 'container')
+				.returns({
+					'projects': {
+						'zones': {
+							'clusters': {
+								'get': (params, cb) => {
+									return cb(null, {
+										'endpoint': machineip,
+										'masterAuth': options.registry.deployer.container.kubernetes.remote.auth.token
+									});
+								}
+							}
+						}
+					}
+				});
+			sinon
+				.stub(googleApi, 'v1beta1container')
 				.returns({
 					'projects': {
 						'zones': {
@@ -470,10 +691,24 @@ describe("testing /lib/google/index.js", function () {
 									});
 								}
 							}
+						},
+						'locations': {
+							'operations': {
+								'get': (params, cb) => {
+									return cb(null, { operationType: 'CREATE_CLUSTER', status: 'DONE'})
+								}
+							},
+							'clusters': {
+								'get': (params, cb) => {
+									return cb(null, {
+										'endpoint': machineip,
+										'masterAuth': options.registry.deployer.container.kubernetes.remote.auth.token
+									});
+								}
+							}
 						}
 					}
 				});
-			
 			sinon
 				.stub(K8Api, 'Core')
 				.returns({
@@ -524,10 +759,43 @@ describe("testing /lib/google/index.js", function () {
 		});
 		
 		//need a test case where v1Container().projects.zones.clusters.get is null
-		it("Success", function (done) {
+		it("Success 3", function (done) {
 			let machineip = options.registry.deployer.container.kubernetes.remote.nodes;
 			sinon
+				.stub(googleApi, 'compute')
+				.returns({
+					'zones': {
+						'list': (params, cb) => {
+							return cb (null, true);
+						},
+						'get': (params, cb) => {
+							return cb (null, true);
+						}
+					},
+					'regions': {
+						'get': (params, cb) => {
+							return cb (null, true);
+						},
+						'list': (params, cb) => {
+							return cb (null, true);
+						}
+					}
+				});
+			sinon
 				.stub(googleApi, 'container')
+				.returns({
+					'projects': {
+						'zones': {
+							'clusters': {
+								'get': (params, cb) => {
+									return cb(null, null);
+								}
+							}
+						}
+					}
+				});
+			sinon
+				.stub(googleApi, 'v1beta1container')
 				.returns({
 					'projects': {
 						'zones': {
@@ -538,13 +806,30 @@ describe("testing /lib/google/index.js", function () {
 							},
 							'clusters': {
 								'get': (params, cb) => {
-									return cb(null, null);
+									return cb(null, {
+										'endpoint': machineip,
+										'masterAuth': options.registry.deployer.container.kubernetes.remote.auth.token
+									});
+								}
+							}
+						},
+						'locations': {
+							'operations': {
+								'get': (params, cb) => {
+									return cb(null, { operationType: 'CREATE_CLUSTER', status: 'DONE'})
+								}
+							},
+							'clusters': {
+								'get': (params, cb) => {
+									return cb(null, {
+										'endpoint': machineip,
+										'masterAuth': options.registry.deployer.container.kubernetes.remote.auth.token
+									});
 								}
 							}
 						}
 					}
 				});
-			
 			sinon
 				.stub(K8Api, 'Core')
 				.returns({
@@ -596,18 +881,33 @@ describe("testing /lib/google/index.js", function () {
 		});
 		
 		//need a test case where v1Container().projects.zones.operations.get is pending
-		it("Success", function (done) {
+		it("Success 4", function (done) {
 			let machineip = options.registry.deployer.container.kubernetes.remote.nodes;
+			sinon
+				.stub(googleApi, 'compute')
+				.returns({
+					'zones': {
+						'list': (params, cb) => {
+							return cb (null, true);
+						},
+						'get': (params, cb) => {
+							return cb (null, true);
+						}
+					},
+					'regions': {
+						'get': (params, cb) => {
+							return cb (null, true);
+						},
+						'list': (params, cb) => {
+							return cb (null, true);
+						}
+					}
+				});
 			sinon
 				.stub(googleApi, 'container')
 				.returns({
 					'projects': {
 						'zones': {
-							'operations': {
-								'get': (params, cb) => {
-									return cb(null, { operationType: 'CREATE_CLUSTER', status: 'PENDING'})
-								}
-							},
 							'clusters': {
 								'get': (params, cb) => {
 									return cb(null, null);
@@ -616,7 +916,42 @@ describe("testing /lib/google/index.js", function () {
 						}
 					}
 				});
-			
+			sinon
+				.stub(googleApi, 'v1beta1container')
+				.returns({
+					'projects': {
+						'zones': {
+							'operations': {
+								'get': (params, cb) => {
+									return cb(null, { operationType: 'CREATE_CLUSTER', status: 'DONE'})
+								}
+							},
+							'clusters': {
+								'get': (params, cb) => {
+									return cb(null, {
+										'endpoint': machineip,
+										'masterAuth': options.registry.deployer.container.kubernetes.remote.auth.token
+									});
+								}
+							}
+						},
+						'locations': {
+							'operations': {
+								'get': (params, cb) => {
+									return cb(null, { operationType: 'CREATE_CLUSTER', status: 'DONE'})
+								}
+							},
+							'clusters': {
+								'get': (params, cb) => {
+									return cb(null, {
+										'endpoint': machineip,
+										'masterAuth': options.registry.deployer.container.kubernetes.remote.auth.token
+									});
+								}
+							}
+						}
+					}
+				});
 			sinon
 				.stub(K8Api, 'Core')
 				.returns({
@@ -873,6 +1208,22 @@ describe("testing /lib/google/index.js", function () {
 								]
 							})
 						}
+					},
+					'zones': {
+						'list': (params, cb) => {
+							return cb (null, true);
+						},
+						'get': (params, cb) => {
+							return cb (null, true);
+						}
+					},
+					'regions': {
+						'get': (params, cb) => {
+							return cb (null, true);
+						},
+						'list': (params, cb) => {
+							return cb (null, true);
+						}
 					}
 				});
 			
@@ -912,9 +1263,8 @@ describe("testing /lib/google/index.js", function () {
 		it("Success", function (done) {
 			
 			let attempt = 0;
-			
 			sinon
-				.stub(googleApi, 'container')
+				.stub(googleApi, 'v1beta1container')
 				.returns({
 					'projects': {
 						'zones': {
@@ -939,10 +1289,33 @@ describe("testing /lib/google/index.js", function () {
 									return cb(null, 'operation-1234567890');
 								}
 							}
+						},
+						'locations': {
+							'operations': {
+								'get': (params, cb) => {
+									if(attempt === 0){
+										attempt++;
+										return cb(null, { operationType: 'DELETE_CLUSTER', status: 'PENDING'})
+									}
+									else{
+										return cb(null, { operationType: 'DELETE_CLUSTER', status: 'DONE'})
+									}
+								}
+							},
+							'clusters': {
+								'get': (params, cb) => {
+									return cb(null, {
+										'network': 'htlocal123456'
+									});
+								},
+								'delete': (params, cb) => {
+									return cb(null, 'operation-1234567890');
+								}
+							}
 						}
 					}
 				});
-			
+			let attempts = 0;
 			sinon
 				.stub(googleApi, 'compute')
 				.returns({
@@ -950,7 +1323,46 @@ describe("testing /lib/google/index.js", function () {
 						'delete': (params, cb) => {
 							return cb(null, true);
 						}
-					}
+					},
+					'zones': {
+						'list': (params, cb) => {
+							return cb (null, true);
+						},
+						'get': (params, cb) => {
+							return cb (null, true);
+						}
+					},
+					'regions': {
+						'get': (params, cb) => {
+							return cb (null, true);
+						},
+						'list': (params, cb) => {
+							return cb (null, true);
+						}
+					},
+					'firewalls': {
+						'list': (params, cb) => {
+							return cb (null, true);
+						},
+						'delete': (params, cb) => {
+							return cb (null, true);
+						}
+					},
+					'globalOperations': {
+						'get': (params, cb) => {
+							if(attempts === 0){
+								attempts++;
+								return cb(null, {
+									status: 'PENDING'
+								});
+							}
+							else{
+								return cb(null, {
+									status: 'DONE'
+								});
+							}
+						}
+					},
 				});
 			
 			service.deleteCluster(options, function (error, res) {
@@ -1635,6 +2047,22 @@ describe("testing /lib/google/index.js", function () {
 									}
 								]
 							})
+						}
+					},
+					'zones': {
+						'list': (params, cb) => {
+							return cb (null, true);
+						},
+						'get': (params, cb) => {
+							return cb (null, true);
+						}
+					},
+					'regions': {
+						'get': (params, cb) => {
+							return cb (null, true);
+						},
+						'list': (params, cb) => {
+							return cb (null, true);
 						}
 					}
 				});

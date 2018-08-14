@@ -65,21 +65,34 @@ const driver = {
 	"getRegions": function (options, cb) {
 		//Ref: https://cloud.google.com/compute/docs/reference/latest/zones/list
 		let request = getConnector(options.infra.api);
-		v1Compute().zones.list(request, function (err, response) {
+		v1Compute().regions.list(request, function (err, regions) {
 			if (err) {
 				return cb(err);
 			}
-			let zones = [];
-			response.items.forEach(function (oneZone) {
-				if (oneZone.status === 'UP') {
-					zones.push({
-						'l': oneZone.description,
-						'v': oneZone.name
-					})
+			let response = [];
+			regions.items.forEach(function (oneRegion) {
+				if (oneRegion.status === 'UP') {
+					response.push({
+						'l': 'All Zones',
+						'v': oneRegion.name,
+						'group': oneRegion.name
+					});
+					if (oneRegion.zones && Array.isArray(oneRegion.zones) && oneRegion.zones.length> 0){
+						oneRegion.zones.forEach((oneZone)=>{
+							let temp =  oneZone.split("/");
+							if (temp.length > 0){
+								response.push({
+									'l': temp[temp.length-1],
+									'v': temp[temp.length-1],
+									'group': oneRegion.name
+								});
+							}
+						});
+					}
 				}
 			});
 			return cb(null, {
-				"regions": zones
+				"regions": response
 			});
 		});
 	},

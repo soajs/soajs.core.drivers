@@ -150,5 +150,13 @@ module.exports = {
 				});
 			});
 		});
-	}
+	},
+
+    "validateInputs": function (options, section, cb) {
+        utils.validateInputs(options, section, (error, response) => {
+            utils.checkError(error, (error && error.code) ? error.code : 761, cb, () => {
+                return cb(null, true);
+            });
+        });
+    }
 };

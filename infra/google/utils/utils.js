@@ -2,6 +2,7 @@
 const google = require('googleapis');
 const v1Compute = google.compute('v1');
 const v1Container = google.container('v1');
+const v1beta1Container = google.container('v1beta1');
 const config = require('../config');
 const utils = {
 	compute: () => {
@@ -9,6 +10,9 @@ const utils = {
 	},
 	container: () => {
 		return v1Container;
+	},
+	v1beta1container: () => {
+		return v1beta1Container;
 	},
 	connector: (opts) => {
 		return {

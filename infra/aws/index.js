@@ -6,33 +6,20 @@ const defaultDriver = 'docker';
 
 const ClusterDriver = require("./cluster/cluster.js");
 const utilGlobal = require("../../lib/utils/utils");
+const groups = require('./cluster/groups.js');
 const S3Driver = require("./cluster/s3.js");
 const LBDriver = require("./cluster/lb.js");
+const ips = require('./cluster/ips.js');
+const networks = require('./cluster/networks.js');
+const securityGroups = require('./cluster/securityGroups.js');
+const subnets = require('./cluster/subnets.js');
+const keyPairs = require('./cluster/keyPairs.js');
+const utils = require("./utils/utils");
+
 const Terraform = require('./terraform');
 
-const utils = require("./utils/utils");
 function getConnector(opts) {
 	return utils.getConnector(opts, config);
-	// AWS.config.update({
-	// 	credentials: {
-	// 		accessKeyId: opts.keyId,
-	// 		secretAccessKey: opts.secretAccessKey
-	// 	},
-	// 	region: opts.region || config.api.region
-	// });
-	//
-	// switch (opts.api) {
-	// 	case 'ec2':
-	// 		return new AWS.EC2({apiVersion: '2016-11-15'});
-	// 	case 'cloudFormation':
-	// 		return new AWS.CloudFormation({apiVersion: '2010-05-15'});
-	// 	case 'acm':
-	// 		return new AWS.ACM({apiVersion: "2016-11-15"});
-	// 	case 'elb':
-	// 		return new AWS.ELB({apiVersion: '2015-12-01'});
-	// 	default:
-	// 		return new AWS.EC2({apiVersion: '2016-11-15'});
-	// }
 }
 
 function runCorrespondingDriver(method, options, cb) {
@@ -249,6 +236,325 @@ const driver = {
 
 	"uploadFile": function (options, cb) {
 		S3Driver.uploadFile(options, cb);
+	},
+
+	/**
+	 * List available resource groups
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	listGroups: function(options, cb) {
+		return groups.list(options, cb);
+	},
+
+	/**
+	 * Create a resource group
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	createGroup: function (options, cb) {
+		return groups.create(options, cb);
+	},
+
+	/**
+	 * Update a resource group
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	updateGroup: function (options, cb) {
+		return groups.update(options, cb);
+	},
+
+	/**
+	 * Delete a resource group
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	deleteGroup: function (options, cb) {
+		return groups.delete(options, cb);
+	},
+
+	/**
+	 * List available Networks
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	listNetworks: function (options, cb) {
+		return networks.list(options, cb);
+	},
+
+	/**
+	 * Create network
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	createNetwork: function (options, cb) {
+		return networks.create(options, cb);
+	},
+
+	/**
+	 * Update network
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	updateNetwork: function (options, cb) {
+		return networks.update(options, cb);
+	},
+
+	/**
+	 * Delete network
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	deleteNetwork: function (options, cb) {
+		return networks.delete(options, cb);
+	},
+
+	/**
+	 * List available loadbalancers
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	// listLoadBalancers: function (options, cb) {
+	// 	return loadBalancers.list(options, cb);
+	// },
+
+	/**
+	 * Create loadbalancer
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	// createLoadBalancer: function (options, cb) {
+	// 	return loadBalancers.create(options, cb);
+	// },
+
+	/**
+	 * Update loadbalancer
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	// updateLoadBalancer: function (options, cb) {
+	// 	return loadBalancers.update(options, cb);
+	// },
+
+	/**
+	 * Delete loadbalancer
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	// deleteLoadBalancer: function (options, cb) {
+	// 	return loadBalancers.delete(options, cb);
+	// },
+
+	/**
+	 * List available subnets
+
+	 * @param  {Object}   options  Data passed to function listsubas params
+	 * @param  {Function} cb    Callback fspub
+	 * @return {void}listsub
+	 */
+	listSubnets: function (options, cb) {
+		return subnets.list(options, cb);
+	},
+
+	/**
+	 * Create subnet
+
+	 * @param  {Object}   options  Data passed to function listsubas params
+	 * @param  {Function} cb    Callback fspub
+	 * @return {void}listsub
+	 */
+	createSubnet: function (options, cb) {
+		return subnets.create(options, cb);
+	},
+
+	/**
+	 * Update subnet
+
+	 * @param  {Object}   options  Data passed to function listsubas params
+	 * @param  {Function} cb    Callback fspub
+	 * @return {void}listsub
+	 */
+	updateSubnet: function (options, cb) {
+		return subnets.update(options, cb);
+	},
+
+	/**
+	 * Delete subnet
+
+	 * @param  {Object}   options  Data passed to function listsubas params
+	 * @param  {Function} cb    Callback fspub
+	 * @return {void}listsub
+	 */
+	deleteSubnet: function (options, cb) {
+		return subnets.delete(options, cb);
+	},
+
+	/**
+	 * List available securitygroups
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	// listSecurityGroups: function (options, cb) {
+	// 	return securityGroups.list(options, cb);
+	// },
+
+	/**
+	 * Get existing security group
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	// getSecurityGroup: function (options, cb) {
+	// 	return securityGroups.get(options, cb);
+	// },
+
+	/**
+	 * Create security group
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	// createSecurityGroup: function (options, cb) {
+	// 	return securityGroups.create(options, cb);
+	// },
+
+	/**
+	 * Update security group
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	// updateSecurityGroup: function (options, cb) {
+	// 	return securityGroups.update(options, cb);
+	// },
+
+	/**
+	 * Delete security group
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	// deleteSecurityGroup: function (options, cb) {
+	// 	return securityGroups.delete(options, cb);
+	// },
+
+	/**
+	 * List available public ips
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	listPublicIps: function (options, cb) {
+		return ips.list(options, cb);
+	},
+
+	/**
+	 * Create public ip
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	createPublicIp: function (options, cb) {
+		return ips.create(options, cb);
+	},
+
+	/**
+	 * Update public ip
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	updatePublicIp: function (options, cb) {
+		return ips.update(options, cb);
+	},
+
+	/**
+	 * Delete public ip
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	deletePublicIp: function (options, cb) {
+		return ips.delete(options, cb);
+	},
+
+	/**
+	 * List available public ips
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	listKeyPairs: function (options, cb) {
+		return keyPairs.list(options, cb);
+	},
+
+	/**
+	 * Create Key Pair
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	createKeyPair: function (options, cb) {
+		return keyPairs.create(options, cb);
+	},
+
+	/**
+	 * Update Key Pair
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	updateKeyPair: function (options, cb) {
+		return keyPairs.update(options, cb);
+	},
+
+	/**
+	 * Delete public ip
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	deleteKeyPair: function (options, cb) {
+		return keyPairs.delete(options, cb);
 	},
 
 	"executeDriver": function(method, options, cb){
