@@ -1,8 +1,6 @@
 'use strict';
 
-const async = require('async');
 const utils = require("../utils/utils");
-const helper = require('../utils/helper.js');
 
 const config = require("../config");
 

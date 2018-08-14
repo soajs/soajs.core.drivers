@@ -6,6 +6,7 @@ const defaultDriver = 'docker';
 
 const ClusterDriver = require("./cluster/cluster.js");
 const utilGlobal = require("../../lib/utils/utils");
+const groups = require('./cluster/groups.js');
 const S3Driver = require("./cluster/s3.js");
 const LBDriver = require("./cluster/lb.js");
 const ips = require('./cluster/ips.js');
@@ -213,6 +214,50 @@ const driver = {
 	
 	"uploadFile": function (options, cb) {
 		S3Driver.uploadFile(options, cb);
+	},
+	
+	/**
+	 * List available resource groups
+	 
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	listGroups: function(options, cb) {
+		return groups.list(options, cb);
+	},
+	
+	/**
+	 * Create a resource group
+	 
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	createGroup: function (options, cb) {
+		return groups.create(options, cb);
+	},
+	
+	/**
+	 * Update a resource group
+	 
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	updateGroup: function (options, cb) {
+		return groups.update(options, cb);
+	},
+	
+	/**
+	 * Delete a resource group
+	 
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	deleteGroup: function (options, cb) {
+		return groups.delete(options, cb);
 	},
 	
 	/**

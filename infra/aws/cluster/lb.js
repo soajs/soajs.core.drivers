@@ -151,6 +151,15 @@ const AWSLB = {
 	},
 	
 	/**
+	 * This method creates a load balancer
+	 * @param options
+	 * @param cb
+	 * @returns {*}
+	 */
+	"createLb": function (options, cb) {
+		return cb(null, true);
+	},
+	/**
 	 * This method creates an external a load balancer
 	 * @param options
 	 * @param mCb
