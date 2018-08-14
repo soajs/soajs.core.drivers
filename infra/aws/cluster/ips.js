@@ -40,12 +40,10 @@ const ips = {
 					if (oneIP.PublicIp) tempObj.address = oneIP.PublicIp;
 					if (oneIP.AllocationId) tempObj.id = oneIP.AllocationId;
 					if (oneIP.Domain) tempObj.type = oneIP.Domain;
-					tempObj.region = options.params.region;
-
-					//TODO: confirm if the below parameters need to be mapped or not
 					if (oneIP.InstanceId) tempObj.instanceId = oneIP.InstanceId;
-					if (oneIP.NetworkInterfaceId) tempObj.network = oneIP.NetworkInterfaceId;
 					if (oneIP.PrivateIpAddress) tempObj.privateAddress = oneIP.PrivateIpAddress;
+
+					tempObj.region = options.params.region;
 
 					ipList.push(tempObj);
 				});
