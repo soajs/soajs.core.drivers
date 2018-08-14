@@ -431,7 +431,6 @@ module.exports = function () {
 			{
 				"region": "us-east-2",
 				"instanceId": "i-1234567890abcdef0",
-				"network": "eni-12345678",
 				"privateAddress": "10.0.1.241"
 			}
 		],
