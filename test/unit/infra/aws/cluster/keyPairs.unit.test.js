@@ -62,6 +62,28 @@ describe("testing /lib/azure/index.js", function () {
 				done();
 			});
 		});
+		it("Success - arrays has empty objects", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeKeyPairs: (params, cb) => {
+						return cb(null, {"KeyPairs": [{},{}]});
+					}
+				})
+
+			options.params = {
+				region: 'us-east-2',
+			};
+
+			service.listKeyPairs(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				assert.deepEqual(response, []);
+				done();
+			});
+		});
 		it("Fail", function (done) {
 			let info = dD();
 			let options = info.deployCluster;
@@ -108,6 +130,28 @@ describe("testing /lib/azure/index.js", function () {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(response, info.createKeyPair)
+				done();
+			});
+		});
+		it("Success - response empty object", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					createKeyPair: (params, cb) => {
+						return cb(null, {});
+					}
+				})
+
+			options.params = {
+				region: 'us-east-2',
+			};
+
+			service.createKeyPair(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				assert.deepEqual(response, {})
 				done();
 			});
 		});

@@ -41,7 +41,9 @@ const keyPairs = {
 					if (oneKeyPair.KeyFingerprint) tempObj.fingerprint = oneKeyPair.KeyFingerprint;
 					tempObj.region = options.params.region;
 
-					keyPairList.push(tempObj);
+					if (Object.keys(tempObj).length > 1) {
+						keyPairList.push(tempObj);
+					}
 				});
 
 				return cb(null, keyPairList);
@@ -86,7 +88,12 @@ const keyPairs = {
 				// TODO: confirm if the below RSA Private key should be mapped and returned in create response
 				// if (response.KeyMaterial) keyPair.privateKey = response.KeyMaterial;
 
-				return cb(null, keyPair);
+				if (Object.keys(keyPair).length > 2) {
+					return cb(null, keyPair);
+				}
+				else {
+					return cb(null, {});
+				}
 			}
 		});
     },
