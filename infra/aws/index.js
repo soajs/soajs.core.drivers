@@ -14,6 +14,7 @@ const networks = require('./cluster/networks.js');
 const securityGroups = require('./cluster/securityGroups.js');
 const subnets = require('./cluster/subnets.js');
 const keyPairs = require('./cluster/keyPairs.js');
+const certificates = require('./cluster/certificates.js');
 const utils = require("./utils/utils");
 
 const Terraform = require('./terraform');
@@ -564,6 +565,50 @@ const driver = {
 	 */
 	deleteKeyPair: function (options, cb) {
 		return keyPairs.delete(options, cb);
+	},
+
+	/**
+	 * List certificates
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	listCertificates: function (options, cb) {
+		return certificates.list(options, cb);
+	},
+
+	/**
+	 * Create certificate
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	createCertificate: function (options, cb) {
+		return certificates.create(options, cb);
+	},
+
+	/**
+	 * Update certificate
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	updateCertificate: function (options, cb) {
+		return certificates.update(options, cb);
+	},
+
+	/**
+	 * Delete certificate
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	deleteCertificate: function (options, cb) {
+		return certificates.delete(options, cb);
 	},
 
 	"executeDriver": function(method, options, cb){
