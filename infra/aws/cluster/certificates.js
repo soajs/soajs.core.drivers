@@ -1,5 +1,5 @@
 'use strict';
-
+const async = require('async');
 const utils = require("../utils/utils");
 
 const config = require("../config");
@@ -33,21 +33,33 @@ const certificates = {
 			if (certificates && certificates.CertificateSummaryList && Array.isArray(certificates.CertificateSummaryList) && certificates.CertificateSummaryList.length > 0) {
 				let certificatesList = [];
 
-				certificates.CertificateSummaryList.forEach((oneCertificate) => {
-					let tempObj = {};
-					if (oneCertificate.CertificateArn) tempObj.id = oneCertificate.CertificateArn;
-					if (oneCertificate.DomainName) tempObj.domain = oneCertificate.DomainName;
-					tempObj.region = options.params.region;
+				async.mapLimit(certificates.CertificateSummaryList, 10, (oneCertificate, callback) => {
+					acm.describeCertificate({ CertificateArn: oneCertificate.CertificateArn }, function(error, certificateInfo) {
+						if(error) return callback(error);
 
-					if (Object.keys(tempObj).length > 1) {
-						certificatesList.push(tempObj);
-					}
-				});
+						let outputRecord = {};
+						outputRecord.region = options.params.region;
 
-				return cb(null, certificatesList);
+						if(certificateInfo.Certificate) {
+							if(certificateInfo.Certificate.CertificateArn) outputRecord.id = certificateInfo.Certificate.CertificateArn;
+							if(certificateInfo.Certificate.DomainName) outputRecord.domain = certificateInfo.Certificate.DomainName;
+							if(certificateInfo.Certificate.SubjectAlternativeNames) outputRecord.alternativeDomains = certificateInfo.Certificate.SubjectAlternativeNames;
+							if(certificateInfo.Certificate.Type) outputRecord.type = certificateInfo.Certificate.Type.toLowerCase();
+
+							outputRecord.details = {};
+							if(certificateInfo.Certificate.Issuer) outputRecord.details.issuer = certificateInfo.Certificate.Issuer;
+							if(certificateInfo.Certificate.ImportedAt) outputRecord.details.importDate = certificateInfo.Certificate.ImportedAt;
+							if(certificateInfo.Certificate.Status) outputRecord.details.status = certificateInfo.Certificate.Status.toLowerCase();
+							if(certificateInfo.Certificate.NotBefore) outputRecord.details.validFrom = certificateInfo.Certificate.NotBefore;
+							if(certificateInfo.Certificate.NotAfter) outputRecord.details.validTo = certificateInfo.Certificate.NotAfter;
+						}
+
+						return callback(null, outputRecord);
+					});
+				}, cb);
 			}
 			else {
-				return cb (null, []);
+				return cb(null, []);
 			}
 		});
     },
