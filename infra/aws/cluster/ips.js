@@ -104,7 +104,7 @@ const ips = {
 		});
 
 		let params = {
-			AllocationId: options.params.id
+			AllocationId: options.params.name
 		};
 
 		ec2.releaseAddress(params, cb);
