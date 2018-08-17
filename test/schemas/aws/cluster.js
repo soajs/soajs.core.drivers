@@ -467,7 +467,52 @@ module.exports = function () {
 			"name": "my-key-pair",
 			"region": "us-east-2",
 			"privateKey": "RSA PRIVATE KEY"
-		}
+		},
+		"listCertificatesRaw": {
+			"CertificateSummaryList": [
+				{
+					"DomainName": "www.test.com",
+					"CertificateArn": "1234567890"
+				}
+			]
+		},
+		"listCertificatesRaw2": {
+			"CertificateSummaryList": []
+		},
+		"describeCertificateRaw": {
+			"Certificate":
+			{
+				"CertificateArn": "1234567890",
+				"DomainName": "www.test.com",
+				"SubjectAlternativeNames": [ "www.test.org", "www.test.net" ],
+				"Issuer": "Let's Encrypt",
+				"ImportedAt": "2018-02-23T11:58:38.000Z",
+				"Status": "EXPIRED",
+				"NotBefore": "2017-12-19T11:18:20.000Z",
+				"NotAfter": "2018-03-19T11:18:20.000Z",
+				"Type": "IMPORTED"
+			}
+		},
+		"describeCertificateRaw2": {
+			"Certificate":
+			{}
+		},
+		"listCertificates": [
+			{
+				"region": "us-east-2",
+				"id": "1234567890",
+				"domain": "www.test.com",
+				"alternativeDomains": ["www.test.org", "www.test.net"],
+				"type": "imported",
+				"details": {
+					"issuer": "Let's Encrypt",
+					"importDate": "2018-02-23T11:58:38.000Z",
+					"status": "expired",
+					"validFrom": "2017-12-19T11:18:20.000Z",
+					"validTo": "2018-03-19T11:18:20.000Z"
+				}
+			}
+		]
 	};
 	return data;
 };
