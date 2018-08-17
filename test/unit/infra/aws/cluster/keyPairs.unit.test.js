@@ -106,7 +106,7 @@ describe("testing /lib/azure/index.js", function () {
 		});
 	});
 
-	describe("createPublicIp", function () {
+	describe("createKeyPair", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
