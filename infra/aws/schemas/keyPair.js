@@ -1,25 +1,36 @@
-const keyPair = {
+var add = {
     "type": "object",
     "additionalProperties": false,
     "properties": {
         "section": {
             "type": "string",
             "required": true,
-            "enum": ["keyPair"]
+            "enum": ["keyPair"],
         },
         "name": {
             "required": true,
-            "type": "string"
+            "type": "string",
         },
         "region": {
             "required": true,
-            "type": "string"
+            "type": "string",
         },
         "labels": {
             "required": false,
-            "type": "object"
-        }
-    }
+            "type": "object",
+        },
+    },
 };
 
-module.exports = keyPair;
+var update = {};
+
+var get = {};
+
+var remove = {};
+
+module.exports = {
+    add: add,
+    update: update,
+    get: get,
+    remove: remove,
+};
