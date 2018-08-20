@@ -1,6 +1,7 @@
 'use strict';
 const async = require('async');
 const utils = require("../utils/utils");
+const helper = require('../utils/helper.js');
 
 const config = require("../config");
 
@@ -31,32 +32,19 @@ const certificates = {
 				return cb(error);
 			}
 			if (certificates && certificates.CertificateSummaryList && Array.isArray(certificates.CertificateSummaryList) && certificates.CertificateSummaryList.length > 0) {
-				let certificatesList = [];
-
 				async.mapLimit(certificates.CertificateSummaryList, 10, (oneCertificate, callback) => {
-					acm.describeCertificate({ CertificateArn: oneCertificate.CertificateArn }, function(error, certificateInfo) {
+					acm.describeCertificate({ CertificateArn: oneCertificate.CertificateArn }, function(error, certificateInfo = {}) {
 						if(error) return callback(error);
 
-						let outputRecord = {};
-						outputRecord.region = options.params.region;
+						acm.listTagsForCertificate({ CertificateArn: oneCertificate.CertificateArn }, function(error, certificateTags = {}) {
+							if(error) return callback(error);
 
-						if(certificateInfo.Certificate) {
-							if(certificateInfo.Certificate.CertificateArn) outputRecord.id = certificateInfo.Certificate.CertificateArn;
-							if(certificateInfo.Certificate.DomainName) outputRecord.domain = certificateInfo.Certificate.DomainName;
-							if(certificateInfo.Certificate.SubjectAlternativeNames) outputRecord.alternativeDomains = certificateInfo.Certificate.SubjectAlternativeNames;
-							if(certificateInfo.Certificate.Type) outputRecord.type = certificateInfo.Certificate.Type.toLowerCase();
-
-							outputRecord.details = {};
-							if(certificateInfo.Certificate.Issuer) outputRecord.details.issuer = certificateInfo.Certificate.Issuer;
-							else if(certificateInfo.Certificate.Type === 'AMAZON_ISSUED') outputRecord.details.issuer = 'Amazon';
-
-							if(certificateInfo.Certificate.ImportedAt) outputRecord.details.importDate = certificateInfo.Certificate.ImportedAt;
-							if(certificateInfo.Certificate.Status) outputRecord.details.status = certificateInfo.Certificate.Status.toLowerCase();
-							if(certificateInfo.Certificate.NotBefore) outputRecord.details.validFrom = certificateInfo.Certificate.NotBefore;
-							if(certificateInfo.Certificate.NotAfter) outputRecord.details.validTo = certificateInfo.Certificate.NotAfter;
-						}
-
-						return callback(null, outputRecord);
+							return callback(null, helper.buildCertificateRecord({
+								certificate: certificateInfo.Certificate,
+							 	tags: certificateTags.Tags,
+								region: options.params.region
+							}));
+						});
 					});
 				}, cb);
 			}
@@ -100,22 +88,18 @@ const certificates = {
 		};
 
 		acm.requestCertificate(params, function (error, response) {
-			if (error) {
-				return cb(error);
-			}
-			else {
-				let certificate = {};
+			if (error) return cb(error);
 
-				if (response.CertificateArn) certificate.id = response.CertificateArn;
-				certificate.region = options.params.region;
+			let certificate = {};
+			if (response.CertificateArn) certificate.id = response.CertificateArn;
+			certificate.region = options.params.region;
 
-				if (Object.keys(certificate).length > 1) {
-					return cb(null, certificate);
-				}
-				else {
-					return cb(null, {});
-				}
-			}
+			let tags = [ { Key: 'Name', Value: options.params.name } ];
+
+			certificates.addTags(options, certificate, tags, function(error) {
+				if(error) return cb(error);
+				return cb(null, certificate);
+			});
 		});
     },
 
@@ -147,7 +131,17 @@ const certificates = {
 
 		acm.importCertificate(params, function(error, response) {
 			if(error) return cb(error);
-			return cb(null, { id: response.CertificateArn, region: options.params.region });
+
+			let certificate = {};
+			if (response.CertificateArn) certificate.id = response.CertificateArn;
+			certificate.region = options.params.region;
+
+			let tags = [ { Key: 'Name', Value: options.params.name } ];
+
+			certificates.addTags(options, certificate, tags, function(error) {
+				if(error) return cb(error);
+				return cb(null, certificate);
+			});
 		});
 	},
 
@@ -183,7 +177,31 @@ const certificates = {
 		};
 
 		acm.deleteCertificate(params, cb);
-    }
+    },
+
+	/**
+    * Add tags to a certificate
+
+    * @param  {Object}   options  Data passed to function as params
+    * @param  {Function} cb    Callback function
+    * @return {void}
+    */
+	addTags: function(options, certificate, tags, cb) {
+		const aws = options.infra.api;
+		const acm = getConnector({
+			api: 'acm',
+			region: options.params.region,
+			keyId: aws.keyId,
+			secretAccessKey: aws.secretAccessKey
+		});
+
+		let params = {
+			CertificateArn: certificate.id,
+			Tags: tags
+		};
+
+		return acm.addTagsToCertificate(params, cb);
+	}
 };
 
 module.exports = certificates;
