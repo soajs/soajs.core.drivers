@@ -48,6 +48,8 @@ const certificates = {
 
 							outputRecord.details = {};
 							if(certificateInfo.Certificate.Issuer) outputRecord.details.issuer = certificateInfo.Certificate.Issuer;
+							else if(certificateInfo.Certificate.Type === 'AMAZON_ISSUED') outputRecord.details.issuer = 'Amazon';
+
 							if(certificateInfo.Certificate.ImportedAt) outputRecord.details.importDate = certificateInfo.Certificate.ImportedAt;
 							if(certificateInfo.Certificate.Status) outputRecord.details.status = certificateInfo.Certificate.Status.toLowerCase();
 							if(certificateInfo.Certificate.NotBefore) outputRecord.details.validFrom = certificateInfo.Certificate.NotBefore;
@@ -72,7 +74,10 @@ const certificates = {
     * @return {void}
     */
     create: function(options, cb) {
-		//TODO: check for create/import flag and execute the needed actions
+		// if import flag is set, redirect to import function
+		if(options.params && ['import', 'renew'].includes(options.params.action)) {
+			return certificates.import(options, cb);
+		}
 
 		const aws = options.infra.api;
 		const acm = getConnector({
@@ -85,13 +90,13 @@ const certificates = {
 		let params = {
 			DomainName: options.params.domain, /* required string value */
 			// CertificateAuthorityArn: 'STRING_VALUE',
-			DomainValidationOptions: options.params.domainValidationOptions, /* requied, array of objects, items: DomainName and ValidationDomain string values both */
+			// DomainValidationOptions: options.params.domainValidationOptions, /* requied, array of objects, items: DomainName and ValidationDomain string values both */
 			// IdempotencyToken: 'STRING_VALUE',
 			// Options: {
 			// 	CertificateTransparencyLoggingPreference: options.params.transparencyLoggingPreferences /* ENABLED or DISABLED */
 			// },
 			SubjectAlternativeNames: options.params.alternativeDomains, /* array of strings */
-			ValidationMethod: options.params.validationMethod /* EMAIL or DNS */
+			ValidationMethod: (options.params.validationMethod) ? options.params.validationMethod.toUpperCase() : 'DNS' /* EMAIL or DNS */
 		};
 
 		acm.requestCertificate(params, function (error, response) {
@@ -113,6 +118,38 @@ const certificates = {
 			}
 		});
     },
+
+	/**
+    * Import a certificate
+
+    * @param  {Object}   options  Data passed to function as params
+    * @param  {Function} cb    Callback function
+    * @return {void}
+    */
+	import: function(options, cb) {
+		const aws = options.infra.api;
+		const acm = getConnector({
+			api: 'acm',
+			region: options.params.region,
+			keyId: aws.keyId,
+			secretAccessKey: aws.secretAccessKey
+		});
+
+		let params = {
+			Certificate: options.params.certificate,
+			PrivateKey: options.params.privateKey,
+			CertificateChain: options.params.chain
+		};
+
+		if(options.params.action === 'renew' && options.params.id) { //existing certificate id (to be renewed)
+			params.CertificateArn = options.params.id;
+		}
+
+		acm.importCertificate(params, function(error, response) {
+			if(error) return cb(error);
+			return cb(null, { id: response.CertificateArn, region: options.params.region });
+		});
+	},
 
     /**
     * Update a certificate
