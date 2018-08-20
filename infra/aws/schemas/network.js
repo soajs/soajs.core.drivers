@@ -1,35 +1,32 @@
-var network = {
+var add = {
     "type": "object",
     "additionalProperties": false,
     "properties": {
         "section": {
             "type": "string",
             "required": true,
-            "enum": ["network"]
-        },
-        "name": {
-            "required": true,
-            "type": "string"
+            "enum": ["network"],
         },
         "region": {
             "required": true,
-            "type": "string"
+            "type": "string",
         },
         "address": {
             "required": true,
-            "type": "array",
-            "items": {"type": "string", "required": true}
+            "type": "string",
         },
         "Ipv6Address": {
             "required": false,
-	        "type": "boolean"
+	        "type": "boolean",
         },
 	    "InstanceTenancy": {
 		    "required": false,
 		    "type": "string",
-		    "enum": ["default", "dedicated"]
-	    }
-    }
+		    "enum": ["default", "dedicated"],
+	    },
+    },
 };
 
-module.exports = network;
+module.exports = {
+    add: add,
+};
