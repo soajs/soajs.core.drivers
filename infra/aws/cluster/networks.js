@@ -142,7 +142,7 @@ const driver = {
 								async.parallel({
 									addedCidr: function (mini) {
 										//associateVpcCidrBlock
-										driver.addNetworkAddresses(ec2, options.params.network, _.difference(addresses, cidR), options.params.addresses, mini);
+										driver.addNetworkAddresses(ec2, options.params.name, _.difference(addresses, cidR), options.params.addresses, mini);
 									},
 									removedCidr: function (mini) {
 										//disassociateAddress
