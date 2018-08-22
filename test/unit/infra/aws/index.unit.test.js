@@ -801,8 +801,6 @@ describe("testing /infra/aws/index.js", function () {
 		
 		it("Success", function (done) {
 			
-			let machineIP = options.registry.deployer.container.docker.remote.nodes;
-			let attempts = 0;
 			sinon
 				.stub(AWSDriver, 'getConnector')
 				.returns({
@@ -955,169 +953,6 @@ describe("testing /infra/aws/index.js", function () {
 		});
 	});
 	
-	describe("calling deployExternalLb", function () {
-		
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		
-		let info = dD();
-		let options = info.deployCluster;
-		
-		it("Success", function (done) {
-			sinon
-				.stub(AWSDriver, 'getConnector')
-				.returns({
-					describeInstances: (params, cb) => {
-						return cb(null, {
-							Reservations: [
-								{
-									Instances: [
-										{
-											PrivateDnsName: 'localdockermachine',
-											PublicIpAddress: '192.168.50.50',
-											InstanceId: '1'
-										}
-									]
-								}
-							]
-						});
-					},
-					registerInstancesWithLoadBalancer: (params, cb) => {
-						return cb(null, true);
-					},
-					createLoadBalancer: (params, cb) => {
-						return cb(null, {
-							DNSName: "abcd"
-						});
-					}
-				});
-			
-			options.params.name = 'nginx';
-			options.params.ports = [
-				{
-					published: 80
-				}
-			];
-			options.infra.stack.loadBalancers.AWS = {
-				nginx: {
-					name: 'nginx'
-				}
-			};
-			
-			driver.deployExternalLb(options, function (error, response) {
-				assert.ifError(error);
-				assert.ok(response);
-				done();
-			});
-		});
-	});
-	
-	describe("calling updateExternalLB", function () {
-		
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		
-		let info = dD();
-		let options = info.deployCluster;
-		
-		it("Success", function (done) {
-			sinon
-				.stub(AWSDriver, 'getConnector')
-				.returns({
-					describeLoadBalancers: (params, cb) => {
-						return cb(null, {
-							LoadBalancerDescriptions: [
-								{
-									ListenerDescriptions: [
-										{
-											Listener: {
-												LoadBalancerPort: 80,
-												InstancePort: 80
-											}
-										}
-									]
-								}
-							]
-						});
-					},
-					deleteLoadBalancerListeners: (params, cb) => {
-						return cb(null, true);
-					},
-					createLoadBalancerListeners: (params, cb) => {
-						return cb(null, true);
-					},
-					configureHealthCheck: (params, cb) => {
-						return cb(null, true);
-					},
-					deleteLoadBalancer: (params, cb) => {
-						return cb(null, true);
-					}
-				});
-			
-			options.params.name = 'nginx';
-			options.params.ports = [
-				{
-					published: 80
-				}
-			];
-			options.infra.stack.loadBalancers.AWS = {
-				nginx: {
-					name: 'nginx'
-				}
-			};
-			
-			driver.updateExternalLB(options, function (error, response) {
-				assert.ifError(error);
-				assert.ok(response);
-				done();
-			});
-		});
-	});
-	
-	describe("calling deleteExternalLB", function () {
-		
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		
-		let info = dD();
-		let options = info.deployCluster;
-		
-		it("Success", function (done) {
-			let machineIP = options.registry.deployer.container.docker.remote.nodes;
-			let attempts = 0;
-			sinon
-				.stub(AWSDriver, 'getConnector')
-				.returns({
-					deleteLoadBalancer: (params, cb) => {
-						return cb(null, true);
-					}
-				});
-			
-			options.params.name = 'nginx';
-			options.params.ports = [
-				{
-					published: 80
-				}
-			];
-			options.infra.stack.loadBalancers.AWS = {
-				nginx: {
-					name: 'nginx'
-				}
-			};
-			
-			driver.deleteExternalLB(options, function (error, response) {
-				assert.ifError(error);
-				assert.ok(response);
-				done();
-			});
-		});
-	});
 	
 	/**
 	 * S3 AWS Methods
@@ -1359,7 +1194,7 @@ describe("testing /infra/aws/index.js", function () {
 				.yields(null, true);
 			
 			sinon
-				.stub(LBDriver, 'deleteExternalLB')
+				.stub(LBDriver, 'delete')
 				.yields(null, true);
 			
 			options.infra.stack.loadBalancers = {};
@@ -1386,7 +1221,7 @@ describe("testing /infra/aws/index.js", function () {
 				.yields(null, true);
 			
 			sinon
-				.stub(LBDriver, 'deleteExternalLB')
+				.stub(LBDriver, 'delete')
 				.yields(null, true);
 			
 			options.infra.stack.loadBalancers = {};
@@ -1419,7 +1254,7 @@ describe("testing /infra/aws/index.js", function () {
 				.yields(null, true);
 			
 			sinon
-				.stub(LBDriver, 'deleteExternalLB')
+				.stub(LBDriver, 'delete')
 				.yields(null, true);
 			
 			options.infra.stack.loadBalancers = {};

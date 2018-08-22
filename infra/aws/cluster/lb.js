@@ -1,13 +1,97 @@
 const randomString = require("randomstring");
+const async = require('async');
 const config = require("../config");
 const utils = require("../utils/utils");
+const helper = require('../utils/helper.js');
 
 function getConnector(opts) {
 	return utils.getConnector(opts, config);
 }
 
+function getElbMethod(type, action, cb) {
+	let method, api, helper;
+	switch (type) {
+		case 'classic':
+			switch (action) {
+				case 'list':
+					method = "describeLoadBalancers";
+					helper = "buildClassicLbRecord";
+					break;
+				case 'create':
+					method = "createLoadBalancer";
+					helper = "N/A";
+					break;
+				case 'createListeners':
+					method = "createLoadBalancerListeners";
+					helper = "N/A";
+					break;
+				case 'healthCheck':
+					method = "configureHealthCheck";
+					helper = "N/A";
+					break;
+				case 'delete':
+					method = "deleteLoadBalancer";
+					helper = "N/A";
+					break;
+			}
+			api = 'elb';
+			break;
+	}
+	return cb({method, api, helper});
+}
 
 const AWSLB = {
+	/**
+	 *  This method return a list of Load Balancers
+	 * @param options
+	 * @param mCb
+	 */
+	"list": function (options, mCb) {
+		const aws = options.infra.api;
+		getElbMethod(options.params.elbType || 'classic', 'list', (elbResponse) => {
+			const elb = getConnector({
+				api: elbResponse.api,
+				region: options.params.region,
+				keyId: aws.keyId,
+				secretAccessKey: aws.secretAccessKey
+			});
+			const ec2 = getConnector({
+				api: 'ec2',
+				region: options.params.region,
+				keyId: aws.keyId,
+				secretAccessKey: aws.secretAccessKey
+			});
+			elb[elbResponse.method]({}, function (err, response) {
+				if (err) {
+					return mCb(err);
+				}
+				async.map(response.LoadBalancerDescriptions, function (lb, callback) {
+					async.parallel({
+						subnets: function (callback) {
+							if (lb && lb.Subnets && Array.isArray(lb.Subnets) && lb.Subnets.length > 0) {
+								let sParams = {SubnetIds: lb.Subnets};
+								ec2.describeSubnets(sParams, callback);
+							}
+							else {
+								return callback(null, null);
+							}
+						},
+						instances: function (callback) {
+							let iParams = {LoadBalancerName: lb.LoadBalancerName};
+							elb.describeInstanceHealth(iParams, callback);
+						}
+					}, function (err, results) {
+						return callback(err, helper[elbResponse.helper]({
+							lb,
+							region: options.params.region,
+							subnets: results.subnets ? results.subnets.Subnets : [],
+							instances: results.instances ? results.instances.InstanceStates : []
+						}));
+					});
+				}, mCb);
+			});
+		});
+	},
 	
 	/**
 	 * This method returns the instruction to update the dns to link the domain of this environment
@@ -39,7 +123,7 @@ const AWSLB = {
 			};
 			return mCb(null, response);
 		}
-		else{
+		else {
 			return mCb(null, {"id": stack.id});
 		}
 	},
@@ -70,36 +154,40 @@ const AWSLB = {
 			//get the service
 		let service = options.params.name;
 		let ports = options.params.ports;
+		const stack = options.infra.stack;
+		const envCode = options.params.envCode.toUpperCase();
+		
 		options.params.info = options.infra.info;
 		if (ports.length === 0) {
 			return cb(null, true);
 		}
+		let listener = {};
+		let listeners = [];
 		
-		let stack = options.infra.stack;
+		if (ports[0].published) {
+			for (let i = 0; i < ports.length; i++) {
+				listener = {
+					backendPort: ports[i].published,
+					backendProtocol: "TCP",
+					frontendPort: ports[i].target,
+					frontendProtocol: "TCP",
+				};
+				if (ports[i].target === 80) {
+					listener.frontendProtocol = 'HTTP';
+					listener.backendProtocol = 'HTTP';
+				}
+				listeners.push(listener);
+			}
+		}
+		options.params.region = options.infra.stack.zone;
+		options.params.rules = listeners;
+		options.params.ElbName = stack.loadBalancers[options.params.envCode.toUpperCase()][service] ? stack.loadBalancers[options.params.envCode.toUpperCase()][service].name : null;
 		//service is found in project record
-		if (stack.loadBalancers && stack.loadBalancers[options.params.envCode.toUpperCase()] && stack.loadBalancers[options.params.envCode.toUpperCase()][service]) {
+		if (options.params.ElbName) {
 			//service have ports to be exposed
 			//update listeners
-			if (ports[0].published) {
-				let listener = {};
-				let listeners = [];
-				for (let i = 0; i < ports.length; i++) {
-					listener = {
-						InstancePort: ports[i].published,
-						InstanceProtocol: "TCP",
-						LoadBalancerPort: ports[i].target,
-						Protocol: "TCP",
-					};
-					if (ports[i].target === 80) {
-						listener.Protocol = 'HTTP';
-						listener.InstanceProtocol = 'HTTP';
-					}
-					listeners.push(listener);
-				}
-				options.params.name = service;
-				options.params.listener = listeners;
-				options.params.ElbName = stack.loadBalancers[options.params.envCode.toUpperCase()][service].name;
-				
+			
+			if (listeners.length > 0) {
 				AWSLB.updateExternalLB(options, function (err) {
 					return cb(err, true);
 				});
@@ -107,40 +195,145 @@ const AWSLB = {
 			//service have no ports to be exposed
 			//delete load balancer
 			else {
-				options.params.name = service;
-				options.params.ElbName = stack.loadBalancers[options.params.envCode.toUpperCase()][service].name;
-				AWSLB.deleteExternalLB(options, function (err) {
-					return cb(err, true);
+				AWSLB.delete(options, function (err) {
+					if (err) {
+						return cb(err);
+					}
+					else {
+						options.params.info = options.infra.info;
+						const envCode = options.params.envCode.toUpperCase();
+						options.params.name = service;
+						if (options.infra.deployments && options.infra.deployments[options.params.info[2]]
+							&& options.infra.deployments[options.params.info[2]].loadBalancers
+							&& options.infra.deployments[options.params.info[2]].loadBalancers[envCode]
+							&& options.infra.deployments[options.params.info[2]].loadBalancers[envCode][service]) {
+							delete options.infra.deployments[options.params.info[2]].loadBalancers[envCode][service];
+						}
+						return cb(null, true);
+					}
 				});
 			}
 		}
 		//service is not found in project record
 		else {
 			//service have ports to be exposed
-			let listener = {};
-			if (ports[0].published) {
-				let listeners = [];
-				for (let i = 0; i < ports.length; i++) {
-					listener = {
-						InstancePort: ports[i].published,
-						InstanceProtocol: "TCP",
-						LoadBalancerPort: ports[i].target,
-						Protocol: "TCP",
-					};
-					if (ports[i].target === 80) {
-						listener.Protocol = 'HTTP';
-						listener.InstanceProtocol = 'HTTP';
-					}
-					listeners.push(listener);
-				}
-				if (listeners.length === 0) {
+			if (listeners.length > 0) {
+				if (ports.length === 0) {
 					return cb(null, true);
 				}
+				if (!options.params.info || options.params.info.length === 0) {
+					return cb(new Error("Did not find any deployment information in infra details provided!"));
+				}
+				const aws = options.infra.api;
+				const ec2 = getConnector({
+					api: 'ec2',
+					region: stack.options.region,
+					keyId: aws.keyId,
+					secretAccessKey: aws.secretAccessKey
+				});
+				const elb = getConnector({
+					api: 'elb',
+					region: stack.options.region,
+					keyId: aws.keyId,
+					secretAccessKey: aws.secretAccessKey
+				});
 				
-				options.params.name = service;
-				options.params.listener = listeners;
-				AWSLB.deployExternalLb(options, function (err) {
-					return cb(err, true);
+				let name = `ht${options.params.soajs_project}-External-`; //ht + projectname + service name
+				
+				name += randomString.generate({
+					length: 31 - name.length,
+					charset: 'alphanumeric',
+					capitalization: 'uppercase'
+				});
+				let lbParams = {
+					ports: ports,
+					name: name,
+					securityGroup: [
+						stack.options.ExternalLBSecurityGroupID
+					],
+					zones: stack.options.ZonesAvailable,
+					tags: [
+						{
+							Key: 'ht:cloudformation:stack-name', /* required */
+							Value: stack.name
+						},
+						{
+							Key: 'ht:cloudformation:stack-id', /* required */
+							Value: stack.id
+						},
+						{
+							Key: 'Type', /* required */
+							Value: "External"
+						},
+						{
+							Key: 'Name', /* required */
+							Value: name
+						}
+					]
+				};
+				if (stack.options.ZonesAvailable) {
+					if (!Array.isArray(stack.options.ZonesAvailable)) {
+						lbParams.zones = [stack.options.ZonesAvailable];
+					}
+					else {
+						lbParams.zones = stack.options.ZonesAvailable;
+					}
+				}
+				options.soajs.log.debug(lbParams);
+				AWSLB.create(options, function (err, loadBalancer) {
+					const instanceParams = {
+						Filters: [
+							{
+								Name: 'tag:aws:cloudformation:stack-name',
+								Values: [
+									stack.name
+								]
+							}
+						]
+					};
+					let instanceIds = [];
+					ec2.describeInstances(instanceParams, function (err, instances) {
+						if (err) {
+							return cb(err);
+						}
+						else {
+							for (let i = 0; i < instances.Reservations.length; i++) {
+								for (let y = 0; y < instances.Reservations[i].Instances.length; y++) {
+									instanceIds.push({InstanceId: instances.Reservations[i].Instances[y].InstanceId});
+								}
+							}
+							if (instanceIds.length === 0) {
+								return cb(new Error("No instances found in stack"));
+							}
+							const registerParams = {
+								Instances: instanceIds,
+								LoadBalancerName: name
+							};
+							elb.registerInstancesWithLoadBalancer(registerParams, function (err) {
+								if (err) {
+									return cb(err);
+								}
+								
+								//manipulate and add the record
+								let deployment = options.infra.deployments;
+								//if no loadBalancers object found create one
+								if (!deployment[options.params.info[2]].loadBalancers) {
+									deployment[options.params.info[2]].loadBalancers = {};
+								}
+								//if no environment in loadBalancers object found create one
+								if (!deployment[options.params.info[2]].loadBalancers[envCode]) {
+									deployment[options.params.info[2]].loadBalancers[envCode] = {};
+								}
+								deployment[options.params.info[2]].loadBalancers[envCode][options.params.name] = {
+									name: name,
+									DNSName: loadBalancer.DNSName,
+									ports: options.params.ports
+								};
+								options.infra.deployments = deployment;
+								return cb(null, true);
+							});
+						}
+					});
 				});
 			}
 			else {
@@ -156,138 +349,96 @@ const AWSLB = {
 	 * @param cb
 	 * @returns {*}
 	 */
-	"createLb": function (options, cb) {
-		return cb(null, true);
-	},
-	/**
-	 * This method creates an external a load balancer
-	 * @param options
-	 * @param mCb
-	 * @returns {*}
-	 */
-	"deployExternalLb": function (options, mCb) {
-		options.params.info = options.infra.info;
-		const opts = {
-			listener : options.params.listener,
-			name : options.params.name
-		};
-		const stack = options.infra.stack;
-		const envCode = options.params.envCode.toUpperCase();
-		
-		if(!options.params.info || options.params.info.length === 0){
-			return mCb(new Error("Did not find any deployment information in infra details provided!"));
-		}
-		
-		const aws = options.infra.api;
-		const elb = getConnector({
-			api: 'elb',
-			region: stack.options.zone,
-			keyId: aws.keyId,
-			secretAccessKey: aws.secretAccessKey
-		});
-		const ec2 = getConnector({
-			api: 'ec2',
-			region: stack.options.zone,
-			keyId: aws.keyId,
-			secretAccessKey: aws.secretAccessKey
-		});
-		let name = `ht${options.params.soajs_project}-External-`; //ht + projectname + service name
-		
-		let random = randomString.generate({
-			length: 31 - name.length,
-			charset: 'alphanumeric',
-			capitalization: 'uppercase'
-		});
-		name += random;
-		let lbParams = {
-			Listeners: opts.listener,
-			LoadBalancerName: name,
-			SecurityGroups: [
-				stack.options.ExternalLBSecurityGroupID
-			],
-			Subnets: stack.options.ZonesAvailable,
-			Tags: [
-				{
-					Key: 'ht:cloudformation:stack-name', /* required */
-					Value: stack.name
-				},
-				{
-					Key: 'ht:cloudformation:stack-id', /* required */
-					Value: stack.id
-				},
-				{
-					Key: 'Type', /* required */
-					Value: "External"
-				},
-				{
-					Key: 'Name', /* required */
-					Value: name
-				}
-			]
-		};
-		options.soajs.log.debug(lbParams);
-		elb.createLoadBalancer(lbParams, function (err, loadBalancer) {
-			if (err) {
-				return mCb(err);
-			}
-			const instanceParams = {
-				Filters: [
-					{
-						Name: 'tag:aws:cloudformation:stack-name',
-						Values: [
-							stack.name
-						]
-					}
-				]
+	"create": function (options, cb) {
+		getElbMethod(options.params.elbType || 'classic', 'create', (elbResponse) => {
+			const aws = options.infra.api;
+			const elb = getConnector({
+				api: elbResponse.api,
+				region: options.params.region,
+				keyId: aws.keyId,
+				secretAccessKey: aws.secretAccessKey
+			});
+			let params = {
+				LoadBalancerName: options.params.name
 			};
-			let instanceIds = [];
-			ec2.describeInstances(instanceParams, function (err, instances) {
-				if (err) {
-					return mCb(err);
+			params.listeners = [];
+			if (options.params.rules && options.params.rules.length > 0) {
+				options.params.rules.forEach((port) => {
+					let listener = {
+						InstancePort: port.backendPort,
+						InstanceProtocol: port.backendProtocol.toUpperCase(),
+						LoadBalancerPort: port.frontendPort,
+						Protocol: port.frontendProtocol.toUpperCase()
+					};
+					if (port.certificate) {
+						listener.SSLCertificateId = port.certificate;
+					}
+					params.listeners.push(listener);
+				});
+			}
+			
+			if (options.params.securityGroups) {
+				params.SecurityGroups = options.params.securityGroups
+			}
+			if (options.params.subnets) {
+				params.Subnets = options.params.subnets
+			}
+			if (options.params.zones) {
+				params.AvailabilityZones = options.params.zones
+			}
+			if (options.params.type === 'internal') {
+				params.Scheme = options.params.type
+			}
+			if (options.params.tags) {
+				params.Tags = options.params.tags
+			}
+			if (params.listeners.length === 0) {
+				return cb(new Error("A load balancer must have at least one port open. "))
+			}
+			if (!params.AvailabilityZones && !params.Subnets) {
+				return cb(new Error("Either Zones or Subnet must be specified."))
+			}
+			options.soajs.log.debug(params);
+			elb[elbResponse.method](params, (err)=>{
+				if (err){
+					return cb(err);
 				}
 				else {
-					for (let i = 0; i < instances.Reservations.length; i++) {
-						for (let y = 0; y < instances.Reservations[i].Instances.length; y++) {
-							instanceIds.push({InstanceId: instances.Reservations[i].Instances[y].InstanceId});
-						}
-					}
-					if (instanceIds.length === 0) {
-						return mCb(new Error("No instances found in stack"));
-					}
-					const registerParams = {
-						Instances: instanceIds,
-						LoadBalancerName: name
-					};
-					elb.registerInstancesWithLoadBalancer(registerParams, function (err) {
-						if (err) {
-							return mCb(err);
-						}
-						
-						//manipulate and add the record
-						let deployment = options.infra.deployments;
-						//if no loadBalancers object found create one
-						if (!deployment[options.params.info[2]].loadBalancers) {
-							deployment[options.params.info[2]].loadBalancers = {};
-						}
-						//if no environment in loadBalancers object found create one
-						if (!deployment[options.params.info[2]].loadBalancers[envCode]) {
-							deployment[options.params.info[2]].loadBalancers[envCode] = {};
-						}
-						deployment[options.params.info[2]].loadBalancers[envCode][opts.name] = {
-							name: name,
-							DNSName: loadBalancer.DNSName,
-							ports: options.params.ports
+					if (options.params.healthProbe){
+						params = {
+							HealthCheck: {},
+							LoadBalancerName: options.params.name
 						};
-						options.infra.deployments = deployment;
-						return mCb(null, true);
-					});
+						if (options.params.healthProbe.healthProbePath){
+							params.HealthCheck.Target = options.params.healthProbe.healthProbePath;
+						}
+						if (options.params.healthProbe.healthProbeInterval){
+							params.HealthCheck.Interval = options.params.healthProbe.healthProbeInterval;
+						}
+						if (options.params.healthProbe.healthProbeTimeout){
+							params.HealthCheck.Timeout = options.params.healthProbe.healthProbeTimeout;
+						}
+						if (options.params.healthProbe.maxFailureAttempts){
+							params.HealthCheck.UnhealthyThreshold = options.params.healthProbe.maxFailureAttempts;
+						}
+						if (options.params.healthProbe.maxSuccessAttempts){
+							params.HealthCheck.HealthyThreshold = options.params.healthProbe.maxSuccessAttempts;
+						}
+						options.soajs.log.debug(params);
+						getElbMethod('classic', 'healthCheck', (elbResponse) => {
+							elb[elbResponse.method](params, cb);
+						});
+					}
+					else {
+						return cb(null, true);
+					}
 				}
 			});
 		});
 	},
 	
 	/**
-	 * This method updates a load balancer
+	 * This method updates a load balancer connected to a service
 	 * @param options
 	 * @param mCb
 	 * @returns {*}
@@ -296,8 +447,7 @@ const AWSLB = {
 		options.params.info = options.infra.info;
 		const envCode = options.params.envCode.toUpperCase();
 		const opts = {
-			listener : options.params.listener,
-			name : options.params.name,
+			name: options.params.name,
 			ElbName: options.params.ElbName
 		};
 		const stack = options.infra.stack;
@@ -306,7 +456,7 @@ const AWSLB = {
 		let deleted = [];
 		const elb = getConnector({
 			api: 'elb',
-			region: stack.options.zone,
+			region: stack.options.region,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
@@ -318,7 +468,6 @@ const AWSLB = {
 				return mCb(err);
 			}
 			else {
-				
 				let listenerDescriptions;
 				//get listeners
 				if (loadBalancer.LoadBalancerDescriptions && loadBalancer.LoadBalancerDescriptions.length > 0
@@ -446,43 +595,35 @@ const AWSLB = {
 	},
 	
 	/**
+	 * This method updates a load balancer connected to a service
+	 * @param options
+	 * @param mCb
+	 * @returns {*}
+	 */
+	"updateLoadBalancer": function (options, mCb) {
+		return mCb(null, true);
+	},
+	
+	/**
 	 * This method  deletes a load balancer
 	 * @param options
 	 * @param mCb
 	 * @returns {*}
 	 */
-	"deleteExternalLB": function (options, mCb) {
-		options.params.info = options.infra.info;
-		const opts = {
-			name : options.params.name,
-			ElbName: options.params.ElbName
-		};
-		const stack = options.infra.stack;
-		const aws = options.infra.api;
-		const elb = getConnector({
-			api: 'elb',
-			region: stack.options.zone,
-			keyId: aws.keyId,
-			secretAccessKey: aws.secretAccessKey
-		});
-		let params = {
-			LoadBalancerName: opts.ElbName
-		};
-		options.soajs.log.debug(params);
-		elb.deleteLoadBalancer(params, function (err) {
-			if (err) {
-				return mCb(err);
-			}
-			else {
-				const envCode = options.params.envCode.toUpperCase();
-				if (options.infra.deployments && options.infra.deployments[options.params.info[2]]
-					&& options.infra.deployments[options.params.info[2]].loadBalancers
-					&& options.infra.deployments[options.params.info[2]].loadBalancers[envCode]
-					&& options.infra.deployments[options.params.info[2]].loadBalancers[envCode][opts.name]) {
-					delete options.infra.deployments[options.params.info[2]].loadBalancers[envCode][opts.name];
-				}
-				return mCb(null, true);
-			}
+	"delete": function (options, mCb) {
+		getElbMethod(options.params.elbType || 'classic', 'delete', (elbResponse) => {
+			const aws = options.infra.api;
+			const elb = getConnector({
+				api: elbResponse.api,
+				region: options.params.region,
+				keyId: aws.keyId,
+				secretAccessKey: aws.secretAccessKey
+			});
+			let params = {
+				LoadBalancerName: options.params.name
+			};
+			options.soajs.log.debug(params);
+			elb[elbResponse.method](params, mCb);
 		});
 	},
 };

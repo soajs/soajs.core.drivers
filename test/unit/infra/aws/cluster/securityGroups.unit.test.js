@@ -6,8 +6,7 @@ const sinon = require('sinon');
 const service = helper.requireModule('./infra/aws/index.js');
 
 let dD = require('../../../../schemas/aws/cluster.js');
-let info = {};
-let options = {};
+
 
 describe("testing /lib/aws/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
@@ -18,7 +17,11 @@ describe("testing /lib/aws/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			done();
+			service.createSecurityGroup({}, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
 		});
 	});
 
@@ -28,7 +31,11 @@ describe("testing /lib/aws/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			done();
+			service.updateSecurityGroup({}, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
 		});
 	});
 
@@ -38,7 +45,11 @@ describe("testing /lib/aws/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			done();
+			service.listSecurityGroups({}, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
 		});
 	});
 	
@@ -48,7 +59,11 @@ describe("testing /lib/aws/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			done();
+			service.deleteSecurityGroup({}, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
 		});
 	});
 });

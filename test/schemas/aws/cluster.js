@@ -1,49 +1,45 @@
 'use strict';
 let infra = {
 	"_id": "5b044a4df920c675412f82e3",
-	"name" : "aws",
-	"label" : "Amazon Web Services",
-	"api" : {
-		"keyId" : "1234567890",
-		"secretAccessKey" : "abcdefgh-1234567890"
+	"name": "aws",
+	"label": "Amazon Web Services",
+	"api": {
+		"keyId": "1234567890",
+		"secretAccessKey": "abcdefgh-1234567890"
 	},
-	"templates" : [
+	"templates": [
 		"external"
 	],
-	"technologies" : [
+	"technologies": [
 		"docker"
 	],
-	"deployments" : [
+	"deployments": [
 		{
-			"technology" : "docker",
-			"options" : {
-				"zone" : "us-east-1",
-				"template" : "mydockerawstemplate.tmpl",
-				"ElbName" : "htlocalau-External-1234ABCD",
-				"ZonesAvailable" : [
+			"technology": "docker",
+			"options": {
+				"zone": "us-east-1",
+				"template": "mydockerawstemplate.tmpl",
+				"ElbName": "htlocalau-External-1234ABCD",
+				"ZonesAvailable": [
 					"subnet-c6f92ca1",
 					"subnet-250bc20b",
 					"subnet-2064f76a"
 				],
-				"ExternalLBSecurityGroupID" : "sg-123456abc"
+				"ExternalLBSecurityGroupID": "sg-123456abc"
 			},
-			"environments" : [
+			"environments": [
 				"AWS"
 			],
-			"loadBalancers" : {
-
-			},
-			"name" : "htlocal1234abcdefgh",
-			"id" : "arn:aws:cloudformation:us-east-1:1234567890:stack/htlocal1234abcdefgh/f801dd40-64da-11e8-bf66-50fae98a2435"
+			"loadBalancers": {},
+			"name": "htlocal1234abcdefgh",
+			"id": "arn:aws:cloudformation:us-east-1:1234567890:stack/htlocal1234abcdefgh/f801dd40-64da-11e8-bf66-50fae98a2435"
 		}
 	],
-	"drivers" : [
+	"drivers": [
 		"Cloud Formation"
 	],
 	"info": [
-		[
-
-		],
+		[],
 		[
 			{
 				"code": "AWS"
@@ -207,267 +203,487 @@ let soajs = {
 };
 module.exports = function () {
 	let data = {
-		"deployCluster": {
-			"infra": infra,
-			"soajs": soajs,
-			"registry": registry,
-			"params": {
-				"infraCodeTemplate": "mydockerTemplate.tmpl",
-				"region": "us-east-1",
-				"EnableSystemPrune": "no",
-				"EnableCloudWatchLogs": "no",
-				"EnableCloudWatchDetailedMonitoring": "no",
-				"EnableEbsOptimized": "no",
-				"EnableCloudStorEfs": "no",
-				"ManagerInstanceType": "t2.medium",
-				"ManagerDiskType": "gp2",
-				"InstanceType": "t2.medium",
-				"WorkerDiskType": "standard",
-				"KeyName": "soajs",
-				"ManagerSize": 1,
-				"ManagerDiskSize": 20,
-				"ClusterSize": 1,
-				"WorkerDiskSize": 20,
-				"grid": {
-					"columns": {
-						"region": {
-							"label": "Region",
-							"fields": [
-								{
-									"name": "region",
-									"label": "Region"
-								},
-								{
-									"name": "infraCodeTemplate",
-									"label": "Infra Code Template"
-								}
-							]
-						},
-						"masternodes": {
-							"label": "Master Node(s)",
-							"fields": [
-								{
-									"name": "ManagerInstanceType",
-									"label": "Flavor"
-								},
-								{
-									"name": "ManagerSize",
-									"label": "Number"
-								},
-								{
-									"name": "ManagerDiskSize",
-									"label": "Storage"
-								},
-								{
-									"name": "ManagerDiskType",
-									"label": "Storage Type"
-								}
-							]
-						},
-						"workernodes": {
-							"label": "Worker Node(s)",
-							"fields": [
-								{
-									"name": "ClusterSize",
-									"label": "Flavor"
-								},
-								{
-									"name": "InstanceType",
-									"label": "Number"
-								},
-								{
-									"name": "WorkerDiskSize",
-									"label": "Storage"
-								},
-								{
-									"name": "WorkerDiskType",
-									"label": "Storage Type"
-								}
-							]
-						}
-					}
-				},
-				"technology": "docker",
-				"envCode": "AWS",
-				"id": "5ae08023c29b8c0149bc1543",
-				"driver": "aws",
-				"resourceDriver": "atlas",
-				"bypassInfoCheck": true,
-				"headers": {
-					"key": "123"
-				},
-				"soajs_project": "local",
-				"protocol": "http",
-				"domain": "soajs.org",
-				"apiPrefix": "dashboard-api",
-				"resource": {
-					"driver": "atlas"
-				}
-			}
-		},
-		"listNetworkRaw": {
-			"Vpcs": [
-				{
-					"CidrBlock": "172.31.0.0/16",
-					"DhcpOptionsId": "dopt-5ab4fc23",
-					"State": "available",
-					"VpcId": "vpc-a5e482dd",
-					"InstanceTenancy": "dedicated",
-					"Ipv6CidrBlockAssociationSet": [],
-					"CidrBlockAssociationSet": [
-						{
-							"AssociationId": "vpc-cidr-assoc-ec3e5a86",
-							"CidrBlock": "172.31.0.0/16",
-							"CidrBlockState": {
-								"State": "associated"
+			"deployCluster": {
+				"infra": infra,
+				"soajs": soajs,
+				"registry": registry,
+				"params": {
+					"infraCodeTemplate": "mydockerTemplate.tmpl",
+					"region": "us-east-1",
+					"EnableSystemPrune": "no",
+					"EnableCloudWatchLogs": "no",
+					"EnableCloudWatchDetailedMonitoring": "no",
+					"EnableEbsOptimized": "no",
+					"EnableCloudStorEfs": "no",
+					"ManagerInstanceType": "t2.medium",
+					"ManagerDiskType": "gp2",
+					"InstanceType": "t2.medium",
+					"WorkerDiskType": "standard",
+					"KeyName": "soajs",
+					"ManagerSize": 1,
+					"ManagerDiskSize": 20,
+					"ClusterSize": 1,
+					"WorkerDiskSize": 20,
+					"grid": {
+						"columns": {
+							"region": {
+								"label": "Region",
+								"fields": [
+									{
+										"name": "region",
+										"label": "Region"
+									},
+									{
+										"name": "infraCodeTemplate",
+										"label": "Infra Code Template"
+									}
+								]
+							},
+							"masternodes": {
+								"label": "Master Node(s)",
+								"fields": [
+									{
+										"name": "ManagerInstanceType",
+										"label": "Flavor"
+									},
+									{
+										"name": "ManagerSize",
+										"label": "Number"
+									},
+									{
+										"name": "ManagerDiskSize",
+										"label": "Storage"
+									},
+									{
+										"name": "ManagerDiskType",
+										"label": "Storage Type"
+									}
+								]
+							},
+							"workernodes": {
+								"label": "Worker Node(s)",
+								"fields": [
+									{
+										"name": "ClusterSize",
+										"label": "Flavor"
+									},
+									{
+										"name": "InstanceType",
+										"label": "Number"
+									},
+									{
+										"name": "WorkerDiskSize",
+										"label": "Storage"
+									},
+									{
+										"name": "WorkerDiskType",
+										"label": "Storage Type"
+									}
+								]
 							}
 						}
-					],
-					"IsDefault": true,
-					"Tags": []
-				}
-			]
-		},
-		"listNetwork": [
-			{
-				"region": "us-east-1",
-				"subnets": [
-					{
-						"id": "subnet-97c7abf3",
-						"name": "subnet-97c7abf3",
-						"address": "172.31.0.0/20",
-						"state": "available",
-						"availabilityZone": "us-east-1a"
 					},
-					{
-						"id": "subnet-1336e83c",
-						"name": "subnet-1336e83c",
-						"address": "172.31.80.0/20",
-						"state": "available",
-						"availabilityZone": "us-east-1b"
+					"technology": "docker",
+					"envCode": "AWS",
+					"id": "5ae08023c29b8c0149bc1543",
+					"driver": "aws",
+					"resourceDriver": "atlas",
+					"bypassInfoCheck": true,
+					"headers": {
+						"key": "123"
+					},
+					"soajs_project": "local",
+					"protocol": "http",
+					"domain": "soajs.org",
+					"apiPrefix": "dashboard-api",
+					"resource": {
+						"driver": "atlas"
 					}
-				],
-				"name": "vpc-a5e482dd",
-				"id": "vpc-a5e482dd",
-				"state": "available",
-				"instanceTenancy": "dedicated",
-				"primaryAddress": "172.31.0.0/16",
-				"IsDefault": true,
-				"address": [
-					"172.31.0.0/16"
-				]
-			}
-		],
-		"listSubnetRaw": {
-			"Subnets": [
-				{
-					"AvailabilityZone": "us-east-1a",
-					"AvailableIpAddressCount": 4091,
-					"CidrBlock": "172.31.0.0/20",
-					"DefaultForAz": true,
-					"MapPublicIpOnLaunch": true,
-					"State": "available",
-					"SubnetId": "subnet-97c7abf3",
-					"VpcId": "vpc-a5e482dd",
-					"AssignIpv6AddressOnCreation": false,
-					"Ipv6CidrBlockAssociationSet": [],
-					"Tags": []
-				},
-				{
-					"AvailabilityZone": "us-east-1b",
-					"AvailableIpAddressCount": 4090,
-					"CidrBlock": "172.31.80.0/20",
-					"DefaultForAz": true,
-					"MapPublicIpOnLaunch": true,
-					"State": "available",
-					"SubnetId": "subnet-1336e83c",
-					"VpcId": "vpc-a5e482dd",
-					"AssignIpv6AddressOnCreation": false,
-					"Ipv6CidrBlockAssociationSet": [],
-					"Tags": []
 				}
-
-			]
-		},
-		"listSubnets": [
-			{
-				"id": "subnet-97c7abf3",
-				"name": "subnet-97c7abf3",
-				"address": "172.31.0.0/20",
-				"state": "available",
-				"availabilityZone": "us-east-1a"
 			},
-			{
-				"id": "subnet-1336e83c",
-				"name": "subnet-1336e83c",
-				"address": "172.31.80.0/20",
-				"state": "available",
-				"availabilityZone": "us-east-1b"
-			}
-		],
-		"listIpsRaw": {
-			"Addresses": [
+			"listNetworkRaw": {
+				"Vpcs": [
+					{
+						"CidrBlock": "172.31.0.0/16",
+						"DhcpOptionsId": "dopt-5ab4fc23",
+						"State": "available",
+						"VpcId": "vpc-a5e482dd",
+						"InstanceTenancy": "dedicated",
+						"Ipv6CidrBlockAssociationSet": [],
+						"CidrBlockAssociationSet": [
+							{
+								"AssociationId": "vpc-cidr-assoc-ec3e5a86",
+								"CidrBlock": "172.31.0.0/16",
+								"CidrBlockState": {
+									"State": "associated"
+								}
+							}
+						],
+						"IsDefault": true,
+						"Tags": []
+					}
+				]
+			},
+			"listNetwork": [
 				{
-					"PublicIp": "13.58.241.28",
-					"AllocationId": "eipalloc-0bb2a617994518740",
-					"Domain": "vpc",
-					"Tags": []
-				},
-				{
-					"InstanceId": "i-1234567890abcdef0",
-					"NetworkInterfaceId": "eni-12345678",
-					"PrivateIpAddress": "10.0.1.241",
-					"Tags": []
+					"region": "us-east-1",
+					"subnets": [
+						{
+							"id": "subnet-97c7abf3",
+							"name": "subnet-97c7abf3",
+							"address": "172.31.0.0/20",
+							"state": "available",
+							"availabilityZone": "us-east-1a"
+						},
+						{
+							"id": "subnet-1336e83c",
+							"name": "subnet-1336e83c",
+							"address": "172.31.80.0/20",
+							"state": "available",
+							"availabilityZone": "us-east-1b"
+						}
+					],
+					"name": "vpc-a5e482dd",
+					"id": "vpc-a5e482dd",
+					"state": "available",
+					"instanceTenancy": "dedicated",
+					"primaryAddress": "172.31.0.0/16",
+					"IsDefault": true,
+					"address": [
+						"172.31.0.0/16"
+					]
 				}
 			],
-		},
-		"listIps": [
-			{
-				"id": "eipalloc-0bb2a617994518740",
-				"region": "us-east-2",
-				"address": "13.58.241.28",
-				"type": "vpc"
+			"listSubnetRaw": {
+				"Subnets": [
+					{
+						"AvailabilityZone": "us-east-1a",
+						"AvailableIpAddressCount": 4091,
+						"CidrBlock": "172.31.0.0/20",
+						"DefaultForAz": true,
+						"MapPublicIpOnLaunch": true,
+						"State": "available",
+						"SubnetId": "subnet-97c7abf3",
+						"VpcId": "vpc-a5e482dd",
+						"AssignIpv6AddressOnCreation": false,
+						"Ipv6CidrBlockAssociationSet": [],
+						"Tags": []
+					},
+					{
+						"AvailabilityZone": "us-east-1b",
+						"AvailableIpAddressCount": 4090,
+						"CidrBlock": "172.31.80.0/20",
+						"DefaultForAz": true,
+						"MapPublicIpOnLaunch": true,
+						"State": "available",
+						"SubnetId": "subnet-1336e83c",
+						"VpcId": "vpc-a5e482dd",
+						"AssignIpv6AddressOnCreation": false,
+						"Ipv6CidrBlockAssociationSet": [],
+						"Tags": []
+					}
+				
+				]
 			},
-			{
-				"region": "us-east-2",
-				"instanceId": "i-1234567890abcdef0",
-				"privateAddress": "10.0.1.241"
-			}
-		],
-		"createPublicIpResponse": {
-			"PublicIp": "18.216.147.194",
-			"AllocationId": "eipalloc-0da3553f242237241",
-			"Domain": "vpc"
-		},
-		"listKeyPairsRaw": {
-			"KeyPairs": [
+			"listSubnets": [
 				{
-					"KeyFingerprint": "1f:51:ae:28:bf:89:e9:d8:1f:25:5d:37:2d:7d:b8:ca:9f:f5:f1:6f",
-					"KeyName": "my-key-pair"
+					"id": "subnet-97c7abf3",
+					"name": "subnet-97c7abf3",
+					"address": "172.31.0.0/20",
+					"state": "available",
+					"availabilityZone": "us-east-1a"
+				},
+				{
+					"id": "subnet-1336e83c",
+					"name": "subnet-1336e83c",
+					"address": "172.31.80.0/20",
+					"state": "available",
+					"availabilityZone": "us-east-1b"
 				}
-			]
-		},
-		"listKeyPairsRaw2": {
-			"KeyPairs": []
-		},
-		"listKeyPairs": [
-			{
+			],
+			"listIpsRaw": {
+				"Addresses": [
+					{
+						"PublicIp": "13.58.241.28",
+						"AllocationId": "eipalloc-0bb2a617994518740",
+						"Domain": "vpc",
+						"Tags": []
+					},
+					{
+						"InstanceId": "i-1234567890abcdef0",
+						"NetworkInterfaceId": "eni-12345678",
+						"PrivateIpAddress": "10.0.1.241",
+						"Tags": []
+					}
+				],
+			},
+			"listIps": [
+				{
+					"id": "eipalloc-0bb2a617994518740",
+					"region": "us-east-2",
+					"address": "13.58.241.28",
+					"type": "vpc"
+				},
+				{
+					"region": "us-east-2",
+					"instanceId": "i-1234567890abcdef0",
+					"privateAddress": "10.0.1.241"
+				}
+			],
+			"createPublicIpResponse": {
+				"PublicIp": "18.216.147.194",
+				"AllocationId": "eipalloc-0da3553f242237241",
+				"Domain": "vpc"
+			},
+			"listKeyPairsRaw": {
+				"KeyPairs": [
+					{
+						"KeyFingerprint": "1f:51:ae:28:bf:89:e9:d8:1f:25:5d:37:2d:7d:b8:ca:9f:f5:f1:6f",
+						"KeyName": "my-key-pair"
+					}
+				]
+			},
+			"listKeyPairsRaw2": {
+				"KeyPairs": []
+			},
+			"listKeyPairs": [
+				{
+					"fingerprint": "1f:51:ae:28:bf:89:e9:d8:1f:25:5d:37:2d:7d:b8:ca:9f:f5:f1:6f",
+					"name": "my-key-pair",
+					"region": "us-east-2"
+				}
+			],
+			"createKeyPairRaw": {
+				"KeyFingerprint": "1f:51:ae:28:bf:89:e9:d8:1f:25:5d:37:2d:7d:b8:ca:9f:f5:f1:6f",
+				"KeyName": "my-key-pair",
+				"KeyMaterial": "RSA PRIVATE KEY"
+			},
+			"createKeyPair": {
 				"fingerprint": "1f:51:ae:28:bf:89:e9:d8:1f:25:5d:37:2d:7d:b8:ca:9f:f5:f1:6f",
 				"name": "my-key-pair",
 				"region": "us-east-2"
-			}
-		],
-		"createKeyPairRaw": {
-			"KeyFingerprint": "1f:51:ae:28:bf:89:e9:d8:1f:25:5d:37:2d:7d:b8:ca:9f:f5:f1:6f",
-			"KeyName": "my-key-pair",
-			"KeyMaterial": "RSA PRIVATE KEY"
-		},
-		"createKeyPair": {
-			"fingerprint": "1f:51:ae:28:bf:89:e9:d8:1f:25:5d:37:2d:7d:b8:ca:9f:f5:f1:6f",
-			"name": "my-key-pair",
-			"region": "us-east-2"
-			// "KeyMaterial": "RSA PRIVATE KEY"
+				// "KeyMaterial": "RSA PRIVATE KEY"
+			},
+			"listRawLb": {
+				"LoadBalancerDescriptions": [
+					{
+						"LoadBalancerName": "elb-internal-ragheb",
+						"DNSName": "internal-elb-internal-ragheb-408965366.us-east-2.elb.amazonaws.com",
+						"CanonicalHostedZoneNameID": "Z3AADJGX6KTTL2",
+						"ListenerDescriptions": [
+							{
+								"Listener": {
+									"Protocol": "HTTP",
+									"LoadBalancerPort": 80,
+									"InstanceProtocol": "HTTP",
+									"InstancePort": 80
+								},
+								"PolicyNames": []
+							},
+							{
+								"Listener": {
+									"Protocol": "HTTPS",
+									"LoadBalancerPort": 443,
+									"InstanceProtocol": "HTTPS",
+									"InstancePort": 443,
+									"SSLCertificateId": "arn:"
+								},
+								"PolicyNames": []
+							}
+						],
+						"Policies": {
+							"AppCookieStickinessPolicies": [],
+							"LBCookieStickinessPolicies": [],
+							"OtherPolicies": []
+						},
+						"BackendServerDescriptions": [],
+						"AvailabilityZones": [
+							"us-east-1a",
+							"us-east-1b",
+						],
+						"Subnets": [
+							"subnet-97c7abf3",
+							"subnet-1336e83c"
+						],
+						"VPCId": "vpc-a5e482dd",
+						"Instances": [],
+						"HealthCheck": {
+							"Target": "HTTP:80/index.html",
+							"Interval": 30,
+							"Timeout": 5,
+							"UnhealthyThreshold": 2,
+							"HealthyThreshold": 10
+						},
+						"SourceSecurityGroup": {
+							"OwnerAlias": "019397354664",
+							"GroupName": "default"
+						},
+						"SecurityGroups": [
+							"sg-ca3421a3"
+						],
+						"CreatedTime": "2018-08-14T16:35:19.220Z",
+						"Scheme": "internal"
+					},
+					{
+						"LoadBalancerName": "test-lb-ragheb",
+						"DNSName": "test-lb-ragheb-69863322.us-east-2.elb.amazonaws.com",
+						"CanonicalHostedZoneName": "test-lb-ragheb-69863322.us-east-2.elb.amazonaws.com",
+						"CanonicalHostedZoneNameID": "Z3AADJGX6KTTL2",
+						"ListenerDescriptions": [
+							{
+								"Listener": {
+									"Protocol": "HTTP",
+									"LoadBalancerPort": 80,
+									"InstanceProtocol": "HTTP",
+									"InstancePort": 80
+								},
+								"PolicyNames": []
+							}
+						],
+						"Policies": {
+							"AppCookieStickinessPolicies": [],
+							"LBCookieStickinessPolicies": [],
+							"OtherPolicies": []
+						},
+						"BackendServerDescriptions": [],
+						"AvailabilityZones": [
+							"us-east-1a",
+							"us-east-1b",
+						],
+						"Subnets": [
+							"subnet-97c7abf3",
+							"subnet-1336e83c"
+						],
+						"VPCId": "vpc-957300fc",
+						"Instances": [
+							{
+								"InstanceId": "i-0bb24a3de714f9fba"
+							}
+						],
+						"HealthCheck": {
+							"Target": "HTTP:80/index.html",
+							"Interval": 30,
+							"Timeout": 5,
+							"UnhealthyThreshold": 2,
+							"HealthyThreshold": 10
+						},
+						"SourceSecurityGroup": {
+							"OwnerAlias": "019397354664",
+							"GroupName": "default"
+						},
+						"SecurityGroups": [
+							"sg-ca3421a3"
+						],
+						"CreatedTime": "2018-08-14T16:25:32.560Z",
+						"Scheme": "internet-facing"
+					}]
+			},
+			"listlbIstances": {
+				"InstanceStates": [{
+					"InstanceId": "i-0bb24a3de714f9fba",
+					"State": "OutOfService",
+					"ReasonCode": "Instance",
+					"Description": "Instance has failed at least the UnhealthyThreshold number of health checks consecutively."
+				}]
+			},
+			"listlb": [
+				{
+					"region": 'us-east-1',
+					"type": "classic",
+					"id": "elb-internal-ragheb",
+					"name": "elb-internal-ragheb",
+					"mode": "internal",
+					"networkId": "vpc-a5e482dd",
+					"domain": "internal-elb-internal-ragheb-408965366.us-east-2.elb.amazonaws.com",
+					"securityGroupIds": [
+						"sg-ca3421a3"
+					],
+					"createdTime": "2018-08-14T16:35:19.220Z",
+					"healthProbe": {
+						"healthProbePath": "HTTP:80/index.html",
+						"healthProbeInterval": 30,
+						"healthProbeTimeout": 5,
+						"maxFailureAttempts": 2,
+						"maxSuccessAttempts": 10
+					},
+					"rules": [
+						{
+							"backendProtocol": "HTTP",
+							"backendPort": 80,
+							"frontendProtocol": "HTTP",
+							"frontendPPort": 80
+						},
+						{
+							"backendProtocol": "HTTPS",
+							"backendPort": 443,
+							"frontendProtocol": "HTTPS",
+							"frontendPPort": 443,
+							"certificate": "arn:"
+						}
+					],
+					"zones": [
+						{
+							"name": "us-east-1a",
+							"subnetId": "subnet-97c7abf3"
+						},
+						{
+							"name": "us-east-1b",
+							"subnetId": "subnet-1336e83c"
+						}
+					],
+					"instances": [
+						{
+							"id": "i-0bb24a3de714f9fba",
+							"state": "OutOfService"
+						}
+					]
+				},
+				{
+					"type": "classic",
+					"region": 'us-east-1',
+					"id": "test-lb-ragheb",
+					"name": "test-lb-ragheb",
+					"mode": "internet-facing",
+					"networkId": "vpc-957300fc",
+					"domain": "test-lb-ragheb-69863322.us-east-2.elb.amazonaws.com",
+					"securityGroupIds": [
+						"sg-ca3421a3"
+					],
+					"createdTime": "2018-08-14T16:25:32.560Z",
+					"healthProbe": {
+						"healthProbePath": "HTTP:80/index.html",
+						"healthProbeInterval": 30,
+						"healthProbeTimeout": 5,
+						"maxFailureAttempts": 2,
+						"maxSuccessAttempts": 10
+					},
+					"rules": [
+						{
+							"backendProtocol": "HTTP",
+							"backendPort": 80,
+							"frontendProtocol": "HTTP",
+							"frontendPPort": 80
+						}
+					],
+					"zones": [
+						{
+							"name": "us-east-1a",
+							"subnetId": "subnet-97c7abf3"
+						},
+						{
+							"name": "us-east-1b",
+							"subnetId": "subnet-1336e83c"
+						}
+					],
+					"instances": [
+						{
+							"id": "i-0bb24a3de714f9fba",
+							"state": "OutOfService"
+						}
+					]
+				}
+			]
 		}
-	};
+	;
 	return data;
 };

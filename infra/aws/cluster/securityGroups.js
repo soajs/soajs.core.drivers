@@ -19,17 +19,6 @@ const securityGroups = {
     },
 
     /**
-    * Get one network security group
-
-    * @param  {Object}   options  Data passed to function as params
-    * @param  {Function} cb    Callback function
-    * @return {void}
-    */
-    get: function(options, cb) {
-	    return cb(null, true);
-    },
-
-    /**
     * Create a new security group
 
     * @param  {Object}   options  Data passed to function as params

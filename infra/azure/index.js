@@ -84,18 +84,6 @@ const driver = {
 		return cb(null, true);
 	},
 
-	"deployExternalLb": function (options, cb) {
-		return cb(null, true);
-	},
-
-	"updateExternalLB": function (options, cb) {
-		return cb(null, true);
-	},
-
-	"deleteExternalLB": function (options, cb) {
-		return cb(null, true);
-	},
-
 	/**
 	 * List available Networks
 

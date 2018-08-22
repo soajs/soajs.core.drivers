@@ -134,15 +134,15 @@ const GCLB = {
 		});
 	},
 	
-	"deployExternalLb": function (options, cb) {
+	"createLoadBalancer": function (options, cb) {
 		return cb(null, true);
 	},
 	
-	"updateExternalLB": function (options, cb) {
+	"updateLoadBalancer": function (options, cb) {
 		return cb(null, true);
 	},
 	
-	"deleteExternalLB": function (options, cb) {
+	"deleteLoadBalancer": function (options, cb) {
 		return cb(null, true);
 	}
 };

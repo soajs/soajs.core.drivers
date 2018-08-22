@@ -573,55 +573,6 @@ describe("testing /lib/azure/index.js", function () {
 			service.publishPorts(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				//	assert.deepEqual(response, expectedRes);
-				done();
-			});
-		});
-	});
-
-	describe("calling deployExternalLb", function () {
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		// let expectedRes={},
-		it("Success", function (done) {
-			service.deployExternalLb(options, function (error, response) {
-				assert.ifError(error);
-				assert.ok(response);
-				//	assert.deepEqual(response, expectedRes);
-				done();
-			});
-		});
-	});
-
-	describe("calling updateExternalLB", function () {
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		// let expectedRes={},
-		it("Success", function (done) {
-			service.updateExternalLB(options, function (error, response) {
-				assert.ifError(error);
-				assert.ok(response);
-				//	assert.deepEqual(response, expectedRes);
-				done();
-			});
-		});
-	});
-	
-	describe("calling deleteExternalLB", function () {
-		afterEach((done) => {
-			sinon.restore();
-			done();
-		});
-		// let expectedRes={},
-		it("Success", function (done) {
-			service.deleteExternalLB(options, function (error, response) {
-				assert.ifError(error);
-				assert.ok(response);
-				//	assert.deepEqual(response, expectedRes);
 				done();
 			});
 		});

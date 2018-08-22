@@ -153,7 +153,21 @@ driver.deleteService = function (options, cb) {
 					ElbName: infraStack.loadBalancers[options.soajs.registry.code.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']].name
 				};
 				options.infra.stack = infraStack;
-				LBDriver.deleteExternalLB(options, cb);
+				LBDriver.delete(options, function (err) {
+					if (err) {
+						return cb(err);
+					}
+					else {
+						const envCode = options.params.envCode.toUpperCase();
+						if (options.infra.deployments && options.infra.deployments[options.params.info[2]]
+							&& options.infra.deployments[options.params.info[2]].loadBalancers
+							&& options.infra.deployments[options.params.info[2]].loadBalancers[envCode]
+							&& options.infra.deployments[options.params.info[2]].loadBalancers[envCode][options.params.name]) {
+							delete options.infra.deployments[options.params.info[2]].loadBalancers[envCode][options.params.name];
+						}
+						return cb(null, true);
+					}
+				});
 			}
 			else {
 				return cb(null, true);

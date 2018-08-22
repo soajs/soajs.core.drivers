@@ -117,16 +117,16 @@ const driver = {
 		LBDriver.publishPorts(options, cb);
 	},
 	
-	"deployExternalLb": function (options, cb) {
-		LBDriver.deployExternalLb(options, cb);
+	"createLoadBalancer": function (options, cb) {
+		LBDriver.createLoadBalancer(options, cb);
 	},
 	
-	"updateExternalLB": function (options, cb) {
-		LBDriver.updateExternalLB(options, cb);
+	"updateLoadBalancer": function (options, cb) {
+		LBDriver.updateLoadBalancer(options, cb);
 	},
 	
-	"deleteExternalLB": function (options, cb) {
-		LBDriver.deleteExternalLB(options, cb);
+	"deleteLoadBalancer": function (options, cb) {
+		LBDriver.deleteLoadBalancer(options, cb);
 	},
 	
 	"executeDriver": function(method, options, cb){

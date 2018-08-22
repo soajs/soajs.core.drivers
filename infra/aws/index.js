@@ -187,19 +187,6 @@ const driver = {
 	"publishPorts": function (options, cb) {
 		LBDriver.publishPorts(options, cb);
 	},
-	
-	"deployExternalLb": function (options, cb) {
-		LBDriver.deployExternalLb(options, cb);
-	},
-	
-	"updateExternalLB": function (options, cb) {
-		LBDriver.updateExternalLB(options, cb);
-	},
-	
-	"deleteExternalLB": function (options, cb) {
-		LBDriver.deleteExternalLB(options, cb);
-	},
-	
 	"getFiles": function (options, cb) {
 		S3Driver.getFiles(options, cb);
 	},
@@ -311,9 +298,9 @@ const driver = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	// listLoadBalancers: function (options, cb) {
-	// 	return loadBalancers.list(options, cb);
-	// },
+	listLoadBalancers: function (options, cb) {
+		return LBDriver.list(options, cb);
+	},
 	
 	/**
 	 * Create loadbalancer
@@ -322,9 +309,9 @@ const driver = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	// createLoadBalancer: function (options, cb) {
-	// 	return loadBalancers.create(options, cb);
-	// },
+	createLoadBalancer: function (options, cb) {
+		return LBDriver.create(options, cb);
+	},
 	
 	/**
 	 * Update loadbalancer
@@ -333,9 +320,9 @@ const driver = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	// updateLoadBalancer: function (options, cb) {
-	// 	return loadBalancers.update(options, cb);
-	// },
+	updateLoadBalancer: function (options, cb) {
+		return LBDriver.update(options, cb);
+	},
 	
 	/**
 	 * Delete loadbalancer
@@ -344,9 +331,9 @@ const driver = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	// deleteLoadBalancer: function (options, cb) {
-	// 	return loadBalancers.delete(options, cb);
-	// },
+	deleteLoadBalancer: function (options, cb) {
+		return LBDriver.delete(options, cb);
+	},
 	
 	/**
 	 * List available subnets
@@ -399,9 +386,9 @@ const driver = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	// listSecurityGroups: function (options, cb) {
-	// 	return securityGroups.list(options, cb);
-	// },
+	listSecurityGroups: function (options, cb) {
+		return securityGroups.list(options, cb);
+	},
 	
 	/**
 	 * Get existing security group
@@ -410,9 +397,9 @@ const driver = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	// getSecurityGroup: function (options, cb) {
-	// 	return securityGroups.get(options, cb);
-	// },
+	getSecurityGroup: function (options, cb) {
+		return securityGroups.get(options, cb);
+	},
 	
 	/**
 	 * Create security group
@@ -421,9 +408,9 @@ const driver = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	// createSecurityGroup: function (options, cb) {
-	// 	return securityGroups.create(options, cb);
-	// },
+	createSecurityGroup: function (options, cb) {
+		return securityGroups.create(options, cb);
+	},
 	
 	/**
 	 * Update security group
@@ -432,9 +419,9 @@ const driver = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	// updateSecurityGroup: function (options, cb) {
-	// 	return securityGroups.update(options, cb);
-	// },
+	updateSecurityGroup: function (options, cb) {
+		return securityGroups.update(options, cb);
+	},
 	
 	/**
 	 * Delete security group
@@ -443,9 +430,9 @@ const driver = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	// deleteSecurityGroup: function (options, cb) {
-	// 	return securityGroups.delete(options, cb);
-	// },
+	deleteSecurityGroup: function (options, cb) {
+		return securityGroups.delete(options, cb);
+	},
 
 	/**
 	 * List available public ips

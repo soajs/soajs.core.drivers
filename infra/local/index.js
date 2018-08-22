@@ -52,16 +52,16 @@ const driver = {
 		runCorrespondingDriver('publishPorts', options, cb);
 	},
 	
-	"deployExternalLb": function (options, cb) {
-		runCorrespondingDriver('deployExternalLb', options, cb);
+	"createLoadBalancer": function (options, cb) {
+		runCorrespondingDriver('createLoadBalancer', options, cb);
 	},
 	
-	"updateExternalLB": function (options, cb) {
-		runCorrespondingDriver('updateExternalLB', options, cb);
+	"updateLoadBalancer": function (options, cb) {
+		runCorrespondingDriver('updateLoadBalancer', options, cb);
 	},
 	
-	"deleteExternalLB": function (options, cb) {
-		runCorrespondingDriver('deleteExternalLB', options, cb);
+	"deleteLoadBalancer": function (options, cb) {
+		runCorrespondingDriver('deleteLoadBalancer', options, cb);
 	},
 	
 	"executeDriver": function(method, options, cb){

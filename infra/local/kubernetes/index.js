@@ -213,7 +213,7 @@ let driver = {
 	 * @returns {*}
 	 */
 	
-	"deployExternalLb": function (options, cb) {
+	"createLoadBalancer": function (options, cb) {
 		return cb(null, true);
 	},
 	
@@ -222,7 +222,7 @@ let driver = {
 	 * @param cb
 	 * @returns {*}
 	 */
-	"updateExternalLB": function (options, cb) {
+	"updateLoadBalancer": function (options, cb) {
 		return cb(null, true);
 	},
 	
@@ -231,7 +231,7 @@ let driver = {
 	 * @param cb
 	 * @returns {*}
 	 */
-	"deleteExternalLB": function (options, cb) {
+	"deleteLoadBalancer": function (options, cb) {
 		return cb(null, true);
 	}
 };

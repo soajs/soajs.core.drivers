@@ -196,8 +196,8 @@ describe("testing index.js -- Calling docker local", function () {
         });
     });
 
-    describe("calling execute deployExternalLb", function () {
-        let method = 'deployExternalLb';
+    describe("calling execute createLoadBalancer", function () {
+        let method = 'createLoadBalancer';
         it("Success", function (done) {
             index.execute(driverOptions, method, methodOptions, function () {
                 done();
@@ -214,8 +214,8 @@ describe("testing index.js -- Calling docker local", function () {
         });
     });
 
-    describe("calling execute deleteExternalLB", function () {
-        let method = 'deleteExternalLB';
+    describe("calling execute deleteLoadBalancer", function () {
+        let method = 'deleteLoadBalancer';
         it("Success", function (done) {
             index.execute(driverOptions, method, methodOptions, function () {
                 done();
@@ -525,8 +525,8 @@ describe("testing index.js -- Calling kubernetes local", function () {
         });
     });
 
-    describe("calling execute deployExternalLb", function () {
-        let method = 'deployExternalLb';
+    describe("calling execute createLoadBalancer", function () {
+        let method = 'createLoadBalancer';
         it("Success", function (done) {
             index.execute(kuberDriver, method, kuberOptions, function () {
                 done();
@@ -543,8 +543,8 @@ describe("testing index.js -- Calling kubernetes local", function () {
         });
     });
 
-    describe("calling execute deleteExternalLB", function () {
-        let method = 'deleteExternalLB';
+    describe("calling execute deleteLoadBalancer", function () {
+        let method = 'deleteLoadBalancer';
         it("Success", function (done) {
             index.execute(kuberDriver, method, kuberOptions, function () {
                 done();

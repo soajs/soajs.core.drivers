@@ -1974,12 +1974,12 @@ describe("testing /lib/google/index.js", function () {
 		});
 	});
 	
-	describe("calling deployExternalLb", function () {
+	describe("calling createLoadBalancer", function () {
 		let info = dD();
 		let options = info.deployCluster;
 		
 		it("Success", function (done) {
-			service.deployExternalLb(options, function (error, res) {
+			service.createLoadBalancer(options, function (error, res) {
 				assert.ifError(error);
 				assert.ok(res);
 				done();
@@ -1987,12 +1987,12 @@ describe("testing /lib/google/index.js", function () {
 		});
 	});
 	
-	describe("calling updateExternalLB", function () {
+	describe("calling updateLoadBalancer", function () {
 		let info = dD();
 		let options = info.deployCluster;
 		
 		it("Success", function (done) {
-			service.updateExternalLB(options, function (error, res) {
+			service.updateLoadBalancer(options, function (error, res) {
 				assert.ifError(error);
 				assert.ok(res);
 				done();
@@ -2000,12 +2000,12 @@ describe("testing /lib/google/index.js", function () {
 		});
 	});
 	
-	describe("calling deleteExternalLB", function () {
+	describe("calling deleteLoadBalancer", function () {
 		let info = dD();
 		let options = info.deployCluster;
 		
 		it("Success", function (done) {
-			service.deleteExternalLB(options, function (error, res) {
+			service.deleteLoadBalancer(options, function (error, res) {
 				assert.ifError(error);
 				assert.ok(res);
 				done();
