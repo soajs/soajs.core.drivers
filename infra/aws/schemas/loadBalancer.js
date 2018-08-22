@@ -267,6 +267,6 @@ const remove = {};
 module.exports = {
     add: add,
     update: update,
-    get: get,
+    list: list,
     remove: remove,
 };
