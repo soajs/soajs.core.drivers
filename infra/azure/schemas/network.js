@@ -1,4 +1,4 @@
-var network = {
+const add = {
     "type": "object",
     "additionalProperties": false,
     "properties": {
@@ -54,4 +54,15 @@ var network = {
     }
 };
 
-module.exports = network;
+const update = {};
+
+const get = {};
+
+const remove = {};
+
+module.exports = {
+    add: add,
+    update: update,
+    get: get,
+    remove: remove,
+};
