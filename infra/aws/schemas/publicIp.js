@@ -1,4 +1,4 @@
-var publicIp = {
+const add = {
     "type": "object",
     "additionalProperties": false,
     "properties": {
@@ -7,13 +7,12 @@ var publicIp = {
             "required": true,
             "enum": ["publicIp"]
         },
-        "name": {
+        "domain": {
             "required": true,
-            "type": "string"
-        },
-        "group": {
-            "required": true,
-            "type": "string"
+            "type": "string",
+            "validation": {
+                "enum": [ "vpc" ]
+            }
         },
         "region": {
             "required": true,
@@ -22,27 +21,16 @@ var publicIp = {
         "labels": {
             "required": false,
             "type": "object"
-        },
-        "publicIPAllocationMethod": {
-            "required": false,
-            "type": "string",
-            "enum": ["dynamic", "static"]
-        },
-        "idleTimeout": {
-            "required": false,
-            "type": "number"
-        },
-        "ipAddressVersion": {
-            "required": false,
-            "type": "string",
-            "enum": ["IPv4", "IPv6"]
-        },
-        "type": {
-            "required": false,
-            "type": "string",
-            "enum": ["basic", "standard"]
         }
     }
 };
 
-module.exports = publicIp;
+const update = {};
+
+const list = {};
+
+const remove = {};
+
+module.exports = {
+    add, update, list, remove
+};
