@@ -47,7 +47,7 @@ const add = {
 
 const update = {};
 
-const get = {};
+const list = {};
 
 const remove = {};
 
