@@ -13,24 +13,24 @@ function getConnector(opts) {
 }
 
 const driver = {
-	
+
 	/**
 	 * List available networks
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	list: function (options, cb) {
 		const aws = options.infra.api;
-		
+
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-		
+
 		ec2.describeVpcs({}, function (err, networks) {
 			if (err) {
 				return cb(err);
@@ -52,16 +52,16 @@ const driver = {
 			}
 		});
 	},
-	
+
 	/**
 	 * Create a new network
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	create: function (options, cb) {
-		
+
 		const aws = options.infra.api;
 		const ec2 = getConnector({
 			api: 'ec2',
@@ -83,10 +83,10 @@ const driver = {
 			return cb(null, response);
 		});
 	},
-	
+
 	/**
 	 * Update a network
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -105,7 +105,7 @@ const driver = {
 		});
 		let params = {
 			VpcIds: [
-				options.params.network
+				options.params.name
 			]
 		};
 		ec2.describeVpcs(params, function (err, networks) {
@@ -124,8 +124,8 @@ const driver = {
 				});
 				if (options.params && options.params.addresses){
 					options.params.addresses.forEach((oneAddress) => {
-						if (oneAddress.address) {
-							addresses.push(oneAddress.address);
+						if (oneAddress) {
+							addresses.push(oneAddress);
 						}
 					});
 				}
@@ -142,7 +142,7 @@ const driver = {
 								async.parallel({
 									addedCidr: function (mini) {
 										//associateVpcCidrBlock
-										driver.addNetworkAddresses(ec2, options.params.network, _.difference(addresses, cidR), options.params.addresses, mini);
+										driver.addNetworkAddresses(ec2, options.params.name, _.difference(addresses, cidR), options.params.addresses, mini);
 									},
 									removedCidr: function (mini) {
 										//disassociateAddress
@@ -178,10 +178,10 @@ const driver = {
 			}
 		});
 	},
-	
+
 	/**
 	 * Delete a network
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -195,7 +195,7 @@ const driver = {
 			secretAccessKey: aws.secretAccessKey
 		});
 		let params = {
-			network: options.params.network, /* required */
+			VpcId: options.params.name, /* required */
 		};
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#deleteVpc-property
 		ec2.deleteVpc(params, function (err, response) {
@@ -245,7 +245,7 @@ const driver = {
 			}, callback);
 		}, cb);
 	},
-	
+
 };
 
 module.exports = driver;

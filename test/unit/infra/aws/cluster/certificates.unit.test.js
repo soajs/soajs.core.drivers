@@ -13,7 +13,7 @@ let options = {};
 describe("testing /lib/azure/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
 
-	describe("listKeyPairs", function () {
+	describe("listCertificates", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -24,8 +24,11 @@ describe("testing /lib/azure/index.js", function () {
 			sinon
 				.stub(AWSDriver, 'getConnector')
 				.returns({
-					describeKeyPairs: (params, cb) => {
-						return cb(null, info.listKeyPairsRaw);
+					listCertificates: (params, cb) => {
+						return cb(null, info.listCertificatesRaw);
+					},
+					describeCertificate: (params, cb) => {
+						return cb(null, info.describeCertificateRaw);
 					}
 				})
 
@@ -33,21 +36,21 @@ describe("testing /lib/azure/index.js", function () {
 				region: 'us-east-2',
 			};
 
-			service.listKeyPairs(options, function (error, response) {
+			service.listCertificates(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response, info.listKeyPairs);
+				assert.deepEqual(response, info.listCertificates);
 				done();
 			});
 		});
-		it("Success - no key pairs", function (done) {
+		it("Success - no certificates", function (done) {
 			let info = dD();
 			let options = info.deployCluster;
 			sinon
 				.stub(AWSDriver, 'getConnector')
 				.returns({
-					describeKeyPairs: (params, cb) => {
-						return cb(null, {"KeyPairs": []});
+					listCertificates: (params, cb) => {
+						return cb(null, info.listCertificatesRaw2);
 					}
 				})
 
@@ -55,21 +58,24 @@ describe("testing /lib/azure/index.js", function () {
 				region: 'us-east-2',
 			};
 
-			service.listKeyPairs(options, function (error, response) {
+			service.listCertificates(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(response, []);
 				done();
 			});
 		});
-		it("Success - arrays has empty objects", function (done) {
+		it("Success - empty describe", function (done) {
 			let info = dD();
 			let options = info.deployCluster;
 			sinon
 				.stub(AWSDriver, 'getConnector')
 				.returns({
-					describeKeyPairs: (params, cb) => {
-						return cb(null, {"KeyPairs": [{},{}]});
+					listCertificates: (params, cb) => {
+						return cb(null, info.listCertificatesRaw);
+					},
+					describeCertificate: (params, cb) => {
+						return cb(null, info.describeCertificateRaw2);
 					}
 				})
 
@@ -77,10 +83,10 @@ describe("testing /lib/azure/index.js", function () {
 				region: 'us-east-2',
 			};
 
-			service.listKeyPairs(options, function (error, response) {
+			service.listCertificates(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response, []);
+				assert.deepEqual(response, [{ "details": {}, "region": "us-east-2"}]);
 				done();
 			});
 		});
@@ -90,8 +96,8 @@ describe("testing /lib/azure/index.js", function () {
 			sinon
 				.stub(AWSDriver, 'getConnector')
 				.returns({
-					describeKeyPairs: (params, cb) => {
-						return cb(new Error("List KeyPairs Error"));
+					listCertificates: (params, cb) => {
+						return cb(new Error("List Certificates Error"));
 					}
 				})
 
@@ -99,14 +105,15 @@ describe("testing /lib/azure/index.js", function () {
 				region: 'us-east-2',
 			};
 
-			service.listKeyPairs(options, function (error, response) {
+			service.listCertificates(options, function (error, response) {
 				assert.ok(error);
 				done();
 			});
 		});
 	});
 
-	describe("createKeyPair", function () {
+	// TODO: complete this test section it is incomplete
+	describe.skip("createCertificate", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -117,8 +124,8 @@ describe("testing /lib/azure/index.js", function () {
 			sinon
 				.stub(AWSDriver, 'getConnector')
 				.returns({
-					createKeyPair: (params, cb) => {
-						return cb(null, info.createKeyPairRaw);
+					requestCertificate: (params, cb) => {
+						return cb(null, {}); //TODO: fill response
 					}
 				})
 
@@ -126,7 +133,7 @@ describe("testing /lib/azure/index.js", function () {
 				region: 'us-east-2',
 			};
 
-			service.createKeyPair(options, function (error, response) {
+			service.createCertificate(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(response, info.createKeyPair)
@@ -139,7 +146,7 @@ describe("testing /lib/azure/index.js", function () {
 			sinon
 				.stub(AWSDriver, 'getConnector')
 				.returns({
-					createKeyPair: (params, cb) => {
+					requestCertificate: (params, cb) => {
 						return cb(null, {});
 					}
 				})
@@ -148,7 +155,7 @@ describe("testing /lib/azure/index.js", function () {
 				region: 'us-east-2',
 			};
 
-			service.createKeyPair(options, function (error, response) {
+			service.createCertificate(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				assert.deepEqual(response, {})
@@ -161,7 +168,7 @@ describe("testing /lib/azure/index.js", function () {
 			sinon
 				.stub(AWSDriver, 'getConnector')
 				.returns({
-					createKeyPair: (params, cb) => {
+					requestCertificate: (params, cb) => {
 						return cb(new Error("Create Key Pair Error"));
 					}
 				})
@@ -170,20 +177,20 @@ describe("testing /lib/azure/index.js", function () {
 				region: 'us-east-2',
 			};
 
-			service.createKeyPair(options, function (error, response) {
+			service.createCertificate(options, function (error, response) {
 				assert.ok(error);
 				done();
 			});
 		});
 	});
 
-	describe("updateKeyPair", function () {
+	describe("updateCertificate", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
 		it("Success", function (done) {
-			service.updateKeyPair(options, function (error, response) {
+			service.updateCertificate(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();
@@ -191,7 +198,7 @@ describe("testing /lib/azure/index.js", function () {
 		});
 	});
 
-	describe("deleteKeyPair", function () {
+	describe("deleteCertificate", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -202,16 +209,16 @@ describe("testing /lib/azure/index.js", function () {
 			sinon
 				.stub(AWSDriver, 'getConnector')
 				.returns({
-					deleteKeyPair: (params, cb) => {
+					deleteCertificate: (params, cb) => {
 						return cb(null, {});
 					}
 				})
 
 			options.params = {
-				name: 'my-key-pair',
+				id: 'my-key-pair',
 			};
 
-			service.deleteKeyPair(options, function (error, response) {
+			service.deleteCertificate(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();

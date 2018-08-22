@@ -14,7 +14,11 @@ const networks = require('./cluster/networks.js');
 const securityGroups = require('./cluster/securityGroups.js');
 const subnets = require('./cluster/subnets.js');
 const keyPairs = require('./cluster/keyPairs.js');
+const certificates = require('./cluster/certificates.js');
 const utils = require("./utils/utils");
+
+const Terraform = require('./terraform');
+
 function getConnector(opts) {
 	return utils.getConnector(opts, config);
 }
@@ -34,7 +38,7 @@ const driver = {
 		let aws = options.infra.api;
 		let ec2 = getConnector({api: 'ec2', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey});
 		let params = {};
-		
+
 		// Retrieves all regions/endpoints that work with EC2
 		ec2.describeRegions(params, function (error, data) {
 			if (error) {
@@ -48,7 +52,16 @@ const driver = {
 	},
 
 	"getExtras": function (options, cb) {
-		return cb(null, {technologies: ['docker'], templates: ['external'], drivers: ['Cloud Formation'] });
+		return cb(null, {
+			technologies: ['docker', 'vm'],
+			templates: ['external', 'local'],
+			drivers: ['Cloud Formation', 'Terraform'],
+			override: {
+				'Cloud Formation': {
+					templates: ['external']
+				}
+			}
+		});
 	},
 
 	/**
@@ -60,18 +73,25 @@ const driver = {
 	"deployCluster": function (options, cb) {
 		let myDeployment;
 		function callAPI(mCb) {
-			ClusterDriver.deployCluster(options, (error, oneDeployment) => {
+			let driver = ClusterDriver.deployCluster;
+
+			// check if a terrafrom template is included in input and invoke terraform driver
+			if(options.params && options.params.template && options.params.template.driver && options.params.template.driver.toLowerCase() === 'terraform') {
+				driver = Terraform.deployCluster;
+			}
+
+			driver(options, (error, oneDeployment) => {
 				if(oneDeployment){
 					myDeployment = oneDeployment;
 				}
 				return mCb(error, oneDeployment);
 			});
 		}
-		
+
 		function preAPICall(mCb) {
 			runCorrespondingDriver('deployClusterPre', options, mCb);
 		}
-		
+
 		function postAPICall(mCb) {
 			if(myDeployment){
 				runCorrespondingDriver('deployClusterPost', options, mCb);
@@ -80,7 +100,7 @@ const driver = {
 				return mCb();
 			}
 		}
-		
+
 		let stages = [preAPICall, callAPI, postAPICall];
 		async.series(stages, (error) => {
 			if (error) {
@@ -89,7 +109,7 @@ const driver = {
 			return cb(null, myDeployment);
 		});
 	},
-	
+
 	/**
 	 * This method takes the id of the stack as an input and check if the stack has been deployed
 	 * it returns the ip that can be used to access the machine
@@ -100,7 +120,7 @@ const driver = {
 	"getDeployClusterStatus": function (options, cb) {
 		options.soajs.log.debug("Checking if Cluster is healthy ...");
 		let stack = options.infra.stack;
-		
+
 		//get the environment record
 		if (options.soajs.registry.deployer.container[stack.technology].remote.nodes && options.soajs.registry.deployer.container[stack.technology].remote.nodes !== '') {
 			let machineIp = options.soajs.registry.deployer.container[stack.technology].remote.nodes;
@@ -133,11 +153,11 @@ const driver = {
 			});
 		}
 	},
-	
+
 	"getDNSInfo": function (options, cb) {
 		LBDriver.getDNSInfo(options, cb);
 	},
-	
+
 	/**
 	 * This method returns the available deployment regions at aws
 	 * @param options
@@ -164,48 +184,60 @@ const driver = {
 			{v: 'ap-southeast-2', 'l': 'Asia Pacific (Sydney)'},
 			{v: 'sa-east-1', 'l': 'South America (São Paulo)'}
 		];
-		
+
 		return cb(null, response);
 	},
-	
+
 	"scaleCluster": function (options, cb) {
 		ClusterDriver.scaleCluster(options, cb);
 	},
-	
+
 	"getCluster": function (options, cb) {
 		ClusterDriver.getCluster(options, cb);
 	},
-	
+
 	"updateCluster": function (options, cb) {
-		ClusterDriver.updateCluster(options, cb);
+		// check if a terrafrom template is included in input and invoke terraform driver
+		let driver = ClusterDriver.updateCluster;
+		if(options.params && options.params.template && options.params.template.driver && options.params.template.driver.toLowerCase() === 'terraform') {
+			driver = Terraform.updateCluster;
+		}
+
+		return driver(options, cb);
 	},
-	
+
 	"deleteCluster": function (options, cb) {
-		ClusterDriver.deleteCluster(options, cb);
+		// check if a terrafrom template is included in input and invoke terraform driver
+		let driver = ClusterDriver.deleteCluster;
+		if(options.params && options.params.template && options.params.template.driver && options.params.template.driver.toLowerCase() === 'terraform') {
+			driver = Terraform.deleteCluster;
+		}
+
+		return driver(options, cb);
 	},
-	
+
 	"publishPorts": function (options, cb) {
 		LBDriver.publishPorts(options, cb);
 	},
 	"getFiles": function (options, cb) {
 		S3Driver.getFiles(options, cb);
 	},
-	
+
 	'downloadFile': function (options, cb) {
 		S3Driver.downloadFile(options, cb);
 	},
-	
+
 	'deleteFile': function (options, cb) {
 		S3Driver.deleteFile(options, cb);
 	},
-	
+
 	"uploadFile": function (options, cb) {
 		S3Driver.uploadFile(options, cb);
 	},
-	
+
 	/**
 	 * List available resource groups
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -213,10 +245,10 @@ const driver = {
 	listGroups: function(options, cb) {
 		return groups.list(options, cb);
 	},
-	
+
 	/**
 	 * Create a resource group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -224,10 +256,10 @@ const driver = {
 	createGroup: function (options, cb) {
 		return groups.create(options, cb);
 	},
-	
+
 	/**
 	 * Update a resource group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -235,10 +267,10 @@ const driver = {
 	updateGroup: function (options, cb) {
 		return groups.update(options, cb);
 	},
-	
+
 	/**
 	 * Delete a resource group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -246,10 +278,10 @@ const driver = {
 	deleteGroup: function (options, cb) {
 		return groups.delete(options, cb);
 	},
-	
+
 	/**
 	 * List available Networks
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -257,10 +289,10 @@ const driver = {
 	listNetworks: function (options, cb) {
 		return networks.list(options, cb);
 	},
-	
+
 	/**
 	 * Create network
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -268,10 +300,10 @@ const driver = {
 	createNetwork: function (options, cb) {
 		return networks.create(options, cb);
 	},
-	
+
 	/**
 	 * Update network
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -279,10 +311,10 @@ const driver = {
 	updateNetwork: function (options, cb) {
 		return networks.update(options, cb);
 	},
-	
+
 	/**
 	 * Delete network
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -290,7 +322,7 @@ const driver = {
 	deleteNetwork: function (options, cb) {
 		return networks.delete(options, cb);
 	},
-	
+
 	/**
 	 * List available loadbalancers
 	 
@@ -345,10 +377,10 @@ const driver = {
 	listSubnets: function (options, cb) {
 		return subnets.list(options, cb);
 	},
-	
+
 	/**
 	 * Create subnet
-	 
+
 	 * @param  {Object}   options  Data passed to function listsubas params
 	 * @param  {Function} cb    Callback fspub
 	 * @return {void}listsub
@@ -356,10 +388,10 @@ const driver = {
 	createSubnet: function (options, cb) {
 		return subnets.create(options, cb);
 	},
-	
+
 	/**
 	 * Update subnet
-	 
+
 	 * @param  {Object}   options  Data passed to function listsubas params
 	 * @param  {Function} cb    Callback fspub
 	 * @return {void}listsub
@@ -367,10 +399,10 @@ const driver = {
 	updateSubnet: function (options, cb) {
 		return subnets.update(options, cb);
 	},
-	
+
 	/**
 	 * Delete subnet
-	 
+
 	 * @param  {Object}   options  Data passed to function listsubas params
 	 * @param  {Function} cb    Callback fspub
 	 * @return {void}listsub
@@ -378,10 +410,10 @@ const driver = {
 	deleteSubnet: function (options, cb) {
 		return subnets.delete(options, cb);
 	},
-	
+
 	/**
 	 * List available securitygroups
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -520,6 +552,50 @@ const driver = {
 	 */
 	deleteKeyPair: function (options, cb) {
 		return keyPairs.delete(options, cb);
+	},
+
+	/**
+	 * List certificates
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	listCertificates: function (options, cb) {
+		return certificates.list(options, cb);
+	},
+
+	/**
+	 * Create certificate
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	createCertificate: function (options, cb) {
+		return certificates.create(options, cb);
+	},
+
+	/**
+	 * Update certificate
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	updateCertificate: function (options, cb) {
+		return certificates.update(options, cb);
+	},
+
+	/**
+	 * Delete certificate
+
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	deleteCertificate: function (options, cb) {
+		return certificates.delete(options, cb);
 	},
 
 	"executeDriver": function(method, options, cb){

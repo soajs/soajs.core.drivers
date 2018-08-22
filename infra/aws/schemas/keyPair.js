@@ -5,37 +5,32 @@ var add = {
         "section": {
             "type": "string",
             "required": true,
-            "enum": ["network"],
+            "enum": ["keyPair"],
+        },
+        "name": {
+            "required": true,
+            "type": "string",
         },
         "region": {
             "required": true,
             "type": "string",
         },
-        "address": {
-            "required": true,
-            "type": "string",
-        },
-        "Ipv6Address": {
+        "labels": {
             "required": false,
-	        "type": "boolean",
+            "type": "object",
         },
-	    "InstanceTenancy": {
-		    "required": false,
-		    "type": "string",
-		    "enum": ["default", "dedicated"],
-	    },
     },
 };
 
 var update = {};
 
-var list = {};
+var get = {};
 
 var remove = {};
 
 module.exports = {
     add: add,
     update: update,
-    list: list,
+    get: get,
     remove: remove,
 };

@@ -83,8 +83,7 @@ const keyPairs = {
 				if (response.KeyName) keyPair.name = response.KeyName;
 				keyPair.region = options.params.region;
 
-				// TODO: confirm if the below RSA Private key should be mapped and returned in create response
-				// if (response.KeyMaterial) keyPair.privateKey = response.KeyMaterial;
+				if (response.KeyMaterial) keyPair.privateKey = response.KeyMaterial;
 
 				if (Object.keys(keyPair).length > 2) {
 					return cb(null, keyPair);
