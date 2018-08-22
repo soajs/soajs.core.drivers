@@ -105,7 +105,7 @@ const driver = {
 		});
 		let params = {
 			VpcIds: [
-				options.params.network
+				options.params.name
 			]
 		};
 		ec2.describeVpcs(params, function (err, networks) {
@@ -124,8 +124,8 @@ const driver = {
 				});
 				if (options.params && options.params.addresses){
 					options.params.addresses.forEach((oneAddress) => {
-						if (oneAddress.address) {
-							addresses.push(oneAddress.address);
+						if (oneAddress) {
+							addresses.push(oneAddress);
 						}
 					});
 				}

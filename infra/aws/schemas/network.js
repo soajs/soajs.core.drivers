@@ -27,6 +27,15 @@ var add = {
     },
 };
 
+var update = {};
+
+var list = {};
+
+var remove = {};
+
 module.exports = {
     add: add,
+    update: update,
+    list: list,
+    remove: remove,
 };
