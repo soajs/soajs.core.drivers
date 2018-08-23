@@ -2,7 +2,7 @@
 
 const async = require('async');
 const config = require('./../config');
-const utils = require('../../../lib/utils/utils.js');
+const utils = require('../utils/utils.js');
 const helper = require('../utils/helper.js');
 
 function getConnector(opts) {
@@ -10,17 +10,17 @@ function getConnector(opts) {
 }
 
 const securityGroups = {
-	
+
 	/**
 	 * List available security groups
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	list: function (options, cb) {
 		const aws = options.infra.api;
-		
+
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
@@ -38,10 +38,10 @@ const securityGroups = {
 			}
 		});
 	},
-	
+
 	/**
 	 * Create a new security group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -49,10 +49,10 @@ const securityGroups = {
 	create: function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	/**
 	 * Update a security group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -60,10 +60,10 @@ const securityGroups = {
 	update: function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	/**
 	 * Delete a security group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}

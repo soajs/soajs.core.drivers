@@ -1,7 +1,7 @@
 'use strict';
 
 const async = require('async');
-const utils = require('../../../../lib/utils/utils.js');
+const utils = require('../../utils/utils.js');
 const helper = require('../../utils/helper.js');
 const config = require("../../config");
 function getConnector(opts) {
@@ -9,17 +9,17 @@ function getConnector(opts) {
 }
 
 const vms = {
-	
+
 	/**
 	 * Get information about deployed vitual machine
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	inspect: function (options, cb) {
 		const aws = options.infra.api;
-		
+
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
@@ -75,7 +75,7 @@ const vms = {
 						vParams.VolumeIds.push(block.Ebs.VolumeId);
 					}
 				});
-				
+
 				async.parallel({
 					getImage: function (callback) {
 						if (iParams.ImageIds.length > 0) {
@@ -122,17 +122,17 @@ const vms = {
 			}
 		});
 	},
-	
+
 	/**
 	 * List available virtual machines by subscription
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	list: function (options, cb) {
 		const aws = options.infra.api;
-		
+
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
@@ -185,7 +185,7 @@ const vms = {
 						}
 					});
 				}
-				
+
 				async.parallel({
 					getImage: function (callback) {
 						if (iParams.ImageIds.length > 0) {
@@ -244,17 +244,17 @@ const vms = {
 			}
 		});
 	},
-	
+
 	/**
 	 * Update labels of one or more vm instances
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	updateVmLabels: function (options, cb) {
 		const aws = options.infra.api;
-		
+
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
@@ -277,7 +277,7 @@ const vms = {
 			if (result.Reservations && result.Reservations.length > 0
 				&& result.Reservations[0].Instances && result.Reservations[0].Instances.length > 0) {
 				tags = result.Reservations[0].Instances[0].Tags;
-				
+
 				if (options.params.labels) {
 					for (let key in options.params.labels) {
 						if (key && options.params.labels[key]) {

@@ -70,7 +70,7 @@ const helper = {
 		}
 		return record;
 	},
-	
+
 	buildClassicLbRecord: function (opts) {
 		let record = {};
 		record.type = "classic";
@@ -149,16 +149,16 @@ const helper = {
 		}
 		return record;
 	},
-	
+
 	buildCertificateRecord: function(opts) {
 		let output = {};
 		output.region = opts.region;
-		
+
 		if(opts.tags) {
 			let nameTag = opts.tags.find((oneEntry) => { return oneEntry.Key === 'Name' });
 			if(nameTag) output.name = nameTag.Value;
 		}
-		
+
 		if(opts.certificate) {
 			if(opts.certificate.CertificateArn) output.id = opts.certificate.CertificateArn;
 			if(opts.certificate.DomainName) output.domain = opts.certificate.DomainName;
@@ -176,23 +176,23 @@ const helper = {
 					}
 				});
 			}
-			
+
 			output.details = {};
 			if(opts.certificate.Issuer) output.details.issuer = opts.certificate.Issuer;
 			else if(opts.certificate.Type === 'AMAZON_ISSUED') output.details.issuer = 'Amazon';
-			
+
 			if(opts.certificate.ImportedAt) output.details.importDate = opts.certificate.ImportedAt;
 			if(opts.certificate.Status) output.details.status = helper.getCertificateStatus({ status: opts.certificate.Status });
 			if(opts.certificate.NotBefore) output.details.validFrom = opts.certificate.NotBefore;
 			if(opts.certificate.NotAfter) output.details.validTo = opts.certificate.NotAfter;
 		}
-		
+
 		return output;
 	},
-	
+
 	getCertificateStatus: function(opts) {
 		if(!opts.status) opts.status = '';
-		
+
 		let availableStatuses = {
 			issued: 'active',
 			pending_validation: 'pending',
@@ -202,10 +202,10 @@ const helper = {
 			revoked: 'revoked',
 			failed: 'failed'
 		};
-		
+
 		return availableStatuses[opts.status.toLowerCase()] || 'unknown';
 	},
-	
+
 	buildVMRecord: (opts) => {
 		let record = {
 			ip: []
@@ -217,7 +217,7 @@ const helper = {
 				record.name = opts.vm.InstanceId;
 			}
 			if (opts.vm.InstanceType) {
-				record.id.type = opts.vm.InstanceType;
+				record.type = opts.vm.InstanceType;
 			}
 			if (opts.vm.Tags.length > 0) {
 				record.labels = [];
@@ -228,7 +228,7 @@ const helper = {
 					});
 					if (opts.vm.Tags[i].Key === "soajs.vm.name") {
 						soajsName = opts.vm.Tags[i].Value;
-						
+
 					}
 					if (opts.vm.Tags[i].Key === "Name") {
 						name = opts.vm.Tags[i].Value;
@@ -247,7 +247,7 @@ const helper = {
 			if (opts.vm.VpcId) {
 				record.network = opts.vm.VpcId;
 			}
-			
+
 			if (opts.vm.PrivateIpAddress || opts.vm.PrivateDnsName) {
 				let privateIp = {};
 				privateIp.type = "private";
@@ -343,7 +343,7 @@ const helper = {
 			});
 		}
 		return record;
-		
+
 	},
 	buildSecurityGroupsRecord: (opts) =>{
 		let securityGroup = {};
@@ -412,12 +412,12 @@ const helper = {
 		}
 		return ports;
 	},
-	
+
 	computeState: (state) => {
 		let states = ["running", "succeeded", "available"];
 		return states.indexOf(state) !== -1 ? "succeeded" : "failed";
 	},
-	
+
 	computeVolumes: (opts) => {
 		let volume = {};
 		if (opts.volumes) {
