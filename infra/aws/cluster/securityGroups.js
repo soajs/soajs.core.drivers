@@ -69,7 +69,19 @@ const securityGroups = {
 	 * @return {void}
 	 */
 	delete: function (options, cb) {
-		return cb(null, true);
+		const aws = options.infra.api;
+		const ec2 = getConnector({
+			api: 'ec2',
+			region: options.params.region,
+			keyId: aws.keyId,
+			secretAccessKey: aws.secretAccessKey
+		});
+		let params = {
+			GroupId: options.params.securityGroup, /* required */
+			DryRun: false,
+		};
+		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#deleteSecurityGroup-property
+		ec2.deleteSecurityGroup(params, cb);
 	}
 };
 

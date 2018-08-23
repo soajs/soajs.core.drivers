@@ -2,7 +2,11 @@
 
 const async = require('async');
 const utils = require('../../../../lib/utils/utils.js');
+const helper = require('../../utils/helper.js');
 
+function getConnector(opts) {
+	return utils.getConnector(opts, config);
+}
 const maintenance = {
 
     /**
@@ -13,7 +17,25 @@ const maintenance = {
 	* @return {void}
 	*/
 	deleteService: function (options, cb) {
-	    return cb(null, true);
+	    const aws = options.infra.api;
+	    const ec2 = getConnector({
+		    api: 'ec2',
+		    region: options.params.region,
+		    keyId: aws.keyId,
+		    secretAccessKey: aws.secretAccessKey
+	    });
+	    let params = {};
+	    if (typeof options.params.id === "string"){
+		    params.InstanceIds = [options.params.id];
+	    }
+	    else if (Array.isArray(options.params.id) && options.params.id.length > 0){
+		    params.InstanceIds = options.params.id
+	    }
+	    else {
+		    return cb(new Error("Instance id must be of type  sting or  array!"));
+	    }
+	    //Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#terminateInstances-property
+	    ec2.terminateInstances(params, cb);
 	},
 
     /**
@@ -24,7 +46,25 @@ const maintenance = {
 	* @return {void}
 	*/
 	restartService: function (options, cb) {
-	    return cb(null, true);
+	    const aws = options.infra.api;
+	    const ec2 = getConnector({
+		    api: 'ec2',
+		    region: options.params.region,
+		    keyId: aws.keyId,
+		    secretAccessKey: aws.secretAccessKey
+	    });
+	    let params = {};
+	    if (typeof options.params.id === "string"){
+		    params.InstanceIds = [options.params.id];
+	    }
+	    else if (Array.isArray(options.params.id) && options.params.id.length > 0){
+		    params.InstanceIds = options.params.id
+	    }
+	    else {
+		    return cb(new Error("Instance id must be of type  sting or  array!"));
+	    }
+	    //Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#terminateInstances-property
+	    ec2.rebootInstances(params, cb);
 	},
 
 	/**
@@ -46,7 +86,25 @@ const maintenance = {
 	* @return {void}
 	*/
 	powerOffVM: function (options, cb) {
-		return cb(null, true);
+		const aws = options.infra.api;
+		const ec2 = getConnector({
+			api: 'ec2',
+			region: options.params.region,
+			keyId: aws.keyId,
+			secretAccessKey: aws.secretAccessKey
+		});
+		let params = {};
+		if (typeof options.params.id === "string"){
+			params.InstanceIds = [options.params.id];
+		}
+		else if (Array.isArray(options.params.id) && options.params.id.length > 0){
+			params.InstanceIds = options.params.id
+		}
+		else {
+			return cb(new Error("Instance id must be of type  sting or  array!"));
+		}
+		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#terminateInstances-property
+		ec2.stopInstances(params, cb);
 	},
 
 	/**
@@ -57,7 +115,25 @@ const maintenance = {
 	* @return {void}
 	*/
 	startVM: function (options, cb) {
-		return cb(null, true);
+		const aws = options.infra.api;
+		const ec2 = getConnector({
+			api: 'ec2',
+			region: options.params.region,
+			keyId: aws.keyId,
+			secretAccessKey: aws.secretAccessKey
+		});
+		let params = {};
+		if (typeof options.params.id === "string"){
+			params.InstanceIds = [options.params.id];
+		}
+		else if (Array.isArray(options.params.id) && options.params.id.length > 0){
+			params.InstanceIds = options.params.id
+		}
+		else {
+			return cb(new Error("Instance id must be of type  sting or  array!"));
+		}
+		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#terminateInstances-property
+		ec2.startInstances(params, cb);
 	},
 
     /**
