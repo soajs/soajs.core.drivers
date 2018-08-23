@@ -2,7 +2,11 @@
 
 const async = require('async');
 const utils = require('../../../../lib/utils/utils.js');
+const helper = require('../../utils/helper.js');
 
+function getConnector(opts) {
+	return utils.getConnector(opts, config);
+}
 const disks = {
 	
 	/**
@@ -13,7 +17,25 @@ const disks = {
 	 * @return {void}
 	 */
 	list: function(options, cb) {
-		return cb(null, true);
+		const aws = options.infra.api;
+		
+		const ec2 = getConnector({
+			api: 'ec2',
+			region: options.params.region,
+			keyId: aws.keyId,
+			secretAccessKey: aws.secretAccessKey
+		});
+		//todo
+		ec2.describeVolumes({}, (err, response)=>{
+			if (response && response.Volumes && Array.isArray(response.Volumes) && response.Volumes.length > 0) {
+				async.map(response.Volumes, function (volumes, callback) {
+					return callback(null, helper.computeVolumes({volumes}));
+				}, cb);
+			}
+			else {
+				return cb (null, []);
+			}
+		});
 	},
 	
 	/**

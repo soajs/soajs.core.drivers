@@ -149,6 +149,7 @@ const helper = {
 		}
 		return record;
 	},
+	
 	buildCertificateRecord: function(opts) {
 		let output = {};
 		output.region = opts.region;
@@ -203,6 +204,249 @@ const helper = {
 		};
 		
 		return availableStatuses[opts.status.toLowerCase()] || 'unknown';
+	},
+	
+	buildVMRecord: (opts) => {
+		let record = {
+			ip: []
+		};
+		let region = opts.region;
+		if (opts.vm) {
+			if (opts.vm.InstanceId) {
+				record.id = opts.vm.InstanceId;
+				record.name = opts.vm.InstanceId;
+			}
+			if (opts.vm.InstanceType) {
+				record.id.type = opts.vm.InstanceType;
+			}
+			if (opts.vm.Tags.length > 0) {
+				record.labels = [];
+				let soajsName, name;
+				for (let i = 0; i < opts.vm.Tags.length; i++) {
+					record.labels.push({
+						[opts.vm.Tags[i].Key]: opts.vm.Tags[i].Value
+					});
+					if (opts.vm.Tags[i].Key === "soajs.vm.name") {
+						soajsName = opts.vm.Tags[i].Value;
+						
+					}
+					if (opts.vm.Tags[i].Key === "Name") {
+						name = opts.vm.Tags[i].Value;
+					}
+				}
+				if (soajsName) {
+					record.name = soajsName;
+				}
+				else if (name) {
+					record.name = name;
+				}
+			}
+			if (opts.vm.SubnetId) {
+				record.layer = opts.vm.SubnetId;
+			}
+			if (opts.vm.VpcId) {
+				record.network = opts.vm.VpcId;
+			}
+			
+			if (opts.vm.PrivateIpAddress || opts.vm.PrivateDnsName) {
+				let privateIp = {};
+				privateIp.type = "private";
+				privateIp.allocatedTo = "instance";
+				if (opts.vm.PrivateIpAddress) {
+					privateIp.address = opts.vm.PrivateIpAddress;
+				}
+				if (opts.vm.PrivateDnsName) {
+					privateIp.dns = opts.vm.PrivateDnsName;
+				}
+				record.ip.push(privateIp);
+			}
+			if (opts.vm.PublicDnsName || opts.vm.PublicIpAddress) {
+				let publicIp = {};
+				publicIp.type = "public";
+				publicIp.allocatedTo = "instance";
+				if (opts.vm.PublicDnsName) {
+					publicIp.address = opts.vm.PublicDnsName;
+				}
+				if (opts.vm.PublicIpAddress) {
+					publicIp.dns = opts.vm.PublicIpAddress;
+				}
+				record.ip.push(publicIp);
+			}
+			record.volumes = [];
+			if (opts.vm.BlockDeviceMappings && opts.vm.BlockDeviceMappings.length > 0) {
+				opts.vm.BlockDeviceMappings.forEach((block) => {
+					if (block.Ebs && block.Ebs.VolumeId && opts.volumes) {
+						opts.volumes.forEach((oneVolume) => {
+							if (oneVolume.VolumeId === block.Ebs.VolumeId) {
+								record.volumes.push(helper.computeVolumes({volumes: oneVolume, region}))
+							}
+						});
+					}
+				});
+			}
+			record.tasks = [{
+				"id": record.id,
+				"name": record.name,
+				"status": {
+					"state": helper.computeState(opts.vm.State.Name),
+					"ts": new Date(opts.vm.LaunchTime).getTime()
+				}
+			}];
+			if (opts.vm.ImageId && opts.images) {
+				opts.images.forEach((oneImage) => {
+					if (opts.vm.ImageId === oneImage.ImageId) {
+						record.tasks[0].ref = {
+							"os": {
+								architecture: oneImage.Architecture,
+								id: oneImage.ImageId,
+								description: oneImage.Description,
+								name: oneImage.Name
+							}
+						};
+					}
+				});
+			}
+		}
+		record.ports = [];
+		if (opts.vm.SecurityGroups && opts.vm.SecurityGroups.length > 0 && opts.securityGroups && opts.securityGroups.length) {
+			opts.vm.SecurityGroups.forEach((group) => {
+				opts.securityGroups.forEach((listGroup) => {
+					if (group.GroupId === listGroup.GroupId) {
+						if (listGroup.IpPermissions) {
+							listGroup.IpPermissions.forEach((inbound) => {
+								record.ports.push(helper.buildPorts({ports: inbound, type: "inbound"}));
+							});
+						}
+						if (listGroup.IpPermissionsEgress) {
+							listGroup.IpPermissionsEgress.forEach((outbound) => {
+								record.ports.push(helper.buildPorts({ports: outbound, type: "outbound"}));
+							});
+						}
+					}
+				});
+			});
+		}
+		if (opts.lb && opts.lb.LoadBalancerDescriptions) {
+			opts.lb.LoadBalancerDescriptions.forEach((oneLb) => {
+				if (oneLb.Instances && oneLb.Instances.length) {
+					oneLb.Instances.forEach((vm) => {
+						if (vm.InstanceId === opts.vm.InstanceId) {
+							record.ip.push({
+								type: oneLb.Scheme === 'internet-facing' ? "public" : "private",
+								allocatedTo: "loadBalancer",
+								address: oneLb.DNSName,
+								dns: oneLb.DNSName
+							});
+						}
+					});
+				}
+			});
+		}
+		return record;
+		
+	},
+	buildSecurityGroupsRecord: (opts) =>{
+		let securityGroup = {};
+		securityGroup.region = opts.region;
+		if (opts.securityGroup) {
+			if (opts.securityGroup.id) {
+				securityGroup.id = opts.securityGroup.id;
+				securityGroup.name = opts.securityGroup.name;
+			}
+			if (opts.securityGroup.Tags && opts.securityGroup.Tags.length > 0){
+				for (let i = 0; i < opts.securityGroup.Tags.length; i++) {
+					if (opts.securityGroup.Tags[i].Key === "Name") {
+						securityGroup.name = opts.vm.Tags[i].Value;
+						break;
+					}
+				}
+			}
+			if (opts.securityGroup.Description) {
+				securityGroup.description = opts.securityGroup.Description;
+			}
+			if (opts.securityGroup.VpcId) {
+				securityGroup.networkId = opts.securityGroup.VpcId;
+			}
+			if (opts.securityGroup.IpPermissions) {
+				opts.securityGroup.IpPermissions.forEach((inbound) => {
+					securityGroup.ports.push(helper.buildPorts({ports: inbound, type: "inbound"}));
+				});
+			}
+			if (opts.securityGroup.IpPermissionsEgress) {
+				opts.securityGroup.IpPermissionsEgress.forEach((outbound) => {
+					securityGroup.ports.push(helper.buildPorts({ports: outbound, type: "outbound"}));
+				});
+			}
+		}
+		return securityGroup;
+	},
+	buildPorts: (opts) => {
+		let ports = {};
+		ports.direction = opts.type;
+		if (opts.ports) {
+			if (opts.ports.IpProtocol) {
+				if (opts.ports.IpProtocol === "-1"){
+					ports.protocol = "*";
+					ports.published = "*";
+				}
+				else {
+					ports.protocol = opts.ports.IpProtocol;
+					if (opts.ports.FromPort) {
+						ports.published = opts.ports.FromPort;
+					}
+				}
+			}
+			ports.access = "allow";
+			ports.source = [];
+			if (opts.ports.IpRanges && opts.ports.IpRanges.length > 0) {
+				opts.ports.IpRanges.forEach((range)=>{
+					ports.source.push(range.CidrIp);
+				});
+			}
+			ports.ipv6 = [];
+			if (opts.ports.Ipv6Ranges && opts.ports.Ipv6Ranges.length > 0) {
+				opts.ports.Ipv6Ranges.forEach((v6)=>{
+					ports.ipv6.push(v6.CidrIpv6);
+				});
+			}
+		}
+		return ports;
+	},
+	
+	computeState: (state) => {
+		let states = ["running", "succeeded", "available"];
+		return states.indexOf(state) !== -1 ? "succeeded" : "failed";
+	},
+	
+	computeVolumes: (opts) => {
+		let volume = {};
+		if (opts.volumes) {
+			if (opts.volumes.AvailabilityZone) {
+				volume.zone = opts.volumes.AvailabilityZone;
+			}
+			if (opts.volumes.VolumeId) {
+				volume.id = opts.volumes.VolumeId;
+			}
+			if (opts.volumes.Size) {
+				volume.diskSizeGB = opts.volumes.Size;
+			}
+			if (opts.volumes.State) {
+				volume.state = helper.computeState(opts.volumes.State);
+			}
+			if (opts.volumes.Iops) {
+				volume.iops = opts.volumes.Iops;
+			}
+			if (opts.volumes.VolumeType) {
+				volume.type = opts.volumes.VolumeType;
+			}
+			if (Object.prototype.hasOwnProperty.call(opts.volumes, "Encrypted")) {
+				volume.encrypted = opts.volumes.Encrypted;
+			}
+		}
+		if (opts.region) {
+			volume.region = opts.region;
+		}
+		return volume;
 	}
 };
 
