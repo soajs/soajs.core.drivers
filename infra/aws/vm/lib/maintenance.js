@@ -1,9 +1,7 @@
 'use strict';
 
-const async = require('async');
 const utils = require('../../../../lib/utils/utils.js');
-const helper = require('../../utils/helper.js');
-
+const config = require("../../config");
 function getConnector(opts) {
 	return utils.getConnector(opts, config);
 }
