@@ -216,7 +216,7 @@ var rules = {
 	}
 };
 
-var loadBalancer = {
+const add = {
     "type": "object",
     "additionalProperties": false,
     "properties": {
@@ -258,4 +258,15 @@ var loadBalancer = {
     }
 };
 
-module.exports = loadBalancer;
+const update = {};
+
+const list = {};
+
+const remove = {};
+
+module.exports = {
+    add: add,
+    update: update,
+    list: list,
+    remove: remove,
+};

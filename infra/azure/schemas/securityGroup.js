@@ -1,4 +1,4 @@
-var securityGroup = {
+var add = {
     "type": "object",
     "additionalProperties": false,
     "properties": {
@@ -77,4 +77,15 @@ var securityGroup = {
     }
 };
 
-module.exports = securityGroup;
+const update = {};
+
+const list = {};
+
+const remove = {};
+
+module.exports = {
+    add: add,
+    update: update,
+    list: list,
+    remove: remove,
+};

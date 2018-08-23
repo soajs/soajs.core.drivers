@@ -1,4 +1,4 @@
-var group = {
+const add = {
     "type": "object",
     "additionalProperties": false,
     "properties": {
@@ -23,4 +23,15 @@ var group = {
     }
 };
 
-module.exports = group;
+const update = {};
+
+const list = {};
+
+const remove = {};
+
+module.exports = {
+    add: add,
+    update: update,
+    list: list,
+    remove: remove,
+};

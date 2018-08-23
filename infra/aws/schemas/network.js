@@ -1,4 +1,4 @@
-var add = {
+const add = {
     "type": "object",
     "additionalProperties": false,
     "properties": {
@@ -27,11 +27,11 @@ var add = {
     },
 };
 
-var update = {};
+const update = {};
 
-var list = {};
+const list = {};
 
-var remove = {};
+const remove = {};
 
 module.exports = {
     add: add,
