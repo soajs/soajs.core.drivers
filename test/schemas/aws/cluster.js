@@ -463,8 +463,7 @@ module.exports = function () {
 			"name": "my-key-pair",
 			"region": "us-east-2",
 			"privateKey": "RSA PRIVATE KEY"
-		}
-		,
+		},
 		"listCertificatesRaw": {
 			"CertificateSummaryList": [
 				{
@@ -725,6 +724,312 @@ module.exports = function () {
 					{
 						"id": "i-0bb24a3de714f9fba",
 						"state": "OutOfService"
+					}
+				]
+			}
+		],
+		"listVmInstances": {
+			"Reservations": [
+				{
+					"Groups": [],
+					"Instances": [
+						{
+							"AmiLaunchIndex": 0,
+							"ImageId": "ami-5e8bb23b",
+							"InstanceId": "i-0bb24a3de714f9fba",
+							"InstanceType": "t2.micro",
+							"KeyName": "ragheb",
+							"LaunchTime": "2018-08-23T12:05:08.000Z",
+							"Monitoring": {
+								"State": "disabled"
+							},
+							"Placement": {
+								"AvailabilityZone": "us-east-2c",
+								"GroupName": "",
+								"Tenancy": "default"
+							},
+							"PrivateDnsName": "ip-172-31-43-192.us-east-2.compute.internal",
+							"PrivateIpAddress": "172.31.43.192",
+							"ProductCodes": [],
+							"PublicDnsName": "ec2-18-218-148-78.us-east-2.compute.amazonaws.com",
+							"PublicIpAddress": "18.218.148.78",
+							"State": {
+								"Code": 16,
+								"Name": "running"
+							},
+							"StateTransitionReason": "",
+							"SubnetId": "subnet-110ad95c",
+							"VpcId": "vpc-957300fc",
+							"Architecture": "x86_64",
+							"BlockDeviceMappings": [
+								{
+									"DeviceName": "/dev/sda1",
+									"Ebs": {
+										"AttachTime": "2018-08-23T12:05:08.000Z",
+										"DeleteOnTermination": true,
+										"Status": "attached",
+										"VolumeId": "vol-07cd719b38c1b2b32"
+									}
+								}
+							],
+							"ClientToken": "",
+							"EbsOptimized": false,
+							"EnaSupport": true,
+							"Hypervisor": "xen",
+							"IamInstanceProfile": {
+								"Arn": "arn:aws:iam::019397354664:instance-profile/ssm-role-ec2",
+								"Id": "AIPAJFEAU5GHX7L5IRDKW"
+							},
+							"ElasticGpuAssociations": [],
+							"NetworkInterfaces": [
+								{
+									"Association": {
+										"IpOwnerId": "amazon",
+										"PublicDnsName": "ec2-18-218-148-78.us-east-2.compute.amazonaws.com",
+										"PublicIp": "18.218.148.78"
+									},
+									"Attachment": {
+										"AttachTime": "2018-08-23T12:05:08.000Z",
+										"AttachmentId": "eni-attach-0a4b76d42a1039d18",
+										"DeleteOnTermination": true,
+										"DeviceIndex": 0,
+										"Status": "attached"
+									},
+									"Description": "",
+									"Groups": [
+										{
+											"GroupName": "launch-wizard-4",
+											"GroupId": "sg-04031e85cc930b578"
+										}
+									],
+									"Ipv6Addresses": [],
+									"MacAddress": "0a:be:23:ef:cc:68",
+									"NetworkInterfaceId": "eni-072868ea5a0fb76fd",
+									"OwnerId": "019397354664",
+									"PrivateDnsName": "ip-172-31-43-192.us-east-2.compute.internal",
+									"PrivateIpAddress": "172.31.43.192",
+									"PrivateIpAddresses": [
+										{
+											"Association": {
+												"IpOwnerId": "amazon",
+												"PublicDnsName": "ec2-18-218-148-78.us-east-2.compute.amazonaws.com",
+												"PublicIp": "18.218.148.78"
+											},
+											"Primary": true,
+											"PrivateDnsName": "ip-172-31-43-192.us-east-2.compute.internal",
+											"PrivateIpAddress": "172.31.43.192"
+										}
+									],
+									"SourceDestCheck": true,
+									"Status": "in-use",
+									"SubnetId": "subnet-110ad95c",
+									"VpcId": "vpc-957300fc"
+								}
+							],
+							"RootDeviceName": "/dev/sda1",
+							"RootDeviceType": "ebs",
+							"SecurityGroups": [
+								{
+									"GroupName": "launch-wizard-4",
+									"GroupId": "sg-04031e85cc930b578"
+								}
+							],
+							"SourceDestCheck": true,
+							"Tags": [
+								{
+									"Key": "Name",
+									"Value": "command"
+								}
+							],
+							"VirtualizationType": "hvm"
+						}
+					],
+					"OwnerId": "019397354664",
+					"ReservationId": "r-0158d70fee24517b7"
+				}
+			]
+		},
+		"listImages": {
+			"Images": [{
+				"Architecture": "x86_64",
+				"CreationDate": "2018-06-27T13:44:22.000Z",
+				"ImageId": "ami-5e8bb23b",
+				"ImageLocation": "099720109477/ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-20180627",
+				"ImageType": "machine",
+				"Public": true,
+				"OwnerId": "099720109477",
+				"ProductCodes": [],
+				"State": "available",
+				"BlockDeviceMappings": [
+					{
+						"DeviceName": "/dev/sda1",
+						"Ebs": {
+							"Encrypted": false,
+							"DeleteOnTermination": true,
+							"SnapshotId": "snap-015e0c9bfb72bf22e",
+							"VolumeSize": 8,
+							"VolumeType": "gp2"
+						}
+					},
+					{
+						"DeviceName": "/dev/sdb",
+						"VirtualName": "ephemeral0"
+					},
+					{
+						"DeviceName": "/dev/sdc",
+						"VirtualName": "ephemeral1"
+					}
+				],
+				"Description": "Canonical, Ubuntu, 16.04 LTS, amd64 xenial image build on 2018-06-27",
+				"EnaSupport": true,
+				"Hypervisor": "xen",
+				"Name": "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-20180627",
+				"RootDeviceName": "/dev/sda1",
+				"RootDeviceType": "ebs",
+				"SriovNetSupport": "simple",
+				"Tags": [],
+				"VirtualizationType": "hvm"
+			}]
+		},
+		"listDisks": {
+			"Volumes": [{
+				"Attachments": [
+					{
+						"AttachTime": "2018-08-23T12:05:08.000Z",
+						"Device": "/dev/sda1",
+						"InstanceId": "i-0d494775f3fade6a4",
+						"State": "attached",
+						"VolumeId": "vol-07cd719b38c1b2b32",
+						"DeleteOnTermination": true
+					}
+				],
+				"AvailabilityZone": "us-east-2c",
+				"CreateTime": "2018-08-23T12:05:08.670Z",
+				"Encrypted": false,
+				"Size": 8,
+				"SnapshotId": "snap-015e0c9bfb72bf22e",
+				"State": "in-use",
+				"VolumeId": "vol-07cd719b38c1b2b32",
+				"Iops": 100,
+				"Tags": [],
+				"VolumeType": "gp2"
+			}]
+		},
+		"listSecurityGroups": {
+			"SecurityGroups": [{
+				"Description": "launch-wizard-4 created 2018-08-14T19:50:39.085+03:00",
+				"GroupName": "launch-wizard-4",
+				"IpPermissions": [
+					{
+						"FromPort": 22,
+						"IpProtocol": "tcp",
+						"IpRanges": [
+							{
+								"CidrIp": "0.0.0.0/0"
+							}
+						],
+						"Ipv6Ranges": [],
+						"PrefixListIds": [],
+						"ToPort": 22,
+						"UserIdGroupPairs": []
+					}
+				],
+				"OwnerId": "019397354664",
+				"GroupId": "sg-04031e85cc930b578",
+				"IpPermissionsEgress": [
+					{
+						"IpProtocol": "-1",
+						"IpRanges": [
+							{
+								"CidrIp": "0.0.0.0/0"
+							}
+						],
+						"Ipv6Ranges": [],
+						"PrefixListIds": [],
+						"UserIdGroupPairs": []
+					}
+				],
+				"Tags": [],
+				"VpcId": "vpc-957300fc"
+			}]
+		},
+		"vmExpected": [
+			{
+				"ip": [
+					{
+						"type": "private",
+						"allocatedTo": "instance",
+						"address": "172.31.43.192",
+						"dns": "ip-172-31-43-192.us-east-2.compute.internal"
+					},
+					{
+						"type": "public",
+						"allocatedTo": "instance",
+						"address": "ec2-18-218-148-78.us-east-2.compute.amazonaws.com",
+						"dns": "18.218.148.78"
+					}
+				],
+				"region": "us-east-1",
+				"id": "i-0bb24a3de714f9fba",
+				"name": "command",
+				"type": "t2.micro",
+				"labels": [
+					{
+						"Name": "command"
+					}
+				],
+				"layer": "subnet-110ad95c",
+				"network": "vpc-957300fc",
+				"volumes": [
+					{
+						"zone": "us-east-2c",
+						"id": "vol-07cd719b38c1b2b32",
+						"diskSizeGB": 8,
+						"state": "failed",
+						"iops": 100,
+						"type": "gp2",
+						"encrypted": false,
+						"region": "us-east-1"
+					}
+				],
+				"tasks": [
+					{
+						"id": "i-0bb24a3de714f9fba",
+						"name": "command",
+						"status": {
+							"state": "succeeded",
+							"ts": 1535025908000
+						},
+						"ref": {
+							"os": {
+								"architecture": "x86_64",
+								"id": "ami-5e8bb23b",
+								"description": "Canonical, Ubuntu, 16.04 LTS, amd64 xenial image build on 2018-06-27",
+								"name": "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-20180627"
+							}
+						}
+					}
+				],
+				"ports": [
+					{
+						"direction": "inbound",
+						"protocol": "tcp",
+						"published": 22,
+						"access": "allow",
+						"source": [
+							"0.0.0.0/0"
+						],
+						"ipv6": []
+					},
+					{
+						"direction": "outbound",
+						"protocol": "*",
+						"published": "*",
+						"access": "allow",
+						"source": [
+							"0.0.0.0/0"
+						],
+						"ipv6": []
 					}
 				]
 			}

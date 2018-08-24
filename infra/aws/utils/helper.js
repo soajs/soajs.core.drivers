@@ -119,7 +119,7 @@ const helper = {
 							rule.frontendProtocol = oneListener.Listener.Protocol;
 						}
 						if (oneListener.Listener.LoadBalancerPort) {
-							rule.frontendPPort = oneListener.Listener.LoadBalancerPort;
+							rule.frontendPort = oneListener.Listener.LoadBalancerPort;
 						}
 						if (oneListener.Listener.SSLCertificateId) {
 							rule.certificate = oneListener.Listener.SSLCertificateId;
@@ -206,11 +206,12 @@ const helper = {
 		return availableStatuses[opts.status.toLowerCase()] || 'unknown';
 	},
 
-	buildVMRecord: (opts) => {
+	buildVMRecord: (opts, cb) => {
 		let record = {
 			ip: []
 		};
 		let region = opts.region;
+		record.region = region;
 		if (opts.vm) {
 			if (opts.vm.InstanceId) {
 				record.id = opts.vm.InstanceId;
@@ -342,7 +343,7 @@ const helper = {
 				}
 			});
 		}
-		return record;
+		return cb(null, record);
 
 	},
 	buildSecurityGroupsRecord: (opts) =>{

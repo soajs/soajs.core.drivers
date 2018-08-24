@@ -6,8 +6,7 @@ const sinon = require('sinon');
 const service = helper.requireModule('./infra/aws/index.js');
 
 let dD = require('../../../../schemas/aws/cluster.js');
-let info = {};
-let options = {};
+const AWSDriver = helper.requireModule('./infra/aws/utils/utils.js');
 
 describe("testing /lib/aws/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
@@ -27,8 +26,50 @@ describe("testing /lib/aws/index.js", function () {
 			sinon.restore();
 			done();
 		});
+		
+		
 		it("Success", function (done) {
-			done();
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				technology : "vm"
+			};
+			delete options.infra.stack;
+			delete options.infra.info;
+			var counter = 0;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeInstances: (params, cb) => {
+						if (counter === 0){
+							counter ++;
+							return cb(null, info.listVmInstances);
+						}
+						else {
+							return cb(null, null);
+						}
+					},
+					describeImages: (params, cb) => {
+						return cb(null, info.listImages);
+					},
+					describeSecurityGroups: (params, cb) => {
+						return cb(null, info.listSecurityGroups);
+					},
+					describeVolumes: (params, cb) => {
+						return cb(null, info.listDisks);
+					},
+					describeLoadBalancers: (params, cb) => {
+						return cb(null, info.listlb);
+					},
+				});
+			
+			service.executeDriver('listServices', options, function (error, response) {
+				let expected = info.vmExpected;
+				assert.ifError(error);
+				assert.ok(response);
+				assert.deepEqual(response, expected);
+				done();
+			});
 		});
 	});
 	
@@ -143,7 +184,7 @@ describe("testing /lib/aws/index.js", function () {
 	});
 	
 	
-	describe("calling executeDriver - updtadeVmLabels", function () {
+	describe("calling executeDriver - updateVmLabels", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
