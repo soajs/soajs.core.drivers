@@ -30,7 +30,7 @@ const securityGroups = {
 		ec2.describeSecurityGroups({}, (err, response) => {
 			if (response && response.SecurityGroups && Array.isArray(response.SecurityGroups) && response.SecurityGroups.length > 0) {
 				async.map(response.SecurityGroups, function (securityGroup, callback) {
-					return callback(null, helper.computeVolumes({securityGroup, region: options.params.region}));
+					return callback(null, helper.buildSecurityGroupsRecord({securityGroup, region: options.params.region}));
 				}, cb);
 			}
 			else {

@@ -347,11 +347,12 @@ const helper = {
 	},
 	buildSecurityGroupsRecord: (opts) =>{
 		let securityGroup = {};
+		securityGroup.ports = [];
 		securityGroup.region = opts.region;
 		if (opts.securityGroup) {
-			if (opts.securityGroup.id) {
-				securityGroup.id = opts.securityGroup.id;
-				securityGroup.name = opts.securityGroup.name;
+			if (opts.securityGroup.GroupId) {
+				securityGroup.id = opts.securityGroup.GroupId;
+				securityGroup.name = opts.securityGroup.GroupName;
 			}
 			if (opts.securityGroup.Tags && opts.securityGroup.Tags.length > 0){
 				for (let i = 0; i < opts.securityGroup.Tags.length; i++) {
