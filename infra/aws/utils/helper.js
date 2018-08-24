@@ -220,6 +220,9 @@ const helper = {
 			if (opts.vm.InstanceType) {
 				record.type = opts.vm.InstanceType;
 			}
+			if (opts.vm.KeyName) {
+				record.keyPair = opts.vm.KeyName;
+			}
 			if (opts.vm.Tags.length > 0) {
 				record.labels = [];
 				let soajsName, name;

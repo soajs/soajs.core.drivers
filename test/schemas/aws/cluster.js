@@ -972,6 +972,7 @@ module.exports = function () {
 				"region": "us-east-1",
 				"id": "i-0bb24a3de714f9fba",
 				"name": "command",
+				"keyPair": "ragheb",
 				"type": "t2.micro",
 				"labels": [
 					{
