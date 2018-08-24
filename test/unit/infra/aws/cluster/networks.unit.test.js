@@ -132,6 +132,7 @@ describe("testing /lib/aws/index.js", function () {
 				done();
 			});
 		});
+		
 		it("fail", function (done) {
 			let info = dD();
 			let options = info.deployCluster;
@@ -182,7 +183,7 @@ describe("testing /lib/aws/index.js", function () {
 					},
 				});
 			options.params = {
-				network: 'vpc-09fcf25a62b4d020f',
+				name: 'vpc-09fcf25a62b4d020f',
 				region: 'us-east-1',
 				addresses: [{address: '172.31.0.0/16'}, {address: '172.32.0.0/16', ipv6: true}], /* required */
 				instanceTenancy: 'default',

@@ -2,7 +2,7 @@
 const helper = require("../../../../helper");
 const assert = require("assert");
 const sinon = require('sinon');
-
+const AWSDriver = helper.requireModule('./infra/aws/utils/utils.js');
 const service = helper.requireModule('./infra/aws/index.js');
 
 let dD = require('../../../../schemas/aws/cluster.js');
@@ -45,9 +45,19 @@ describe("testing /lib/aws/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			service.listSecurityGroups({}, function (error, response) {
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeSecurityGroups: (params, cb) => {
+						return cb(null, info.listSecurityGroups);
+					}
+				});
+			service.listSecurityGroups(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
+				assert.deepEqual(response, info.securityGroupsExpected)
 				done();
 			});
 		});
@@ -59,7 +69,16 @@ describe("testing /lib/aws/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			service.deleteSecurityGroup({}, function (error, response) {
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					deleteSecurityGroup: (params, cb) => {
+						return cb(null, true);
+					}
+				});
+			service.deleteSecurityGroup(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();

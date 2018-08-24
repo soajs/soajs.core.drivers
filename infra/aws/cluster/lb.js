@@ -218,9 +218,6 @@ const AWSLB = {
 		else {
 			//service have ports to be exposed
 			if (listeners.length > 0) {
-				if (ports.length === 0) {
-					return cb(null, true);
-				}
 				if (!options.params.info || options.params.info.length === 0) {
 					return cb(new Error("Did not find any deployment information in infra details provided!"));
 				}
@@ -246,12 +243,11 @@ const AWSLB = {
 					capitalization: 'uppercase'
 				});
 				let lbParams = {
-					ports: ports,
+					rules: listeners,
 					name: name,
-					securityGroup: [
+					securityGroups: [
 						stack.options.ExternalLBSecurityGroupID
 					],
-					zones: stack.options.ZonesAvailable,
 					tags: [
 						{
 							Key: 'ht:cloudformation:stack-name', /* required */
@@ -280,7 +276,13 @@ const AWSLB = {
 					}
 				}
 				options.soajs.log.debug(lbParams);
+				let params = JSON.parse(JSON.stringify(options.params));
+				options.params = lbParams;
 				AWSLB.create(options, function (err, loadBalancer) {
+					if (err) {
+						return cb(err);
+					}
+					options.params = params;
 					const instanceParams = {
 						Filters: [
 							{
@@ -376,7 +378,6 @@ const AWSLB = {
 					params.listeners.push(listener);
 				});
 			}
-			
 			if (options.params.securityGroups) {
 				params.SecurityGroups = options.params.securityGroups
 			}
@@ -399,7 +400,7 @@ const AWSLB = {
 				return cb(new Error("Either Zones or Subnet must be specified."))
 			}
 			options.soajs.log.debug(params);
-			elb[elbResponse.method](params, (err)=>{
+			elb[elbResponse.method](params, (err, lbResponse)=>{
 				if (err){
 					return cb(err);
 				}
@@ -426,11 +427,13 @@ const AWSLB = {
 						}
 						options.soajs.log.debug(params);
 						getElbMethod('classic', 'healthCheck', (elbResponse) => {
-							elb[elbResponse.method](params, cb);
+							elb[elbResponse.method](params, (err)=>{
+								return cb(err, lbResponse);
+							});
 						});
 					}
 					else {
-						return cb(null, true);
+						return cb(null, lbResponse);
 					}
 				}
 			});

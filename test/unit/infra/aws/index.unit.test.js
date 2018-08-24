@@ -843,6 +843,7 @@ describe("testing /infra/aws/index.js", function () {
 							]
 						});
 					},
+					
 					deleteLoadBalancerListeners: (params, cb) => {
 						return cb(null, true);
 					},

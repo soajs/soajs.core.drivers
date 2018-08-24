@@ -29,8 +29,11 @@ describe("testing /lib/azure/index.js", function () {
 					},
 					describeCertificate: (params, cb) => {
 						return cb(null, info.describeCertificateRaw);
+					},
+					listTagsForCertificate: (params, cb) => {
+						return cb(null, {});
 					}
-				})
+				});
 
 			options.params = {
 				region: 'us-east-2',
@@ -51,7 +54,7 @@ describe("testing /lib/azure/index.js", function () {
 				.returns({
 					listCertificates: (params, cb) => {
 						return cb(null, info.listCertificatesRaw2);
-					}
+					},
 				})
 
 			options.params = {
@@ -76,8 +79,11 @@ describe("testing /lib/azure/index.js", function () {
 					},
 					describeCertificate: (params, cb) => {
 						return cb(null, info.describeCertificateRaw2);
+					},
+					listTagsForCertificate: (params, cb) => {
+						return cb(null, {});
 					}
-				})
+				});
 
 			options.params = {
 				region: 'us-east-2',

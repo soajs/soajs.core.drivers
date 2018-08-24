@@ -27,7 +27,7 @@ describe("testing /lib/azure/index.js", function () {
 					describeAddresses: (params, cb) => {
 						return cb(null, info.listIpsRaw);
 					}
-				})
+				});
 
 			options.params = {
 				region: 'us-east-2',

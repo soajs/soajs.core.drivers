@@ -125,7 +125,7 @@ const driver = {
 				if (options.params && options.params.addresses){
 					options.params.addresses.forEach((oneAddress) => {
 						if (oneAddress) {
-							addresses.push(oneAddress);
+							addresses.push((oneAddress.address));
 						}
 					});
 				}

@@ -656,13 +656,13 @@ module.exports = function () {
 						"backendProtocol": "HTTP",
 						"backendPort": 80,
 						"frontendProtocol": "HTTP",
-						"frontendPPort": 80
+						"frontendPort": 80
 					},
 					{
 						"backendProtocol": "HTTPS",
 						"backendPort": 443,
 						"frontendProtocol": "HTTPS",
-						"frontendPPort": 443,
+						"frontendPort": 443,
 						"certificate": "arn:"
 					}
 				],
@@ -707,7 +707,7 @@ module.exports = function () {
 						"backendProtocol": "HTTP",
 						"backendPort": 80,
 						"frontendProtocol": "HTTP",
-						"frontendPPort": 80
+						"frontendPort": 80
 					}
 				],
 				"zones": [
@@ -1032,6 +1032,37 @@ module.exports = function () {
 						"ipv6": []
 					}
 				]
+			}
+		],
+		"securityGroupsExpected" : [
+			{
+				"ports": [
+					{
+						"direction": "inbound",
+						"protocol": "tcp",
+						"published": 22,
+						"access": "allow",
+						"source": [
+							"0.0.0.0/0"
+						],
+						"ipv6": []
+					},
+					{
+						"direction": "outbound",
+						"protocol": "*",
+						"published": "*",
+						"access": "allow",
+						"source": [
+							"0.0.0.0/0"
+						],
+						"ipv6": []
+					}
+				],
+				"region": "us-east-1",
+				"id": "sg-04031e85cc930b578",
+				"name": "launch-wizard-4",
+				"description": "launch-wizard-4 created 2018-08-14T19:50:39.085+03:00",
+				"networkId": "vpc-957300fc"
 			}
 		]
 	};
