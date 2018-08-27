@@ -506,7 +506,8 @@ module.exports = function () {
 					"status": "expired",
 					"validFrom": "2017-12-19T11:18:20.000Z",
 					"validTo": "2018-03-19T11:18:20.000Z"
-				}
+				},
+				"dnsConfig": []
 			}
 		],
 		"listRawLb": {
@@ -653,15 +654,15 @@ module.exports = function () {
 				},
 				"rules": [
 					{
-						"backendProtocol": "HTTP",
+						"backendProtocol": "http",
 						"backendPort": 80,
-						"frontendProtocol": "HTTP",
+						"frontendProtocol": "http",
 						"frontendPort": 80
 					},
 					{
-						"backendProtocol": "HTTPS",
+						"backendProtocol": "https",
 						"backendPort": 443,
-						"frontendProtocol": "HTTPS",
+						"frontendProtocol": "https",
 						"frontendPort": 443,
 						"certificate": "arn:"
 					}
@@ -704,9 +705,9 @@ module.exports = function () {
 				},
 				"rules": [
 					{
-						"backendProtocol": "HTTP",
+						"backendProtocol": "http",
 						"backendPort": 80,
-						"frontendProtocol": "HTTP",
+						"frontendProtocol": "http",
 						"frontendPort": 80
 					}
 				],

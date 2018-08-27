@@ -185,6 +185,20 @@ const helper = {
 			if(opts.certificate.Status) output.details.status = helper.getCertificateStatus({ status: opts.certificate.Status });
 			if(opts.certificate.NotBefore) output.details.validFrom = opts.certificate.NotBefore;
 			if(opts.certificate.NotAfter) output.details.validTo = opts.certificate.NotAfter;
+
+			output.dnsConfig = [];
+			if(opts.certificate.DomainValidationOptions && Array.isArray(opts.certificate.DomainValidationOptions)) {
+				opts.certificate.DomainValidationOptions.forEach((oneOption) => {
+					if(oneOption.ValidationMethod === 'DNS' && oneOption.ResourceRecord) {
+						output.dnsConfig.push({
+							domain: oneOption.DomainName,
+							name: oneOption.ResourceRecord.Name,
+							type: oneOption.ResourceRecord.Type,
+							value: oneOption.ResourceRecord.Value
+						});
+					}
+				});
+			}
 		}
 
 		return output;
