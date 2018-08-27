@@ -1,261 +1,67 @@
-var addressPools = {
-	"name": {
-		"required": true,
-		"type": "string"
-	}
-};
-
-var ipConfigs = {
-	"privateIpAllocationMethod": {
-		"required": false,
-		"type": "string",
-		"enum": ["static", "dynamic"]
-	},
-	"privateIpAddress": {
-		"required": false,
-		"type": "string"
-	},
-	"isPublic": {
-		"required": true,
-		"type": "boolean"
-	},
-	"publicIpAddress": {
-		"required": false,
-		"type": "object",
-		"properties": {
-			"id": {
-				"required": true,
-				"type": "string"
-			}
-		}
-	},
-	"subnet": {
-		"required": false,
-		"type": "object",
-		"properties": {
-			"id": {
-				"required": true,
-				"type": "string"
-			}
-		}
-	}
-};
-
-var ports = {
-	"name": {
-		"required": true,
-		"type": "string"
-	},
-	"protocol": {
-		"required": false,
-		"type": "string",
-		"enum": ["tcp", "udp", "all"]
-	},
-	"target": {
-		"required": true,
-		"type": "number"
-	},
-	"published": {
-		"required": false,
-		"type": "number"
-	},
-	"idleTimeout": {
-		"required": false,
-		"type": "number",
-		"min": 240,
-		"max": 1800
-	},
-	"loadDistribution": {
-		"required": false,
-		"type": "string",
-		"enum": ["default", "sourceIP", "sourceIPProtocol"]
-	},
-	"enableFloatingIP": {
-		"required": false,
-		"type": "boolean"
-	},
-	"disableOutboundSnat": {
-		"required": false,
-		"type": "boolean"
-	},
-	"addressPoolName": {
-		"required": true,
-		"type": "string"
-	},
-	"healthProbePort": {
-		"required": false,
-		"type": "number"
-	},
-	"healthProbeProtocol": {
-		"required": true,
-		"type": "string",
-		"enum": ["http", "https", "tcp"]
-	},
-	"healthProbeRequestPath": {
-		"required": true,
-		"type": "string"
-	},
-	"maxFailureAttempts": {
-		"required": false,
-		"type": "number"
-	},
-	"healthProbeInterval": {
-		"required": false,
-		"type": "number"
-	}
-};
-
-var natPools = {
-	"name": {
-		"required": true,
-		"type": "string"
-	},
-	"backendPort": {
-		"required": true,
-		"type": "number"
-	},
-	"protocol": {
-		"required": false,
-		"type": "string",
-		"enum": ["tcp", "udp", "all"]
-	},
-	"enableFloatingIP": {
-		"required": false,
-		"type": "boolean"
-	},
-	"frontendPortRangeStart": {
-		"required": true,
-		"type": "number"
-	},
-	"frontendPortRangeEnd": {
-		"required": true,
-		"type": "number"
-	},
-	"idleTimeout": {
-		"required": false,
-		"type": "number",
-		"min": 240,
-		"max": 1800
-	},
-	"ipConfigName": {
-		"required": false,
-		"type": "string"
-	},
-};
-
-var natRules = {
-	"name": {
-		"required": true,
-		"type": "string"
-	},
-	"backendPort": {
-		"required": true,
-		"type": "number"
-	},
-	"protocol": {
-		"required": false,
-		"type": "string",
-		"enum": ["http", "https", "tcp"]
-	},
-	"enableFloatingIP": {
-		"required": false,
-		"type": "boolean"
-	},
-	"frontendPort": {
-		"required": true,
-		"type": "number"
-	},
-	"idleTimeout": {
-		"required": false,
-		"type": "number",
-		"min": 240,
-		"max": 1800
-	},
-	"ipConfigName": {
-		"required": false,
-		"type": "string"
-	}
-};
-
-var rules = {
-	"name": {
-		"required": true,
-		"type": "string"
-	},
-	"config": {
-		"required": true,
-		"type": "object",
-		"properties": ipConfigs
-	},
-	"ports": {
-		"required": false,
-		"type": "array",
-		"items": {
-			"type": "object",
-			"required": true,
-			"properties": ports
-		}
-	},
-	"natPools": {
-		"required": false,
-		"type": "array",
-		"items": {
-			"type": "object",
-			"required": true,
-			"properties": natPools
-		}
-	},
-	"natRules": {
-		"required": false,
-		"type": "array",
-		"items": {
-			"type": "object",
-			"required": true,
-			"properties": natRules
-		}
-	}
-};
+'use strict';
 
 const add = {
-    "type": "object",
+	"type": "object",
     "additionalProperties": false,
     "properties": {
-        "section": {
+		"section": {
             "type": "string",
             "required": true,
-            "enum": ["loadBalancer"]
+            "enum": ["loadBalancer"],
         },
         "name": {
             "required": true,
-            "type": "string"
-        },
-        "group": {
-            "required": true,
-            "type": "string"
+            "type": "string",
         },
         "region": {
             "required": true,
-            "type": "string"
+            "type": "string",
         },
-        "addressPools": {
-            "required": true,
-            "type": "array",
-            "items": {
-                "type": "object",
-                "required": true,
-                "properties": addressPools
-            }
+        "labels": {
+            "required": false,
+            "type": "object",
         },
-        "rules": {
-            "required": true,
+		"type": {
+			"required": true,
+            "type": "string",
+			"enum": [ "private", "internet-facing" ]
+		},
+		"securityGroups": {
+			"required": false,
             "type": "array",
-            "items": {
-                "type": "object",
-                "required": true,
-                "properties": rules
-            }
-        }
-    }
+			"items": { "type": "string", "required": false }
+		},
+		"subnets": {
+			"required": false,
+            "type": "array",
+			"items": { "type": "string", "required": false }
+		},
+		"rules": {
+			"required": true,
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": true,
+				"properties": {
+					"backendPort": { "type": "number", "required": true },
+					"backendProtocol": { "type": "string", "required": true },
+					"frontendPort": { "type": "number", "required": true },
+					"frontendProtocol": { "type": "string", "required": true }
+				}
+			}
+		},
+		"healthProbe": {
+			"required": false,
+			"type": "object",
+			"properties": {
+				"maxSuccessAttempts": { "type": "number", "required": true },
+				"healthProbeInterval": { "type": "number", "required": true },
+				"healthProbePath": { "type": "string", "required": true },
+				"healthProbeTimeout": { "type": "number", "required": true },
+				"maxFailureAttempts": { "type": "number", "required": true }
+			}
+		}
+	}
 };
 
 const update = {};
@@ -264,9 +70,4 @@ const list = {};
 
 const remove = {};
 
-module.exports = {
-    add: add,
-    update: update,
-    list: list,
-    remove: remove,
-};
+module.exports = { add, update, list, remove };

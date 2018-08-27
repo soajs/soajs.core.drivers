@@ -92,7 +92,7 @@ const AWSLB = {
 			});
 		});
 	},
-	
+
 	/**
 	 * This method returns the instruction to update the dns to link the domain of this environment
 	 * @param options
@@ -102,7 +102,7 @@ const AWSLB = {
 	"getDNSInfo": function (options, mCb) {
 		let stack = options.infra.stack;
 		let ipAddress;
-		
+
 		if (stack && stack.loadBalancers && stack.loadBalancers[options.soajs.registry.code.toUpperCase()] && stack.loadBalancers[options.soajs.registry.code.toUpperCase()]["nginx"]) {
 			ipAddress = stack.loadBalancers[options.soajs.registry.code.toUpperCase()]["nginx"].name;
 			let response = {
@@ -127,7 +127,7 @@ const AWSLB = {
 			return mCb(null, {"id": stack.id});
 		}
 	},
-	
+
 	/**
 	 * This method add service published ports to ELB listeners
 	 * @param options
@@ -144,26 +144,26 @@ const AWSLB = {
 		 ==> don’t do anything
 		 ==> case 3: no exposed ports in recipe but load balancer has exposed ports
 		 ==> delete load balancer
-		 
+
 		 ==> service not found in project
 		 ==> case1: service has no load balancer, creating load balancer for the first time
 		 ==> case2: service has no load balancer, but it is being redeployed with exposed ports
 		 ==> iza fi exposed ports aw ispublished true, then create and expose load balancer
 		 * */
-			
+
 			//get the service
 		let service = options.params.name;
 		let ports = options.params.ports;
 		const stack = options.infra.stack;
 		const envCode = options.params.envCode.toUpperCase();
-		
+
 		options.params.info = options.infra.info;
 		if (ports.length === 0) {
 			return cb(null, true);
 		}
 		let listener = {};
 		let listeners = [];
-		
+
 		if (ports[0].published) {
 			for (let i = 0; i < ports.length; i++) {
 				listener = {
@@ -186,7 +186,7 @@ const AWSLB = {
 		if (options.params.ElbName) {
 			//service have ports to be exposed
 			//update listeners
-			
+
 			if (listeners.length > 0) {
 				AWSLB.updateExternalLB(options, function (err) {
 					return cb(err, true);
@@ -234,9 +234,9 @@ const AWSLB = {
 					keyId: aws.keyId,
 					secretAccessKey: aws.secretAccessKey
 				});
-				
+
 				let name = `ht${options.params.soajs_project}-External-`; //ht + projectname + service name
-				
+
 				name += randomString.generate({
 					length: 31 - name.length,
 					charset: 'alphanumeric',
@@ -315,7 +315,7 @@ const AWSLB = {
 								if (err) {
 									return cb(err);
 								}
-								
+
 								//manipulate and add the record
 								let deployment = options.infra.deployments;
 								//if no loadBalancers object found create one
@@ -344,7 +344,7 @@ const AWSLB = {
 			}
 		}
 	},
-	
+
 	/**
 	 * This method creates a load balancer
 	 * @param options
@@ -363,7 +363,7 @@ const AWSLB = {
 			let params = {
 				LoadBalancerName: options.params.name
 			};
-			params.listeners = [];
+			params.Listeners = [];
 			if (options.params.rules && options.params.rules.length > 0) {
 				options.params.rules.forEach((port) => {
 					let listener = {
@@ -375,7 +375,7 @@ const AWSLB = {
 					if (port.certificate) {
 						listener.SSLCertificateId = port.certificate;
 					}
-					params.listeners.push(listener);
+					params.Listeners.push(listener);
 				});
 			}
 			if (options.params.securityGroups) {
@@ -393,7 +393,7 @@ const AWSLB = {
 			if (options.params.tags) {
 				params.Tags = options.params.tags
 			}
-			if (params.listeners.length === 0) {
+			if (params.Listeners.length === 0) {
 				return cb(new Error("A load balancer must have at least one port open. "))
 			}
 			if (!params.AvailabilityZones && !params.Subnets) {
@@ -439,7 +439,7 @@ const AWSLB = {
 			});
 		});
 	},
-	
+
 	/**
 	 * This method updates a load balancer connected to a service
 	 * @param options
@@ -517,7 +517,7 @@ const AWSLB = {
 					updateListeners();
 				}
 			}
-			
+
 			function updateListeners() {
 				let listener = {};
 				params = {
@@ -577,7 +577,7 @@ const AWSLB = {
 					}
 				});
 			}
-			
+
 			function updateHealthCheck(elb, healthCheckPort, cb) {
 				let healthCheckParams = {
 					HealthCheck: loadBalancer.LoadBalancerDescriptions[0].HealthCheck,
@@ -596,7 +596,7 @@ const AWSLB = {
 			}
 		});
 	},
-	
+
 	/**
 	 * This method updates a load balancer connected to a service
 	 * @param options
@@ -606,7 +606,7 @@ const AWSLB = {
 	"updateLoadBalancer": function (options, mCb) {
 		return mCb(null, true);
 	},
-	
+
 	/**
 	 * This method  deletes a load balancer
 	 * @param options
