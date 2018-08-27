@@ -110,13 +110,13 @@ const helper = {
 					let rule = {};
 					if (oneListener.Listener) {
 						if (oneListener.Listener.InstanceProtocol) {
-							rule.backendProtocol = oneListener.Listener.InstanceProtocol;
+							rule.backendProtocol = oneListener.Listener.InstanceProtocol.toLowerCase();
 						}
 						if (oneListener.Listener.InstancePort) {
 							rule.backendPort = oneListener.Listener.InstancePort;
 						}
 						if (oneListener.Listener.Protocol) {
-							rule.frontendProtocol = oneListener.Listener.Protocol;
+							rule.frontendProtocol = oneListener.Listener.Protocol.toLowerCase();
 						}
 						if (oneListener.Listener.LoadBalancerPort) {
 							rule.frontendPort = oneListener.Listener.LoadBalancerPort;
