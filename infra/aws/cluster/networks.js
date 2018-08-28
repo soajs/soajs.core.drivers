@@ -108,7 +108,7 @@ const driver = {
 			vpc: function (callback) {
 				ec2.describeVpcs({
 					VpcIds: [
-						options.params.name
+						options.params.id
 					]
 				}, callback)
 			},
@@ -118,7 +118,7 @@ const driver = {
 						{
 							Name: "vpc-id",
 							Values: [
-								options.params.name
+								options.params.id
 							]
 						}
 					]
@@ -161,7 +161,7 @@ const driver = {
 								async.parallel({
 									addedCidr: function (mini) {
 										//associateVpcCidrBlock
-										driver.addNetworkAddresses(ec2, options.params.name, _.difference(addresses, cidR), options.params.addresses, mini);
+										driver.addNetworkAddresses(ec2, options.params.id, _.difference(addresses, cidR), options.params.addresses, mini);
 									},
 									removedCidr: function (mini) {
 										//disassociateAddress
@@ -204,7 +204,7 @@ const driver = {
 										if (found) {
 											let temp = {
 												CidrBlock: subnet.address, /* required */
-												VpcId: options.params.name, /* required */
+												VpcId: options.params.id, /* required */
 											};
 											if (subnet.zone) {
 												temp.AvailabilityZone = subnet.zone;
