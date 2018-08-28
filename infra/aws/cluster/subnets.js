@@ -73,14 +73,38 @@ const subnets = {
 			VpcId: options.params.network, /* required */
 			DryRun: false,
 		};
-		if (options.params.zone){
+		if (options.params.zone) {
 			params.AvailabilityZone = options.params.zone
 		}
-		if (options.params.ipv6Address){
+		if (options.params.ipv6Address) {
 			params.Ipv6CidrBlock = options.params.ipv6Address
 		}
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#createSubnet-property
-		ec2.createSubnet(params, cb);
+		ec2.createSubnet(params, (err, response) => {
+			if (err) {
+				return cb(err);
+			}
+			if (options.params.name){
+				params = {
+					Resources: [
+						response.Subnet.SubnetId
+					],
+					Tags: [
+						{
+							Key: "Name",
+							Value: options.params.name
+						}
+					]
+				};
+				ec2.createTags(params, function(err) {
+					options.soajs.log.error(err);
+					return cb(null, response);
+				});
+			}
+			else {
+				return cb(null, response);
+			}
+		});
 	},
 	
 	/**

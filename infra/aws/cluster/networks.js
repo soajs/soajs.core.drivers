@@ -80,7 +80,27 @@ const driver = {
 			if (err) {
 				return cb(err);
 			}
-			return cb(null, response);
+			if (options.params.name){
+				params = {
+					Resources: [
+						response.Vpc.VpcId
+					],
+					Tags: [
+						{
+							Key: "Name",
+							Value: options.params.name
+						}
+					]
+				};
+				ec2.createTags(params, function(err) {
+					options.soajs.log.error(err);
+					return cb(null, response);
+				});
+			}
+			else {
+				return cb(null, response);
+			}
+			
 		});
 	},
 
