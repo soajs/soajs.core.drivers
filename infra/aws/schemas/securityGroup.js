@@ -11,10 +11,6 @@ const add = {
             "required": true,
             "type": "string"
         },
-        "group": {
-            "required": true,
-            "type": "string"
-        },
         "region": {
             "required": true,
             "type": "string"
@@ -30,20 +26,10 @@ const add = {
                 "type": "object",
                 "required": true,
                 "properties": {
-                    "name": {
-                        "required": true,
-                        "type": "string"
-                    },
-                    "priority": {
-                        "required": true,
-                        "type": "number",
-                        "min": 100,
-                        "max": 4096
-                    },
                     "protocol": {
                         "required": false,
                         "type": "string",
-                        "enum": ["TCP", "UDP", "*"]
+                        "enum": ["tcp", "udp", "*"]
                     },
                     "access": {
                         "required": false,
@@ -55,15 +41,7 @@ const add = {
                         "type": "string",
                         "enum": ["inbound", "outbound"]
                     },
-                    "sourceAddress": {
-                        "required": false,
-                        "type": "string"
-                    },
-                    "target": {
-                        "required": false,
-                        "type": "string"
-                    },
-                    "destinationAddress": {
+                    "source": {
                         "required": false,
                         "type": "string"
                     },
