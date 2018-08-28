@@ -283,10 +283,10 @@ const helper = {
 				publicIp.type = "public";
 				publicIp.allocatedTo = "instance";
 				if (opts.vm.PublicDnsName) {
-					publicIp.address = opts.vm.PublicDnsName;
+					publicIp.dns = opts.vm.PublicDnsName;
 				}
 				if (opts.vm.PublicIpAddress) {
-					publicIp.dns = opts.vm.PublicIpAddress;
+					publicIp.address = opts.vm.PublicIpAddress;
 				}
 				record.ip.push(publicIp);
 			}
