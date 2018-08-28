@@ -92,7 +92,7 @@ describe("testing /lib/azure/index.js", function () {
 			service.listCertificates(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response, [{ "details": {}, "region": "us-east-2"}]);
+				assert.deepEqual(response, [{ "details": {}, "region": "us-east-2", "dnsConfig": []}]);
 				done();
 			});
 		});
