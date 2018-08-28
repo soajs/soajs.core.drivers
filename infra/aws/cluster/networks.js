@@ -178,7 +178,8 @@ const driver = {
 						if (options.params.instanceTenancy && options.params.instanceTenancy !== network.InstanceTenancy) {
 							if (options.params.instanceTenancy === "default") {
 								let params = {
-									tenancy: "default", /* required */
+									VpcId: options.params.id, /* required */
+									InstanceTenancy: "default", /* required */
 								};
 								ec2.modifyVpcTenancy(params, callback);
 							}

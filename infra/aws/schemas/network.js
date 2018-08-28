@@ -19,11 +19,11 @@ const add = {
             "required": true,
             "type": "string",
         },
-        "Ipv6Address": {
+        "ipv6Address": {
             "required": false,
 	        "type": "boolean",
         },
-	    "InstanceTenancy": {
+	    "instanceTenancy": {
 		    "required": false,
 		    "type": "string",
 		    "enum": ["default", "dedicated"],
@@ -69,12 +69,8 @@ const update = {
                 }
             }
         },
-        "Ipv6Address": {
-            "required": false,
-	        "type": "boolean",
-        },
-	    "InstanceTenancy": {
-		    "required": false,
+	    "instanceTenancy": {
+		    "required": true,
 		    "type": "string",
 		    "enum": ["default", "dedicated"],
 	    },
