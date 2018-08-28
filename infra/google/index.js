@@ -97,6 +97,10 @@ const driver = {
 		});
 	},
 	
+	"getAvailabiltyZones": function (options, cb) {
+		return cb(null, true);
+	},
+	
 	"scaleCluster": function (options, cb) {
 		ClusterDriver.scaleCluster(options, cb);
 	},

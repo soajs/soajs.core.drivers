@@ -682,7 +682,7 @@ const AWSLB = {
 											}
 											ruleCB();
 										}, () => {
-											if (found){
+											if (!found){
 												//delete
 												deleteListeners.LoadBalancerPorts.push(port.LoadBalancerPort);
 											}

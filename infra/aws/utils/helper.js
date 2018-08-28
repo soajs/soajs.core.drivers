@@ -334,12 +334,12 @@ const helper = {
 					if (group.GroupId === listGroup.GroupId) {
 						if (listGroup.IpPermissions) {
 							listGroup.IpPermissions.forEach((inbound) => {
-								record.ports.push(helper.buildPorts({ports: inbound, type: "inbound"}));
+								record.ports.push(helper.buildPorts({ports: inbound, type: "inbound", securityGroupId: group.GroupId}));
 							});
 						}
 						if (listGroup.IpPermissionsEgress) {
 							listGroup.IpPermissionsEgress.forEach((outbound) => {
-								record.ports.push(helper.buildPorts({ports: outbound, type: "outbound"}));
+								record.ports.push(helper.buildPorts({ports: outbound, type: "outbound", securityGroupId: group.GroupId}));
 							});
 						}
 					}

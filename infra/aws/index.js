@@ -187,6 +187,33 @@ const driver = {
 
 		return cb(null, response);
 	},
+	"getAvailabiltyZones": function (options, cb) {
+		let aws = options.infra.api;
+		let ec2 = getConnector({api: 'ec2', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey, region: options.params.region});
+		
+		ec2.describeAvailabilityZones({}, function (error, data) {
+			if (error) {
+				return cb(error);
+			}
+			if (!data) {
+				return cb(new Error("Unable to reach AWS API!"));
+			}
+			else if (data.AvailabilityZones && data.AvailabilityZones.length > 0){
+				let zones = [];
+				data.AvailabilityZones.forEach((zone)=>{
+					if (zone.State === 'available'){
+						zones.push(zone.ZoneName);
+					}
+				});
+				return cb(null, {
+					[options.params.region]: zones
+				})
+			}
+			else {
+				return cb(null, {})
+			}
+		});
+	},
 
 	"scaleCluster": function (options, cb) {
 		ClusterDriver.scaleCluster(options, cb);

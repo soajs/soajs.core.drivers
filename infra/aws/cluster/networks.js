@@ -13,24 +13,24 @@ function getConnector(opts) {
 }
 
 const driver = {
-
+	
 	/**
 	 * List available networks
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	list: function (options, cb) {
 		const aws = options.infra.api;
-
+		
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-
+		
 		ec2.describeVpcs({}, function (err, networks) {
 			if (err) {
 				return cb(err);
@@ -52,16 +52,16 @@ const driver = {
 			}
 		});
 	},
-
+	
 	/**
 	 * Create a new network
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	create: function (options, cb) {
-
+		
 		const aws = options.infra.api;
 		const ec2 = getConnector({
 			api: 'ec2',
@@ -83,10 +83,10 @@ const driver = {
 			return cb(null, response);
 		});
 	},
-
+	
 	/**
 	 * Update a network
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -103,26 +103,45 @@ const driver = {
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-		let params = {
-			VpcIds: [
-				options.params.name
-			]
-		};
-		ec2.describeVpcs(params, function (err, networks) {
-			if (err) {
+		
+		async.parallel({
+			vpc: function (callback) {
+				ec2.describeVpcs({
+					VpcIds: [
+						options.params.name
+					]
+				}, callback)
+			},
+			subnets: function (callback) {
+				ec2.describeSubnets({
+					Filters: [
+						{
+							Name: "vpc-id",
+							Values: [
+								options.params.name
+							]
+						}
+					]
+				}, callback)
+			}
+		}, function (err, results) {
+			if (err){
 				return cb(err);
 			}
+			let networks = results.vpc;
 			if (networks && networks.Vpcs && Array.isArray(networks.Vpcs) && networks.Vpcs.length > 0) {
 				let network = networks.Vpcs[0];
 				let cidR = [];
 				let addresses = [];
+				let addSubnets = [];
+				let deleteSubnets = [];
 				// get addresses without primary
 				network.CidrBlockAssociationSet.forEach((oneCidR) => {
 					if (oneCidR.CidrBlock !== network.CidrBlock) {
 						cidR.push(oneCidR.CidrBlock);
 					}
 				});
-				if (options.params && options.params.addresses){
+				if (options.params && options.params.addresses) {
 					options.params.addresses.forEach((oneAddress) => {
 						if (oneAddress) {
 							addresses.push((oneAddress.address));
@@ -170,6 +189,64 @@ const driver = {
 						else {
 							callback();
 						}
+					},
+					subnet: function (callback) {
+						async.parallel({
+							add: function (mini) {
+								async.each(options.params.subnets, (subnet, pcb) => {
+									let found = false;
+									async.each(result.subnets.Subnets, (oneSubnet, scb) => {
+										if (oneSubnet.CidrBlock === subnet.address) {
+											found = true;
+										}
+										scb();
+									}, () => {
+										if (found) {
+											let temp = {
+												CidrBlock: subnet.address, /* required */
+												VpcId: options.params.name, /* required */
+											};
+											if (subnet.zone) {
+												temp.AvailabilityZone = subnet.zone;
+											}
+											addSubnets.push(temp);
+										}
+										pcb();
+									});
+								}, mini)
+							},
+							delete: function (mini) {
+								async.each(result.subnets.Subnets, (oneSubnet, pcb) => {
+									let found = false;
+									async.each(result.subnets.Subnets, (subnet, scb) => {
+										if (oneSubnet.CidrBlock === subnet.address) {
+											found = true;
+										}
+										scb();
+									}, () => {
+										if (!found) {
+											deleteSubnets.push({
+												SubnetId: oneSubnet.SubnetId,
+											});
+										}
+										pcb();
+									});
+								}, mini)
+							}
+						}, () => {
+							async.parallel({
+								add: function (mini) {
+									async.each(addSubnets, (params, pcb) => {
+										ec2.createSubnet(params, pcb);
+									}, mini)
+								},
+								delete: function (mini) {
+									async.each(deleteSubnets, (params, miniCb) => {
+										ec2.deleteSubnet(params, miniCb);
+									}, mini)
+								}
+							}, callback);
+						});
 					}
 				}, cb);
 			}
@@ -178,10 +255,10 @@ const driver = {
 			}
 		});
 	},
-
+	
 	/**
 	 * Delete a network
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -245,7 +322,7 @@ const driver = {
 			}, callback);
 		}, cb);
 	},
-
+	
 };
 
 module.exports = driver;
