@@ -3,6 +3,7 @@ const async = require('async');
 const config = require("../config");
 const utils = require("../utils/utils");
 const helper = require('../utils/helper.js');
+const _ = require('lodash');
 
 function getConnector(opts) {
 	return utils.getConnector(opts, config);
@@ -92,7 +93,7 @@ const AWSLB = {
 			});
 		});
 	},
-
+	
 	/**
 	 * This method returns the instruction to update the dns to link the domain of this environment
 	 * @param options
@@ -102,23 +103,23 @@ const AWSLB = {
 	"getDNSInfo": function (options, mCb) {
 		let stack = options.infra.stack;
 		let ipAddress;
-
+		
 		if (stack && stack.loadBalancers && stack.loadBalancers[options.soajs.registry.code.toUpperCase()] && stack.loadBalancers[options.soajs.registry.code.toUpperCase()]["nginx"]) {
 			ipAddress = stack.loadBalancers[options.soajs.registry.code.toUpperCase()]["nginx"].name;
 			let response = {
 				"id": stack.id,
 				"dns": {
 					"msg": "<table>" +
-					"<thead>" +
-					"<tr><th>Field Type</th><th>Field Value</th></tr>" +
-					"</thead>" +
-					"<tbody>" +
-					"<tr><td>DNS Type</td><td>CNAME</td></tr>" +
-					"<tr class='even'><td>Domain Value</td><td>%domain%</td></tr>" +
-					"<tr><td>IP Address</td><td>" + ipAddress + "</td></tr>" +
-					"<tr class='even'><td>TTL</td><td>5 minutes</td></tr>" +
-					"</tbody>" +
-					"</table>"
+						"<thead>" +
+						"<tr><th>Field Type</th><th>Field Value</th></tr>" +
+						"</thead>" +
+						"<tbody>" +
+						"<tr><td>DNS Type</td><td>CNAME</td></tr>" +
+						"<tr class='even'><td>Domain Value</td><td>%domain%</td></tr>" +
+						"<tr><td>IP Address</td><td>" + ipAddress + "</td></tr>" +
+						"<tr class='even'><td>TTL</td><td>5 minutes</td></tr>" +
+						"</tbody>" +
+						"</table>"
 				}
 			};
 			return mCb(null, response);
@@ -127,7 +128,7 @@ const AWSLB = {
 			return mCb(null, {"id": stack.id});
 		}
 	},
-
+	
 	/**
 	 * This method add service published ports to ELB listeners
 	 * @param options
@@ -144,26 +145,26 @@ const AWSLB = {
 		 ==> don’t do anything
 		 ==> case 3: no exposed ports in recipe but load balancer has exposed ports
 		 ==> delete load balancer
-
+		 
 		 ==> service not found in project
 		 ==> case1: service has no load balancer, creating load balancer for the first time
 		 ==> case2: service has no load balancer, but it is being redeployed with exposed ports
 		 ==> iza fi exposed ports aw ispublished true, then create and expose load balancer
 		 * */
-
+			
 			//get the service
 		let service = options.params.name;
 		let ports = options.params.ports;
 		const stack = options.infra.stack;
 		const envCode = options.params.envCode.toUpperCase();
-
+		
 		options.params.info = options.infra.info;
 		if (ports.length === 0) {
 			return cb(null, true);
 		}
 		let listener = {};
 		let listeners = [];
-
+		
 		if (ports[0].published) {
 			for (let i = 0; i < ports.length; i++) {
 				listener = {
@@ -186,7 +187,7 @@ const AWSLB = {
 		if (options.params.ElbName) {
 			//service have ports to be exposed
 			//update listeners
-
+			
 			if (listeners.length > 0) {
 				AWSLB.updateExternalLB(options, function (err) {
 					return cb(err, true);
@@ -234,9 +235,9 @@ const AWSLB = {
 					keyId: aws.keyId,
 					secretAccessKey: aws.secretAccessKey
 				});
-
+				
 				let name = `ht${options.params.soajs_project}-External-`; //ht + projectname + service name
-
+				
 				name += randomString.generate({
 					length: 31 - name.length,
 					charset: 'alphanumeric',
@@ -315,7 +316,7 @@ const AWSLB = {
 								if (err) {
 									return cb(err);
 								}
-
+								
 								//manipulate and add the record
 								let deployment = options.infra.deployments;
 								//if no loadBalancers object found create one
@@ -344,7 +345,7 @@ const AWSLB = {
 			}
 		}
 	},
-
+	
 	/**
 	 * This method creates a load balancer
 	 * @param options
@@ -400,34 +401,34 @@ const AWSLB = {
 				return cb(new Error("Either Zones or Subnet must be specified."))
 			}
 			options.soajs.log.debug(params);
-			elb[elbResponse.method](params, (err, lbResponse)=>{
-				if (err){
+			elb[elbResponse.method](params, (err, lbResponse) => {
+				if (err) {
 					return cb(err);
 				}
 				else {
-					if (options.params.healthProbe){
+					if (options.params.healthProbe) {
 						params = {
 							HealthCheck: {},
 							LoadBalancerName: options.params.name
 						};
-						if (options.params.healthProbe.healthProbePath){
+						if (options.params.healthProbe.healthProbePath) {
 							params.HealthCheck.Target = options.params.healthProbe.healthProbePath;
 						}
-						if (options.params.healthProbe.healthProbeInterval){
+						if (options.params.healthProbe.healthProbeInterval) {
 							params.HealthCheck.Interval = options.params.healthProbe.healthProbeInterval;
 						}
-						if (options.params.healthProbe.healthProbeTimeout){
+						if (options.params.healthProbe.healthProbeTimeout) {
 							params.HealthCheck.Timeout = options.params.healthProbe.healthProbeTimeout;
 						}
-						if (options.params.healthProbe.maxFailureAttempts){
+						if (options.params.healthProbe.maxFailureAttempts) {
 							params.HealthCheck.UnhealthyThreshold = options.params.healthProbe.maxFailureAttempts;
 						}
-						if (options.params.healthProbe.maxSuccessAttempts){
+						if (options.params.healthProbe.maxSuccessAttempts) {
 							params.HealthCheck.HealthyThreshold = options.params.healthProbe.maxSuccessAttempts;
 						}
 						options.soajs.log.debug(params);
 						getElbMethod('classic', 'healthCheck', (elbResponse) => {
-							elb[elbResponse.method](params, (err)=>{
+							elb[elbResponse.method](params, (err) => {
 								return cb(err, lbResponse);
 							});
 						});
@@ -439,7 +440,7 @@ const AWSLB = {
 			});
 		});
 	},
-
+	
 	/**
 	 * This method updates a load balancer connected to a service
 	 * @param options
@@ -517,7 +518,7 @@ const AWSLB = {
 					updateListeners();
 				}
 			}
-
+			
 			function updateListeners() {
 				let listener = {};
 				params = {
@@ -577,7 +578,7 @@ const AWSLB = {
 					}
 				});
 			}
-
+			
 			function updateHealthCheck(elb, healthCheckPort, cb) {
 				let healthCheckParams = {
 					HealthCheck: loadBalancer.LoadBalancerDescriptions[0].HealthCheck,
@@ -596,7 +597,7 @@ const AWSLB = {
 			}
 		});
 	},
-
+	
 	/**
 	 * This method updates a load balancer connected to a service
 	 * @param options
@@ -604,9 +605,183 @@ const AWSLB = {
 	 * @returns {*}
 	 */
 	"updateLoadBalancer": function (options, mCb) {
-		return mCb(null, true);
+		//https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ELB.html#describeLoadBalancers-property
+		
+		//https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ELB.html#createLoadBalancerListeners-property
+		//https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ELB.html#deleteLoadBalancerListeners-property
+		
+		//https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ELB.html#attachLoadBalancerToSubnets-property
+		//https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ELB.html#detachLoadBalancerFromSubnets-property
+		
+		//https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ELB.html#applySecurityGroupsToLoadBalancer-property
+		
+		//https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ELB.html#configureHealthCheck-property
+		const aws = options.infra.api;
+		getElbMethod(options.params.elbType || 'classic', 'delete', (elbResponse) => {
+			const elb = getConnector({
+				api: elbResponse.api,
+				region: options.params.region,
+				keyId: aws.keyId,
+				secretAccessKey: aws.secretAccessKey
+			});
+			elb[elbResponse.method]({LoadBalancerNames: [options.params.name]}, function (err, response) {
+				if (err) {
+					return mCb(err);
+				}
+				if (response && response.LoadBalancerDescriptions && response.LoadBalancerDescriptions.length > 0) {
+					let lb = response.LoadBalancerDescriptions[0];
+					
+					async.parallel({
+						listeners: (callback) => {
+							let addListeners = {
+								LoadBalancerName: b.LoadBalancerName,
+								Listeners: [
+								],
+							}, deleteListeners = {
+								LoadBalancerName: b.LoadBalancerName,
+								LoadBalancerPorts: [],
+							};
+							
+							async.parallel({
+								//get ports needed to be added
+								add: (call) => {
+									async.each(options.params.rules, (rule, ruleCB) => {
+										let found = false;
+										async.each(response.LoadBalancerDescriptions.ListenerDescriptions, (port, listenersCB) => {
+											if (rule.frontendPort === port.LoadBalancerPort &&
+												rule.backendPort === port.InstancePort
+												&& rule.frontendProtocol === port.Protocol
+												&& rule.backendProtocol === port.InstanceProtocol) {
+												found = true;
+											}
+											listenersCB();
+										}, () => {
+											if (found){
+												//add
+												addListeners.Listeners.push({
+													"Protocol": rule.frontendProtocol.toUpperCase(),
+													"LoadBalancerPort": rule.frontendPort,
+													"InstanceProtocol": rule.backendProtocol.toUpperCase(),
+													"InstancePort": rule.InstancePort
+												});
+											}
+											ruleCB();
+										});
+									}, call);
+								},
+								//get ports needed to be deleted
+								delete: (call) => {
+									async.each(response.LoadBalancerDescriptions.ListenerDescriptions, (port, listenersCB) => {
+										let found = false;
+										async.each(options.params.rules, (rule, ruleCB) => {
+											if (rule.frontendPort === port.LoadBalancerPort &&
+												rule.backendPort === port.InstancePort
+												&& rule.frontendProtocol === port.Protocol
+												&& rule.backendProtocol === port.InstanceProtocol) {
+												found = true;
+											}
+											ruleCB();
+										}, () => {
+											if (found){
+												//delete
+												deleteListeners.LoadBalancerPorts.push(port.LoadBalancerPort);
+											}
+											listenersCB();
+										});
+									}, call);
+								}
+							}, () => {
+								async.series({
+									delete: (call) => {
+										if (deleteListeners.LoadBalancerPorts.length === 0){
+											call();
+										}
+										elb.deleteLoadBalancerListeners(deleteListeners, call)
+									},
+									add: (call) => {
+										if (addListeners.Listeners.length === 0 ){
+											call();
+										}
+										elb.createLoadBalancerListeners(addListeners, call)
+									}
+								}, callback);
+							});
+						},
+						subnets: (callback) => {
+							let subnets = [];
+							options.params.zones.forEach((oneSubnet) => {
+								subnets.push(oneSubnet.subnetId);
+							});
+							let subnetsToDelete = _.differenceBy(lb.SecurityGroups, subnets);
+							let subnetsToAdd = _.differenceBy(subnets, lb.SecurityGroups);
+							async.parallel({
+								add: (call) => {
+									if (subnetsToAdd.length ===0 ){
+										call();
+									}
+									elb.attachLoadBalancerToSubnets({
+										LoadBalancerName: lb.LoadBalancerName,
+										Subnets: subnetsToAdd
+									}, call)
+								},
+								delete: (call) => {
+									if (subnetsToDelete.length ===0 ){
+										call();
+									}
+									elb.detachLoadBalancerFromSubnets({
+										LoadBalancerName: lb.LoadBalancerName,
+										Subnets: subnetsToDelete
+									}, call)
+								}
+							}, callback);
+						},
+						securityGroups: (callback) => {
+							if (_.differenceBy(lb.SecurityGroups, options.params.securityGroupIds).length > 0) {
+								elb.applySecurityGroupsToLoadBalancer(
+									{
+										LoadBalancerName: lb.LoadBalancerName,
+										SecurityGroups: options.params.securityGroupIds
+									}, callback);
+							}
+							else {
+								callback();
+							}
+						},
+						healthCheck: (callback) => {
+							if (options.params.healthProbe) {
+								if (options.params.healthProbe.healthProbePath !== lb.HealthCheck.Target
+									|| options.params.healthProbe.healthProbeInterval !== lb.HealthCheck.Interval
+									|| options.params.healthProbe.healthProbeTimeout !== lb.HealthCheck.Timeout
+									|| options.params.healthProbe.maxFailureAttempts !== lb.HealthCheck.UnhealthyThreshold
+									|| options.params.healthProbe.maxSuccessAttempts !== lb.HealthCheck.HealthyThreshold) {
+									elb.configureHealthCheck({
+										LoadBalancerName: lb.LoadBalancerName,
+										HealthCheck: {
+											Target: options.params.healthProbe.healthProbePath,
+											Interval: options.params.healthProbe.healthProbeInterval,
+											Timeout: options.params.healthProbe.healthProbeTimeout,
+											UnhealthyThreshold: options.params.healthProbe.maxFailureAttempts,
+											HealthyThreshold: options.params.healthProbe.maxSuccessAttempts,
+										}
+									}, callback);
+								}
+								else {
+									callback();
+								}
+							}
+							else {
+								callback();
+							}
+						}
+					}, mCb);
+				}
+				else {
+					return mCb(new Error("Load balancer not found!"));
+				}
+			});
+		});
 	},
-
+	
 	/**
 	 * This method  deletes a load balancer
 	 * @param options

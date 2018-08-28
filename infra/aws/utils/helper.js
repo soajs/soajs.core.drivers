@@ -81,7 +81,7 @@ const helper = {
 				record.name = opts.lb.LoadBalancerName;
 			}
 			if (opts.lb.Scheme) {
-				record.mode = opts.lb.Scheme;
+				record.mode = opts.lb.Scheme === 'internet-facing' ? "public" : "private";
 			}
 			if (opts.lb.VPCId) {
 				record.networkId = opts.lb.VPCId;
