@@ -656,7 +656,7 @@ const AWSLB = {
 											}
 											listenersCB();
 										}, () => {
-											if (found){
+											if (!found){
 												//add
 												addListeners.Listeners.push({
 													"Protocol": rule.frontendProtocol.toUpperCase(),
