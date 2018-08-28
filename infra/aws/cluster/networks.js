@@ -105,7 +105,7 @@ const driver = {
 		});
 		let params = {
 			VpcIds: [
-				options.params.name
+				options.params.id
 			]
 		};
 		ec2.describeVpcs(params, function (err, networks) {
@@ -142,7 +142,7 @@ const driver = {
 								async.parallel({
 									addedCidr: function (mini) {
 										//associateVpcCidrBlock
-										driver.addNetworkAddresses(ec2, options.params.name, _.difference(addresses, cidR), options.params.addresses, mini);
+										driver.addNetworkAddresses(ec2, options.params.id, _.difference(addresses, cidR), options.params.addresses, mini);
 									},
 									removedCidr: function (mini) {
 										//disassociateAddress
