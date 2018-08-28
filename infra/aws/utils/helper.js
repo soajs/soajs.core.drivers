@@ -328,8 +328,8 @@ const helper = {
 		record.ports = [];
 		record.securityGroup = [];
 		if (opts.vm.SecurityGroups && opts.vm.SecurityGroups.length > 0 && opts.securityGroups && opts.securityGroups.length > 0) {
-			record.securityGroup = opts.vm.SecurityGroups;
 			opts.vm.SecurityGroups.forEach((group) => {
+				record.securityGroup.push(group.GroupId);
 				opts.securityGroups.forEach((listGroup) => {
 					if (group.GroupId === listGroup.GroupId) {
 						if (listGroup.IpPermissions) {
