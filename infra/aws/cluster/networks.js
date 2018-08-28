@@ -13,24 +13,24 @@ function getConnector(opts) {
 }
 
 const driver = {
-	
+
 	/**
 	 * List available networks
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	list: function (options, cb) {
 		const aws = options.infra.api;
-		
+
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-		
+
 		ec2.describeVpcs({}, function (err, networks) {
 			if (err) {
 				return cb(err);
@@ -52,16 +52,16 @@ const driver = {
 			}
 		});
 	},
-	
+
 	/**
 	 * Create a new network
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	create: function (options, cb) {
-		
+
 		const aws = options.infra.api;
 		const ec2 = getConnector({
 			api: 'ec2',
@@ -83,10 +83,10 @@ const driver = {
 			return cb(null, response);
 		});
 	},
-	
+
 	/**
 	 * Update a network
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -103,7 +103,7 @@ const driver = {
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-		
+
 		async.parallel({
 			vpc: function (callback) {
 				ec2.describeVpcs({
@@ -195,19 +195,19 @@ const driver = {
 							add: function (mini) {
 								async.each(options.params.subnets, (subnet, pcb) => {
 									let found = false;
-									async.each(result.subnets.Subnets, (oneSubnet, scb) => {
+									async.each(results.subnets.Subnets, (oneSubnet, scb) => {
 										if (oneSubnet.CidrBlock === subnet.address) {
 											found = true;
 										}
 										scb();
 									}, () => {
-										if (found) {
+										if (!found) {
 											let temp = {
 												CidrBlock: subnet.address, /* required */
 												VpcId: options.params.id, /* required */
 											};
-											if (subnet.zone) {
-												temp.AvailabilityZone = subnet.zone;
+											if (subnet.availabilityZone) {
+												temp.AvailabilityZone = subnet.availabilityZone;
 											}
 											addSubnets.push(temp);
 										}
@@ -216,9 +216,9 @@ const driver = {
 								}, mini)
 							},
 							delete: function (mini) {
-								async.each(result.subnets.Subnets, (oneSubnet, pcb) => {
+								async.each(results.subnets.Subnets, (oneSubnet, pcb) => {
 									let found = false;
-									async.each(result.subnets.Subnets, (subnet, scb) => {
+									async.each(options.params.subnets, (subnet, scb) => {
 										if (oneSubnet.CidrBlock === subnet.address) {
 											found = true;
 										}
@@ -255,10 +255,10 @@ const driver = {
 			}
 		});
 	},
-	
+
 	/**
 	 * Delete a network
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -322,7 +322,7 @@ const driver = {
 			}, callback);
 		}, cb);
 	},
-	
+
 };
 
 module.exports = driver;

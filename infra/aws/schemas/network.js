@@ -51,8 +51,22 @@ const update = {
         "addresses": {
             "required": true,
             "type": "array",
-            "properties": {
-                "address": { "type": "string", "required": false }
+            "items": {
+                "type": "object",
+                "properties": {
+                    "address": { "type": "string", "required": true }
+                }
+            }
+        },
+        "subnets": {
+            "required": true,
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "address": { "type": "string", "required": true },
+                    "availabilityZone": { "type": "string", "required": false }
+                }
             }
         },
         "Ipv6Address": {

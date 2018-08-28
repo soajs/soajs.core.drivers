@@ -187,10 +187,10 @@ const driver = {
 
 		return cb(null, response);
 	},
-	"getAvailabiltyZones": function (options, cb) {
+	"listAvailabilityZones": function (options, cb) {
 		let aws = options.infra.api;
 		let ec2 = getConnector({api: 'ec2', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey, region: options.params.region});
-		
+
 		ec2.describeAvailabilityZones({}, function (error, data) {
 			if (error) {
 				return cb(error);
@@ -352,7 +352,7 @@ const driver = {
 
 	/**
 	 * List available loadbalancers
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -360,10 +360,10 @@ const driver = {
 	listLoadBalancers: function (options, cb) {
 		return LBDriver.list(options, cb);
 	},
-	
+
 	/**
 	 * Create loadbalancer
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -371,10 +371,10 @@ const driver = {
 	createLoadBalancer: function (options, cb) {
 		return LBDriver.create(options, cb);
 	},
-	
+
 	/**
 	 * Update loadbalancer
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -382,10 +382,10 @@ const driver = {
 	updateLoadBalancer: function (options, cb) {
 		return LBDriver.update(options, cb);
 	},
-	
+
 	/**
 	 * Delete loadbalancer
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -393,10 +393,10 @@ const driver = {
 	deleteLoadBalancer: function (options, cb) {
 		return LBDriver.delete(options, cb);
 	},
-	
+
 	/**
 	 * List available subnets
-	 
+
 	 * @param  {Object}   options  Data passed to function listsubas params
 	 * @param  {Function} cb    Callback fspub
 	 * @return {void}listsub
@@ -448,10 +448,10 @@ const driver = {
 	listSecurityGroups: function (options, cb) {
 		return securityGroups.list(options, cb);
 	},
-	
+
 	/**
 	 * Get existing security group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -459,10 +459,10 @@ const driver = {
 	getSecurityGroup: function (options, cb) {
 		return securityGroups.get(options, cb);
 	},
-	
+
 	/**
 	 * Create security group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -470,10 +470,10 @@ const driver = {
 	createSecurityGroup: function (options, cb) {
 		return securityGroups.create(options, cb);
 	},
-	
+
 	/**
 	 * Update security group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -481,10 +481,10 @@ const driver = {
 	updateSecurityGroup: function (options, cb) {
 		return securityGroups.update(options, cb);
 	},
-	
+
 	/**
 	 * Delete security group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}

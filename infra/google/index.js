@@ -96,43 +96,43 @@ const driver = {
 			});
 		});
 	},
-	
-	"getAvailabiltyZones": function (options, cb) {
+
+	"listAvailabilityZones": function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	"scaleCluster": function (options, cb) {
 		ClusterDriver.scaleCluster(options, cb);
 	},
-	
+
 	"getCluster": function (options, cb) {
 		ClusterDriver.getCluster(options, cb);
 	},
-	
+
 	"updateCluster": function (options, cb) {
 		ClusterDriver.updateCluster(options, cb);
 	},
-	
+
 	"deleteCluster": function (options, cb) {
 		ClusterDriver.deleteCluster(options, cb);
 	},
-	
+
 	"publishPorts": function (options, cb) {
 		LBDriver.publishPorts(options, cb);
 	},
-	
+
 	"createLoadBalancer": function (options, cb) {
 		LBDriver.createLoadBalancer(options, cb);
 	},
-	
+
 	"updateLoadBalancer": function (options, cb) {
 		LBDriver.updateLoadBalancer(options, cb);
 	},
-	
+
 	"deleteLoadBalancer": function (options, cb) {
 		LBDriver.deleteLoadBalancer(options, cb);
 	},
-	
+
 	"executeDriver": function(method, options, cb){
 		runCorrespondingDriver(method, options, cb);
 	}

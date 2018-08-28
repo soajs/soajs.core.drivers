@@ -61,11 +61,11 @@ const driver = {
 			});
 		});
 	},
-	
-	"getAvailabiltyZones": function (options, cb) {
+
+	"listAvailabilityZones": function (options, cb) {
 		return cb(null, true);
 	},
-	
+
 	"scaleCluster": function (options, cb) {
 		return cb(null, true);
 	},
