@@ -19,6 +19,14 @@ const helper = {
 				record.name = opts.network.VpcId;
 				record.id = opts.network.VpcId;
 			}
+			if (opts.network.Tags && opts.network.Tags.length > 0) {
+				for (let i = 0; i < opts.network.Tags.length; i++) {
+					if (opts.network.Tags[i].Key === "Name"){
+						record.name = opts.network.Tags[i].Value;
+						break;
+					}
+				}
+			}
 			if (opts.network.CidrBlock) {
 				record.primaryAddress = opts.network.CidrBlock;
 			}
@@ -66,6 +74,14 @@ const helper = {
 			}
 			if (opts.subnet.AvailabilityZone) {
 				record.availabilityZone = opts.subnet.AvailabilityZone;
+			}
+			if (opts.subnet.Tags && opts.subnet.Tags.length > 0) {
+				for (let i = 0; i < opts.subnet.Tags.length; i++) {
+					if (opts.subnet.Tags[i].Key === "Name"){
+						record.name = opts.subnet.Tags[i].Value;
+						break;
+					}
+				}
 			}
 		}
 		return record;
