@@ -253,7 +253,7 @@ const vms = {
 								
 							},
 							BlockDeviceMappings: function (callback) {
-								if (oneInstance.SecurityGroups && oneInstance.SecurityGroups.length) {
+								if (oneInstance.BlockDeviceMappings && oneInstance.BlockDeviceMappings.length) {
 									async.each(oneInstance.BlockDeviceMappings, function (block, call) {
 										opts.VolumeIds.push(block.Ebs.VolumeId);
 										call();

@@ -326,7 +326,9 @@ const helper = {
 			}
 		}
 		record.ports = [];
-		if (opts.vm.SecurityGroups && opts.vm.SecurityGroups.length > 0 && opts.securityGroups && opts.securityGroups.length) {
+		record.securityGroup = [];
+		if (opts.vm.SecurityGroups && opts.vm.SecurityGroups.length > 0 && opts.securityGroups && opts.securityGroups.length > 0) {
+			record.securityGroup = opts.vm.SecurityGroups;
 			opts.vm.SecurityGroups.forEach((group) => {
 				opts.securityGroups.forEach((listGroup) => {
 					if (group.GroupId === listGroup.GroupId) {
