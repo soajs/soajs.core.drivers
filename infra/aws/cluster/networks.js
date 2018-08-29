@@ -13,24 +13,24 @@ function getConnector(opts) {
 }
 
 const driver = {
-	
+
 	/**
 	 * List available networks
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	list: function (options, cb) {
 		const aws = options.infra.api;
-		
+
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-		
+
 		ec2.describeVpcs({}, function (err, networks) {
 			if (err) {
 				return cb(err);
@@ -52,16 +52,16 @@ const driver = {
 			}
 		});
 	},
-	
+
 	/**
 	 * Create a new network
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	create: function (options, cb) {
-		
+
 		const aws = options.infra.api;
 		const ec2 = getConnector({
 			api: 'ec2',
@@ -71,9 +71,9 @@ const driver = {
 		});
 		let params = {
 			CidrBlock: options.params.address, /* required */
-			AmazonProvidedIpv6CidrBlock: options.params.Ipv6Address || false,
+			AmazonProvidedIpv6CidrBlock: options.params.ipv6Address || false,
 			DryRun: false,
-			InstanceTenancy: options.params.InstanceTenancy || "default", // "host" || "dedicated" || "default"
+			InstanceTenancy: options.params.instanceTenancy || "default", // "host" || "dedicated" || "default"
 		};
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#createVpc-property
 		ec2.createVpc(params, function (err, response) {
@@ -100,13 +100,13 @@ const driver = {
 			else {
 				return cb(null, response);
 			}
-			
+
 		});
 	},
-	
+
 	/**
 	 * Update a network
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -123,7 +123,7 @@ const driver = {
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-		
+
 		async.parallel({
 			vpc: function (callback) {
 				ec2.describeVpcs({
@@ -276,10 +276,10 @@ const driver = {
 			}
 		});
 	},
-	
+
 	/**
 	 * Delete a network
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -292,7 +292,7 @@ const driver = {
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-		
+
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#deleteVpc-property
 		ec2.describeVpcs({VpcIds: [options.params.id]}, function (err, networks) {
 			if (err) {
@@ -331,7 +331,7 @@ const driver = {
 				});
 			}
 		});
-		
+
 	},
 	/**
 	 * add multiple network addresses
