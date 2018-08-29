@@ -79,12 +79,12 @@ const securityGroups = {
 			};
 			if (options.params.ports) {
 				let IpPermissions = securityGroups.computeSecurityGroupPorts(options.params.ports);
-				inbound.IpPermissions = IpPermissions.inbound;
-				outbound.IpPermissions = IpPermissions.outbound;
+				inbound.IpPermissions = IpPermissions.inbound.IpPermissions;
+				outbound.IpPermissions = IpPermissions.outbound.IpPermissions;
 			}
 			async.parallel({
 				inbound: function (callback) {
-					if (inbound.IpPermissions > 0) {
+					if (inbound.IpPermissions.length > 0) {
 						ec2.authorizeSecurityGroupIngress(inbound, callback);
 					}
 					else {
@@ -92,7 +92,7 @@ const securityGroups = {
 					}
 				},
 				outbound: function (callback) {
-					if (outbound.IpPermissions > 0) {
+					if (outbound.IpPermissions.length > 0) {
 						ec2.authorizeSecurityGroupEgress(outbound, callback);
 					}
 					else {
@@ -132,7 +132,8 @@ const securityGroups = {
 			IpPermissions: []
 		};
 		ec2.describeSecurityGroups(params, (err, response) => {
-			//TODO: handle error
+			if(err) return cb(err);
+
 			if (response && response.SecurityGroups && Array.isArray(response.SecurityGroups) && response.SecurityGroups.length > 0) {
 				async.series({
 					delete: (minCb) => {
@@ -153,7 +154,7 @@ const securityGroups = {
 						};
 						async.parallel({
 							inbound: function (call) {
-								if (Ingress.IpPermissions > 0) {
+								if (Ingress.IpPermissions.length > 0) {
 									ec2.revokeSecurityGroupIngress(Ingress, call);
 								}
 								else {
@@ -161,7 +162,7 @@ const securityGroups = {
 								}
 							},
 							outbound: function (call) {
-								if (Egress.IpPermissions > 0) {
+								if (Egress.IpPermissions.length > 0) {
 									ec2.revokeSecurityGroupEgress(Egress, call);
 								}
 								else {
