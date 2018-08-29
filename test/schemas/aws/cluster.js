@@ -638,7 +638,7 @@ module.exports = function () {
 				"type": "classic",
 				"id": "elb-internal-ragheb",
 				"name": "elb-internal-ragheb",
-				"mode": "internal",
+				"mode": "private",
 				"networkId": "vpc-a5e482dd",
 				"domain": "internal-elb-internal-ragheb-408965366.us-east-2.elb.amazonaws.com",
 				"securityGroupIds": [
@@ -689,7 +689,7 @@ module.exports = function () {
 				"region": 'us-east-1',
 				"id": "test-lb-ragheb",
 				"name": "test-lb-ragheb",
-				"mode": "internet-facing",
+				"mode": "public",
 				"networkId": "vpc-957300fc",
 				"domain": "test-lb-ragheb-69863322.us-east-2.elb.amazonaws.com",
 				"securityGroupIds": [
@@ -966,15 +966,15 @@ module.exports = function () {
 					{
 						"type": "public",
 						"allocatedTo": "instance",
-						"address": "ec2-18-218-148-78.us-east-2.compute.amazonaws.com",
-						"dns": "18.218.148.78"
+						"dns": "ec2-18-218-148-78.us-east-2.compute.amazonaws.com",
+						"address": "18.218.148.78"
 					}
 				],
 				"region": "us-east-1",
 				"id": "i-0bb24a3de714f9fba",
 				"name": "command",
-				"keyPair": "ragheb",
 				"type": "t2.micro",
+				"keyPair": "ragheb",
 				"labels": [
 					{
 						"Name": "command"
@@ -1017,6 +1017,7 @@ module.exports = function () {
 						"direction": "inbound",
 						"protocol": "tcp",
 						"published": 22,
+						"range": 22,
 						"access": "allow",
 						"source": [
 							"0.0.0.0/0"
@@ -1026,13 +1027,16 @@ module.exports = function () {
 					{
 						"direction": "outbound",
 						"protocol": "*",
-						"published": "*",
+						"published": "0 - 65535",
 						"access": "allow",
 						"source": [
 							"0.0.0.0/0"
 						],
 						"ipv6": []
 					}
+				],
+				"securityGroup": [
+					"sg-04031e85cc930b578"
 				]
 			}
 		],
@@ -1043,6 +1047,7 @@ module.exports = function () {
 						"direction": "inbound",
 						"protocol": "tcp",
 						"published": 22,
+						"range": 22,
 						"access": "allow",
 						"source": [
 							"0.0.0.0/0"
@@ -1052,7 +1057,7 @@ module.exports = function () {
 					{
 						"direction": "outbound",
 						"protocol": "*",
-						"published": "*",
+						"published": "0 - 65535",
 						"access": "allow",
 						"source": [
 							"0.0.0.0/0"

@@ -17,7 +17,22 @@ describe("testing /lib/aws/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			service.createSecurityGroup({}, function (error, response) {
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					createSecurityGroup: (params, cb) => {
+						return cb(null, true);
+					},
+					authorizeSecurityGroupIngress: (params, cb) => {
+						return cb(null, true);
+					},
+					authorizeSecurityGroupEgress: (params, cb) => {
+						return cb(null, true);
+					}
+				});
+			service.createSecurityGroup(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();
@@ -31,7 +46,28 @@ describe("testing /lib/aws/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			service.updateSecurityGroup({}, function (error, response) {
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeSecurityGroups: (params, cb) => {
+						return cb(null, {});
+					},
+					authorizeSecurityGroupIngress: (params, cb) => {
+						return cb(null, true);
+					},
+					authorizeSecurityGroupEgress: (params, cb) => {
+						return cb(null, true);
+					},
+					revokeSecurityGroupIngress: (params, cb) => {
+						return cb(null, true);
+					},
+					revokeSecurityGroupEgress: (params, cb) => {
+						return cb(null, true);
+					}
+				});
+			service.updateSecurityGroup(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();
@@ -57,7 +93,7 @@ describe("testing /lib/aws/index.js", function () {
 			service.listSecurityGroups(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response, info.securityGroupsExpected)
+				assert.deepEqual(response, info.securityGroupsExpected);
 				done();
 			});
 		});

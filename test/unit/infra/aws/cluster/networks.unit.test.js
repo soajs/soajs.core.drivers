@@ -181,12 +181,25 @@ describe("testing /lib/aws/index.js", function () {
 					describeVpcs: (params, cb) => {
 						return cb(null, info.listNetworkRaw);
 					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnets);
+					},
+					createSubnet: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteSubnet: (params, cb) => {
+						return cb(null, true);
+					},
 				});
 			options.params = {
-				name: 'vpc-09fcf25a62b4d020f',
+				id: 'vpc-09fcf25a62b4d020f',
 				region: 'us-east-1',
 				addresses: [{address: '172.31.0.0/16'}, {address: '172.32.0.0/16', ipv6: true}], /* required */
 				instanceTenancy: 'default',
+				subnets: [{
+					address: "172.31.1.0/16",
+					availabilityZone: "us-east-1a"
+				}]
 			};
 			service.updateNetwork(options, function (error, response) {
 				assert.ifError(error);
@@ -242,11 +255,24 @@ describe("testing /lib/aws/index.js", function () {
 							]
 						});
 					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnets);
+					},
+					createSubnet: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteSubnet: (params, cb) => {
+						return cb(null, true);
+					},
 				});
 			options.params = {
 				network: 'vpc-09fcf25a62b4d020f',
 				region: 'us-east-1',
 				addresses: [{address: '172.31.0.0/16'}, {address: '172.33.0.0/16'}], /* required */
+				subnets: [{
+					address: "172.31.1.0/16",
+					availabilityZone: "us-east-1a"
+				}]
 			};
 			service.updateNetwork(options, function (error, response) {
 				assert.ifError(error);
@@ -273,11 +299,24 @@ describe("testing /lib/aws/index.js", function () {
 					describeVpcs: (params, cb) => {
 						return cb(null, info.listNetworkRaw);
 					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnets);
+					},
+					createSubnet: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteSubnet: (params, cb) => {
+						return cb(null, true);
+					},
 				});
 			options.params = {
 				region: 'vpc-09fcf25a62b4d020f',
 				addresses: [{address: '172.32.0.0/16'}], /* required */
 				instanceTenancy: 'default',
+				subnets: [{
+					address: "172.31.1.0/16",
+					availabilityZone: "us-east-1a"
+				}]
 			};
 			service.updateNetwork(options, function (error) {
 				assert.ok(error);
@@ -303,16 +342,30 @@ describe("testing /lib/aws/index.js", function () {
 					describeVpcs: (params, cb) => {
 						return cb(null, info.listNetworkRaw);
 					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnets);
+					},
+					createSubnet: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteSubnet: (params, cb) => {
+						return cb(null, true);
+					},
 				});
 			options.params = {
 				network: 'vpc-09fcf25a62b4d020f',
 				region: 'us-east-1',
+				subnets: [{
+					address: "172.31.1.0/16",
+					availabilityZone: "us-east-1a"
+				}]
 			};
 			service.updateNetwork(options, function (error) {
 				assert.ok(error);
 				done();
 			});
 		});
+		
 		it("fail Invalid network address empty array", function (done) {
 			let info = dD();
 			let options = info.deployCluster;
@@ -330,6 +383,15 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					describeVpcs: (params, cb) => {
 						return cb(null, info.listNetworkRaw);
+					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnets);
+					},
+					createSubnet: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteSubnet: (params, cb) => {
+						return cb(null, true);
 					},
 				});
 			options.params = {
@@ -361,12 +423,25 @@ describe("testing /lib/aws/index.js", function () {
 					describeVpcs: (params, cb) => {
 						return cb(null, info.listNetworkRaw);
 					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnets);
+					},
+					createSubnet: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteSubnet: (params, cb) => {
+						return cb(null, true);
+					},
 				});
 			options.params = {
 				network: 'vpc-09fcf25a62b4d020f',
 				region: 'us-east-1',
 				addresses: [{address: '172.31.0.0/16'}], /* required */
 				instanceTenancy: 'host',
+				subnets: [{
+					address: "172.31.1.0/16",
+					availabilityZone: "us-east-1a"
+				}]
 			};
 			service.updateNetwork(options, function (error) {
 				assert.ok(error);
@@ -392,12 +467,25 @@ describe("testing /lib/aws/index.js", function () {
 					describeVpcs: (params, cb) => {
 						return cb(true);
 					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnets);
+					},
+					createSubnet: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteSubnet: (params, cb) => {
+						return cb(null, true);
+					},
 				});
 			options.params = {
 				network: 'vpc-09fcf25a62b4d020f',
 				region: 'us-east-1',
 				addresses: [{address: '172.31.0.0/16'}], /* required */
 				instanceTenancy: 'host',
+				subnets: [{
+					address: "172.31.1.0/16",
+					availabilityZone: "us-east-1a"
+				}]
 			};
 			service.updateNetwork(options, function (error) {
 				assert.ok(error);
@@ -423,12 +511,25 @@ describe("testing /lib/aws/index.js", function () {
 					describeVpcs: (params, cb) => {
 						return cb(null, {Vpcs: []});
 					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnets);
+					},
+					createSubnet: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteSubnet: (params, cb) => {
+						return cb(null, true);
+					},
 				});
 			options.params = {
 				network: 'vpc-09fcf25a62b4d020f',
 				region: 'us-east-1',
 				addresses: [{address: '172.31.0.0/16'}], /* required */
 				instanceTenancy: 'host',
+				subnets: [{
+					address: "172.31.1.0/16",
+					availabilityZone: "us-east-1a"
+				}]
 			};
 			service.updateNetwork(options, function (error) {
 				assert.ok(error);
@@ -447,6 +548,15 @@ describe("testing /lib/aws/index.js", function () {
 				.stub(AWSDriver, 'getConnector')
 				.returns({
 					deleteVpc: (params, cb) => {
+						return cb(null, true);
+					},
+					describeVpcs: (params, cb) => {
+						return cb(null, info.listNetworkRaw);
+					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnetRaw);
+					},
+					deleteSubnet: (params, cb) => {
 						return cb(null, true);
 					}
 				});
@@ -468,6 +578,15 @@ describe("testing /lib/aws/index.js", function () {
 				.returns({
 					deleteVpc: (params, cb) => {
 						return cb(new Error("test error"));
+					},
+					describeVpcs: (params, cb) => {
+						return cb(null, info.listNetworkRaw);
+					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnetRaw);
+					},
+					deleteSubnet: (params, cb) => {
+						return cb(null, true);
 					}
 				});
 			let info = dD();

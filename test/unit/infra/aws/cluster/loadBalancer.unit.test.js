@@ -143,7 +143,9 @@ describe("testing /lib/aws/index.js", function () {
 				healthProbe: {
 					maxSuccessAttempts: 2,
 					healthProbeInterval: 30,
-					healthProbePath: "HTTP:80/png",
+					healthProbePath: "/png",
+					healthProbeProtocol: "HTTP",
+					healthProbePort: "80",
 					healthProbeTimeout: 3,
 					maxFailureAttempts: 2
 				},

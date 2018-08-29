@@ -411,8 +411,21 @@ const AWSLB = {
 							HealthCheck: {},
 							LoadBalancerName: options.params.name
 						};
-						if (options.params.healthProbe.healthProbePath) {
-							params.HealthCheck.Target = options.params.healthProbe.healthProbePath;
+						params.HealthCheck.Target = "";
+						if (options.params.healthProbe.healthProbeProtocol && options.params.healthProbe.healthProbePort) {
+							params.HealthCheck.Target += options.params.healthProbe.healthProbeProtocol.toUpperCase();
+							params.HealthCheck.Target += ":" + options.params.healthProbe.healthProbePort;
+							if (options.params.healthProbe.healthProbeProtocol.toUpperCase() === "HTTP" || options.params.healthProbe.healthProbePort.toUpperCase() === "HTTPS") {
+								if (options.params.healthProbe.healthProbePath){
+									params.HealthCheck.Target += options.params.healthProbe.healthProbePath;
+								}
+								else {
+									return cb(new Error("A path must be specified for protocols HTTP/HTTPS, when creating a LoadBalancer Health Check."));
+								}
+							}
+						}
+						if (params.HealthCheck.Target === ""){
+							return cb(new Error("A Health Check Path must be specified!"));
 						}
 						if (options.params.healthProbe.healthProbeInterval) {
 							params.HealthCheck.Interval = options.params.healthProbe.healthProbeInterval;
@@ -749,7 +762,23 @@ const AWSLB = {
 						},
 						healthCheck: (callback) => {
 							if (options.params.healthProbe) {
-								if (options.params.healthProbe.healthProbePath !== lb.HealthCheck.Target
+								let healthProbePath = "";
+								if (options.params.healthProbe.healthProbeProtocol && options.params.healthProbe.healthProbePort) {
+									healthProbePath += options.params.healthProbe.healthProbeProtocol.toUpperCase();
+									healthProbePath += ":" + options.params.healthProbe.healthProbePort;
+									if (options.params.healthProbe.healthProbeProtocol.toUpperCase() === "HTTP" || options.params.healthProbe.healthProbePort.toUpperCase() === "HTTPS") {
+										if (options.params.healthProbe.healthProbePath){
+											healthProbePath += options.params.healthProbe.healthProbePath;
+										}
+										else {
+											return callback(new Error("A path must be specified for protocols HTTP/HTTPS, when creating a LoadBalancer Health Check."));
+										}
+									}
+								}
+								if (params.HealthCheck.Target === ""){
+									return callback(new Error("A Health Check Path must be specified!"));
+								}
+								if (healthProbePath !== lb.HealthCheck.Target
 									|| options.params.healthProbe.healthProbeInterval !== lb.HealthCheck.Interval
 									|| options.params.healthProbe.healthProbeTimeout !== lb.HealthCheck.Timeout
 									|| options.params.healthProbe.maxFailureAttempts !== lb.HealthCheck.UnhealthyThreshold
@@ -757,7 +786,7 @@ const AWSLB = {
 									elb.configureHealthCheck({
 										LoadBalancerName: lb.LoadBalancerName,
 										HealthCheck: {
-											Target: options.params.healthProbe.healthProbePath,
+											Target: healthProbePath,
 											Interval: options.params.healthProbe.healthProbeInterval,
 											Timeout: options.params.healthProbe.healthProbeTimeout,
 											UnhealthyThreshold: options.params.healthProbe.maxFailureAttempts,
