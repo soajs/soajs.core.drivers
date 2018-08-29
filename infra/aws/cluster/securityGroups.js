@@ -253,7 +253,7 @@ const securityGroups = {
 			ports.forEach((onePort) => {
 				let port = {
 					FromPort: onePort.published,
-					IpProtocol: onePort.protocol,
+					IpProtocol: (onePort.protocol === "*") ? '-1' : onePort.protocol,
 					ToPort: onePort.range
 				};
 				if (!onePort.range) {

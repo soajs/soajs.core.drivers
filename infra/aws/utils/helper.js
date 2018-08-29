@@ -424,12 +424,15 @@ const helper = {
 			if (opts.ports.IpProtocol) {
 				if (opts.ports.IpProtocol === "-1"){
 					ports.protocol = "*";
-					ports.published = "*";
+					ports.published = "0 - 65535";
 				}
 				else {
 					ports.protocol = opts.ports.IpProtocol;
-					if (opts.ports.FromPort) {
+					if (opts.ports.hasOwnProperty('FromPort')) {
 						ports.published = opts.ports.FromPort;
+					}
+					if (opts.ports.hasOwnProperty('ToPort')) {
+						ports.range = opts.ports.ToPort;
 					}
 				}
 			}
