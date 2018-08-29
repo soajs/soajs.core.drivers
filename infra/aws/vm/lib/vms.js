@@ -11,17 +11,17 @@ function getConnector(opts) {
 }
 
 const vms = {
-	
+
 	/**
 	 * Get information about deployed vitual machine
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	inspect: function (options, cb) {
 		const aws = options.infra.api;
-		
+
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
@@ -77,7 +77,7 @@ const vms = {
 						vParams.VolumeIds.push(block.Ebs.VolumeId);
 					}
 				});
-				
+
 				async.parallel({
 					getImage: function (callback) {
 						if (iParams.ImageIds.length > 0) {
@@ -124,10 +124,10 @@ const vms = {
 			}
 		});
 	},
-	
+
 	/**
 	 * List available virtual machines by subscription
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -163,7 +163,7 @@ const vms = {
 					keyId: aws.keyId,
 					secretAccessKey: aws.secretAccessKey
 				});
-				
+
 				awsObject["ec2" + region.v].describeInstances({}, (err, reservations) => {
 					if (reservations && reservations.Reservations && reservations.Reservations.length > 0) {
 						let opts = {
@@ -202,7 +202,7 @@ const vms = {
 				return cb(err, record);
 			});
 		});
-		
+
 		function getVolumesImagesSgroupsElb(opts, cb) {
 			async.parallel({
 				getImage: function (callback) {
@@ -234,7 +234,7 @@ const vms = {
 				}
 			}, cb);
 		}
-		
+
 		function extractData(reservations, opts, cb) {
 			async.each(reservations, function (oneReservation, mainCB) {
 				if (oneReservation.Instances && oneReservation.Instances.length > 0) {
@@ -250,7 +250,9 @@ const vms = {
 										call();
 									}, callback);
 								}
-								
+								else {
+									callback();
+								}
 							},
 							BlockDeviceMappings: function (callback) {
 								if (oneInstance.BlockDeviceMappings && oneInstance.BlockDeviceMappings.length) {
@@ -272,17 +274,17 @@ const vms = {
 			}, cb);
 		}
 	},
-	
+
 	/**
 	 * Update labels of one or more vm instances
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	updateVmLabels: function (options, cb) {
 		const aws = options.infra.api;
-		
+
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
@@ -305,7 +307,7 @@ const vms = {
 			if (result.Reservations && result.Reservations.length > 0
 				&& result.Reservations[0].Instances && result.Reservations[0].Instances.length > 0) {
 				tags = result.Reservations[0].Instances[0].Tags;
-				
+
 				if (options.params.labels) {
 					for (let key in options.params.labels) {
 						if (key && options.params.labels[key]) {

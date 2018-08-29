@@ -24,7 +24,7 @@ const add = {
 		"type": {
 			"required": true,
             "type": "string",
-			"enum": [ "private", "internet-facing" ]
+			"enum": [ "private", "public" ]
 		},
 		"securityGroups": {
 			"required": false,

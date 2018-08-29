@@ -22,6 +22,10 @@ function getElbMethod(type, action, cb) {
 					method = "createLoadBalancer";
 					helper = "N/A";
 					break;
+				case 'update':
+					method = "describeLoadBalancers";
+					helper = "N/A";
+					break;
 				case 'createListeners':
 					method = "createLoadBalancerListeners";
 					helper = "N/A";
@@ -93,7 +97,7 @@ const AWSLB = {
 			});
 		});
 	},
-	
+
 	/**
 	 * This method returns the instruction to update the dns to link the domain of this environment
 	 * @param options
@@ -103,7 +107,7 @@ const AWSLB = {
 	"getDNSInfo": function (options, mCb) {
 		let stack = options.infra.stack;
 		let ipAddress;
-		
+
 		if (stack && stack.loadBalancers && stack.loadBalancers[options.soajs.registry.code.toUpperCase()] && stack.loadBalancers[options.soajs.registry.code.toUpperCase()]["nginx"]) {
 			ipAddress = stack.loadBalancers[options.soajs.registry.code.toUpperCase()]["nginx"].name;
 			let response = {
@@ -128,7 +132,7 @@ const AWSLB = {
 			return mCb(null, {"id": stack.id});
 		}
 	},
-	
+
 	/**
 	 * This method add service published ports to ELB listeners
 	 * @param options
@@ -145,26 +149,26 @@ const AWSLB = {
 		 ==> don’t do anything
 		 ==> case 3: no exposed ports in recipe but load balancer has exposed ports
 		 ==> delete load balancer
-		 
+
 		 ==> service not found in project
 		 ==> case1: service has no load balancer, creating load balancer for the first time
 		 ==> case2: service has no load balancer, but it is being redeployed with exposed ports
 		 ==> iza fi exposed ports aw ispublished true, then create and expose load balancer
 		 * */
-			
+
 			//get the service
 		let service = options.params.name;
 		let ports = options.params.ports;
 		const stack = options.infra.stack;
 		const envCode = options.params.envCode.toUpperCase();
-		
+
 		options.params.info = options.infra.info;
 		if (ports.length === 0) {
 			return cb(null, true);
 		}
 		let listener = {};
 		let listeners = [];
-		
+
 		if (ports[0].published) {
 			for (let i = 0; i < ports.length; i++) {
 				listener = {
@@ -187,7 +191,7 @@ const AWSLB = {
 		if (options.params.ElbName) {
 			//service have ports to be exposed
 			//update listeners
-			
+
 			if (listeners.length > 0) {
 				AWSLB.updateExternalLB(options, function (err) {
 					return cb(err, true);
@@ -235,9 +239,9 @@ const AWSLB = {
 					keyId: aws.keyId,
 					secretAccessKey: aws.secretAccessKey
 				});
-				
+
 				let name = `ht${options.params.soajs_project}-External-`; //ht + projectname + service name
-				
+
 				name += randomString.generate({
 					length: 31 - name.length,
 					charset: 'alphanumeric',
@@ -316,7 +320,7 @@ const AWSLB = {
 								if (err) {
 									return cb(err);
 								}
-								
+
 								//manipulate and add the record
 								let deployment = options.infra.deployments;
 								//if no loadBalancers object found create one
@@ -345,7 +349,7 @@ const AWSLB = {
 			}
 		}
 	},
-	
+
 	/**
 	 * This method creates a load balancer
 	 * @param options
@@ -453,7 +457,7 @@ const AWSLB = {
 			});
 		});
 	},
-	
+
 	/**
 	 * This method updates a load balancer connected to a service
 	 * @param options
@@ -531,7 +535,7 @@ const AWSLB = {
 					updateListeners();
 				}
 			}
-			
+
 			function updateListeners() {
 				let listener = {};
 				params = {
@@ -591,7 +595,7 @@ const AWSLB = {
 					}
 				});
 			}
-			
+
 			function updateHealthCheck(elb, healthCheckPort, cb) {
 				let healthCheckParams = {
 					HealthCheck: loadBalancer.LoadBalancerDescriptions[0].HealthCheck,
@@ -610,27 +614,27 @@ const AWSLB = {
 			}
 		});
 	},
-	
+
 	/**
 	 * This method updates a load balancer connected to a service
 	 * @param options
 	 * @param mCb
 	 * @returns {*}
 	 */
-	"updateLoadBalancer": function (options, mCb) {
+	"update": function (options, mCb) {
 		//https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ELB.html#describeLoadBalancers-property
-		
+
 		//https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ELB.html#createLoadBalancerListeners-property
 		//https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ELB.html#deleteLoadBalancerListeners-property
-		
+
 		//https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ELB.html#attachLoadBalancerToSubnets-property
 		//https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ELB.html#detachLoadBalancerFromSubnets-property
-		
+
 		//https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ELB.html#applySecurityGroupsToLoadBalancer-property
-		
+
 		//https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ELB.html#configureHealthCheck-property
 		const aws = options.infra.api;
-		getElbMethod(options.params.elbType || 'classic', 'delete', (elbResponse) => {
+		getElbMethod(options.params.elbType || 'classic', 'update', (elbResponse) => {
 			const elb = getConnector({
 				api: elbResponse.api,
 				region: options.params.region,
@@ -643,18 +647,18 @@ const AWSLB = {
 				}
 				if (response && response.LoadBalancerDescriptions && response.LoadBalancerDescriptions.length > 0) {
 					let lb = response.LoadBalancerDescriptions[0];
-					
+
 					async.parallel({
 						listeners: (callback) => {
 							let addListeners = {
-								LoadBalancerName: b.LoadBalancerName,
+								LoadBalancerName: lb.LoadBalancerName,
 								Listeners: [
 								],
 							}, deleteListeners = {
-								LoadBalancerName: b.LoadBalancerName,
+								LoadBalancerName: lb.LoadBalancerName,
 								LoadBalancerPorts: [],
 							};
-							
+
 							async.parallel({
 								//get ports needed to be added
 								add: (call) => {
@@ -671,12 +675,17 @@ const AWSLB = {
 										}, () => {
 											if (!found){
 												//add
-												addListeners.Listeners.push({
+												let listenerObj = {
 													"Protocol": rule.frontendProtocol.toUpperCase(),
 													"LoadBalancerPort": rule.frontendPort,
 													"InstanceProtocol": rule.backendProtocol.toUpperCase(),
-													"InstancePort": rule.InstancePort
-												});
+													"InstancePort": rule.backendPort
+												};
+
+												if(rule.certificate) {
+													listenerObj.CertificateArn = rule.certificate;
+												}
+												addListeners.Listeners.push(listenerObj);
 											}
 											ruleCB();
 										});
@@ -810,7 +819,7 @@ const AWSLB = {
 			});
 		});
 	},
-	
+
 	/**
 	 * This method  deletes a load balancer
 	 * @param options
