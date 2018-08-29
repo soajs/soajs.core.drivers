@@ -18,7 +18,7 @@ const certificates = {
     * @param  {Function} cb    Callback function
     * @return {void}
     */
-    list: function(options, cb) {
+    list: function(options, cb)  {
         const aws = options.infra.api;
 		const acm = getConnector({
 			api: 'acm',
@@ -93,13 +93,17 @@ const certificates = {
 			let certificate = {};
 			if (response.CertificateArn) certificate.id = response.CertificateArn;
 			certificate.region = options.params.region;
-
-			let tags = [ { Key: 'Name', Value: options.params.name } ];
-
-			certificates.addTags(options, certificate, tags, function(error) {
-				if(error) return cb(error);
+			if (options.params.name) {
+				let tags = [ { Key: 'Name', Value: options.params.name } ];
+				
+				certificates.addTags(options, certificate, tags, function(error) {
+					if(error) return cb(error);
+					return cb(null, certificate);
+				});
+			}
+			else {
 				return cb(null, certificate);
-			});
+			}
 		});
     },
 

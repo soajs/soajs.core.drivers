@@ -658,7 +658,7 @@ const AWSLB = {
 								LoadBalancerName: lb.LoadBalancerName,
 								LoadBalancerPorts: [],
 							};
-
+							let certificates = [];
 							async.parallel({
 								//get ports needed to be added
 								add: (call) => {
@@ -670,6 +670,13 @@ const AWSLB = {
 												&& rule.frontendProtocol === port.Protocol
 												&& rule.backendProtocol === port.InstanceProtocol) {
 												found = true;
+												if (rule.certificate !== port.SSLCertificateId){
+													certificates.push({
+														LoadBalancerName: options.params.name, /* required */
+														LoadBalancerPort: port.LoadBalancerPort, /* required */
+														SSLCertificateId: rule.certificate /* required */
+													});
+												}
 											}
 											listenersCB();
 										}, () => {
@@ -683,7 +690,7 @@ const AWSLB = {
 												};
 
 												if(rule.certificate) {
-													listenerObj.CertificateArn = rule.certificate;
+													listenerObj.SSLCertificateId = rule.certificate;
 												}
 												addListeners.Listeners.push(listenerObj);
 											}
@@ -714,6 +721,16 @@ const AWSLB = {
 								}
 							}, () => {
 								async.series({
+									updateCertificate: (call) => {
+										if (certificates.length > 0){
+											async.each(certificates, (certificate, miniCb) => {
+												elb.setLoadBalancerListenerSSLCertificate(certificate, miniCb)
+											}, call);
+										}
+										else {
+											call();
+										}
+									},
 									delete: (call) => {
 										if (deleteListeners.LoadBalancerPorts.length === 0){
 											call();

@@ -55,7 +55,7 @@ describe("testing /lib/azure/index.js", function () {
 					listCertificates: (params, cb) => {
 						return cb(null, info.listCertificatesRaw2);
 					},
-				})
+				});
 
 			options.params = {
 				region: 'us-east-2',
@@ -105,21 +105,20 @@ describe("testing /lib/azure/index.js", function () {
 					listCertificates: (params, cb) => {
 						return cb(new Error("List Certificates Error"));
 					}
-				})
+				});
 
 			options.params = {
 				region: 'us-east-2',
 			};
 
-			service.listCertificates(options, function (error, response) {
+			service.listCertificates(options, function (error) {
 				assert.ok(error);
 				done();
 			});
 		});
 	});
-
-	// TODO: complete this test section it is incomplete
-	describe.skip("createCertificate", function () {
+	
+	describe("createCertificate", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -131,18 +130,21 @@ describe("testing /lib/azure/index.js", function () {
 				.stub(AWSDriver, 'getConnector')
 				.returns({
 					requestCertificate: (params, cb) => {
+						return cb(null, {CertificateArn: "arn"}); //TODO: fill response
+					},
+					addTagsToCertificate: (params, cb) => {
 						return cb(null, {}); //TODO: fill response
 					}
-				})
+				});
 
 			options.params = {
 				region: 'us-east-2',
+				name: "test"
 			};
 
 			service.createCertificate(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response, info.createKeyPair)
 				done();
 			});
 		});
@@ -153,9 +155,12 @@ describe("testing /lib/azure/index.js", function () {
 				.stub(AWSDriver, 'getConnector')
 				.returns({
 					requestCertificate: (params, cb) => {
-						return cb(null, {});
+						return cb(null, true);
+					},
+					addTagsToCertificate: (params, cb) => {
+						return cb(null, {}); //TODO: fill response
 					}
-				})
+				});
 
 			options.params = {
 				region: 'us-east-2',
@@ -164,7 +169,63 @@ describe("testing /lib/azure/index.js", function () {
 			service.createCertificate(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response, {})
+				done();
+			});
+		});
+		it("Success - import", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					requestCertificate: (params, cb) => {
+						return cb(null, {CertificateArn: "arn"});
+					},
+					addTagsToCertificate: (params, cb) => {
+						return cb(null, {}); //TODO: fill response
+					},
+					importCertificate: (params, cb) => {
+						return cb(null, {CertificateArn: "arn"}); //TODO: fill response
+					}
+				});
+			
+			options.params = {
+				region: 'us-east-2',
+				action: 'import'
+			};
+			
+			service.createCertificate(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
+		});
+		it("Success - renew", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					requestCertificate: (params, cb) => {
+						return cb(null, {CertificateArn: "arn"});
+					},
+					addTagsToCertificate: (params, cb) => {
+						return cb(null, {}); //TODO: fill response
+					},
+					importCertificate: (params, cb) => {
+						return cb(null, {CertificateArn: "arn"}); //TODO: fill response
+					}
+				});
+			
+			options.params = {
+				region: 'us-east-2',
+				action: 'renew',
+				id: "arn"
+			};
+			
+			service.createCertificate(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
 				done();
 			});
 		});
@@ -177,7 +238,7 @@ describe("testing /lib/azure/index.js", function () {
 					requestCertificate: (params, cb) => {
 						return cb(new Error("Create Key Pair Error"));
 					}
-				})
+				});
 
 			options.params = {
 				region: 'us-east-2',
@@ -218,7 +279,7 @@ describe("testing /lib/azure/index.js", function () {
 					deleteCertificate: (params, cb) => {
 						return cb(null, {});
 					}
-				})
+				});
 
 			options.params = {
 				id: 'my-key-pair',
