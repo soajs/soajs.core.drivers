@@ -646,7 +646,9 @@ module.exports = function () {
 				],
 				"createdTime": "2018-08-14T16:35:19.220Z",
 				"healthProbe": {
-					"healthProbePath": "HTTP:80/index.html",
+					"healthProbePath": "index.html",
+					"healthProbeProtocol": "HTTP",
+					"healthProbePort": "80",
 					"healthProbeInterval": 30,
 					"healthProbeTimeout": 5,
 					"maxFailureAttempts": 2,
@@ -697,7 +699,9 @@ module.exports = function () {
 				],
 				"createdTime": "2018-08-14T16:25:32.560Z",
 				"healthProbe": {
-					"healthProbePath": "HTTP:80/index.html",
+					"healthProbePath": "index.html",
+					"healthProbeProtocol": "HTTP",
+					"healthProbePort": "80",
 					"healthProbeInterval": 30,
 					"healthProbeTimeout": 5,
 					"maxFailureAttempts": 2,

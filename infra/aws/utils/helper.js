@@ -113,12 +113,20 @@ const helper = {
 			}
 			if (opts.lb.HealthCheck) {
 				record.healthProbe = {
-					"healthProbePath": opts.lb.HealthCheck.Target,
 					"healthProbeInterval": opts.lb.HealthCheck.Interval,
 					"healthProbeTimeout": opts.lb.HealthCheck.Timeout,
 					"maxFailureAttempts": opts.lb.HealthCheck.UnhealthyThreshold,
 					"maxSuccessAttempts": opts.lb.HealthCheck.HealthyThreshold
 				};
+				if (opts.lb.HealthCheck.Target){
+					record.healthProbe.healthProbeProtocol = opts.lb.HealthCheck.Target.split(":")[0];
+					if (opts.lb.HealthCheck.Target.split(":")[1]){
+						let temp = opts.lb.HealthCheck.Target.split(":")[1].split("/");
+						record.healthProbe.healthProbePort = opts.lb.HealthCheck.Target.split(":")[1].split("/")[0];
+						temp.shift();
+						record.healthProbe.healthProbePath = temp.join("/");
+					}
+				}
 			}
 			if (opts.lb.ListenerDescriptions) {
 				record.rules = [];
@@ -381,6 +389,7 @@ const helper = {
 		return cb(null, record);
 
 	},
+	
 	buildSecurityGroupsRecord: (opts) =>{
 		let securityGroup = {};
 		securityGroup.ports = [];
@@ -417,6 +426,7 @@ const helper = {
 		}
 		return securityGroup;
 	},
+	
 	buildPorts: (opts) => {
 		let ports = {};
 		ports.direction = opts.type;
