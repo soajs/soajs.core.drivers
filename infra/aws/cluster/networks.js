@@ -13,24 +13,24 @@ function getConnector(opts) {
 }
 
 const driver = {
-
+	
 	/**
 	 * List available networks
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	list: function (options, cb) {
 		const aws = options.infra.api;
-
+		
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-
+		
 		ec2.describeVpcs({}, function (err, networks) {
 			if (err) {
 				return cb(err);
@@ -52,16 +52,16 @@ const driver = {
 			}
 		});
 	},
-
+	
 	/**
 	 * Create a new network
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	create: function (options, cb) {
-
+		
 		const aws = options.infra.api;
 		const ec2 = getConnector({
 			api: 'ec2',
@@ -80,7 +80,7 @@ const driver = {
 			if (err) {
 				return cb(err);
 			}
-			if (options.params.name){
+			if (options.params.name) {
 				params = {
 					Resources: [
 						response.Vpc.VpcId
@@ -92,7 +92,7 @@ const driver = {
 						}
 					]
 				};
-				ec2.createTags(params, function(err) {
+				ec2.createTags(params, function (err) {
 					options.soajs.log.error(err);
 					return cb(null, response);
 				});
@@ -103,10 +103,10 @@ const driver = {
 			
 		});
 	},
-
+	
 	/**
 	 * Update a network
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -123,7 +123,7 @@ const driver = {
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-
+		
 		async.parallel({
 			vpc: function (callback) {
 				ec2.describeVpcs({
@@ -145,7 +145,7 @@ const driver = {
 				}, callback)
 			}
 		}, function (err, results) {
-			if (err){
+			if (err) {
 				return cb(err);
 			}
 			let networks = results.vpc;
@@ -276,10 +276,10 @@ const driver = {
 			}
 		});
 	},
-
+	
 	/**
 	 * Delete a network
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -292,16 +292,46 @@ const driver = {
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-		let params = {
-			VpcId: options.params.name, /* required */
-		};
+		
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#deleteVpc-property
-		ec2.deleteVpc(params, function (err, response) {
+		ec2.describeVpcs({VpcIds: [options.params.id]}, function (err, networks) {
 			if (err) {
-				return cb(err);
+				cb(err);
 			}
-			return cb(null, response);
+			if (networks && networks.Vpcs && Array.isArray(networks.Vpcs) && networks.Vpcs.length > 0) {
+				let params = {
+					Filters: [
+						{
+							Name: "vpc-id",
+							Values: [
+								options.params.id
+							]
+						}
+					]
+				};
+				ec2.describeSubnets(params, function (err, response) {
+					if (err) {
+						cb(err);
+					}
+					async.series({
+						deleteSubnets: (call) => {
+							if (response && response.Subnets && Array.isArray(response.Subnets) && response.Subnets.length > 0) {
+								async.each(response.Subnets, (oneSubnet, callback) => {
+									ec2.deleteSubnet({SubnetId: oneSubnet.SubnetId}, callback);
+								}, call);
+							}
+							else {
+								call();
+							}
+						},
+						deleteVpc: (call) => {
+							ec2.deleteVpc({VpcId: options.params.id}, call)
+						}
+					}, cb);
+				});
+			}
 		});
+		
 	},
 	/**
 	 * add multiple network addresses
@@ -343,7 +373,7 @@ const driver = {
 			}, callback);
 		}, cb);
 	},
-
+	
 };
 
 module.exports = driver;
