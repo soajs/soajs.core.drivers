@@ -10,17 +10,17 @@ function getConnector(opts) {
 }
 
 const securityGroups = {
-	
+
 	/**
 	 * List available security groups
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	list: function (options, cb) {
 		const aws = options.infra.api;
-		
+
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
@@ -41,17 +41,17 @@ const securityGroups = {
 			}
 		});
 	},
-	
+
 	/**
 	 * Create a new security group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	create: function (options, cb) {
 		const aws = options.infra.api;
-		
+
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
@@ -71,7 +71,7 @@ const securityGroups = {
 			let inbound = {
 				GroupId: response.GroupId,
 				IpPermissions: []
-				
+
 			};
 			let outbound = {
 				GroupId: response.GroupId,
@@ -102,17 +102,17 @@ const securityGroups = {
 			}, cb);
 		});
 	},
-	
+
 	/**
 	 * Update a security group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	update: function (options, cb) {
 		const aws = options.infra.api;
-		
+
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
@@ -120,22 +120,23 @@ const securityGroups = {
 			secretAccessKey: aws.secretAccessKey
 		});
 		let params = {
-			GroupId: options.params.id,
+			GroupIds: [ options.params.id ]
 		};
 		let inbound = {
-			GroupId: response.GroupId,
+			GroupId: options.params.id,
 			IpPermissions: []
-			
+
 		};
 		let outbound = {
-			GroupId: response.GroupId,
+			GroupId: options.params.id,
 			IpPermissions: []
 		};
 		ec2.describeSecurityGroups(params, (err, response) => {
+			//TODO: handle error
 			if (response && response.SecurityGroups && Array.isArray(response.SecurityGroups) && response.SecurityGroups.length > 0) {
 				async.series({
 					delete: (minCb) => {
-						let oneSG = data.SecurityGroups[0];
+						let oneSG = response.SecurityGroups[0];
 						if (oneSG.IpPermissions && oneSG.IpPermissions.length > 0) {
 							stripIps(oneSG.IpPermissions);
 						}
@@ -152,22 +153,32 @@ const securityGroups = {
 						};
 						async.parallel({
 							inbound: function (call) {
-								ec2.revokeSecurityGroupIngress(Ingress, call);
+								if (Ingress.IpPermissions > 0) {
+									ec2.revokeSecurityGroupIngress(Ingress, call);
+								}
+								else {
+									call();
+								}
 							},
 							outbound: function (call) {
-								ec2.revokeSecurityGroupEgress(Egress, call);
+								if (Egress.IpPermissions > 0) {
+									ec2.revokeSecurityGroupEgress(Egress, call);
+								}
+								else {
+									call();
+								}
 							}
 						}, minCb)
 					},
 					create: (minCb) => {
 						if (options.params.ports) {
 							let IpPermissions = securityGroups.computeSecurityGroupPorts(options.params.ports);
-							inbound.IpPermissions = IpPermissions.inbound;
-							outbound.IpPermissions = IpPermissions.outbound;
+							inbound.IpPermissions = IpPermissions.inbound.IpPermissions;
+							outbound.IpPermissions = IpPermissions.outbound.IpPermissions;
 						}
 						async.parallel({
 							inbound: function (call) {
-								if (inbound.pPermissions > 0) {
+								if (inbound.IpPermissions.length > 0) {
 									ec2.authorizeSecurityGroupIngress(inbound, call);
 								}
 								else {
@@ -175,7 +186,7 @@ const securityGroups = {
 								}
 							},
 							outbound: function (call) {
-								if (inbound.pPermissions > 0) {
+								if (outbound.IpPermissions.length > 0) {
 									ec2.authorizeSecurityGroupEgress(outbound, call);
 								}
 								else {
@@ -190,7 +201,7 @@ const securityGroups = {
 				return cb(null, new Error("Security Group not Found"));
 			}
 		});
-		
+
 		function stripIps(oneSG) {
 			oneSG.forEach((ip) => {
 				if (ip.PrefixListIds && ip.PrefixListIds.length === 0) {
@@ -205,10 +216,10 @@ const securityGroups = {
 			});
 		}
 	},
-	
+
 	/**
 	 * Delete a security group
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -222,17 +233,17 @@ const securityGroups = {
 			secretAccessKey: aws.secretAccessKey
 		});
 		let params = {
-			GroupId: options.params.securityGroup, /* required */
+			GroupId: options.params.id, /* required */
 			DryRun: false,
 		};
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#deleteSecurityGroup-property
 		ec2.deleteSecurityGroup(params, cb);
 	},
-	
+
 	computeSecurityGroupPorts: function (ports) {
 		let inbound = {
 			IpPermissions: []
-			
+
 		};
 		let outbound = {
 			IpPermissions: []

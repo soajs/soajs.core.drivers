@@ -11,11 +11,15 @@ const add = {
             "required": true,
             "type": "string"
         },
-        "group": {
+        "region": {
             "required": true,
             "type": "string"
         },
-        "region": {
+        "description": {
+            "required": true,
+            "type": "string"
+        },
+        "network": {
             "required": true,
             "type": "string"
         },
@@ -30,20 +34,10 @@ const add = {
                 "type": "object",
                 "required": true,
                 "properties": {
-                    "name": {
-                        "required": true,
-                        "type": "string"
-                    },
-                    "priority": {
-                        "required": true,
-                        "type": "number",
-                        "min": 100,
-                        "max": 4096
-                    },
                     "protocol": {
                         "required": false,
                         "type": "string",
-                        "enum": ["TCP", "UDP", "*"]
+                        "enum": ["tcp", "udp", "*"]
                     },
                     "access": {
                         "required": false,
@@ -55,21 +49,29 @@ const add = {
                         "type": "string",
                         "enum": ["inbound", "outbound"]
                     },
-                    "sourceAddress": {
-                        "required": false,
-                        "type": "string"
+                    "source": {
+                        "required": true,
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "pattern": /^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$/g //IP v4 CIDR
+                        }
                     },
-                    "target": {
+                    "ip6": {
                         "required": false,
-                        "type": "string"
-                    },
-                    "destinationAddress": {
-                        "required": false,
-                        "type": "string"
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "pattern": /^s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]d|1dd|[1-9]?d)(.(25[0-5]|2[0-4]d|1dd|[1-9]?d)){3}))|:)))(%.+)?s*(\/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8]))?$/g //IP v6 CIDR
+                        }
                     },
                     "published": {
-                        "required": false,
-                        "type": "string"
+                        "required": true,
+                        "type": "number"
+                    },
+                    "range": {
+                        "required": true,
+                        "type": "number"
                     }
                 }
             }
