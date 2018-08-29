@@ -46,7 +46,8 @@ const add = {
 					"backendPort": { "type": "number", "required": true },
 					"backendProtocol": { "type": "string", "required": true },
 					"frontendPort": { "type": "number", "required": true },
-					"frontendProtocol": { "type": "string", "required": true }
+					"frontendProtocol": { "type": "string", "required": true },
+					"certificate": { "type": "string", "required": false }
 				}
 			}
 		},

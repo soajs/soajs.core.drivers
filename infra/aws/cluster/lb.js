@@ -664,16 +664,16 @@ const AWSLB = {
 								add: (call) => {
 									async.each(options.params.rules, (rule, ruleCB) => {
 										let found = false;
-										async.each(response.LoadBalancerDescriptions.ListenerDescriptions, (port, listenersCB) => {
-											if (rule.frontendPort === port.LoadBalancerPort &&
-												rule.backendPort === port.InstancePort
-												&& rule.frontendProtocol === port.Protocol
-												&& rule.backendProtocol === port.InstanceProtocol) {
+										async.each(lb.ListenerDescriptions, (port, listenersCB) => {
+											if (rule.frontendPort === port.Listener.LoadBalancerPort &&
+												rule.backendPort === port.Listener.InstancePort
+												&& rule.frontendProtocol === port.Listener.Protocol
+												&& rule.backendProtocol === port.Listener.InstanceProtocol) {
 												found = true;
-												if (rule.certificate !== port.SSLCertificateId){
+												if (rule.certificate !== port.Listener.SSLCertificateId){
 													certificates.push({
 														LoadBalancerName: options.params.name, /* required */
-														LoadBalancerPort: port.LoadBalancerPort, /* required */
+														LoadBalancerPort: port.Listener.LoadBalancerPort, /* required */
 														SSLCertificateId: rule.certificate /* required */
 													});
 												}
@@ -700,20 +700,20 @@ const AWSLB = {
 								},
 								//get ports needed to be deleted
 								delete: (call) => {
-									async.each(response.LoadBalancerDescriptions.ListenerDescriptions, (port, listenersCB) => {
+									async.each(lb.ListenerDescriptions, (port, listenersCB) => {
 										let found = false;
 										async.each(options.params.rules, (rule, ruleCB) => {
-											if (rule.frontendPort === port.LoadBalancerPort &&
-												rule.backendPort === port.InstancePort
-												&& rule.frontendProtocol === port.Protocol
-												&& rule.backendProtocol === port.InstanceProtocol) {
+											if (rule.frontendPort === port.Listener.LoadBalancerPort &&
+												rule.backendPort === port.Listener.InstancePort
+												&& rule.frontendProtocol === port.Listener.Protocol
+												&& rule.backendProtocol === port.Listener.InstanceProtocol) {
 												found = true;
 											}
 											ruleCB();
 										}, () => {
 											if (!found){
 												//delete
-												deleteListeners.LoadBalancerPorts.push(port.LoadBalancerPort);
+												deleteListeners.LoadBalancerPorts.push(port.Listener.LoadBalancerPort);
 											}
 											listenersCB();
 										});
@@ -733,7 +733,7 @@ const AWSLB = {
 									},
 									delete: (call) => {
 										if (deleteListeners.LoadBalancerPorts.length === 0){
-											call();
+											 return call();
 										}
 										elb.deleteLoadBalancerListeners(deleteListeners, call)
 									},
@@ -748,38 +748,38 @@ const AWSLB = {
 						},
 						subnets: (callback) => {
 							let subnets = [];
-							options.params.zones.forEach((oneSubnet) => {
-								subnets.push(oneSubnet.subnetId);
+							options.params.subnets.forEach((oneSubnet) => {
+								subnets.push(oneSubnet);
 							});
-							let subnetsToDelete = _.differenceBy(lb.SecurityGroups, subnets);
-							let subnetsToAdd = _.differenceBy(subnets, lb.SecurityGroups);
-							async.parallel({
-								add: (call) => {
-									if (subnetsToAdd.length ===0 ){
-										call();
-									}
-									elb.attachLoadBalancerToSubnets({
-										LoadBalancerName: lb.LoadBalancerName,
-										Subnets: subnetsToAdd
-									}, call)
-								},
+							let subnetsToDelete = _.differenceBy(lb.Subnets, subnets);
+							let subnetsToAdd = _.differenceBy(subnets, lb.Subnets);
+							async.series({
 								delete: (call) => {
 									if (subnetsToDelete.length ===0 ){
-										call();
+										return call();
 									}
 									elb.detachLoadBalancerFromSubnets({
 										LoadBalancerName: lb.LoadBalancerName,
 										Subnets: subnetsToDelete
 									}, call)
+								},
+								add: (call) => {
+									if (subnetsToAdd.length ===0 ){
+										return call();
+									}
+									elb.attachLoadBalancerToSubnets({
+										LoadBalancerName: lb.LoadBalancerName,
+										Subnets: subnetsToAdd
+									}, call)
 								}
 							}, callback);
 						},
 						securityGroups: (callback) => {
-							if (_.differenceBy(lb.SecurityGroups, options.params.securityGroupIds).length > 0) {
+							if (_.differenceBy(lb.SecurityGroups, options.params.securityGroups).length > 0 || _.differenceBy(options.params.securityGroups, lb.SecurityGroups).length > 0) {
 								elb.applySecurityGroupsToLoadBalancer(
 									{
 										LoadBalancerName: lb.LoadBalancerName,
-										SecurityGroups: options.params.securityGroupIds
+										SecurityGroups: options.params.securityGroups
 									}, callback);
 							}
 							else {
@@ -801,7 +801,7 @@ const AWSLB = {
 										}
 									}
 								}
-								if (params.HealthCheck.Target === ""){
+								if (healthProbePath === ""){
 									return callback(new Error("A Health Check Path must be specified!"));
 								}
 								if (healthProbePath !== lb.HealthCheck.Target
