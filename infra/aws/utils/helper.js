@@ -124,7 +124,7 @@ const helper = {
 						let temp = opts.lb.HealthCheck.Target.split(":")[1].split("/");
 						record.healthProbe.healthProbePort = opts.lb.HealthCheck.Target.split(":")[1].split("/")[0];
 						temp.shift();
-						record.healthProbe.healthProbePath = temp.join("/");
+						record.healthProbe.healthProbePath = "/" + temp.join("/");
 					}
 				}
 			}
