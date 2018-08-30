@@ -186,7 +186,9 @@ const AWSLB = {
 		}
 		options.params.region = options.infra.stack.zone;
 		options.params.rules = listeners;
-		options.params.ElbName = stack.loadBalancers[options.params.envCode.toUpperCase()][service] ? stack.loadBalancers[options.params.envCode.toUpperCase()][service].name : null;
+		if (stack.loadBalancers && stack.loadBalancers[options.params.envCode.toUpperCase()] && stack.loadBalancers[options.params.envCode.toUpperCase()][service]){
+            options.params.ElbNam = stack.loadBalancers[options.params.envCode.toUpperCase()][service];
+		}
 		//service is found in project record
 		if (options.params.ElbName) {
 			//service have ports to be exposed
@@ -274,10 +276,10 @@ const AWSLB = {
 				};
 				if (stack.options.ZonesAvailable) {
 					if (!Array.isArray(stack.options.ZonesAvailable)) {
-						lbParams.zones = [stack.options.ZonesAvailable];
+						lbParams.subnets = [stack.options.ZonesAvailable];
 					}
 					else {
-						lbParams.zones = stack.options.ZonesAvailable;
+						lbParams.subnets = stack.options.ZonesAvailable;
 					}
 				}
 				options.soajs.log.debug(lbParams);
