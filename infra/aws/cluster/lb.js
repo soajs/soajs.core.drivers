@@ -159,19 +159,20 @@ const AWSLB = {
 			//get the service
 		let service = options.params.name;
 		let ports = options.params.ports;
-		const stack = options.infra.stack;
+		const stack = options.infra.stack ;
 		const envCode = options.params.envCode.toUpperCase();
 
 		options.params.info = options.infra.info;
-		if (ports.length === 0) {
+		let listeners = [];
+		if (stack.loadBalancers && stack.loadBalancers[options.params.envCode.toUpperCase()] && stack.loadBalancers[options.params.envCode.toUpperCase()][service]){
+			options.params.ElbName = stack.loadBalancers[options.params.envCode.toUpperCase()][service];
+		}
+		if (ports.length === 0 && !options.params.ElbName) {
 			return cb(null, true);
 		}
-		let listener = {};
-		let listeners = [];
-
-		if (ports[0].published) {
+		if (ports[0] && ports[0].published) {
 			for (let i = 0; i < ports.length; i++) {
-				listener = {
+				let listener = {
 					backendPort: ports[i].published,
 					backendProtocol: "TCP",
 					frontendPort: ports[i].target,
@@ -184,11 +185,9 @@ const AWSLB = {
 				listeners.push(listener);
 			}
 		}
-		options.params.region = options.infra.stack.zone;
+		
+		options.params.region = stack.options.zone;
 		options.params.rules = listeners;
-		if (stack.loadBalancers && stack.loadBalancers[options.params.envCode.toUpperCase()] && stack.loadBalancers[options.params.envCode.toUpperCase()][service]){
-            options.params.ElbNam = stack.loadBalancers[options.params.envCode.toUpperCase()][service];
-		}
 		//service is found in project record
 		if (options.params.ElbName) {
 			//service have ports to be exposed
@@ -202,6 +201,12 @@ const AWSLB = {
 			//service have no ports to be exposed
 			//delete load balancer
 			else {
+				if (!options.params.ElbName.name){
+					return cb(null, true);
+				}
+				else {
+					options.params.name = options.params.ElbName.name;
+				}
 				AWSLB.delete(options, function (err) {
 					if (err) {
 						return cb(err);
@@ -231,13 +236,13 @@ const AWSLB = {
 				const aws = options.infra.api;
 				const ec2 = getConnector({
 					api: 'ec2',
-					region: stack.options.region,
+					region: stack.options.zone,
 					keyId: aws.keyId,
 					secretAccessKey: aws.secretAccessKey
 				});
 				const elb = getConnector({
 					api: 'elb',
-					region: stack.options.region,
+					region: stack.options.zone,
 					keyId: aws.keyId,
 					secretAccessKey: aws.secretAccessKey
 				});
@@ -282,6 +287,7 @@ const AWSLB = {
 						lbParams.subnets = stack.options.ZonesAvailable;
 					}
 				}
+				lbParams.region = stack.options.zone;
 				options.soajs.log.debug(lbParams);
 				let params = JSON.parse(JSON.stringify(options.params));
 				options.params = lbParams;
@@ -479,12 +485,12 @@ const AWSLB = {
 		let deleted = [];
 		const elb = getConnector({
 			api: 'elb',
-			region: stack.options.region,
+			region: stack.options.zone,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
 		let params = {
-			LoadBalancerNames: [opts.ElbName]
+			LoadBalancerNames: [opts.ElbName.name]
 		};
 		elb.describeLoadBalancers(params, function (err, loadBalancer) {
 			if (err) {
@@ -519,7 +525,7 @@ const AWSLB = {
 				}
 				if (deleted.length > 0) {
 					let deletedParams = {
-						LoadBalancerName: opts.ElbName,
+						LoadBalancerName: opts.ElbName.name,
 						LoadBalancerPorts: deleted
 					};
 					options.soajs.log.debug(deletedParams);
@@ -542,7 +548,7 @@ const AWSLB = {
 				let listener = {};
 				params = {
 					Listeners: [],
-					LoadBalancerName: opts.ElbName
+					LoadBalancerName: opts.ElbName.name
 				};
 				let healthCheckPort;
 				for (let i = 0; i < ports.length; i++) {
@@ -601,7 +607,7 @@ const AWSLB = {
 			function updateHealthCheck(elb, healthCheckPort, cb) {
 				let healthCheckParams = {
 					HealthCheck: loadBalancer.LoadBalancerDescriptions[0].HealthCheck,
-					LoadBalancerName: opts.ElbName
+					LoadBalancerName: opts.ElbName.name
 				};
 				if (healthCheckPort === 80) {
 					healthCheckParams.HealthCheck.Target = "HTTP:80/";

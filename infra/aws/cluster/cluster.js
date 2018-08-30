@@ -595,12 +595,6 @@ const AWSCluster = {
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-		const acm = getConnector({
-			api: 'acm',
-			region: stack.options.zone,
-			keyId: aws.keyId,
-			secretAccessKey: aws.secretAccessKey
-		});
 		const elb = getConnector({
 			api: 'elb',
 			region: stack.options.zone,
@@ -610,7 +604,10 @@ const AWSCluster = {
 		const param = {
 			StackName: stack.name
 		};
-		let elasticLoadBalancers = [stack.options.ElbName];
+		let elasticLoadBalancers = [];
+		if (stack.options.ElbName){
+			elasticLoadBalancers.push(stack.options.ElbName)
+		}
 		for (let env in stack.loadBalancers) {
 			for (let service in stack.loadBalancers[env]) {
 				elasticLoadBalancers.push(stack.loadBalancers[env][service].name);
