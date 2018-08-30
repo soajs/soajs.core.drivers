@@ -1,11 +1,19 @@
 'use strict';
 
-const add = {};
+const list = {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "region": {
+            "type": "string",
+            "required": true
+        },
+        "type": {
+            "type": "string",
+            "required": true,
+            "enum": [ "data" ]
+        }
+    }
+};
 
-const update = {};
-
-const list = {};
-
-const remove = {};
-
-module.exports = { add, update, list, remove };
+module.exports = { list };

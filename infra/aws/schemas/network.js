@@ -38,15 +38,15 @@ const update = {
         "section": {
             "type": "string",
             "required": true,
-            "enum": ["network"],
+            "enum": ["network"]
         },
         "id": {
             "required": true,
-            "type": "string",
+            "type": "string"
         },
         "region": {
             "required": true,
-            "type": "string",
+            "type": "string"
         },
         "addresses": {
             "required": true,
@@ -72,14 +72,36 @@ const update = {
 	    "instanceTenancy": {
 		    "required": true,
 		    "type": "string",
-		    "enum": ["default", "dedicated"],
-	    },
-    },
+		    "enum": [ "default", "dedicated" ]
+	    }
+    }
 };
 
-const list = {};
+const list = {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "region": {
+            "type": "string",
+            "required": true
+        }
+    }
+};
 
-const remove = {};
+const remove = {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "region": {
+            "type": "string",
+            "required": true
+        },
+        "id": {
+            "type": "string",
+            "required": true
+        }
+    }
+};
 
 module.exports = {
     add: add,

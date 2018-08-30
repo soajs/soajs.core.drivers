@@ -69,12 +69,30 @@ const add = {
     }
 };
 
-const update = {};
-
-const list = {};
-
-const remove = {};
-
-module.exports = {
-    add, update, list, remove
+const list = {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "region": {
+            "type": "string",
+            "required": true
+        }
+    }
 };
+
+const remove = {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "region": {
+            "type": "string",
+            "required": true
+        },
+        "id": {
+            "type": "string",
+            "required": true
+        }
+    }
+};
+
+module.exports = { add, list, remove };
