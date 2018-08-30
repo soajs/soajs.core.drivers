@@ -19,19 +19,27 @@ const add = {
             "type": "pattern",
             "required": true,
             "pattern": /^[-\w\._\(\)]+$/
-        },
+        }
     }
 };
 
-const update = {};
+const update = add;
 
-const list = {};
-
-const remove = {};
-
-module.exports = {
-    add: add,
-    update: update,
-    list: list,
-    remove: remove,
+const list = {
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {}
 };
+
+const remove = {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "group": {
+            "type": "string",
+            "required": true
+        }
+    }
+};
+
+module.exports = { add, update, list, remove };

@@ -1,11 +1,11 @@
-var addressPools = {
+const addressPools = {
 	"name": {
 		"required": true,
 		"type": "string"
 	}
 };
 
-var ipConfigs = {
+const ipConfigs = {
 	"privateIpAllocationMethod": {
 		"required": false,
 		"type": "string",
@@ -41,7 +41,7 @@ var ipConfigs = {
 	}
 };
 
-var ports = {
+const ports = {
 	"name": {
 		"required": true,
 		"type": "string"
@@ -105,7 +105,7 @@ var ports = {
 	}
 };
 
-var natPools = {
+const natPools = {
 	"name": {
 		"required": true,
 		"type": "string"
@@ -143,7 +143,7 @@ var natPools = {
 	},
 };
 
-var natRules = {
+const natRules = {
 	"name": {
 		"required": true,
 		"type": "string"
@@ -177,7 +177,7 @@ var natRules = {
 	}
 };
 
-var rules = {
+const rules = {
 	"name": {
 		"required": true,
 		"type": "string"
@@ -258,15 +258,32 @@ const add = {
     }
 };
 
-const update = {};
+const update = add;
 
-const list = {};
-
-const remove = {};
-
-module.exports = {
-    add: add,
-    update: update,
-    list: list,
-    remove: remove,
+const list = {
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {
+        "group": {
+            "type": "string",
+            "required": true
+        }
+    }
 };
+
+const remove = {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "group": {
+            "type": "string",
+            "required": true
+        },
+		"name": {
+            "type": "string",
+            "required": true
+        }
+    }
+};
+
+module.exports = { add, update, list, remove };

@@ -1,4 +1,4 @@
-var add = {
+const add = {
     "type": "object",
     "additionalProperties": false,
     "properties": {
@@ -73,19 +73,36 @@ var add = {
                     }
                 }
             }
-        },
+        }
     }
 };
 
-const update = {};
+const update = add;
 
-const list = {};
-
-const remove = {};
-
-module.exports = {
-    add: add,
-    update: update,
-    list: list,
-    remove: remove,
+const list = {
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {
+        "group": {
+            "type": "string",
+            "required": true
+        }
+    }
 };
+
+const remove = {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "group": {
+            "type": "string",
+            "required": true
+        },
+        "name": {
+            "type": "string",
+            "required": true
+        }
+    }
+};
+
+module.exports = { add, update, list, remove };
