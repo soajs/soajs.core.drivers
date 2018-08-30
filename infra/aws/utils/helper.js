@@ -261,13 +261,12 @@ const helper = {
 			if (opts.vm.KeyName) {
 				record.keyPair = opts.vm.KeyName;
 			}
+
+			record.labels = {};
 			if (opts.vm.Tags.length > 0) {
-				record.labels = [];
 				let soajsName, name;
 				for (let i = 0; i < opts.vm.Tags.length; i++) {
-					record.labels.push({
-						[opts.vm.Tags[i].Key]: opts.vm.Tags[i].Value
-					});
+					record.labels[opts.vm.Tags[i].Key] = opts.vm.Tags[i].Value;
 					if (opts.vm.Tags[i].Key === "soajs.vm.name") {
 						soajsName = opts.vm.Tags[i].Value;
 
@@ -283,6 +282,9 @@ const helper = {
 					record.name = name;
 				}
 			}
+			record.labels['soajs.service.vm.location'] = region;
+			record.labels['soajs.service.vm.size'] = (opts.vm.InstanceType) ? opts.vm.InstanceType : '';
+
 			if (opts.vm.SubnetId) {
 				record.layer = opts.vm.SubnetId;
 			}
@@ -389,7 +391,7 @@ const helper = {
 		return cb(null, record);
 
 	},
-	
+
 	buildSecurityGroupsRecord: (opts) =>{
 		let securityGroup = {};
 		securityGroup.ports = [];
@@ -426,7 +428,7 @@ const helper = {
 		}
 		return securityGroup;
 	},
-	
+
 	buildPorts: (opts) => {
 		let ports = {};
 		ports.direction = opts.type;

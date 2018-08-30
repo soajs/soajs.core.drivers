@@ -979,11 +979,11 @@ module.exports = function () {
 				"name": "command",
 				"type": "t2.micro",
 				"keyPair": "ragheb",
-				"labels": [
-					{
-						"Name": "command"
-					}
-				],
+				"labels": {
+					"Name": "command",
+					"soajs.service.vm.location": "us-east-1",
+					"soajs.service.vm.size": "t2.micro"
+				},
 				"layer": "subnet-110ad95c",
 				"network": "vpc-957300fc",
 				"volumes": [
