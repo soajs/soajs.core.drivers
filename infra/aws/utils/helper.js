@@ -13,6 +13,10 @@ const helper = {
 		if (opts.subnets) {
 			record.subnets = opts.subnets;
 		}
+		record.attachInternetGateway = false;
+		if (opts.attachInternetGateway && opts.attachInternetGateway.InternetGateways && opts.attachInternetGateway.InternetGateways.length > 0) {
+			record.attachInternetGateway = true;
+		}
 
 		if (opts.network) {
 			if (opts.network.VpcId) {

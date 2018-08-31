@@ -38,13 +38,31 @@ const driver = {
 			if (networks && networks.Vpcs && Array.isArray(networks.Vpcs) && networks.Vpcs.length > 0) {
 				async.map(networks.Vpcs, function (network, callback) {
 					options.params.network = network.VpcId;
-					subnetDriver.list(options, (err, subnets) => {
+					async.parallel({
+						internetGateway: (call) => {
+							ec2.describeInternetGateways({
+								Filters: [
+									{
+										Name: "attachment.vpc-id",
+										Values: [
+											network.VpcId
+										]
+									}
+								]
+							}, call)
+						},
+						subnet: (call) => {
+							subnetDriver.list(options, call);
+						}
+					}, (err, result) => {
 						return callback(err, helper.buildNetworkRecord({
 							network,
 							region: options.params.region,
-							subnets
+							subnets: result.subnet,
+							attachInternetGateway: result.internetGateway
 						}));
 					});
+					
 				}, cb);
 			}
 			else {
@@ -297,9 +315,9 @@ const driver = {
 							}, callback);
 						});
 					},
-					internetGateway: function (callback){
-						if (results.internetGateway && results.internetGateway.InternetGateways && results.internetGateway.InternetGateways.length > 0){
-							if (options.params.attachInternetGateway){
+					internetGateway: function (callback) {
+						if (results.internetGateway && results.internetGateway.InternetGateways && results.internetGateway.InternetGateways.length > 0) {
+							if (options.params.attachInternetGateway) {
 								return callback();
 							}
 							else {
@@ -319,7 +337,7 @@ const driver = {
 							}
 						}
 						else {
-							if (options.params.attachInternetGateway){
+							if (options.params.attachInternetGateway) {
 								ec2.createInternetGateway({}, (err, gateway) => {
 									if (err) {
 										return callback(err);
