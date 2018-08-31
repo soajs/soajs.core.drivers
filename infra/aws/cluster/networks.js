@@ -13,24 +13,24 @@ function getConnector(opts) {
 }
 
 const driver = {
-
+	
 	/**
 	 * List available networks
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	list: function (options, cb) {
 		const aws = options.infra.api;
-
+		
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-
+		
 		ec2.describeVpcs({}, function (err, networks) {
 			if (err) {
 				return cb(err);
@@ -52,16 +52,16 @@ const driver = {
 			}
 		});
 	},
-
+	
 	/**
 	 * Create a new network
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	create: function (options, cb) {
-
+		
 		const aws = options.infra.api;
 		const ec2 = getConnector({
 			api: 'ec2',
@@ -80,33 +80,49 @@ const driver = {
 			if (err) {
 				return cb(err);
 			}
-			if (options.params.name && response && response.Vpc && response.Vpc.VpcId) {
-				params = {
-					Resources: [
-						response.Vpc.VpcId
-					],
-					Tags: [
-						{
-							Key: "Name",
-							Value: options.params.name
+			async.parallel({
+				tags: function (callback) {
+					if (options.params.name && response && response.Vpc && response.Vpc.VpcId) {
+						params = {
+							Resources: [
+								response.Vpc.VpcId
+							],
+							Tags: [
+								{
+									Key: "Name",
+									Value: options.params.name
+								}
+							]
+						};
+						ec2.createTags(params, function (err) {
+							options.soajs.log.error(err);
+							return callback(null, response);
+						});
+					}
+					else {
+						return callback(null, response);
+					}
+				},
+				internetGateway: function (callback) {
+					ec2.createInternetGateway({}, (err, gateway) => {
+						if (err) {
+							return callback(err);
 						}
-					]
-				};
-				ec2.createTags(params, function (err) {
-					options.soajs.log.error(err);
-					return cb(null, response);
-				});
-			}
-			else {
-				return cb(null, response);
-			}
-
+						else {
+							ec2.attachInternetGateway({
+								VpcId: response.Vpc.VpcId,
+								InternetGatewayId: gateway.InternetGateway.InternetGatewayId
+							}, callback);
+						}
+					});
+				}
+			}, cb);
 		});
 	},
-
+	
 	/**
 	 * Update a network
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -123,7 +139,7 @@ const driver = {
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-
+		
 		async.parallel({
 			vpc: function (callback) {
 				ec2.describeVpcs({
@@ -137,6 +153,18 @@ const driver = {
 					Filters: [
 						{
 							Name: "vpc-id",
+							Values: [
+								options.params.id
+							]
+						}
+					]
+				}, callback)
+			},
+			internetGateway: function (callback) {
+				ec2.describeInternetGateways({
+					Filters: [
+						{
+							Name: "attachment.vpc-id",
 							Values: [
 								options.params.id
 							]
@@ -268,6 +296,46 @@ const driver = {
 								}
 							}, callback);
 						});
+					},
+					internetGateway: function (callback){
+						if (results.internetGateway && results.internetGateway.InternetGateways && results.internetGateway.InternetGateways.length > 0){
+							if (options.params.attachInternetGateway){
+								return callback();
+							}
+							else {
+								ec2.detachInternetGateway({
+									VpcId: options.params.id,
+									InternetGatewayId: results.internetGateway.InternetGateways[0].InternetGatewayId
+								}, (err) => {
+									if (err) {
+										return callback(err);
+									}
+									else {
+										ec2.deleteInternetGateway({
+											InternetGatewayId: results.internetGateway.InternetGateways[0].InternetGatewayId
+										}, callback);
+									}
+								});
+							}
+						}
+						else {
+							if (options.params.attachInternetGateway){
+								ec2.createInternetGateway({}, (err, gateway) => {
+									if (err) {
+										return callback(err);
+									}
+									else {
+										ec2.attachInternetGateway({
+											VpcId: options.params.id,
+											InternetGatewayId: gateway.InternetGateway.InternetGatewayId
+										}, callback);
+									}
+								});
+							}
+							else {
+								return callback();
+							}
+						}
 					}
 				}, cb);
 			}
@@ -276,10 +344,10 @@ const driver = {
 			}
 		});
 	},
-
+	
 	/**
 	 * Delete a network
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -292,7 +360,7 @@ const driver = {
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-
+		
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#deleteVpc-property
 		ec2.describeVpcs({VpcIds: [options.params.id]}, function (err, networks) {
 			if (err) {
@@ -331,7 +399,7 @@ const driver = {
 				});
 			}
 		});
-
+		
 	},
 	/**
 	 * add multiple network addresses
