@@ -1,24 +1,24 @@
 'use strict';
 
 const async = require('async');
-const utils = require('../../../../lib/utils/utils.js');
+const utils = require("../../utils/utils");
 const helper = require('../../utils/helper.js');
 const config = require("../../config");
 function getConnector(opts) {
 	return utils.getConnector(opts, config);
 }
 const disks = {
-	
+
 	/**
 	 * List available disks
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	list: function(options, cb) {
 		const aws = options.infra.api;
-		
+
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
@@ -37,10 +37,10 @@ const disks = {
 			}
 		});
 	},
-	
+
 	/**
 	 * Create a new disk
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -48,10 +48,10 @@ const disks = {
 	create: function(options, cb) {
 		return cb(null, true);
 	},
-	
+
 	/**
 	 * Update a disk
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -59,10 +59,10 @@ const disks = {
 	update: function(options, cb) {
 		return cb(null, true);
 	},
-	
+
 	/**
 	 * Delete a disk
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -70,7 +70,7 @@ const disks = {
 	delete: function(options, cb) {
 		return cb(null, true);
 	}
-	
+
 };
 
 module.exports = disks;
