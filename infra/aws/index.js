@@ -236,7 +236,7 @@ const driver = {
 	"deleteCluster": function (options, cb) {
 		// check if a terrafrom template is included in input and invoke terraform driver
 		let driver = ClusterDriver.deleteCluster;
-		if(options.params && options.params.template && options.params.template.driver && options.params.template.driver.toLowerCase() === 'terraform') {
+		if(options.params && options.params.templateRecord && options.params.templateRecord.driver && options.params.templateRecord.driver.toLowerCase() === 'terraform') {
 			driver = Terraform.deleteCluster;
 		}
 
