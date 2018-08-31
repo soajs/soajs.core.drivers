@@ -175,6 +175,9 @@ const vms = {
 							getVolumesImagesSgroupsElb(opts, (err, results) => {
 								async.each(reservations.Reservations, function (reservation, rCB) {
 									async.map(reservation.Instances, function (vm, iCB) {
+										if (vm.State && vm.State.Name === "terminated" || vm.State.Name === "shutting-down"){
+											return iCB(null, []);
+										}
 										helper.buildVMRecord({
 											vm,
 											images: results.getImage ? results.getImage.Images : null,
@@ -248,6 +251,9 @@ const vms = {
 			async.each(reservations, function (oneReservation, mainCB) {
 				if (oneReservation.Instances && oneReservation.Instances.length > 0) {
 					async.each(oneReservation.Instances, function (oneInstance, miniCb) {
+						if (oneInstance.State && oneInstance.State.Name === "terminated" || oneInstance.State.Name === "shutting-down"){
+							return mainCB();
+						}
 						if (oneInstance.ImageId && opts.ImageIds.indexOf(oneInstance.ImageId) === -1) {
 							opts.ImageIds.push(oneInstance.ImageId);
 						}
