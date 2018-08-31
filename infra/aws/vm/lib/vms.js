@@ -232,7 +232,7 @@ const vms = {
 				},
 				getSubnets: function (callback) {
 					if (opts.SubnetIds.length > 0) {
-						ec2.describeSubnets({SubnetIds: opts.SubnetIds}, callback)
+						opts.ec2.describeSubnets({SubnetIds: opts.SubnetIds}, callback)
 					}
 					else {
 						return callback(null, null);
