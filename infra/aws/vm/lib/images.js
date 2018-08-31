@@ -17,7 +17,7 @@ const images = {
 	},
 
 	/**
-	* List available virtual machine image publisher images
+	*
 
 	* @param  {Object}   options  Data passed to function as params
 	* @param  {Function} cb    Callback function
@@ -28,7 +28,7 @@ const images = {
 	},
 
 	/**
-	* List available virtual machine image versions
+	*
 
 	* @param  {Object}   options  Data passed to function as params
 	* @param  {Function} cb    Callback function

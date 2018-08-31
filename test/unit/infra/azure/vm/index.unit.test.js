@@ -110,7 +110,7 @@ describe("testing /lib/azure/index.js", function () {
 				"voluming": {
 					"volumes": []
 				},
-				"securityGroup": "tester-sg",
+				"securityGroup": ["tester-sg"],
 				"tasks": [
 					{
 						"id": "tester-vm",
@@ -280,7 +280,7 @@ describe("testing /lib/azure/index.js", function () {
 						"address": "23.99.134.149"
 					}
 				],
-				"securityGroup": "tester-sg",
+				"securityGroup": ["tester-sg"],
 				"layer": "tester-subnet",
 				"network": "tester-vn",
 				"loadBalancers": [
@@ -458,7 +458,7 @@ describe("testing /lib/azure/index.js", function () {
 					],
 					"layer": "tester-subnet",
 					"network": "tester-vn",
-					"securityGroup": "tester-sg",
+					"securityGroup": ["tester-sg"],
 				},
 				{
 					"name": "mongo",
@@ -494,7 +494,7 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					],
 					"ip": [],
-					"securityGroup": "",
+					"securityGroup": [],
 				},
 				{
 					"name": "mysql",
@@ -508,7 +508,7 @@ describe("testing /lib/azure/index.js", function () {
 					"voluming": {
 						"volumes": []
 					},
-					"securityGroup": "",
+					"securityGroup": [],
 					"tasks": [
 						{
 							"id": "mysql",

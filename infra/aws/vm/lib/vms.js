@@ -5,6 +5,7 @@ const utils = require('../../utils/utils.js');
 const helper = require('../../utils/helper.js');
 const config = require("../../config");
 const index = require('../../index.js')
+const _ = require('lodash');
 
 function getConnector(opts) {
 	return utils.getConnector(opts, config);
@@ -55,6 +56,9 @@ const vms = {
 			let vParams = {
 				VolumeIds: []
 			};
+			let sParams = {
+				SubnetIds: []
+			};
 			if (results.vms && results.vms.Reservations
 				&& results.vms.Reservations.length > 0
 				&& results.vms.Reservations[0].Instances
@@ -77,7 +81,7 @@ const vms = {
 						vParams.VolumeIds.push(block.Ebs.VolumeId);
 					}
 				});
-
+				sParams.SubnetIds.push(results.vms.Reservations[0].Instances[0].SubnetId);
 				async.parallel({
 					getImage: function (callback) {
 						if (iParams.ImageIds.length > 0) {
@@ -102,7 +106,15 @@ const vms = {
 						else {
 							return callback(null, true);
 						}
-					}
+					},
+					getSubnets: function (callback) {
+						if (sParams.SubnetIds.length > 0) {
+							ec2.describeSubnets(sParams, callback)
+						}
+						else {
+							return callback(null, null);
+						}
+					},
 				}, (err, response) => {
 					if (err) {
 						return cb(err);
@@ -113,7 +125,8 @@ const vms = {
 							images: response.getImage ? response.getImage.Images : null,
 							securityGroups: response.getSecurityGroup ? response.getSecurityGroup.SecurityGroups : null,
 							volumes: response.getVolumes ? response.getVolumes.Volumes : null,
-							lb: results.lb,
+							lb: response.getElb ? response.getElb.LoadBalancerDescriptions : null,
+							subnet: response.getSubnets ? response.getSubnets.Subnets : null,
 							region: options.params.region
 						}, cb);
 					}

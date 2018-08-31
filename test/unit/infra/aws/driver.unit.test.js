@@ -71,10 +71,35 @@ describe("testing aws library /infra/aws/utils/utils.js", function () {
 		assert.ok(s3);
 		done();
 	});
+	it("success iam", (done) => {
+		
+		let iam = awsDriver.getConnector({
+			api: 'iam',
+			keyId: '1234567890',
+			secretAccessKey: "abdce-12345-efghi",
+			region: 'us-east-1'
+		});
+		
+		assert.ok(iam);
+		done();
+	});
+	it("success ssm", (done) => {
+		
+		let ssm = awsDriver.getConnector({
+			api: 'ssm',
+			keyId: '1234567890',
+			secretAccessKey: "abdce-12345-efghi",
+			region: 'us-east-1'
+		});
+		
+		assert.ok(ssm);
+		done();
+	});
 	
 	it("success default", (done) => {
 		
 		let ec2 = awsDriver.getConnector({
+			api: 'iam',
 			keyId: '1234567890',
 			secretAccessKey: "abdce-12345-efghi",
 			region: 'us-east-1'

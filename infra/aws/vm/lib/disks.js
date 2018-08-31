@@ -27,6 +27,9 @@ const disks = {
 		});
 		//todo
 		ec2.describeVolumes({}, (err, response)=>{
+			if(err){
+				return cb(err);
+			}
 			if (response && response.Volumes && Array.isArray(response.Volumes) && response.Volumes.length > 0) {
 				async.map(response.Volumes, function (volumes, callback) {
 					return callback(null, helper.computeVolumes({volumes}));
