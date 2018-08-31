@@ -72,7 +72,7 @@ const helper = {
 			});
 		}
 
-		record.securityGroup = '';
+		record.securityGroup = [];
 		if(opts.networkInterface){
 			if(opts.networkInterface.ipConfigurations) {
 				opts.networkInterface.ipConfigurations.forEach(function(oneIpConfig) {
@@ -86,7 +86,7 @@ const helper = {
 				});
 			}
 			if(opts.networkInterface.networkSecurityGroup && opts.networkInterface.networkSecurityGroup.id) {
-				record.securityGroup = opts.networkInterface.networkSecurityGroup.id.split('/').pop();
+				record.securityGroup.push(opts.networkInterface.networkSecurityGroup.id.split('/').pop());
 			}
 		}
 
