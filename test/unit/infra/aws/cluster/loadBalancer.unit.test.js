@@ -189,11 +189,499 @@ describe("testing /lib/aws/index.js", function () {
 		});
 		it("Success", function (done) {
 			
-			done();
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeLoadBalancers: (params, cb) => {
+						return cb(null, info.listRawLb);
+					},
+					configureHealthCheck: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteLoadBalancerListeners: (params, cb) => {
+						return cb(null, true);
+					},
+					createLoadBalancerListeners: (params, cb) => {
+						return cb(null, true);
+					},
+					setLoadBalancerListenerSSLCertificate: (params, cb) => {
+						return cb(null, true);
+					},
+					detachLoadBalancerFromSubnets: (params, cb) => {
+						return cb(null, true);
+					},
+					attachLoadBalancerToSubnets: (params, cb) => {
+						return cb(null, true);
+					},
+					applySecurityGroupsToLoadBalancer: (params, cb) => {
+						return cb(null, true);
+					}
+				});
+			
+			options.params = {
+				name: 'test-lb',
+				region: 'us-east-1',
+				rules: [{
+					backendPort: 81,
+					backendProtocol: "http",
+					frontendPort: 80,
+					frontendProtocol: "http"
+				},
+					{
+						backendPort: 443,
+						backendProtocol: "https",
+						frontendPort: 443,
+						frontendProtocol: "https",
+						certificate: "arn"
+					},
+					{
+						backendPort: 443,
+						backendProtocol: "https",
+						frontendPort: 444,
+						frontendProtocol: "https",
+						certificate: "arn"
+					}],
+				healthProbe: {
+					maxSuccessAttempts: 2,
+					healthProbeInterval: 30,
+					healthProbePath: "/png",
+					healthProbeProtocol: "HTTP",
+					healthProbePort: "80",
+					healthProbeTimeout: 3,
+					maxFailureAttempts: 2
+				},
+				securityGroups: ["securityGroups"],
+				subnets: ["subnets"],
+				zones: ["zone"],
+				type: "internal",
+				tags: [{key: "Name", Value: "test-lb"}]
+			};
+			service.updateLoadBalancer(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
+		});
+		
+		it("Success identical", function (done) {
+			
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeLoadBalancers: (params, cb) => {
+						return cb(null, info.listRawLb); // iam using only the first one byt in real case scenario only one will be returned
+					},
+					configureHealthCheck: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteLoadBalancerListeners: (params, cb) => {
+						return cb(null, true);
+					},
+					createLoadBalancerListeners: (params, cb) => {
+						return cb(null, true);
+					},
+					setLoadBalancerListenerSSLCertificate: (params, cb) => {
+						return cb(null, true);
+					},
+					detachLoadBalancerFromSubnets: (params, cb) => {
+						return cb(null, true);
+					},
+					attachLoadBalancerToSubnets: (params, cb) => {
+						return cb(null, true);
+					},
+					applySecurityGroupsToLoadBalancer: (params, cb) => {
+						return cb(null, true);
+					}
+				});
+			
+			options.params = {
+				name: 'test-lb',
+				region: 'us-east-1',
+				rules: [{
+					backendPort: 80,
+					backendProtocol: "http",
+					frontendPort: 80,
+					frontendProtocol: "http"
+				},
+					{
+						backendPort: 443,
+						backendProtocol: "https",
+						frontendPort: 443,
+						frontendProtocol: "https",
+						certificate: "arn:"
+					},
+					],
+				healthProbe: {
+					healthProbePath: "/index.html",
+					healthProbeProtocol: "HTTP",
+					healthProbePort: "80",
+					healthProbeInterval: 30,
+					healthProbeTimeout: 5,
+					maxSuccessAttempts: 10,
+					maxFailureAttempts: 2
+				},
+				securityGroups: ["sg-ca3421a3"],
+				subnets: ["subnet-97c7abf3",
+					"subnet-1336e83c"],
+				zones: ["zone"],
+				type: "internal",
+				tags: [{key: "Name", Value: "test-lb"}]
+			};
+			service.updateLoadBalancer(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
+		});
+		
+		it("Success no health check", function (done) {
+			
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeLoadBalancers: (params, cb) => {
+						return cb(null, info.listRawLb); // iam using only the first one byt in real case scenario only one will be returned
+					},
+					configureHealthCheck: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteLoadBalancerListeners: (params, cb) => {
+						return cb(null, true);
+					},
+					createLoadBalancerListeners: (params, cb) => {
+						return cb(null, true);
+					},
+					setLoadBalancerListenerSSLCertificate: (params, cb) => {
+						return cb(null, true);
+					},
+					detachLoadBalancerFromSubnets: (params, cb) => {
+						return cb(null, true);
+					},
+					attachLoadBalancerToSubnets: (params, cb) => {
+						return cb(null, true);
+					},
+					applySecurityGroupsToLoadBalancer: (params, cb) => {
+						return cb(null, true);
+					}
+				});
+			
+			options.params = {
+				name: 'test-lb',
+				region: 'us-east-1',
+				rules: [{
+					backendPort: 80,
+					backendProtocol: "http",
+					frontendPort: 80,
+					frontendProtocol: "http"
+				},
+					{
+						backendPort: 443,
+						backendProtocol: "https",
+						frontendPort: 443,
+						frontendProtocol: "https",
+						certificate: "arn:"
+					},
+				],
+				securityGroups: ["sg-ca3421a3"],
+				subnets: ["subnet-97c7abf3",
+					"subnet-1336e83c"],
+				zones: ["zone"],
+				type: "internal",
+				tags: [{key: "Name", Value: "test-lb"}]
+			};
+			service.updateLoadBalancer(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
+		});
+		
+		it("fail no path for health check in HTTP/HTTPS", function (done) {
+			
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeLoadBalancers: (params, cb) => {
+						return cb(null, info.listRawLb); // iam using only the first one byt in real case scenario only one will be returned
+					},
+					configureHealthCheck: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteLoadBalancerListeners: (params, cb) => {
+						return cb(null, true);
+					},
+					createLoadBalancerListeners: (params, cb) => {
+						return cb(null, true);
+					},
+					setLoadBalancerListenerSSLCertificate: (params, cb) => {
+						return cb(null, true);
+					},
+					detachLoadBalancerFromSubnets: (params, cb) => {
+						return cb(null, true);
+					},
+					attachLoadBalancerToSubnets: (params, cb) => {
+						return cb(null, true);
+					},
+					applySecurityGroupsToLoadBalancer: (params, cb) => {
+						return cb(null, true);
+					}
+				});
+			
+			options.params = {
+				name: 'test-lb',
+				region: 'us-east-1',
+				rules: [{
+					backendPort: 80,
+					backendProtocol: "http",
+					frontendPort: 80,
+					frontendProtocol: "http"
+				},
+					{
+						backendPort: 443,
+						backendProtocol: "https",
+						frontendPort: 443,
+						frontendProtocol: "https",
+						certificate: "arn:"
+					},
+				],
+				healthProbe: {
+					healthProbeProtocol: "HTTP",
+					healthProbePort: "80",
+					healthProbeInterval: 30,
+					healthProbeTimeout: 5,
+					maxSuccessAttempts: 10,
+					maxFailureAttempts: 2
+				},
+				securityGroups: ["securityGroups"],
+				subnets: ["subnet-97c7abf3",
+					"subnet-1336e83c"],
+				zones: ["zone"],
+				type: "internal",
+				tags: [{key: "Name", Value: "test-lb"}]
+			};
+			service.updateLoadBalancer(options, function (error, response) {
+				assert.ok(error);
+				done();
+			});
+		});
+		
+		it("fail no health check", function (done) {
+			
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeLoadBalancers: (params, cb) => {
+						return cb(null, info.listRawLb); // iam using only the first one byt in real case scenario only one will be returned
+					},
+					configureHealthCheck: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteLoadBalancerListeners: (params, cb) => {
+						return cb(null, true);
+					},
+					createLoadBalancerListeners: (params, cb) => {
+						return cb(null, true);
+					},
+					setLoadBalancerListenerSSLCertificate: (params, cb) => {
+						return cb(null, true);
+					},
+					detachLoadBalancerFromSubnets: (params, cb) => {
+						return cb(null, true);
+					},
+					attachLoadBalancerToSubnets: (params, cb) => {
+						return cb(null, true);
+					},
+					applySecurityGroupsToLoadBalancer: (params, cb) => {
+						return cb(null, true);
+					}
+				});
+			
+			options.params = {
+				name: 'test-lb',
+				region: 'us-east-1',
+				rules: [{
+					backendPort: 80,
+					backendProtocol: "http",
+					frontendPort: 80,
+					frontendProtocol: "http"
+				},
+					{
+						backendPort: 443,
+						backendProtocol: "https",
+						frontendPort: 443,
+						frontendProtocol: "https",
+						certificate: "arn:"
+					},
+				],
+				healthProbe: {
+					healthProbeInterval: 30,
+					healthProbeTimeout: 5,
+					maxSuccessAttempts: 10,
+					maxFailureAttempts: 2
+				},
+				securityGroups: ["securityGroups"],
+				subnets: ["subnet-97c7abf3",
+					"subnet-1336e83c"],
+				zones: ["zone"],
+				type: "internal",
+				tags: [{key: "Name", Value: "test-lb"}]
+			};
+			service.updateLoadBalancer(options, function (error, response) {
+				assert.ok(error);
+				done();
+			});
+		});
+		
+		it("fail no LoadBalancer", function (done) {
+			
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeLoadBalancers: (params, cb) => {
+						return cb(null, null); // iam using only the first one byt in real case scenario only one will be returned
+					},
+					configureHealthCheck: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteLoadBalancerListeners: (params, cb) => {
+						return cb(null, true);
+					},
+					createLoadBalancerListeners: (params, cb) => {
+						return cb(null, true);
+					},
+					setLoadBalancerListenerSSLCertificate: (params, cb) => {
+						return cb(null, true);
+					},
+					detachLoadBalancerFromSubnets: (params, cb) => {
+						return cb(null, true);
+					},
+					attachLoadBalancerToSubnets: (params, cb) => {
+						return cb(null, true);
+					},
+					applySecurityGroupsToLoadBalancer: (params, cb) => {
+						return cb(null, true);
+					}
+				});
+			
+			options.params = {
+				name: 'test-lb',
+				region: 'us-east-1',
+				rules: [{
+					backendPort: 80,
+					backendProtocol: "http",
+					frontendPort: 80,
+					frontendProtocol: "http"
+				},
+					{
+						backendPort: 443,
+						backendProtocol: "https",
+						frontendPort: 443,
+						frontendProtocol: "https",
+						certificate: "arn:"
+					},
+				],
+				healthProbe: {
+					healthProbeInterval: 30,
+					healthProbeTimeout: 5,
+					maxSuccessAttempts: 10,
+					maxFailureAttempts: 2
+				},
+				securityGroups: ["securityGroups"],
+				subnets: ["subnet-97c7abf3",
+					"subnet-1336e83c"],
+				zones: ["zone"],
+				type: "internal",
+				tags: [{key: "Name", Value: "test-lb"}]
+			};
+			service.updateLoadBalancer(options, function (error, response) {
+				assert.ok(error);
+				done();
+			});
+		});
+		
+		it("fail no LoadBalancer", function (done) {
+			
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeLoadBalancers: (params, cb) => {
+						return cb(new Error("test"), null); // iam using only the first one byt in real case scenario only one will be returned
+					},
+					configureHealthCheck: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteLoadBalancerListeners: (params, cb) => {
+						return cb(null, true);
+					},
+					createLoadBalancerListeners: (params, cb) => {
+						return cb(null, true);
+					},
+					setLoadBalancerListenerSSLCertificate: (params, cb) => {
+						return cb(null, true);
+					},
+					detachLoadBalancerFromSubnets: (params, cb) => {
+						return cb(null, true);
+					},
+					attachLoadBalancerToSubnets: (params, cb) => {
+						return cb(null, true);
+					},
+					applySecurityGroupsToLoadBalancer: (params, cb) => {
+						return cb(null, true);
+					}
+				});
+			
+			options.params = {
+				name: 'test-lb',
+				region: 'us-east-1',
+				rules: [{
+					backendPort: 80,
+					backendProtocol: "http",
+					frontendPort: 80,
+					frontendProtocol: "http"
+				},
+					{
+						backendPort: 443,
+						backendProtocol: "https",
+						frontendPort: 443,
+						frontendProtocol: "https",
+						certificate: "arn:"
+					},
+				],
+				healthProbe: {
+					healthProbeInterval: 30,
+					healthProbeTimeout: 5,
+					maxSuccessAttempts: 10,
+					maxFailureAttempts: 2
+				},
+				securityGroups: ["securityGroups"],
+				subnets: ["subnet-97c7abf3",
+					"subnet-1336e83c"],
+				zones: ["zone"],
+				type: "internal",
+				tags: [{key: "Name", Value: "test-lb"}]
+			};
+			service.updateLoadBalancer(options, function (error, response) {
+				assert.ok(error);
+				done();
+			});
 		});
 	});
 	
-	describe("calling executeDriver - deleteLoadBalancer", function () {
+	describe("deleteLoadBalancer", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -210,7 +698,35 @@ describe("testing /lib/aws/index.js", function () {
 				});
 			
 			options.params = {
-				name : "test"
+				name: 'test-lb',
+				region: 'us-east-1',
+				rules: [{
+					backendPort: 80,
+					backendProtocol: "http",
+					frontendPort: 80,
+					frontendProtocol: "http"
+				},
+					{
+						backendPort: 443,
+						backendProtocol: "https",
+						frontendPort: 443,
+						frontendProtocol: "https",
+						certificate: "arn"
+					}],
+				healthProbe: {
+					maxSuccessAttempts: 2,
+					healthProbeInterval: 30,
+					healthProbePath: "/png",
+					healthProbeProtocol: "HTTP",
+					healthProbePort: "80",
+					healthProbeTimeout: 3,
+					maxFailureAttempts: 2
+				},
+				securityGroups: ["securityGroups"],
+				subnets: ["subnets"],
+				zones: ["zone"],
+				type: "internal",
+				tags: [{key: "Name", Value: "test-lb"}]
 			};
 			service.deleteLoadBalancer(options, function (error, response) {
 				assert.ifError(error);

@@ -256,27 +256,37 @@ driver.deployService = function (options, cb){
 };
 
 driver.redeployService = function (options, cb){
-	dockerDriver.redeployService(options, (error, response) => {
-		if(error){ return cb(error); }
-		
-		//update env settings
-		//check exposed external ports
-		setTimeout(() => {
-			options.params.id = response.id;
-			dockerDriver.inspectService(options, (error, deployedServiceDetails) => {
-				if (error) {
-					return cb(error);
-				}
-				
-				if(options.params.action === 'redeploy'){
-					return cb(null, deployedServiceDetails);
-				}
-				
-				infraUtils.updateEnvSettings(driver, LBDriver, options, deployedServiceDetails, (error) => {
-					return cb(error, deployedServiceDetails);
+	if (options.params.inputmaskData && options.params.inputmaskData.serviceId){
+		options.params.id = options.params.inputmaskData.serviceId;
+	}
+	dockerDriver.inspectService(options, (error, inspectService) => {
+		if (error) {
+			return cb(error);
+		}
+		options.original = inspectService;
+		dockerDriver.redeployService(options, (error, response) => {
+			if (error) {
+				return cb(error);
+			}
+			//update env settings
+			//check exposed external ports
+			setTimeout(() => {
+				options.params.id = response.id;
+				dockerDriver.inspectService(options, (error, deployedServiceDetails) => {
+					if (error) {
+						return cb(error);
+					}
+					
+					if (options.params.action === 'redeploy') {
+						return cb(null, deployedServiceDetails);
+					}
+					
+					infraUtils.updateEnvSettings(driver, LBDriver, options, deployedServiceDetails, (error) => {
+						return cb(error, deployedServiceDetails);
+					});
 				});
-			});
-		}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 1500);
+			}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 1500);
+		});
 	});
 };
 

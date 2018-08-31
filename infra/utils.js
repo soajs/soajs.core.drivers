@@ -23,7 +23,7 @@ const utils = {
 	},
 	
 	updateEnvSettings(driver, cluster, options, deployedServiceDetails, cb) {
-		let maxAttempts = 30;
+		let maxAttempts = 15;
 		let currentAttempt = 1;
 		
 		if (options.params.catalog && options.params.catalog.type === 'nginx' || (options.params.catalog && options.params.catalog.subtype === 'nginx' && options.params.catalog.type === 'server')) {
@@ -53,17 +53,21 @@ const utils = {
 					}
 				}
 			});
-			
+			if (options.original){
+				if (options.original.service && options.original.service.ports && options.original.service.ports.length > 0){}
+				publishedPort = true;
+			}
 			if (publishedPort) {
 				computeProtocolAndPortsFromService(loadBalancer);
 			}
-			else{
-				return cb();
+			else {
+				 return cb();
 			}
 		}
 		else {
 			//if no ports are set in the recipe, do not perform check
 			if (!options.params.catalog || !options.params.catalog.recipe || !options.params.catalog.recipe.deployOptions || !options.params.catalog.recipe.deployOptions.ports || !Array.isArray(options.params.catalog.recipe.deployOptions.ports)) {
+				console.log(cb)
 				return cb();
 			}
 			
@@ -102,13 +106,17 @@ const utils = {
 							publishedPort = true;
 						}
 					});
-					
 					//no port allocated yet, restart in 2 seconds
+					//check to see if the service have ports originally
+					if (options.original && !publishedPort){
+						if (options.original.service && options.original.service.ports && options.original.service.ports.length > 0){}
+						publishedPort = true;
+					}
 					if (!publishedPort && currentAttempt <= maxAttempts) {
 						currentAttempt++;
 						setTimeout(() => {
 							computeProtocolAndPortsFromService(loadBalancer);
-						}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 2000);
+						}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 1000);
 					}
 					else {
 						let protocol = 'http';
@@ -156,7 +164,6 @@ const utils = {
 	},
 	
 	checkWithInfra(cluster, options, deployedServiceDetails, cb) {
-		
 		options.params = {
 			info: options.infra.info,
 			name: deployedServiceDetails.service.labels['soajs.service.name'],
