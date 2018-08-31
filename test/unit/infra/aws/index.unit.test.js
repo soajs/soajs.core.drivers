@@ -952,6 +952,161 @@ describe("testing /infra/aws/index.js", function () {
 				done();
 			});
 		});
+		it("Success", function (done) {
+			
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeInstances: (params, cb) => {
+						return cb(null, {
+							Reservations: [
+								{
+									Instances: [
+										{
+											PrivateDnsName: 'localdockermachine',
+											PublicIpAddress: '192.168.50.50',
+											InstanceId: '1'
+										}
+									]
+								}
+							]
+						});
+					},
+					registerInstancesWithLoadBalancer: (params, cb) => {
+						return cb(null, true);
+					},
+					createLoadBalancer: (params, cb) => {
+						return cb(null, {
+							DNSName: "abcd"
+						});
+					},
+					describeLoadBalancers: (params, cb) => {
+						return cb(null, {
+							LoadBalancerDescriptions: [
+								{
+									ListenerDescriptions: [
+										{
+											Listener: {
+												LoadBalancerPort: 80,
+												InstancePort: 80
+											}
+										}
+									]
+								}
+							]
+						});
+					},
+					
+					deleteLoadBalancerListeners: (params, cb) => {
+						return cb(null, true);
+					},
+					createLoadBalancerListeners: (params, cb) => {
+						return cb(null, true);
+					},
+					configureHealthCheck: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteLoadBalancer: (params, cb) => {
+						return cb(null, true);
+					}
+				});
+			
+			options.params.name = 'nginx';
+			options.params.ports = [
+				{
+					'published': true,
+					'target': 80
+				}
+			];
+			options.infra.stack.loadBalancers.AWS = {
+				nginx: {
+					name: 'nginx'
+				}
+			};
+			
+			driver.publishPorts(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
+		});
+		
+		it("Success", function (done) {
+			
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeInstances: (params, cb) => {
+						return cb(null, {
+							Reservations: [
+								{
+									Instances: [
+										{
+											PrivateDnsName: 'localdockermachine',
+											PublicIpAddress: '192.168.50.50',
+											InstanceId: '1'
+										}
+									]
+								}
+							]
+						});
+					},
+					registerInstancesWithLoadBalancer: (params, cb) => {
+						return cb(null, true);
+					},
+					createLoadBalancer: (params, cb) => {
+						return cb(null, {
+							DNSName: "abcd"
+						});
+					},
+					describeLoadBalancers: (params, cb) => {
+						return cb(null, {
+							LoadBalancerDescriptions: [
+								{
+									ListenerDescriptions: [
+										{
+											Listener: {
+												LoadBalancerPort: 80,
+												InstancePort: 80
+											}
+										}
+									]
+								}
+							]
+						});
+					},
+					
+					deleteLoadBalancerListeners: (params, cb) => {
+						return cb(null, true);
+					},
+					createLoadBalancerListeners: (params, cb) => {
+						return cb(null, true);
+					},
+					configureHealthCheck: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteLoadBalancer: (params, cb) => {
+						return cb(null, true);
+					}
+				});
+			
+			options.params.name = 'nginx';
+			options.params.ports = [
+				{
+					'published': true,
+					'target': 80
+				}
+			];
+			options.infra.stack.loadBalancers.AWS = {
+			
+			};
+			
+			driver.publishPorts(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
+		});
 	});
 	
 	
@@ -1178,7 +1333,7 @@ describe("testing /infra/aws/index.js", function () {
 		/**
 		 * delete service
 		 */
-		it("Success", function (done) {
+		it("Success delete 1", function (done) {
 			
 			sinon
 				.stub(dockerDriver, 'inspectService')
@@ -1211,7 +1366,7 @@ describe("testing /infra/aws/index.js", function () {
 			});
 		});
 		
-		it("Success", function (done) {
+		it("Success delete 2", function (done) {
 			
 			sinon
 				.stub(dockerDriver, 'inspectService')
@@ -1238,7 +1393,7 @@ describe("testing /infra/aws/index.js", function () {
 			});
 		});
 		
-		it("Success", function (done) {
+		it("Success delete 3", function (done) {
 			
 			sinon
 				.stub(dockerDriver, 'inspectService')
@@ -1270,7 +1425,7 @@ describe("testing /infra/aws/index.js", function () {
 		/**
 		 * list nodes
 		 */
-		it("Success", function (done) {
+		it("Success list nodes", function (done) {
 			
 			sinon
 				.stub(AWSDriver, 'getConnector')
@@ -1309,7 +1464,7 @@ describe("testing /infra/aws/index.js", function () {
 		/**
 		 * list services
 		 */
-		it("Success", function (done) {
+		it("Success list services", function (done) {
 			sinon
 				.stub(dockerDriver, 'listServices')
 				.yields(null, [
@@ -1353,7 +1508,7 @@ describe("testing /infra/aws/index.js", function () {
 		/**
 		 * deploy service
 		 */
-		it("Success", function (done) {
+		it("Success deploy service", function (done) {
 			sinon
 				.stub(dockerDriver, 'inspectService')
 				.yields(null, {
@@ -1386,7 +1541,7 @@ describe("testing /infra/aws/index.js", function () {
 		/**
 		 * redeploy service
 		 */
-		it("Success", function (done) {
+		it("Success redeploy service", function (done) {
 			sinon
 				.stub(dockerDriver, 'inspectService')
 				.yields(null, {
@@ -1416,7 +1571,7 @@ describe("testing /infra/aws/index.js", function () {
 			});
 		});
 		
-		it("Success", function (done) {
+		it("Success redeploy service", function (done) {
 			sinon
 				.stub(dockerDriver, 'inspectService')
 				.yields(null, {
