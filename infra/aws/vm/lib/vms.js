@@ -167,7 +167,7 @@ const vms = {
 				awsObject["ec2" + region.v].describeInstances({}, (err, reservations) => {
 					if (reservations && reservations.Reservations && reservations.Reservations.length > 0) {
 						let opts = {
-							GroupIds: [], ImageIds: [], VolumeIds: []
+							GroupIds: [], ImageIds: [], VolumeIds: [], SubnetIds : []
 						};
 						extractData(reservations.Reservations, opts, () => {
 							opts.ec2 = awsObject["ec2" + region.v];
@@ -181,6 +181,7 @@ const vms = {
 											securityGroups: results.getSecurityGroup ? results.getSecurityGroup.SecurityGroups : null,
 											volumes: results.getVolumes ? results.getVolumes.Volumes : null,
 											lb: results.getElb ? results.getElb.LoadBalancerDescriptions : null,
+											subnet: results.getSubnets ? results.getSubnets.Subnets : null,
 											region: region.v
 										}, iCB);
 									}, function (err, final) {
@@ -229,6 +230,14 @@ const vms = {
 						return callback(null, null);
 					}
 				},
+				getSubnets: function (callback) {
+					if (opts.SubnetIds.length > 0) {
+						ec2.describeSubnets({SubnetIds: opts.SubnetIds}, callback)
+					}
+					else {
+						return callback(null, null);
+					}
+				},
 				getElb: function (callback) {
 					opts.elb.describeLoadBalancers({}, callback)
 				}
@@ -264,7 +273,16 @@ const vms = {
 								else {
 									callback();
 								}
-							}
+							},
+							Subnets: function (callback) {
+								if (oneInstance.SubnetId) {
+									opts.SubnetIds.push(oneInstance.SubnetId);
+									return callback();
+								}
+								else {
+									callback();
+								}
+							},
 						}, miniCb);
 					}, mainCB);
 				}
