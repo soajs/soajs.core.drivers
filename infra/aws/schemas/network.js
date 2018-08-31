@@ -27,7 +27,11 @@ const add = {
 		    "required": false,
 		    "type": "string",
 		    "enum": ["default", "dedicated"],
-	    }
+	    },
+        "attachInternetGateway": {
+            "required": true,
+	        "type": "boolean"
+        }
     }
 };
 
@@ -73,7 +77,11 @@ const update = {
 		    "required": true,
 		    "type": "string",
 		    "enum": [ "default", "dedicated" ]
-	    }
+	    },
+        "attachInternetGateway": {
+            "required": true,
+	        "type": "boolean"
+        }
     }
 };
 
