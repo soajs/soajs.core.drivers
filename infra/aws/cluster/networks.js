@@ -80,7 +80,7 @@ const driver = {
 			if (err) {
 				return cb(err);
 			}
-			if (options.params.name) {
+			if (options.params.name && response && response.Vpc && response.Vpc.VpcId) {
 				params = {
 					Resources: [
 						response.Vpc.VpcId
@@ -296,7 +296,7 @@ const driver = {
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#deleteVpc-property
 		ec2.describeVpcs({VpcIds: [options.params.id]}, function (err, networks) {
 			if (err) {
-				cb(err);
+				return cb(err);
 			}
 			if (networks && networks.Vpcs && Array.isArray(networks.Vpcs) && networks.Vpcs.length > 0) {
 				let params = {
@@ -311,7 +311,7 @@ const driver = {
 				};
 				ec2.describeSubnets(params, function (err, response) {
 					if (err) {
-						cb(err);
+						return cb(err);
 					}
 					async.series({
 						deleteSubnets: (call) => {

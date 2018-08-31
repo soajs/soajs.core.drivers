@@ -84,7 +84,7 @@ const subnets = {
 			if (err) {
 				return cb(err);
 			}
-			if (options.params.name){
+			if (response.Subnet &&  response.Subnet.SubnetId && options.params.name){
 				params = {
 					Resources: [
 						response.Subnet.SubnetId

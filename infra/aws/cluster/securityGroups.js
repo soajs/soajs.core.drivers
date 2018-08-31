@@ -28,6 +28,9 @@ const securityGroups = {
 			secretAccessKey: aws.secretAccessKey
 		});
 		ec2.describeSecurityGroups({}, (err, response) => {
+			if (err){
+				return cb(err);
+			}
 			if (response && response.SecurityGroups && Array.isArray(response.SecurityGroups) && response.SecurityGroups.length > 0) {
 				async.map(response.SecurityGroups, function (securityGroup, callback) {
 					return callback(null, helper.buildSecurityGroupsRecord({
@@ -199,7 +202,7 @@ const securityGroups = {
 				}, cb);
 			}
 			else {
-				return cb(null, new Error("Security Group not Found"));
+				return cb( new Error("Security Group not Found"));
 			}
 		});
 

@@ -87,6 +87,9 @@ describe("testing /lib/aws/index.js", function () {
 				.stub(AWSDriver, 'getConnector')
 				.returns({
 					createSubnet: (params, cb) => {
+						return cb(null, {Subnet: {SubnetId: "1"}});
+					},
+					createTags: (params, cb) => {
 						return cb(null, true);
 					}
 				});
@@ -97,12 +100,37 @@ describe("testing /lib/aws/index.js", function () {
 				VpcId: 'vpc-09fcf25a62b4d020f', /* required */
 				DryRun: false,
 				zone: "us-east-2a",
-				ipv6Address: '2001:cdba:0000:0000:0000:0000:3257:9652'
+				ipv6Address: '2001:cdba:0000:0000:0000:0000:3257:9652',
+				name: "test"
 				
 			};
 			service.createSubnet(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
+				done();
+			});
+		});
+		it("error", function (done) {
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					createSubnet: (params, cb) => {
+						return cb(new Error("test"), true);
+					}
+				});
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				CidrBlock: '192.168.1.0/16', /* required */
+				VpcId: 'vpc-09fcf25a62b4d020f', /* required */
+				DryRun: false,
+				zone: "us-east-2a",
+				ipv6Address: '2001:cdba:0000:0000:0000:0000:3257:9652',
+				name: "test"
+				
+			};
+			service.createSubnet(options, function (error, response) {
+				assert.ok(error);
 				done();
 			});
 		});

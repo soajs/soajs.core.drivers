@@ -1,6 +1,7 @@
 'use strict';
 
-const utils = require('../../../../lib/utils/utils.js');
+const utils = require('../../utils/utils.js');
+const async = require('async');
 const config = require("../../config");
 const _ = require('lodash');
 
@@ -166,6 +167,12 @@ const maintenance = {
 		});
 		const iam = getConnector({
 			api: 'iam',
+			region: options.params.region,
+			keyId: aws.keyId,
+			secretAccessKey: aws.secretAccessKey
+		});
+		const ssm = getConnector({
+			api: 'ssm',
 			region: options.params.region,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey

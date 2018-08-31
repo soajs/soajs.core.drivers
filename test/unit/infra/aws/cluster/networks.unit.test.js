@@ -92,6 +92,9 @@ describe("testing /lib/aws/index.js", function () {
 				.stub(AWSDriver, 'getConnector')
 				.returns({
 					createVpc: (params, cb) => {
+						return cb(null, {Vpc: {VpcId: 1}});
+					},
+					createTags: (params, cb) => {
 						return cb(null, true);
 					}
 				});
@@ -103,6 +106,7 @@ describe("testing /lib/aws/index.js", function () {
 				AmazonProvidedIpv6CidrBlock: false,
 				DryRun: false,
 				InstanceTenancy: "default",
+				name: "test"
 			};
 			service.createNetwork(options, function (error, response) {
 				assert.ifError(error);
@@ -182,7 +186,7 @@ describe("testing /lib/aws/index.js", function () {
 						return cb(null, info.listNetworkRaw);
 					},
 					describeSubnets: (params, cb) => {
-						return cb(null, info.listSubnets);
+						return cb(null, info.listSubnetRaw);
 					},
 					createSubnet: (params, cb) => {
 						return cb(null, true);
@@ -199,7 +203,8 @@ describe("testing /lib/aws/index.js", function () {
 				subnets: [{
 					address: "172.31.1.0/16",
 					availabilityZone: "us-east-1a"
-				}]
+				}],
+				
 			};
 			service.updateNetwork(options, function (error, response) {
 				assert.ifError(error);
@@ -572,6 +577,35 @@ describe("testing /lib/aws/index.js", function () {
 				done();
 			});
 		});
+		it("Success", function (done) {
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					deleteVpc: (params, cb) => {
+						return cb(null, true);
+					},
+					describeVpcs: (params, cb) => {
+						return cb(null, info.listNetworkRaw);
+					},
+					describeSubnets: (params, cb) => {
+						return cb(null, null);
+					},
+					deleteSubnet: (params, cb) => {
+						return cb(null, true);
+					}
+				});
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				region: 'us-east-1',
+				network: "vpc-a01106c2", /* required */
+			};
+			service.deleteNetwork(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
+		});
 		it("fail", function (done) {
 			sinon
 				.stub(AWSDriver, 'getConnector')
@@ -584,6 +618,62 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					describeSubnets: (params, cb) => {
 						return cb(null, info.listSubnetRaw);
+					},
+					deleteSubnet: (params, cb) => {
+						return cb(null, true);
+					}
+				});
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				region: 'us-east-1',
+				network: "vpc-a01106c2", /* required */
+			};
+			service.deleteNetwork(options, function (error, response) {
+				assert.ok(error);
+				done();
+			});
+		});
+		it("fail", function (done) {
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					deleteVpc: (params, cb) => {
+						return cb(new Error("test error"));
+					},
+					describeVpcs: (params, cb) => {
+						return cb(new Error("test error"), info.listNetworkRaw);
+					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnetRaw);
+					},
+					deleteSubnet: (params, cb) => {
+						return cb(null, true);
+					}
+				});
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				region: 'us-east-1',
+				network: "vpc-a01106c2", /* required */
+			};
+			service.deleteNetwork(options, function (error, response) {
+				assert.ok(error);
+				done();
+			});
+		});
+		it("fail", function (done) {
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					deleteVpc: (params, cb) => {
+						return cb(new Error("test error"));
+					},
+					describeVpcs: (params, cb) => {
+						return cb(null, info.listNetworkRaw);
+					},
+					describeSubnets: (params, cb) => {
+						return cb(new Error("test error"), info.listSubnetRaw);
 					},
 					deleteSubnet: (params, cb) => {
 						return cb(null, true);
