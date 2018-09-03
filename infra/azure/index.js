@@ -362,6 +362,17 @@ const driver = {
 	deleteGroup: function (options, cb) {
 		return groups.delete(options, cb);
 	},
+	
+	/**
+	 * list roles
+	 
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	listRoles: function (options, cb) {
+		return cb(null, true);
+	},
 
 	"executeDriver": function(method, options, cb){
 		runCorrespondingDriver(method, options, cb);
