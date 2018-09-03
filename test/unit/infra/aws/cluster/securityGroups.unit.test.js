@@ -326,11 +326,11 @@ describe("testing /lib/aws/index.js", function () {
 			sinon
 				.stub(AWSDriver, 'getConnector')
 				.returns({
-					getSecurityGroup: (params, cb) => {
+					describeSecurityGroups: (params, cb) => {
 						return cb(new Error("test"), null);
 					}
 				});
-			service.listSecurityGroups(options, function (error, response) {
+			service.getSecurityGroup(options, function (error, response) {
 				assert.ok(error);
 				done();
 			});

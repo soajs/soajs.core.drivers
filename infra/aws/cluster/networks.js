@@ -122,17 +122,22 @@ const driver = {
 					}
 				},
 				internetGateway: function (callback) {
-					ec2.createInternetGateway({}, (err, gateway) => {
-						if (err) {
-							return callback(err);
-						}
-						else {
-							ec2.attachInternetGateway({
-								VpcId: response.Vpc.VpcId,
-								InternetGatewayId: gateway.InternetGateway.InternetGatewayId
-							}, callback);
-						}
-					});
+					if (options.params.attachInternetGateway && response && response.Vpc && response.Vpc.VpcId){
+						ec2.createInternetGateway({}, (err, gateway) => {
+							if (err) {
+								return callback(err);
+							}
+							else {
+								ec2.attachInternetGateway({
+									VpcId: response.Vpc.VpcId,
+									InternetGatewayId: gateway.InternetGateway.InternetGatewayId
+								}, callback);
+							}
+						});
+					}
+					else{
+						return callback();
+					}
 				}
 			}, cb);
 		});
@@ -380,12 +385,12 @@ const driver = {
 		});
 		
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#deleteVpc-property
-		ec2.describeVpcs({VpcIds: [options.params.id]}, function (err, networks) {
-			if (err) {
-				return cb(err);
-			}
-			if (networks && networks.Vpcs && Array.isArray(networks.Vpcs) && networks.Vpcs.length > 0) {
-				let params = {
+		async.parallel({
+			vpcs: (callback) => {
+				ec2.describeVpcs({VpcIds: [options.params.id]}, callback)
+			},
+			subnets: (callback) => {
+				ec2.describeSubnets({
 					Filters: [
 						{
 							Name: "vpc-id",
@@ -394,30 +399,59 @@ const driver = {
 							]
 						}
 					]
-				};
-				ec2.describeSubnets(params, function (err, response) {
-					if (err) {
-						return cb(err);
+				}, callback)
+			},
+			gatways: (callback) => {
+				ec2.describeInternetGateways({
+					Filters: [
+						{
+							Name: "attachment.vpc-id",
+							Values: [
+								options.params.id
+							]
+						}
+					]
+				}, callback)
+			},
+		}, (err, response) => {
+			if (err) {
+				return cb(err);
+			}
+			async.auto({
+				deleteSubnets: (call) => {
+					if (response && response.subnets && response.subnets.Subnets && Array.isArray(response.subnets.Subnets) && response.subnets.Subnets.length > 0) {
+						async.each(response.subnets.Subnets, (oneSubnet, callback) => {
+							ec2.deleteSubnet({SubnetId: oneSubnet.SubnetId}, callback);
+						}, call);
 					}
-					async.series({
-						deleteSubnets: (call) => {
-							if (response && response.Subnets && Array.isArray(response.Subnets) && response.Subnets.length > 0) {
-								async.each(response.Subnets, (oneSubnet, callback) => {
-									ec2.deleteSubnet({SubnetId: oneSubnet.SubnetId}, callback);
-								}, call);
+					else {
+						return call();
+					}
+				},
+				deleteInternetGateway: (call) => {
+					if (response && response.gatways && response.gatways.InternetGateways && Array.isArray(response.gatways.InternetGateways) && response.gatways.InternetGateways.length > 0) {
+						ec2.detachInternetGateway({
+							InternetGatewayId: response.gatways.InternetGateways[0].InternetGatewayId,
+							VpcId: options.params.id
+						}, function (err) {
+							if (err) {
+								return call(err);
 							}
 							else {
-								call();
+								ec2.deleteInternetGateway({InternetGatewayId: response.gatways.InternetGateways[0].InternetGatewayId}, call);
 							}
-						},
-						deleteVpc: (call) => {
-							ec2.deleteVpc({VpcId: options.params.id}, call)
-						}
-					}, cb);
-				});
-			}
+						});
+						
+					}
+					else {
+						return call();
+					}
+				},
+				deleteVpc: ['deleteSubnets', 'deleteInternetGateway', (results, call) => {
+					ec2.deleteVpc({VpcId: options.params.id}, call)
+				}]
+			}, cb);
 		});
-		
 	},
 	/**
 	 * add multiple network addresses

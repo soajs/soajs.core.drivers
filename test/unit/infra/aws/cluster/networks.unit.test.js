@@ -27,6 +27,9 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					describeSubnets: (params, cb) => {
 						return cb(null, info.listSubnetRaw);
+					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, info.gateway);
 					}
 				});
 			
@@ -98,7 +101,11 @@ describe("testing /lib/aws/index.js", function () {
 						return cb(null, true);
 					},
 					createInternetGateway: (params, cb) => {
-						return cb(null, true);
+						return cb(null, {
+							InternetGateway: {
+								InternetGatewayId: "1"
+							}
+						});
 					},
 					attachInternetGateway: (params, cb) => {
 						return cb(null, true);
@@ -127,6 +134,19 @@ describe("testing /lib/aws/index.js", function () {
 				.stub(AWSDriver, 'getConnector')
 				.returns({
 					createVpc: (params, cb) => {
+						return cb(null, {Vpc: {VpcId: 1}});
+					},
+					createTags: (params, cb) => {
+						return cb(null, true);
+					},
+					createInternetGateway: (params, cb) => {
+						return cb(null, {
+							InternetGateway: {
+								InternetGatewayId: "1"
+							}
+						});
+					},
+					attachInternetGateway: (params, cb) => {
 						return cb(null, true);
 					}
 				});
@@ -202,7 +222,11 @@ describe("testing /lib/aws/index.js", function () {
 						return cb(null, true);
 					},
 					createInternetGateway: (params, cb) => {
-						return cb(null, true);
+						return cb(null, {
+							InternetGateway: {
+								InternetGatewayId: 1
+							}
+						});
 					},
 					attachInternetGateway: (params, cb) => {
 						return cb(null, true);
@@ -212,6 +236,9 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					detachInternetGateway: (params, cb) => {
 						return cb(null, true);
+					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, {});
 					}
 				});
 			options.params = {
@@ -223,6 +250,7 @@ describe("testing /lib/aws/index.js", function () {
 					address: "172.31.1.0/16",
 					availabilityZone: "us-east-1a"
 				}],
+				attachInternetGateway: true
 				
 			};
 			service.updateNetwork(options, function (error, response) {
@@ -288,6 +316,15 @@ describe("testing /lib/aws/index.js", function () {
 					deleteSubnet: (params, cb) => {
 						return cb(null, true);
 					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, info.gateway);
+					},
+					detachInternetGateway: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteInternetGateway: (params, cb) => {
+						return cb(null, true);
+					},
 				});
 			options.params = {
 				network: 'vpc-09fcf25a62b4d020f',
@@ -332,6 +369,13 @@ describe("testing /lib/aws/index.js", function () {
 					deleteSubnet: (params, cb) => {
 						return cb(null, true);
 					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, info.gateway);
+					},
+					detachInternetGateway: (params, cb) => {
+						return cb(null, true);
+					}
+					
 				});
 			options.params = {
 				region: 'vpc-09fcf25a62b4d020f',
@@ -375,6 +419,12 @@ describe("testing /lib/aws/index.js", function () {
 					deleteSubnet: (params, cb) => {
 						return cb(null, true);
 					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, info.gateway);
+					},
+					detachInternetGateway: (params, cb) => {
+						return cb(null, true);
+					}
 				});
 			options.params = {
 				network: 'vpc-09fcf25a62b4d020f',
@@ -417,6 +467,9 @@ describe("testing /lib/aws/index.js", function () {
 					deleteSubnet: (params, cb) => {
 						return cb(null, true);
 					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, info.gateway);
+					}
 				});
 			options.params = {
 				network: 'vpc-09fcf25a62b4d020f',
@@ -456,6 +509,9 @@ describe("testing /lib/aws/index.js", function () {
 					deleteSubnet: (params, cb) => {
 						return cb(null, true);
 					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, info.gateway);
+					}
 				});
 			options.params = {
 				network: 'vpc-09fcf25a62b4d020f',
@@ -500,6 +556,9 @@ describe("testing /lib/aws/index.js", function () {
 					deleteSubnet: (params, cb) => {
 						return cb(null, true);
 					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, info.gateway);
+					}
 				});
 			options.params = {
 				network: 'vpc-09fcf25a62b4d020f',
@@ -544,6 +603,9 @@ describe("testing /lib/aws/index.js", function () {
 					deleteSubnet: (params, cb) => {
 						return cb(null, true);
 					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, info.gateway);
+					}
 				});
 			options.params = {
 				network: 'vpc-09fcf25a62b4d020f',
@@ -582,6 +644,15 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					deleteSubnet: (params, cb) => {
 						return cb(null, true);
+					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, info.gateway);
+					},
+					detachInternetGateway: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteInternetGateway: (params, cb) => {
+						return cb(null, info.gateway);
 					}
 				});
 			let info = dD();
@@ -611,6 +682,15 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					deleteSubnet: (params, cb) => {
 						return cb(null, true);
+					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, info.gateway);
+					},
+					detachInternetGateway: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteInternetGateway: (params, cb) => {
+						return cb(null, info.gateway);
 					}
 				});
 			let info = dD();
@@ -640,6 +720,15 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					deleteSubnet: (params, cb) => {
 						return cb(null, true);
+					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, info.gateway);
+					},
+					detachInternetGateway: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteInternetGateway: (params, cb) => {
+						return cb(null, info.gateway);
 					}
 				});
 			let info = dD();
@@ -668,6 +757,15 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					deleteSubnet: (params, cb) => {
 						return cb(null, true);
+					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, info.gateway);
+					},
+					detachInternetGateway: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteInternetGateway: (params, cb) => {
+						return cb(null, info.gateway);
 					}
 				});
 			let info = dD();
@@ -696,6 +794,15 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					deleteSubnet: (params, cb) => {
 						return cb(null, true);
+					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, info.gateway);
+					},
+					detachInternetGateway: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteInternetGateway: (params, cb) => {
+						return cb(null, info.gateway);
 					}
 				});
 			let info = dD();
