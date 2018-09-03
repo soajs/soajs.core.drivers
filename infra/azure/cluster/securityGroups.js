@@ -183,6 +183,135 @@ const securityGroups = {
 
         return securityRules;
     },
+
+    /**
+    * Update security group based on the ports found in the catalog recipe
+
+    * @param  {Array}   ports  The list of ports
+    * @return {Array}
+    */
+    syncPortsFromCatalogRecipe: function(options, cb) {
+
+        /**
+         * options.params
+         *                  .securityGroups
+         *                  .recipe
+         *
+         * inspect security groups selected (only one for azure)
+         * update the ports based on the catalog recipe
+         * update security groups
+         */
+
+        function assignPortPriority(existingPorts) {
+			let newPriority = Math.floor((Math.random() * 1000) + 500);
+			if(existingPorts && Array.isArray(existingPorts) && existingPorts.length > 0) {
+				for(let i = 0; i < existingPorts.length; i++) {
+					if(existingPorts[i].priority === newPriority) {
+						return assignPortPriority(existingPorts);
+					}
+				}
+			}
+
+			return newPriority;
+		}
+
+        function getSecurityGroups(callback) {
+            // no security groups selected
+            if(!options.params.securityGroups || !Array.isArray(options.params.securityGroups) || options.params.securityGroups.length === 0) {
+                return callback(null, []);
+            }
+
+            // catalog recipe does not include any ports
+            if(!options.params.catalog.recipe.deployOptions || !options.params.catalog.recipe.deployOptions.ports || !Array.isArray(options.params.catalog.recipe.deployOptions.ports) || options.params.catalog.recipe.deployOptions.ports.length === 0) {
+                return callback(null, []);
+            }
+
+            async.map(options.params.securityGroups, (oneSecurityGroup, mapCallback) => {
+                let getOptions = Object.assign({}, options);
+                getOptions.params = {
+                    group: options.params.group,
+                    name: oneSecurityGroup
+                };
+
+                return securityGroups.get(getOptions, mapCallback);
+            }, callback);
+        }
+
+        function computePorts(result, callback) {
+            console.log(result.getSecurityGroups);
+            if(!result.getSecurityGroups || !Array.isArray(result.getSecurityGroups) || result.getSecurityGroups.length === 0) {
+                return callback(null, []);
+            }
+
+            let catalogPorts = options.params.catalog.recipe.deployOptions.ports;
+            async.map(result.getSecurityGroups, (oneSecurityGroup, mapCallback) => {
+                let sgPorts = oneSecurityGroup.ports || [];
+
+                async.concat(catalogPorts, function(oneCatalogPort, concatCallback) {
+    				async.detect(sgPorts, function(oneSgPort, detectCallback) {
+    					if(oneSgPort.access === 'allow' && oneSgPort.direction === 'inbound') {
+    						if(oneSgPort.isPublished === oneCatalogPort.isPublished &&
+    							((oneSgPort.published == oneCatalogPort.published) || oneSgPort.published === '*') &&
+    							((oneSgPort.target == oneCatalogPort.target) || oneSgPort.target === '*')) {
+    							return detectCallback(null, true);
+    						}
+    					}
+    					return detectCallback(null, false);
+    				}, function(error, foundPort) {
+    					if(foundPort) return concatCallback(null, []);
+
+    					return concatCallback(null, [
+    						{
+    							name: oneCatalogPort.name,
+    							protocol: oneCatalogPort.protocol || '*',
+    							access: 'allow',
+    							priority: assignPortPriority(sgPorts),
+    							direction: 'inbound',
+    							target: oneCatalogPort.target || '*',
+    							published: oneCatalogPort.published || '*',
+    							sourceAddress: '*',
+    							destinationAddress: (oneCatalogPort.isPublished) ? '*' : 'VirtualNetwork',
+    							isPublished: oneCatalogPort.isPublished || false
+    						}
+    					]);
+    				});
+    			}, function(error, portsUpdates) {
+                    console.log(JSON.stringify(portsUpdates, null, 2));
+                    //no error to be handled
+                    oneSecurityGroup.portsUpdates = portsUpdates;
+                    return mapCallback(null, oneSecurityGroup);
+                });
+            }, callback);
+        }
+
+        function updateSecurityGroups(result, callback) {
+            if(!result.computePorts || !Array.isArray(result.computePorts) || result.computePorts.length === 0) {
+                return callback(null, true);
+            }
+
+            async.each(result.computePorts, (oneSecurityGroup, eachCallback) => {
+                let updateOptions = Object.assign({}, options);
+                updateOptions.params = {
+                    region: oneSecurityGroup.region,
+                    group: options.params.group,
+                    name: oneSecurityGroup.name,
+                    ports: oneSecurityGroup.portsUpdates
+                };
+
+                return securityGroups.update(updateOptions, eachCallback);
+            }, callback);
+        }
+
+        async.auto({
+            getSecurityGroups,
+            computePorts: ['getSecurityGroups', computePorts],
+            updateSecurityGroups: ['computePorts', updateSecurityGroups]
+        }, function(error, result) {
+            utils.checkError(error, 734, cb, () => {
+                return cb(null, true);
+            });
+        });
+    }
 };
 
 module.exports = securityGroups;
