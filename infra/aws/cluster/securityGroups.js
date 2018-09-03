@@ -63,7 +63,11 @@ const securityGroups = {
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-		ec2.describeSecurityGroups({}, (err, response) => {
+		let params = {};
+		if (options.params.ids) {
+			params.GroupIds = options.params.ids;
+		}
+		ec2.describeSecurityGroups(params, (err, response) => {
 			if (err) {
 				return cb(err);
 			}
@@ -292,7 +296,7 @@ const securityGroups = {
 			ports.forEach((onePort) => {
 				let port = {
 					FromPort: onePort.published,
-					IpProtocol: (onePort.protocol === "*") ? '-1' : onePort.protocol,
+					IpProtocol: (onePort.protocol === "*") ? '-1' : onePort.protocol.toLowerCase(),
 					ToPort: onePort.range
 				};
 				if (!onePort.range) {
@@ -326,6 +330,130 @@ const securityGroups = {
 			});
 		}
 		return {inbound, outbound}
+	},
+	
+	/**
+	 * Update security group based on the ports found in the catalog recipe
+	 
+	 * @param  {object}   options  The list of ports
+	 * @param  {object}   cb  The list of ports
+	 * @return {void}
+	 */
+	syncPortsFromCatalogRecipe: function (options, cb) {
+		console.log(options.params);
+		
+		/**
+		 * options.params
+		 *                  .securityGroups
+		 *                  .ports
+		 *                  .region
+		 *
+		 * inspect security groups selected (only one for azure)
+		 * update the ports based on the catalog recipe
+		 * update security groups
+		 */
+		const aws = options.infra.api;
+		
+		const ec2 = getConnector({
+			api: 'ec2',
+			region: options.params.region,
+			keyId: aws.keyId,
+			secretAccessKey: aws.secretAccessKey
+		});
+		let vpc = false;
+		function getSecurityGroups(callback) {
+			// no security groups selected
+			if (!options.params.securityGroups || !Array.isArray(options.params.securityGroups) || options.params.securityGroups.length === 0) {
+				return callback(null, []);
+			}
+			
+			// catalog recipe does not include any ports
+			if (!options.params.ports || !options.params.ports || !Array.isArray(options.params.ports) || options.params.length === 0) {
+				return callback(null, []);
+			}
+			let getOptions = Object.assign({}, options);
+			getOptions.params = {
+				region: options.params.region,
+				ids: options.params.securityGroups,
+			};
+			securityGroups.list(getOptions, callback);
+		}
+		
+		function computePorts(callback) {
+			async.map(options.params.ports, (onePort, call) => {
+				let port = {
+					FromPort: onePort.target,
+					IpProtocol: "tcp",
+					ToPort: onePort.target,
+					vpc: !onePort.isPublished
+				};
+				vpc = !onePort.isPublished;
+				if (onePort.name){
+					let supportedProtocols = config.ipProtocolNumbers.concat(config.ipProtocols);
+					if (supportedProtocols.indexOf(onePort.name.toLowerCase()) !== -1){
+						port.IpProtocol = onePort.name.toLowerCase();
+					}
+					else if (onePort.name === "*"){
+						port.IpProtocol = -1;
+					}
+					else {
+						port.IpProtocol = "tcp";
+					}
+				}
+				else {
+					port.IpProtocol = "tcp"
+				}
+				call();
+			}, callback);
+		}
+		function getVpc (callback){
+			if (!vpc){
+				return callback();
+			}
+			ec2.describeVpcs({
+				VpcIds: [result[0].id]
+			}, callback);
+		}
+		function updateSecurityGroups(result, callback) {
+			if (!result.computePorts || !Array.isArray(result.computePorts) || result.computePorts.length === 0) {
+				return callback(null, true);
+			}
+			
+			async.each(result.computePorts, (onePort, eachCallback) => {
+				if (onePort.vpc && result.getVpc && result.getVpc.Vpcs && result.getVpc.Vpcs[0] && result.getVpc.Vpcs[0].CidrBlock){
+					onePort.IpRanges= [
+						{
+							CidrIp: result.getVpc.Vpcs[0].CidrBlock,
+							Description: "Internal Network only"
+						}
+					]
+				}
+				else {
+					onePort.IpRanges = [{
+						CidrIp: "0.0.0.0/0",
+						Description: "Anywhere Ipv4"
+					}];
+					onePort.Ipv6Ranges = [{
+						CidrIp: "::/0",
+						Description: "Anywhere Ipv6"
+					}];
+				}
+				async.each(options.params.securityGroups, (oneSecurityGroup, internalCallback) => {
+					let params = {
+						GroupId: oneSecurityGroup,
+						IpPermissions: onePort
+					};
+					return ec2.authorizeSecurityGroupIngress(params, internalCallback);
+				}, eachCallback);
+			}, callback);
+		}
+		
+		async.auto({
+			getSecurityGroups,
+			computePorts: ['getSecurityGroups', computePorts],
+			getVpc: ['computePorts', getVpc],
+			updateSecurityGroups: ['getVpc', updateSecurityGroups]
+		}, cb);
 	}
 };
 

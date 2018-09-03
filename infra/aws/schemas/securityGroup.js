@@ -159,7 +159,15 @@ const list = {
         "region": {
             "type": "string",
             "required": true
-        }
+        },
+	    "ids": {
+		    "type": "array",
+		    "required": false,
+		    "items": {
+			    "type": "string",
+			    "required": true
+		    }
+	    }
     }
 };
 
