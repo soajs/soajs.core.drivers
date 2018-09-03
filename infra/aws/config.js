@@ -7,7 +7,9 @@ var config = {
 	},
 	aws: {
 		ssmSupportedPolicy:["AmazonEC2RoleforSSM"]
-	}
+	},
+	ipProtocolNumbers: Array.apply(null, {length: 141}).map(Function.call, Number),
+	ipProtocols: ["tcp", "udp", "icmp"]
+	
 };
-
 module.exports = config;

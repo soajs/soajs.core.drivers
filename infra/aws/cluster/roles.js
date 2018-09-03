@@ -21,7 +21,6 @@ const certificates = {
 		const aws = options.infra.api;
 		const iam = getConnector({
 			api: 'iam',
-			region: options.params.region,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
