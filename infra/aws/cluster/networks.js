@@ -94,16 +94,16 @@ const driver = {
 			InstanceTenancy: options.params.instanceTenancy || "default", // "host" || "dedicated" || "default"
 		};
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#createVpc-property
-		ec2.createVpc(params, function (err, response) {
+		ec2.createVpc(params, function (err, vpcResponse) {
 			if (err) {
 				return cb(err);
 			}
 			async.parallel({
 				tags: function (callback) {
-					if (options.params.name && response && response.Vpc && response.Vpc.VpcId) {
+					if (options.params.name && vpcResponse && vpcResponse.Vpc && vpcResponse.Vpc.VpcId) {
 						params = {
 							Resources: [
-								response.Vpc.VpcId
+								vpcResponse.Vpc.VpcId
 							],
 							Tags: [
 								{
@@ -113,31 +113,62 @@ const driver = {
 							]
 						};
 						ec2.createTags(params, function (err) {
-							options.soajs.log.error(err);
-							return callback(null, response);
+							if (err) options.soajs.log.error(err);
+							return callback(null, true);
 						});
 					}
 					else {
-						return callback(null, response);
+						return callback(null, true);
 					}
 				},
 				internetGateway: function (callback) {
-					if (options.params.attachInternetGateway && response && response.Vpc && response.Vpc.VpcId){
-						ec2.createInternetGateway({}, (err, gateway) => {
-							if (err) {
-								return callback(err);
-							}
-							else {
-								ec2.attachInternetGateway({
-									VpcId: response.Vpc.VpcId,
-									InternetGatewayId: gateway.InternetGateway.InternetGatewayId
-								}, callback);
-							}
-						});
+					if (!options.params.attachInternetGateway || !vpcResponse || !vpcResponse.Vpc || !vpcResponse.Vpc.VpcId) {
+						return callback(null, true);
 					}
-					else{
-						return callback();
+					
+					function createInternetGateway(call) {
+						ec2.createInternetGateway({}, call);
 					}
+					
+					function attachInternetGateway(result, call) {
+						if (result && result.createInternetGateway && result.createInternetGateway.InternetGateway && result.createInternetGateway.InternetGateway.InternetGatewayId) {
+							ec2.attachInternetGateway({
+								VpcId: vpcResponse.Vpc.VpcId,
+								InternetGatewayId: result.createInternetGateway.InternetGateway.InternetGatewayId
+							}, call)
+						}
+						else {
+							return call();
+						}
+					}
+					
+					function describeRouteTables(result, call) {
+						ec2.describeRouteTables({
+							Filters: [
+								{
+									Name: 'vpc-id',
+									Values: [
+										vpcResponse.Vpc.VpcId,
+									]
+								},
+							]
+						}, call);
+					}
+					
+					function createRoute(result, call) {
+						ec2.createRoute({
+							DestinationCidrBlock: '0.0.0.0/0',
+							GatewayId: result.createInternetGateway.InternetGateway.InternetGatewayId,
+							RouteTableId: result.describeRouteTables.RouteTables[0].RouteTableId
+						}, call);
+					}
+					
+					async.auto({
+						createInternetGateway,
+						attachInternetGateway: ['createInternetGateway', attachInternetGateway],
+						describeRouteTables: ['attachInternetGateway', describeRouteTables],
+						createRoute: ['describeRouteTables', 'createInternetGateway', createRoute],
+					}, callback);
 				}
 			}, cb);
 		});
@@ -183,7 +214,7 @@ const driver = {
 					]
 				}, callback)
 			},
-			internetGateway: function (callback) {
+			describeInternetGateways: function (callback) {
 				ec2.describeInternetGateways({
 					Filters: [
 						{
@@ -321,44 +352,114 @@ const driver = {
 						});
 					},
 					internetGateway: function (callback) {
-						if (results.internetGateway && results.internetGateway.InternetGateways && results.internetGateway.InternetGateways.length > 0) {
+						
+						function detachInternetGateway(call) {
+							if (results && results.describeInternetGateways && results.describeInternetGateways.InternetGateways && results.describeInternetGateways.InternetGateways[0] && results.describeInternetGateways.InternetGateways[0].InternetGatewayId) {
+								ec2.detachInternetGateway({
+									VpcId: options.params.id,
+									InternetGatewayId: results.describeInternetGateways.InternetGateways[0].InternetGatewayId
+								}, call);
+							}
+							else {
+								return call();
+							}
+						}
+						
+						function deleteInternetGateway(auto, call) {
+							if (results && results.describeInternetGateways && results.describeInternetGateways.InternetGateways && results.describeInternetGateways.InternetGateways[0] && results.describeInternetGateways.InternetGateways[0].InternetGatewayId) {
+								ec2.deleteInternetGateway({
+									InternetGatewayId: results.describeInternetGateways.InternetGateways[0].InternetGatewayId
+								}, call);
+							}
+							else {
+								return call();
+							}
+						}
+						
+						function describeRouteTables(auto, call) {
+							ec2.describeRouteTables({
+								Filters: [
+									{
+										Name: 'vpc-id',
+										Values: [
+											options.params.id,
+										]
+									},
+								]
+							}, call);
+						}
+						
+						function deleteRoute(auto, call) {
+							if (auto && auto.describeRouteTables && auto.describeRouteTables.RouteTables && auto.describeRouteTables.RouteTables[0] && auto.describeRouteTables.RouteTables[0].RouteTableId) {
+								ec2.deleteRoute({
+									RouteTableId: auto.describeRouteTables.RouteTables[0].RouteTableId, /* required */
+									DestinationCidrBlock: '0.0.0.0/0',
+									DryRun: false
+								}, call);
+							}
+							else {
+								return call();
+							}
+						}
+						
+						function createInternetGateway(call) {
+							ec2.createInternetGateway({}, call);
+						}
+						
+						function attachInternetGateway(auto, call) {
+							if (auto && auto.createInternetGateway && auto.createInternetGateway.InternetGateway && auto.createInternetGateway.InternetGateway.InternetGatewayId) {
+								ec2.attachInternetGateway({
+									VpcId: options.params.id,
+									InternetGatewayId: auto.createInternetGateway.InternetGateway.InternetGatewayId
+								}, call);
+							}
+							else {
+								return call();
+							}
+						}
+						
+						function createRoute(auto, call) {
+							if (auto && auto.createInternetGateway && auto.createInternetGateway.InternetGateway && auto.createInternetGateway.InternetGateway.InternetGatewayId
+								&& auto.describeRouteTables && auto.describeRouteTables.RouteTables && auto.describeRouteTables.RouteTables[0] && auto.describeRouteTables.RouteTables[0].RouteTableId) {
+								ec2.createRoute({
+									DestinationCidrBlock: '0.0.0.0/0',
+									GatewayId: auto.createInternetGateway.InternetGateway.InternetGatewayId,
+									RouteTableId: auto.describeRouteTables.RouteTables[0].RouteTableId
+								}, call);
+							}
+							else {
+								return call();
+							}
+						}
+						
+						let jobs = {};
+						if (results && results.describeInternetGateways && results.describeInternetGateways.InternetGateways && results.describeInternetGateways.InternetGateways.length > 0) {
 							if (options.params.attachInternetGateway) {
 								return callback();
 							}
 							else {
-								ec2.detachInternetGateway({
-									VpcId: options.params.id,
-									InternetGatewayId: results.internetGateway.InternetGateways[0].InternetGatewayId
-								}, (err) => {
-									if (err) {
-										return callback(err);
-									}
-									else {
-										ec2.deleteInternetGateway({
-											InternetGatewayId: results.internetGateway.InternetGateways[0].InternetGatewayId
-										}, callback);
-									}
-								});
+								jobs = {
+									detachInternetGateway,
+									describeRouteTables,
+									deleteInternetGateway: ["detachInternetGateway", deleteInternetGateway],
+									deleteRoute: ["deleteInternetGateway", "describeRouteTables", deleteRoute],
+								};
 							}
 						}
 						else {
 							if (options.params.attachInternetGateway) {
-								ec2.createInternetGateway({}, (err, gateway) => {
-									if (err) {
-										return callback(err);
-									}
-									else {
-										ec2.attachInternetGateway({
-											VpcId: options.params.id,
-											InternetGatewayId: gateway.InternetGateway.InternetGatewayId
-										}, callback);
-									}
-								});
+								jobs = {
+									createInternetGateway,
+									attachInternetGateway: ['createInternetGateway', attachInternetGateway],
+									describeRouteTables: ['attachInternetGateway', describeRouteTables],
+									createRoute: ['describeRouteTables', 'createInternetGateway', createRoute],
+								};
 							}
 							else {
 								return callback();
 							}
 						}
+						async.auto(jobs, callback);
 					}
 				}, cb);
 			}
@@ -401,7 +502,7 @@ const driver = {
 					]
 				}, callback)
 			},
-			gatways: (callback) => {
+			describeInternetGateways: (callback) => {
 				ec2.describeInternetGateways({
 					Filters: [
 						{
@@ -418,37 +519,106 @@ const driver = {
 				return cb(err);
 			}
 			async.auto({
-				deleteSubnets: (call) => {
-					if (response && response.subnets && response.subnets.Subnets && Array.isArray(response.subnets.Subnets) && response.subnets.Subnets.length > 0) {
-						async.each(response.subnets.Subnets, (oneSubnet, callback) => {
-							ec2.deleteSubnet({SubnetId: oneSubnet.SubnetId}, callback);
+				removeDependencies: (callback) => {
+					function deleteSubnets(auto, call) {
+						if (response && response.subnets && response.subnets.Subnets && Array.isArray(response.subnets.Subnets) && response.subnets.Subnets.length > 0) {
+							async.each(response.subnets.Subnets, (oneSubnet, callback) => {
+								ec2.deleteSubnet({SubnetId: oneSubnet.SubnetId}, callback);
+							}, call);
+						}
+						else {
+							return call();
+						}
+					}
+					
+					function detachInternetGateway(call) {
+						if (response.describeInternetGateways && response.describeInternetGateways.InternetGateways && response.describeInternetGateways.InternetGateways[0] && response.describeInternetGateways.InternetGateways[0].InternetGatewayId) {
+							ec2.detachInternetGateway({
+								InternetGatewayId: response.describeInternetGateways.InternetGateways[0].InternetGatewayId,
+								VpcId: options.params.id
+							}, call);
+						}
+						else {
+							return call();
+						}
+					}
+					
+					function deleteInternetGateway(auto, call) {
+						if (response.describeInternetGateways && response.describeInternetGateways.InternetGateways && response.describeInternetGateways.InternetGateways[0] && response.describeInternetGateways.InternetGateways[0].InternetGatewayId) {
+							ec2.deleteInternetGateway({InternetGatewayId: response.describeInternetGateways.InternetGateways[0].InternetGatewayId}, call);
+						}
+						else {
+							return call();
+						}
+					}
+					
+					function describeRouteTables(call) {
+						ec2.describeRouteTables({
+							Filters: [
+								{
+									Name: 'vpc-id',
+									Values: [
+										options.params.id,
+									]
+								},
+							]
 						}, call);
 					}
-					else {
-						return call();
+					
+					function deleteRouteTable(auto, call) {
+						if (auto.describeRouteTables && auto.describeRouteTables.InternetGateway && auto.describeRouteTables.InternetGateway.RouteTableId) {
+							ec2.deleteRoute({
+								RouteTableId: auto.describeRouteTables.InternetGateway.RouteTableId, /* required */
+								DryRun: false
+							}, call);
+						}
+						else {
+							return call();
+						}
 					}
+					
+					function describeSecurityGroups(call) {
+						ec2.describeSecurityGroups({
+							Filters: [
+								{
+									Name: 'vpc-id',
+									Values: [
+										options.params.id,
+									]
+								},
+							]
+						}, call);
+					}
+					
+					function deleteSecurityGroups(auto, call) {
+						if (auto && auto.describeSecurityGroups && auto.describeSecurityGroups.SecurityGroups && auto.describeSecurityGroups.SecurityGroups.length > 0){
+							async.each(auto.describeSecurityGroups.SecurityGroups, (one, miniCB)=>{
+								if (one.GroupName === "default"){
+									return miniCB();
+								}
+								ec2.deleteSecurityGroup({
+									GroupId: one.GroupId,
+								}, miniCB);
+							}, call);
+						}
+						else {
+							return call();
+						}
+					}
+					
+					async.auto({
+						describeRouteTables,
+						detachInternetGateway,
+						describeSecurityGroups,
+						deleteSecurityGroups: ['describeSecurityGroups', deleteSecurityGroups],
+						deleteSubnets: ['deleteSecurityGroups', deleteSubnets],
+						deleteInternetGateway: ["detachInternetGateway", deleteInternetGateway],
+						deleteRouteTable: ["deleteInternetGateway", "describeRouteTables", deleteRouteTable],
+					}, callback);
+					
 				},
-				deleteInternetGateway: (call) => {
-					if (response && response.gatways && response.gatways.InternetGateways && Array.isArray(response.gatways.InternetGateways) && response.gatways.InternetGateways.length > 0) {
-						ec2.detachInternetGateway({
-							InternetGatewayId: response.gatways.InternetGateways[0].InternetGatewayId,
-							VpcId: options.params.id
-						}, function (err) {
-							if (err) {
-								return call(err);
-							}
-							else {
-								ec2.deleteInternetGateway({InternetGatewayId: response.gatways.InternetGateways[0].InternetGatewayId}, call);
-							}
-						});
-						
-					}
-					else {
-						return call();
-					}
-				},
-				deleteVpc: ['deleteSubnets', 'deleteInternetGateway', (results, call) => {
-					ec2.deleteVpc({VpcId: options.params.id}, call)
+				deleteVpc: ['removeDependencies', (results, callback) => {
+					ec2.deleteVpc({VpcId: options.params.id}, callback)
 				}]
 			}, cb);
 		});
