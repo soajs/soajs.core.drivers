@@ -96,6 +96,12 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					createTags: (params, cb) => {
 						return cb(null, true);
+					},
+					createInternetGateway: (params, cb) => {
+						return cb(null, true);
+					},
+					attachInternetGateway: (params, cb) => {
+						return cb(null, true);
 					}
 				});
 			let info = dD();
@@ -106,7 +112,8 @@ describe("testing /lib/aws/index.js", function () {
 				AmazonProvidedIpv6CidrBlock: false,
 				DryRun: false,
 				InstanceTenancy: "default",
-				name: "test"
+				name: "test",
+				attachInternetGateway: true
 			};
 			service.createNetwork(options, function (error, response) {
 				assert.ifError(error);
@@ -194,6 +201,18 @@ describe("testing /lib/aws/index.js", function () {
 					deleteSubnet: (params, cb) => {
 						return cb(null, true);
 					},
+					createInternetGateway: (params, cb) => {
+						return cb(null, true);
+					},
+					attachInternetGateway: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteInternetGateway: (params, cb) => {
+						return cb(null, true);
+					},
+					detachInternetGateway: (params, cb) => {
+						return cb(null, true);
+					}
 				});
 			options.params = {
 				id: 'vpc-09fcf25a62b4d020f',

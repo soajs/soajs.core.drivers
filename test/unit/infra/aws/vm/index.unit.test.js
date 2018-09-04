@@ -4,7 +4,6 @@ const assert = require("assert");
 const sinon = require('sinon');
 
 const service = helper.requireModule('./infra/aws/index.js');
-const config = helper.requireModule('./infra/azure/config.js');
 
 let dD = require('../../../../schemas/aws/cluster.js');
 const AWSDriver = helper.requireModule('./infra/aws/utils/utils.js');
@@ -18,7 +17,95 @@ describe("testing /lib/aws/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			done();
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				technology: "vm",
+				region: "us-east-1"
+			};
+			delete options.infra.stack;
+			delete options.infra.info;
+			var counter = 0;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeInstances: (params, cb) => {
+						if (counter === 0) {
+							counter++;
+							return cb(null, info.listVmInstances);
+						}
+						else {
+							return cb(null, null);
+						}
+					},
+					describeImages: (params, cb) => {
+						return cb(null, info.listImages);
+					},
+					describeSecurityGroups: (params, cb) => {
+						return cb(null, info.listSecurityGroups);
+					},
+					describeVolumes: (params, cb) => {
+						return cb(null, info.listDisks);
+					},
+					describeLoadBalancers: (params, cb) => {
+						return cb(null, info.listlb);
+					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnetRaw);
+					},
+				});
+			
+			service.executeDriver('inspectService', options, function (error, response) {
+				let expected = info.vmExpected;
+				assert.ifError(error);
+				assert.ok(response);
+				assert.deepEqual(response, expected[0]);
+				done();
+			});
+		});
+		it("Success", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				technology: "vm"
+			};
+			delete options.infra.stack;
+			delete options.infra.info;
+			var counter = 0;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeInstances: (params, cb) => {
+						if (counter === 0) {
+							counter++;
+							return cb(null, info.listVmInstances);
+						}
+						else {
+							return cb(null, null);
+						}
+					},
+					describeImages: (params, cb) => {
+						return cb(null, null);
+					},
+					describeSecurityGroups: (params, cb) => {
+						return cb(null, null);
+					},
+					describeVolumes: (params, cb) => {
+						return cb(null, null);
+					},
+					describeLoadBalancers: (params, cb) => {
+						return cb(null, null);
+					},
+					describeSubnets: (params, cb) => {
+						return cb(null, null);
+					},
+				});
+			
+			service.executeDriver('inspectService', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
 		});
 	});
 	
@@ -59,6 +146,9 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					describeLoadBalancers: (params, cb) => {
 						return cb(null, info.listlb);
+					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnetRaw);
 					},
 				});
 			
@@ -350,6 +440,7 @@ describe("testing /lib/aws/index.js", function () {
 			});
 		});
 	});
+	
 	describe("calling executeDriver - runCommand", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -639,9 +730,19 @@ describe("testing /lib/aws/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			done();
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				technology: "vm"
+			};
+			service.executeDriver('listVmSizes', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
 		});
 	});
+	
 	
 	describe("calling executeDriver - listVmImagePublishers", function () {
 		afterEach((done) => {
@@ -649,8 +750,18 @@ describe("testing /lib/aws/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			done();
-		});
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				technology: "vm"
+			};
+			
+			service.executeDriver('listVmImagePublishers', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
+		})
 	});
 	
 	describe("calling executeDriver - listVmImagePublisherOffers", function () {
@@ -659,7 +770,17 @@ describe("testing /lib/aws/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			done();
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				technology: "vm"
+			};
+			
+			service.executeDriver('listVmImagePublisherOffers', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
 		});
 	});
 	
@@ -669,7 +790,17 @@ describe("testing /lib/aws/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			done();
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				technology: "vm"
+			};
+			
+			service.executeDriver('listVmImagePublisherOffers', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
 		});
 	});
 	
@@ -680,8 +811,30 @@ describe("testing /lib/aws/index.js", function () {
 			done();
 		});
 		it("Success", function (done) {
-			done();
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				technology: "vm"
+			};
+			options.params.labels = {"Name": "hadi", "label": "test"};
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeInstances: (params, cb) => {
+						return cb(null, info.listVmInstances);
+					},
+					deleteTags: (params, cb) => {
+						return cb(null, true);
+					},
+					createTags: (params, cb) => {
+						return cb(null, true);
+					}
+				});
+			service.executeDriver('updateVmLabels', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
 		});
 	});
-	
 });

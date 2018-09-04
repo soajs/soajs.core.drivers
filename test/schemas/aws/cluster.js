@@ -1075,7 +1075,7 @@ module.exports = function () {
 				"description": "launch-wizard-4 created 2018-08-14T19:50:39.085+03:00",
 				"networkId": "vpc-957300fc"
 			}
-		]
+		],
 	};
 	return data;
 };

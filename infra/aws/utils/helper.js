@@ -13,6 +13,10 @@ const helper = {
 		if (opts.subnets) {
 			record.subnets = opts.subnets;
 		}
+		record.attachInternetGateway = false;
+		if (opts.attachInternetGateway && opts.attachInternetGateway.InternetGateways && opts.attachInternetGateway.InternetGateways.length > 0) {
+			record.attachInternetGateway = true;
+		}
 
 		if (opts.network) {
 			if (opts.network.VpcId) {
@@ -21,7 +25,7 @@ const helper = {
 			}
 			if (opts.network.Tags && opts.network.Tags.length > 0) {
 				for (let i = 0; i < opts.network.Tags.length; i++) {
-					if (opts.network.Tags[i].Key === "Name"){
+					if (opts.network.Tags[i].Key === "Name") {
 						record.name = opts.network.Tags[i].Value;
 						break;
 					}
@@ -77,7 +81,7 @@ const helper = {
 			}
 			if (opts.subnet.Tags && opts.subnet.Tags.length > 0) {
 				for (let i = 0; i < opts.subnet.Tags.length; i++) {
-					if (opts.subnet.Tags[i].Key === "Name"){
+					if (opts.subnet.Tags[i].Key === "Name") {
 						record.name = opts.subnet.Tags[i].Value;
 						break;
 					}
@@ -118,9 +122,9 @@ const helper = {
 					"maxFailureAttempts": opts.lb.HealthCheck.UnhealthyThreshold,
 					"maxSuccessAttempts": opts.lb.HealthCheck.HealthyThreshold
 				};
-				if (opts.lb.HealthCheck.Target){
+				if (opts.lb.HealthCheck.Target) {
 					record.healthProbe.healthProbeProtocol = opts.lb.HealthCheck.Target.split(":")[0];
-					if (opts.lb.HealthCheck.Target.split(":")[1]){
+					if (opts.lb.HealthCheck.Target.split(":")[1]) {
 						let temp = opts.lb.HealthCheck.Target.split(":")[1].split("/");
 						record.healthProbe.healthProbePort = opts.lb.HealthCheck.Target.split(":")[1].split("/")[0];
 						temp.shift();
@@ -174,24 +178,26 @@ const helper = {
 		return record;
 	},
 
-	buildCertificateRecord: function(opts) {
+	buildCertificateRecord: function (opts) {
 		let output = {};
 		output.region = opts.region;
 
-		if(opts.tags) {
-			let nameTag = opts.tags.find((oneEntry) => { return oneEntry.Key === 'Name' });
-			if(nameTag) output.name = nameTag.Value;
+		if (opts.tags) {
+			let nameTag = opts.tags.find((oneEntry) => {
+				return oneEntry.Key === 'Name'
+			});
+			if (nameTag) output.name = nameTag.Value;
 		}
 
-		if(opts.certificate) {
-			if(opts.certificate.CertificateArn) output.id = opts.certificate.CertificateArn;
-			if(opts.certificate.DomainName) output.domain = opts.certificate.DomainName;
-			if(opts.certificate.SubjectAlternativeNames) output.alternativeDomains = opts.certificate.SubjectAlternativeNames;
-			if(opts.certificate.Type) output.type = opts.certificate.Type.toLowerCase();
-			if(opts.certificate.InUseBy && Array.isArray(opts.certificate.InUseBy)) {
+		if (opts.certificate) {
+			if (opts.certificate.CertificateArn) output.id = opts.certificate.CertificateArn;
+			if (opts.certificate.DomainName) output.domain = opts.certificate.DomainName;
+			if (opts.certificate.SubjectAlternativeNames) output.alternativeDomains = opts.certificate.SubjectAlternativeNames;
+			if (opts.certificate.Type) output.type = opts.certificate.Type.toLowerCase();
+			if (opts.certificate.InUseBy && Array.isArray(opts.certificate.InUseBy)) {
 				output.loadBalancers = [];
 				opts.certificate.InUseBy.forEach((oneEntry) => {
-					if(oneEntry.match(/:loadbalancer\/.*/g)) {
+					if (oneEntry.match(/:loadbalancer\/.*/g)) {
 						output.loadBalancers.push({
 							id: oneEntry,
 							region: oneEntry.split(':')[3], // find a better way to parse the id
@@ -202,18 +208,18 @@ const helper = {
 			}
 
 			output.details = {};
-			if(opts.certificate.Issuer) output.details.issuer = opts.certificate.Issuer;
-			else if(opts.certificate.Type === 'AMAZON_ISSUED') output.details.issuer = 'Amazon';
+			if (opts.certificate.Issuer) output.details.issuer = opts.certificate.Issuer;
+			else if (opts.certificate.Type === 'AMAZON_ISSUED') output.details.issuer = 'Amazon';
 
-			if(opts.certificate.ImportedAt) output.details.importDate = opts.certificate.ImportedAt;
-			if(opts.certificate.Status) output.details.status = helper.getCertificateStatus({ status: opts.certificate.Status });
-			if(opts.certificate.NotBefore) output.details.validFrom = opts.certificate.NotBefore;
-			if(opts.certificate.NotAfter) output.details.validTo = opts.certificate.NotAfter;
+			if (opts.certificate.ImportedAt) output.details.importDate = opts.certificate.ImportedAt;
+			if (opts.certificate.Status) output.details.status = helper.getCertificateStatus({status: opts.certificate.Status});
+			if (opts.certificate.NotBefore) output.details.validFrom = opts.certificate.NotBefore;
+			if (opts.certificate.NotAfter) output.details.validTo = opts.certificate.NotAfter;
 
 			output.dnsConfig = [];
-			if(opts.certificate.DomainValidationOptions && Array.isArray(opts.certificate.DomainValidationOptions)) {
+			if (opts.certificate.DomainValidationOptions && Array.isArray(opts.certificate.DomainValidationOptions)) {
 				opts.certificate.DomainValidationOptions.forEach((oneOption) => {
-					if(oneOption.ValidationMethod === 'DNS' && oneOption.ResourceRecord) {
+					if (oneOption.ValidationMethod === 'DNS' && oneOption.ResourceRecord) {
 						output.dnsConfig.push({
 							domain: oneOption.DomainName,
 							name: oneOption.ResourceRecord.Name,
@@ -228,8 +234,8 @@ const helper = {
 		return output;
 	},
 
-	getCertificateStatus: function(opts) {
-		if(!opts.status) opts.status = '';
+	getCertificateStatus: function (opts) {
+		if (!opts.status) opts.status = '';
 
 		let availableStatuses = {
 			issued: 'active',
@@ -360,20 +366,28 @@ const helper = {
 					if (group.GroupId === listGroup.GroupId) {
 						if (listGroup.IpPermissions) {
 							listGroup.IpPermissions.forEach((inbound) => {
-								record.ports.push(helper.buildPorts({ports: inbound, type: "inbound", securityGroupId: group.GroupId}));
+								record.ports.push(helper.buildPorts({
+									ports: inbound,
+									type: "inbound",
+									securityGroupId: group.GroupId
+								}));
 							});
 						}
 						if (listGroup.IpPermissionsEgress) {
 							listGroup.IpPermissionsEgress.forEach((outbound) => {
-								record.ports.push(helper.buildPorts({ports: outbound, type: "outbound", securityGroupId: group.GroupId}));
+								record.ports.push(helper.buildPorts({
+									ports: outbound,
+									type: "outbound",
+									securityGroupId: group.GroupId
+								}));
 							});
 						}
 					}
 				});
 			});
 		}
-		if (opts.lb && opts.lb.LoadBalancerDescriptions) {
-			opts.lb.LoadBalancerDescriptions.forEach((oneLb) => {
+		if (opts.lb) {
+			opts.lb.forEach((oneLb) => {
 				if (oneLb.Instances && oneLb.Instances.length) {
 					oneLb.Instances.forEach((vm) => {
 						if (vm.InstanceId === opts.vm.InstanceId) {
@@ -388,11 +402,27 @@ const helper = {
 				}
 			});
 		}
+		if (opts.subnet) {
+			for (let i = 0; i < opts.subnet.length; i++) {
+				if (opts.vm.SubnetId === opts.subnet[i].SubnetId) {
+					if (opts.subnet[i].Tags.length > 0) {
+						for (let j = 0; j < opts.subnet[i].Tags.length; j++) {
+							if (opts.subnet[i].Tags[j].Key === "Name") {
+								record.layer = opts.subnet[i].Tags[j].Value;
+								break;
+							}
+						}
+						break;
+					}
+				}
+			}
+		}
+
 		return cb(null, record);
 
 	},
 
-	buildSecurityGroupsRecord: (opts) =>{
+	buildSecurityGroupsRecord: (opts) => {
 		let securityGroup = {};
 		securityGroup.ports = [];
 		securityGroup.region = opts.region;
@@ -401,7 +431,7 @@ const helper = {
 				securityGroup.id = opts.securityGroup.GroupId;
 				securityGroup.name = opts.securityGroup.GroupName;
 			}
-			if (opts.securityGroup.Tags && opts.securityGroup.Tags.length > 0){
+			if (opts.securityGroup.Tags && opts.securityGroup.Tags.length > 0) {
 				for (let i = 0; i < opts.securityGroup.Tags.length; i++) {
 					if (opts.securityGroup.Tags[i].Key === "Name") {
 						securityGroup.name = opts.vm.Tags[i].Value;
@@ -434,7 +464,7 @@ const helper = {
 		ports.direction = opts.type;
 		if (opts.ports) {
 			if (opts.ports.IpProtocol) {
-				if (opts.ports.IpProtocol === "-1"){
+				if (opts.ports.IpProtocol === "-1") {
 					ports.protocol = "*";
 					ports.published = "0 - 65535";
 				}
@@ -451,13 +481,13 @@ const helper = {
 			ports.access = "allow";
 			ports.source = [];
 			if (opts.ports.IpRanges && opts.ports.IpRanges.length > 0) {
-				opts.ports.IpRanges.forEach((range)=>{
+				opts.ports.IpRanges.forEach((range) => {
 					ports.source.push(range.CidrIp);
 				});
 			}
 			ports.ipv6 = [];
 			if (opts.ports.Ipv6Ranges && opts.ports.Ipv6Ranges.length > 0) {
-				opts.ports.Ipv6Ranges.forEach((v6)=>{
+				opts.ports.Ipv6Ranges.forEach((v6) => {
 					ports.ipv6.push(v6.CidrIpv6);
 				});
 			}

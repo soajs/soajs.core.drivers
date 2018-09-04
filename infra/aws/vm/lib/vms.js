@@ -5,6 +5,7 @@ const utils = require('../../utils/utils.js');
 const helper = require('../../utils/helper.js');
 const config = require("../../config");
 const index = require('../../index.js')
+const _ = require('lodash');
 
 function getConnector(opts) {
 	return utils.getConnector(opts, config);
@@ -55,6 +56,9 @@ const vms = {
 			let vParams = {
 				VolumeIds: []
 			};
+			let sParams = {
+				SubnetIds: []
+			};
 			if (results.vms && results.vms.Reservations
 				&& results.vms.Reservations.length > 0
 				&& results.vms.Reservations[0].Instances
@@ -77,7 +81,7 @@ const vms = {
 						vParams.VolumeIds.push(block.Ebs.VolumeId);
 					}
 				});
-
+				sParams.SubnetIds.push(results.vms.Reservations[0].Instances[0].SubnetId);
 				async.parallel({
 					getImage: function (callback) {
 						if (iParams.ImageIds.length > 0) {
@@ -102,7 +106,15 @@ const vms = {
 						else {
 							return callback(null, true);
 						}
-					}
+					},
+					getSubnets: function (callback) {
+						if (sParams.SubnetIds.length > 0) {
+							ec2.describeSubnets(sParams, callback)
+						}
+						else {
+							return callback(null, null);
+						}
+					},
 				}, (err, response) => {
 					if (err) {
 						return cb(err);
@@ -113,7 +125,8 @@ const vms = {
 							images: response.getImage ? response.getImage.Images : null,
 							securityGroups: response.getSecurityGroup ? response.getSecurityGroup.SecurityGroups : null,
 							volumes: response.getVolumes ? response.getVolumes.Volumes : null,
-							lb: results.lb,
+							lb: response.getElb ? response.getElb.LoadBalancerDescriptions : null,
+							subnet: response.getSubnets ? response.getSubnets.Subnets : null,
 							region: options.params.region
 						}, cb);
 					}
@@ -167,7 +180,7 @@ const vms = {
 				awsObject["ec2" + region.v].describeInstances({}, (err, reservations) => {
 					if (reservations && reservations.Reservations && reservations.Reservations.length > 0) {
 						let opts = {
-							GroupIds: [], ImageIds: [], VolumeIds: []
+							GroupIds: [], ImageIds: [], VolumeIds: [], SubnetIds : []
 						};
 						extractData(reservations.Reservations, opts, () => {
 							opts.ec2 = awsObject["ec2" + region.v];
@@ -175,12 +188,16 @@ const vms = {
 							getVolumesImagesSgroupsElb(opts, (err, results) => {
 								async.each(reservations.Reservations, function (reservation, rCB) {
 									async.map(reservation.Instances, function (vm, iCB) {
+										if (vm.State && vm.State.Name === "terminated" || vm.State.Name === "shutting-down"){
+											return iCB(null, []);
+										}
 										helper.buildVMRecord({
 											vm,
 											images: results.getImage ? results.getImage.Images : null,
 											securityGroups: results.getSecurityGroup ? results.getSecurityGroup.SecurityGroups : null,
 											volumes: results.getVolumes ? results.getVolumes.Volumes : null,
 											lb: results.getElb ? results.getElb.LoadBalancerDescriptions : null,
+											subnet: results.getSubnets ? results.getSubnets.Subnets : null,
 											region: region.v
 										}, iCB);
 									}, function (err, final) {
@@ -229,6 +246,14 @@ const vms = {
 						return callback(null, null);
 					}
 				},
+				getSubnets: function (callback) {
+					if (opts.SubnetIds.length > 0) {
+						opts.ec2.describeSubnets({SubnetIds: opts.SubnetIds}, callback)
+					}
+					else {
+						return callback(null, null);
+					}
+				},
 				getElb: function (callback) {
 					opts.elb.describeLoadBalancers({}, callback)
 				}
@@ -239,6 +264,9 @@ const vms = {
 			async.each(reservations, function (oneReservation, mainCB) {
 				if (oneReservation.Instances && oneReservation.Instances.length > 0) {
 					async.each(oneReservation.Instances, function (oneInstance, miniCb) {
+						if (oneInstance.State && oneInstance.State.Name === "terminated" || oneInstance.State.Name === "shutting-down"){
+							return mainCB();
+						}
 						if (oneInstance.ImageId && opts.ImageIds.indexOf(oneInstance.ImageId) === -1) {
 							opts.ImageIds.push(oneInstance.ImageId);
 						}
@@ -264,7 +292,16 @@ const vms = {
 								else {
 									callback();
 								}
-							}
+							},
+							Subnets: function (callback) {
+								if (oneInstance.SubnetId) {
+									opts.SubnetIds.push(oneInstance.SubnetId);
+									return callback();
+								}
+								else {
+									callback();
+								}
+							},
 						}, miniCb);
 					}, mainCB);
 				}

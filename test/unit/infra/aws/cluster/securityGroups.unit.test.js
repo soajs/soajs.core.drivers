@@ -281,6 +281,62 @@ describe("testing /lib/aws/index.js", function () {
 		});
 	});
 	
+	describe("getSecurityGroup", function () {
+		afterEach((done) => {
+			sinon.restore();
+			done();
+		});
+		it("Success", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeSecurityGroups: (params, cb) => {
+						return cb(null, null);
+					}
+				});
+			service.getSecurityGroup(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				assert.deepEqual(response, {});
+				done();
+			});
+		});
+		it("Success", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeSecurityGroups: (params, cb) => {
+						return cb(null, info.listSecurityGroups);
+					}
+				});
+			service.getSecurityGroup(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				assert.deepEqual(response, info.securityGroupsExpected[0]);
+				done();
+			});
+		});
+		it("error", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					getSecurityGroup: (params, cb) => {
+						return cb(new Error("test"), null);
+					}
+				});
+			service.listSecurityGroups(options, function (error, response) {
+				assert.ok(error);
+				done();
+			});
+		});
+	});
+	
 	describe("deleteSecurityGroup", function () {
 		afterEach((done) => {
 			sinon.restore();

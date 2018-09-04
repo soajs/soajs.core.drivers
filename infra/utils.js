@@ -67,7 +67,6 @@ const utils = {
 		else {
 			//if no ports are set in the recipe, do not perform check
 			if (!options.params.catalog || !options.params.catalog.recipe || !options.params.catalog.recipe.deployOptions || !options.params.catalog.recipe.deployOptions.ports || !Array.isArray(options.params.catalog.recipe.deployOptions.ports)) {
-				console.log(cb)
 				return cb();
 			}
 			
