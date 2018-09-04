@@ -645,7 +645,7 @@ const helper = {
 				published: oneSecurityRule.destinationPortRange,
 				sourceAddress: oneSecurityRule.sourceAddressPrefix,
 				destinationAddress: oneSecurityRule.destinationAddressPrefix,
-				isPublished: (oneSecurityRule.destinationPortRange) ? true : false
+				isPublished: (["*", "Internet", "0.0.0.0/0"].includes(oneSecurityRule.sourceAddressPrefix)) ? true : false
 			});
 		});
 

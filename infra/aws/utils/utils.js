@@ -14,7 +14,7 @@ const utils = {
 			},
 			region: region
 		});
-		
+
 		switch (opts.api) {
 			case 'ec2':
 				return new AWS.EC2({ apiVersion: '2016-11-15' });
@@ -29,7 +29,7 @@ const utils = {
 			case 'iam':
 				return new AWS.IAM({apiVersion: '2010-05-08'});
 			case 'ssm':
-				return new AWS.ELB({apiVersion: '2014-11-06'});
+				return new AWS.SSM({apiVersion: '2014-11-06'});
 			default:
 				return new AWS.EC2({ apiVersion: '2016-11-15' });
 		}

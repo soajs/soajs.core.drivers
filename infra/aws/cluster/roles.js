@@ -17,29 +17,28 @@ const certificates = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	list: function(options, cb) {
+	list: function (options, cb) {
 		const aws = options.infra.api;
 		const iam = getConnector({
 			api: 'iam',
-			region: options.params.region,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-		iam.listRoles({PathPrefix: "/"}, function(err, data) {
+		iam.listRoles({PathPrefix: "/"}, function (err, data) {
 			if (err) return cb(err);
 			let roles = [];
-			async.each(data.Roles, function(oneRole, callback) {
+			async.each(data.Roles, function (oneRole, callback) {
 				try {
 					let doc = decodeURIComponent(oneRole.AssumeRolePolicyDocument);
 					doc = JSON.parse(doc);
-					if (doc && doc.Statement){
-						async.detect(doc.Statement, function(statement, callback) {
-							callback (null, statement.Principal && statement.Principal.Service && statement.Principal.Service === "ec2.amazonaws.com");
-						}, (err, found)=>{
-							if (err){
+					if (doc && doc.Statement) {
+						async.detect(doc.Statement, function (statement, callback) {
+							callback(null, statement.Principal && statement.Principal.Service && statement.Principal.Service === "ec2.amazonaws.com");
+						}, (err, found) => {
+							if (err) {
 								return callback(err);
 							}
-							if (found){
+							if (found) {
 								roles.push({name: oneRole.RoleName});
 							}
 							return callback();
@@ -49,11 +48,11 @@ const certificates = {
 						return callback();
 					}
 				}
-				catch (e){
+				catch (e) {
 					callback(e)
 				}
-			}, function(err) {
-				if (err){
+			}, function (err) {
+				if (err) {
 					return cb(err);
 				}
 				else {
@@ -70,7 +69,7 @@ const certificates = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	create: function(options, cb) {
+	create: function (options, cb) {
 		return cb(null, true);
 	},
 	
@@ -82,7 +81,7 @@ const certificates = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	update: function(options, cb) {
+	update: function (options, cb) {
 		return cb(null, true);
 	},
 	
@@ -93,7 +92,7 @@ const certificates = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	delete: function(options, cb) {
+	delete: function (options, cb) {
 		return cb(null, true);
 	},
 	

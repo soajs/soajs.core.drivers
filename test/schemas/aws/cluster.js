@@ -347,6 +347,7 @@ module.exports = function () {
 				"id": "vpc-a5e482dd",
 				"state": "available",
 				"instanceTenancy": "dedicated",
+				"attachInternetGateway": true,
 				"primaryAddress": "172.31.0.0/16",
 				"IsDefault": true,
 				"address": [
@@ -1076,6 +1077,25 @@ module.exports = function () {
 				"networkId": "vpc-957300fc"
 			}
 		],
+		"gateway": {
+			"InternetGateways": [
+				{
+					"Attachments": [
+						{
+							"State": "available",
+							"VpcId": "vpc-0e76ddf9c5915672e"
+						}
+					],
+					"InternetGatewayId": "igw-0d1f93acd9d874950",
+					"Tags": [
+						{
+							"Key": "Name",
+							"Value": "ragheb"
+						}
+					]
+				}
+			]
+		}
 	};
 	return data;
 };

@@ -276,6 +276,17 @@ const driver = {
 	},
 
 	/**
+	 * Sync ports from catalog recipe to selected security groups
+
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	syncPortsFromCatalogRecipe: function(options, cb) {
+		return securityGroups.syncPortsFromCatalogRecipe(options, cb);
+	},
+
+	/**
 	 * List available public ips
 
 	 * @param  {Object}   options
@@ -361,6 +372,17 @@ const driver = {
 	 */
 	deleteGroup: function (options, cb) {
 		return groups.delete(options, cb);
+	},
+	
+	/**
+	 * list roles
+	 
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	listRoles: function (options, cb) {
+		return cb(null, true);
 	},
 
 	"executeDriver": function(method, options, cb){

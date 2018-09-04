@@ -1,6 +1,5 @@
 const add = {
     "type": "object",
-    "additionalProperties": false,
     "properties": {
         "section": {
             "type": "string",

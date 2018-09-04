@@ -15,6 +15,7 @@ const securityGroups = require('./cluster/securityGroups.js');
 const subnets = require('./cluster/subnets.js');
 const keyPairs = require('./cluster/keyPairs.js');
 const certificates = require('./cluster/certificates.js');
+const roles = require('./cluster/roles.js');
 const utils = require("./utils/utils");
 
 const Terraform = require('./terraform');
@@ -492,7 +493,18 @@ const driver = {
 	deleteSecurityGroup: function (options, cb) {
 		return securityGroups.delete(options, cb);
 	},
-
+	
+	/**
+	 * Sync ports from catalog recipe to selected security groups
+	 
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	syncPortsFromCatalogRecipe: function(options, cb) {
+		return securityGroups.syncPortsFromCatalogRecipe(options, cb);
+	},
+	
 	/**
 	 * List available public ips
 
@@ -623,6 +635,17 @@ const driver = {
 	 */
 	deleteCertificate: function (options, cb) {
 		return certificates.delete(options, cb);
+	},
+	
+	/**
+	 * list roles
+	 
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	listRoles: function (options, cb) {
+		return roles.list(options, cb);
 	},
 
 	"executeDriver": function(method, options, cb){
