@@ -471,18 +471,22 @@ const helper = {
 				else {
 					ports.protocol = opts.ports.IpProtocol;
 					if (opts.ports.hasOwnProperty('FromPort')) {
-						ports.published = opts.ports.FromPort;
+						ports.published = opts.ports.FromPort.toString();
 					}
-					if (opts.ports.hasOwnProperty('ToPort')) {
-						ports.range = opts.ports.ToPort;
+					if (opts.ports.hasOwnProperty('ToPort') && opts.ports.ToPort != opts.ports.FromPort) {
+						ports.published += ' - ' + opts.ports.ToPort;
 					}
 				}
 			}
 			ports.access = "allow";
+			ports.isPublished = false;
 			ports.source = [];
 			if (opts.ports.IpRanges && opts.ports.IpRanges.length > 0) {
 				opts.ports.IpRanges.forEach((range) => {
 					ports.source.push(range.CidrIp);
+					if(["*", "0.0.0.0/0"].includes(range.CidrIp) && ports.direction === 'inbound') {
+						ports.isPublished = true;
+					}
 				});
 			}
 			ports.ipv6 = [];

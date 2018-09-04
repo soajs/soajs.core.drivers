@@ -378,65 +378,105 @@ const securityGroups = {
 		}
 
 		function computePorts(result, callback) {
-			async.map(options.params.ports, (onePort, call) => {
-				let port = {
-					FromPort: onePort.target,
-					IpProtocol: "tcp",
-					ToPort: onePort.target,
-					vpc: !onePort.isPublished
-				};
-				vpc = !onePort.isPublished;
-				if (onePort.name){
-					let supportedProtocols = config.ipProtocolNumbers.concat(config.ipProtocols);
-					if (supportedProtocols.indexOf(onePort.name.toLowerCase()) !== -1){
-						port.IpProtocol = onePort.name.toLowerCase();
-					}
-					else if (onePort.name === "*"){
-						port.IpProtocol = -1;
-					}
-					else {
-						port.IpProtocol = "tcp";
-					}
-				}
-				else {
-					port.IpProtocol = "tcp"
-				}
-				call(null, port);
+			if(!result.getSecurityGroups || !Array.isArray(result.getSecurityGroups) || result.getSecurityGroups.length === 0) {
+				return callback(null, []);
+			}
+
+			let catalogPorts = options.params.ports || [];
+			async.map(result.getSecurityGroups, (oneSecurityGroup, mapCallback) => {
+				let sgPorts = oneSecurityGroup.ports || [];
+
+				async.concat(catalogPorts, (oneCatalogPort, concatCallback) => {
+					async.detect(sgPorts, (oneSgPort, detectCallback) => {
+						if(oneSgPort.access === 'allow' && oneSgPort.direction === 'inbound') {
+							if(!oneSgPort.readonly) {
+								if(oneCatalogPort.target == oneSgPort.published && oneCatalogPort.target == oneSgPort.range) {
+									return detectCallback(null, true);
+								}
+								else if(oneCatalogPort.target >= oneSgPort.published && oneCatalogPort.target <= oneSgPort.range) {
+									return detectCallback(null, true);
+								}
+							}
+						}
+						return detectCallback(null, false);
+					}, (error, foundPort) => {
+						if(foundPort) {
+							return concatCallback(null, []);
+						}
+
+						let port = {
+							FromPort: oneCatalogPort.target,
+							IpProtocol: "tcp",
+							ToPort: oneCatalogPort.target,
+							vpc: !oneCatalogPort.isPublished
+						};
+						vpc = !oneCatalogPort.isPublished;
+						if (oneCatalogPort.name){
+							let supportedProtocols = config.ipProtocolNumbers.concat(config.ipProtocols);
+							if (supportedProtocols.indexOf(oneCatalogPort.name.toLowerCase()) !== -1){
+								port.IpProtocol = oneCatalogPort.name.toLowerCase();
+							}
+							else if (oneCatalogPort.name === "*"){
+								port.IpProtocol = -1;
+							}
+							else {
+								port.IpProtocol = "tcp";
+							}
+						}
+						else {
+							port.IpProtocol = "tcp"
+						}
+
+						return concatCallback(null, [ port ]);
+					});
+				}, function(error, portsUpdates) {
+					//no error to be handled
+					oneSecurityGroup.portsUpdates = portsUpdates;
+					return mapCallback(null, oneSecurityGroup);
+				});
 			}, callback);
 		}
+
 		function getVpc (result, callback){
 			ec2.describeVpcs({
 				VpcIds: [result.getSecurityGroups[0].networkId]
 			}, callback);
 		}
+
 		function updateSecurityGroups(result, callback) {
 			if (!result.computePorts || !Array.isArray(result.computePorts) || result.computePorts.length === 0) {
 				return callback(null, true);
 			}
-			async.each(result.computePorts, (onePort, eachCallback) => {
-				if (result.getVpc && result.getVpc.Vpcs && result.getVpc.Vpcs[0] && result.getVpc.Vpcs[0].CidrBlock){
-					onePort.IpRanges= [
-						{
-							CidrIp: result.getVpc.Vpcs[0].CidrBlock,
-							Description: "Internal Network only"
-						}
-					]
-				}
-				else {
-					onePort.IpRanges = [{
-						CidrIp: "0.0.0.0/0",
-						Description: "Anywhere Ipv4"
-					}];
-					onePort.Ipv6Ranges = [{
-						CidrIpv6: "::/0",
-						Description: "Anywhere Ipv6"
-					}];
-				}
-				delete onePort.vpc;
 
-				async.each(options.params.securityGroups, (oneSecurityGroup, internalCallback) => {
+			async.each(result.computePorts, (oneSecurityGroup, eachCallback) => {
+				if(!oneSecurityGroup.portsUpdates || oneSecurityGroup.portsUpdates.length === 0) {
+					return eachCallback(null, true);
+				}
+
+				async.each(oneSecurityGroup.portsUpdates, (onePort, internalCallback) => {
+					if(onePort && onePort.vpc) {
+						onePort.IpRanges= [
+							{
+								CidrIp: result.getVpc.Vpcs[0].CidrBlock,
+								Description: "Internal Network only"
+							}
+						];
+					}
+					else {
+						onePort.IpRanges = [{
+							CidrIp: "0.0.0.0/0",
+							Description: "Anywhere Ipv4"
+						}];
+						onePort.Ipv6Ranges = [{
+							CidrIpv6: "::/0",
+							Description: "Anywhere Ipv6"
+						}];
+					}
+
+					delete onePort.vpc;
+
 					let params = {
-						GroupId: oneSecurityGroup,
+						GroupId: oneSecurityGroup.id,
 						IpPermissions: [ onePort ]
 					};
 					return ec2.authorizeSecurityGroupIngress(params, internalCallback);
