@@ -4,7 +4,7 @@ const async = require('async');
 const utils = require('../../utils/utils.js');
 const helper = require('../../utils/helper.js');
 const config = require("../../config");
-const index = require('../../index.js')
+const index = require('../../index.js');
 const _ = require('lodash');
 
 function getConnector(opts) {
@@ -354,8 +354,14 @@ const vms = {
 						}
 					}
 				}
-				toBeDeleted = _.difference(tags, newTags);
-				toBeAdded = _.difference(newTags, tags);
+
+				if (options.params.release) {
+                    toBeAdded = _.differenceWith(tags, newTags, _.isEqual);
+                    toBeDeleted = _.difference(newTags, tags);
+				} else {
+                    toBeDeleted = _.difference(tags, newTags);
+                    toBeAdded = _.difference(newTags, tags);
+                }
 
 				async.parallel({
 					modify: function (callback) {
