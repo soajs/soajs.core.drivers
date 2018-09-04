@@ -4,7 +4,7 @@ const async = require('async');
 const utils = require('../../utils/utils.js');
 const helper = require('../../utils/helper.js');
 const config = require("../../config");
-const index = require('../../index.js')
+const index = require('../../index.js');
 const _ = require('lodash');
 
 function getConnector(opts) {
@@ -319,7 +319,7 @@ const vms = {
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	updateVmLabels: function (options, cb) {
+    updateVmLabels: function (options, cb) {
 		const aws = options.infra.api;
 
 		const ec2 = getConnector({
@@ -329,9 +329,8 @@ const vms = {
 			secretAccessKey: aws.secretAccessKey
 		});
 		let params = {
-			InstanceIds: [
-				options.params.vmName
-			]
+			InstanceIds: options.params.ids
+
 		};
 		ec2.describeInstances(params, function (err, result) {
 			if (err) {
@@ -341,8 +340,8 @@ const vms = {
 			let toBeAdded = [];
 			let newTags = [];
 			let tags;
-			if (result.Reservations && result.Reservations.length > 0
-				&& result.Reservations[0].Instances && result.Reservations[0].Instances.length > 0) {
+
+			if (result.Reservations && result.Reservations.length > 0 && result.Reservations[0].Instances && result.Reservations[0].Instances.length > 0) {
 				tags = result.Reservations[0].Instances[0].Tags;
 
 				if (options.params.labels) {
@@ -355,17 +354,23 @@ const vms = {
 						}
 					}
 				}
-				toBeDeleted = _.difference(tags, newTags);
-				toBeAdded = _.difference(newTags, tags);
+
+				if (options.params.release) {
+                    toBeAdded = _.differenceWith(tags, newTags, _.isEqual);
+                    toBeDeleted = _.difference(newTags, tags);
+				} else {
+                    toBeDeleted = _.difference(tags, newTags);
+                    toBeAdded = _.difference(newTags, tags);
+                }
+
 				async.parallel({
 					modify: function (callback) {
 						if (toBeAdded.length > 0) {
 							let aParams = {
-								Resources: [
-									options.params.vmName
-								],
+								Resources: options.params.ids,
 								Tags: toBeAdded
 							};
+
 							ec2.createTags(aParams, callback);
 						}
 						else {
@@ -375,10 +380,8 @@ const vms = {
 					delete: function (callback) {
 						if (toBeDeleted.length > 0) {
 							let dParams = {
-								Resources: [
-									"i-01e998eda187b9bfe"
-								],
-								Tags: toBeAdded
+								Resources: options.params.ids,
+								Tags: toBeDeleted
 							};
 							ec2.deleteTags(dParams, callback);
 						}
