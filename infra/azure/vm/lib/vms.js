@@ -201,7 +201,7 @@ const vms = {
 						'updateTags' : (mCb) => {
                             async.each(vms, (oneVm, lCb) => {
                             	let vmInfo = oneVm.raw;
-                            	console.log( oneVm ); // ToDelete #2del
+
                             	if(!vmInfo.tags) vmInfo.tags = {};
                             	let vmName = vmInfo.name;
                                 if (options.params.release) {
