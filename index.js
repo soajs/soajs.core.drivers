@@ -16,7 +16,7 @@ function checkIfSupported(options, cb) {
 		    "msg": errorFile[519]
 	    });
     }
-	
+
 	return cb(null, true);
 }
 
@@ -25,26 +25,26 @@ function getStrategy(options, cb) {
 	if(!strategyName){
 		return cb(new Error(`No driver type specified!`));
 	}
-	
+
 	let onePath = [];
 	onePath.push(__dirname);
 	onePath.push(options.type);
-	
+
 	//added fallback support
 	if(!options.driver && options.name){
 		options.driver = options.name;
 	}
-	
+
 	if(options.driver){
 		strategyName += "_" + options.driver.toLowerCase();
 		onePath.push(options.driver);
 	}
 
 	onePath.push("index.js");
-	
+
     checkCache((strategy) => {
         if (strategy) return cb(null, strategy);
-        
+
         let pathToUse = '';
 
         try {
@@ -132,6 +132,9 @@ module.exports = {
 	"execute": function(driverOptions, method, methodOptions, cb){
 		getStrategy(driverOptions, (error, strategy) => {
 			utils.checkError(error, 518, cb, () => {
+                if(!methodOptions.technology && driverOptions.technology) {
+                    methodOptions.technology = driverOptions.technology;
+                }
 				checkIfSupported({strategy: strategy, function: method }, (error) => {
 					if(error && error.code === 519){
 						strategy.executeDriver(method, methodOptions, cb);
