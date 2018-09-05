@@ -5,24 +5,24 @@ const utils = require('../../utils/utils.js');
 const helper = require('../../utils/helper.js');
 const config = require("../../config");
 const index = require('../../index.js');
-const _ = require('lodash');
+const hash = require('object-hash');
 
 function getConnector(opts) {
 	return utils.getConnector(opts, config);
 }
 
 const vms = {
-
+	
 	/**
 	 * Get information about deployed vitual machine
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	inspect: function (options, cb) {
 		const aws = options.infra.api;
-
+		
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
@@ -137,10 +137,10 @@ const vms = {
 			}
 		});
 	},
-
+	
 	/**
 	 * List available virtual machines by subscription
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -161,9 +161,13 @@ const vms = {
 		 */
 		const aws = options.infra.api;
 		let record = [];
-		function getRegions (cb){
-			if (options.params.region){
-				return cb([options.params.region]);
+		function getRegions(cb) {
+			if (options.params.region) {
+				return cb(null, {
+					regions: [{
+						v: options.params.region
+					}]
+				});
 			}
 			else {
 				index.getRegions({}, cb);
@@ -185,33 +189,44 @@ const vms = {
 					keyId: aws.keyId,
 					secretAccessKey: aws.secretAccessKey
 				});
+				awsObject["iam" + region.v] = getConnector({
+					api: 'iam',
+					region: region.v,
+					keyId: aws.keyId,
+					secretAccessKey: aws.secretAccessKey
+				});
 				let params = {};
-				if (options.params.region && options.params.ids && Array.isArray(options.params.ids) && options.params.ids.length > 0){
+				if (options.params.region && options.params.ids && Array.isArray(options.params.ids) && options.params.ids.length > 0) {
 					params.InstanceIds = options.params.ids;
 				}
 				awsObject["ec2" + region.v].describeInstances(params, (err, reservations) => {
 					if (reservations && reservations.Reservations && reservations.Reservations.length > 0) {
 						let opts = {
-							GroupIds: [], ImageIds: [], VolumeIds: [], SubnetIds : []
+							GroupIds: [], ImageIds: [], VolumeIds: [], SubnetIds: [], roles: []
 						};
+						
 						extractData(reservations.Reservations, opts, () => {
 							opts.ec2 = awsObject["ec2" + region.v];
 							opts.elb = awsObject["elb" + region.v];
+							opts.iam = awsObject["iam" + region.v];
 							getVolumesImagesSgroupsElb(opts, (err, results) => {
 								async.each(reservations.Reservations, function (reservation, rCB) {
 									async.concat(reservation.Instances, function (vm, iCB) {
-										if (vm.State && vm.State.Name === "terminated" || vm.State.Name === "shutting-down"){
+										if (vm.State && vm.State.Name === "terminated" || vm.State.Name === "shutting-down") {
 											return iCB();
 										}
 										if (vm.Tags && vm.Tags.length > 0) {
 											let container = false;
 											for (let i = 0; i < vm.Tags.length; i++) {
-												if (vm.Tags[i].Key === "soajs.infra.container"){
+												if (vm.Tags[i].Key === "soajs.infra.container") {
 													container = true;
 													break;
 												}
 											}
 											if (container) return iCB();
+										}
+										if (!vm.IamInstanceProfile || !vm.IamInstanceProfile.Arn) {
+											return cb(new Error(`${options.params.vmName} machine does not have the required policy: ${config.aws.ssmSupportedPolicy.join(",")}`));
 										}
 										helper.buildVMRecord({
 											vm,
@@ -220,10 +235,12 @@ const vms = {
 											volumes: results.getVolumes ? results.getVolumes.Volumes : null,
 											lb: results.getElb ? results.getElb.LoadBalancerDescriptions : null,
 											subnet: results.getSubnets ? results.getSubnets.Subnets : null,
-											region: region.v
+											region: region.v,
+											roles: results.checkRoles,
+											connection: results.checkConnection
 										}, iCB);
 									}, function (err, final) {
-										if (final.length > 0){
+										if (final.length > 0) {
 											record = record.concat(final);
 										}
 										return rCB(err, true);
@@ -237,13 +254,13 @@ const vms = {
 					}
 				});
 			}, (err) => {
-				if(err){
+				if (err) {
 					return cb(err);
 				}
 				return cb(err, record);
 			});
 		});
-
+		
 		function getVolumesImagesSgroupsElb(opts, cb) {
 			async.parallel({
 				getImage: function (callback) {
@@ -278,17 +295,34 @@ const vms = {
 						return callback(null, null);
 					}
 				},
+				checkConnection: function (callback) {
+					opts.ec2.describeInternetGateways({}, callback)
+				},
 				getElb: function (callback) {
 					opts.elb.describeLoadBalancers({}, callback)
+				},
+				checkRoles: function (callback) {
+					async.map(opts.roles, (oneRole, call) => {
+						opts.iam.listAttachedRolePolicies({
+							RoleName: oneRole
+						}, (err, res)=>{
+							if (err){
+								return call(err);
+							}
+							else {
+								return call(null, {[oneRole]: res});
+							}
+						})
+					}, callback)
 				}
 			}, cb);
 		}
-
+		
 		function extractData(reservations, opts, cb) {
 			async.each(reservations, function (oneReservation, mainCB) {
 				if (oneReservation.Instances && oneReservation.Instances.length > 0) {
 					async.each(oneReservation.Instances, function (oneInstance, miniCb) {
-						if (oneInstance.State && oneInstance.State.Name === "terminated" || oneInstance.State.Name === "shutting-down"){
+						if (oneInstance.State && oneInstance.State.Name === "terminated" || oneInstance.State.Name === "shutting-down") {
 							return mainCB();
 						}
 						if (oneInstance.ImageId && opts.ImageIds.indexOf(oneInstance.ImageId) === -1) {
@@ -326,6 +360,18 @@ const vms = {
 									callback();
 								}
 							},
+							roles: function (callback) {
+								if (oneInstance.IamInstanceProfile && oneInstance.IamInstanceProfile.Arn) {
+									let arn = oneInstance.IamInstanceProfile.Arn.split("/");
+									if (!opts.roles.includes(arn[arn.length - 1])){
+										opts.roles.push(arn[arn.length - 1]);
+									}
+									return callback();
+								}
+								else {
+									callback();
+								}
+							},
 						}, miniCb);
 					}, mainCB);
 				}
@@ -335,90 +381,79 @@ const vms = {
 			}, cb);
 		}
 	},
-
+	
 	/**
 	 * Update labels of one or more vm instances
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-    updateVmLabels: function (options, cb) {
+	updateVmLabels: function (options, cb) {
 		const aws = options.infra.api;
-
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-		let params = {
-			InstanceIds: options.params.ids
-
-		};
-		ec2.describeInstances(params, function (err, result) {
+		vms.list(options, (err, result) => {
 			if (err) {
 				return cb(err);
 			}
-			let toBeDeleted = [];
-			let toBeAdded = [];
-			let newTags = [];
-			let tags;
-
-			if (result.Reservations && result.Reservations.length > 0 && result.Reservations[0].Instances && result.Reservations[0].Instances.length > 0) {
-				tags = result.Reservations[0].Instances[0].Tags;
-
-				if (options.params.labels) {
-					for (let key in options.params.labels) {
-						if (key && options.params.labels[key]) {
-							newTags.push({
-								Key: key,
-								Value: options.params.labels[key]
-							})
-						}
+			async.series({
+				'validateVm': (iCb) => {
+					let images = [];
+					let valid = true;
+					if (options.params.release) {
+						return iCb();
 					}
-				}
-
-				if (options.params.release) {
-                    toBeAdded = _.differenceWith(tags, newTags, _.isEqual);
-                    toBeDeleted = _.difference(newTags, tags);
-				} else {
-                    toBeDeleted = _.difference(tags, newTags);
-                    toBeAdded = _.difference(newTags, tags);
-                }
-
-				async.parallel({
-					modify: function (callback) {
-						if (toBeAdded.length > 0) {
-							let aParams = {
-								Resources: options.params.ids,
-								Tags: toBeAdded
-							};
-
-							ec2.createTags(aParams, callback);
+					async.forEach(result, (oneVm, lCb) => {
+						if (!oneVm.executeCommand) {
+							valid = false;
+							return lCb('We are unable to onBoard your VM Layer because we do not have the ability to deploy in it. ' +
+								'This might be caused from insufficient access rights to one or more of the Virtual machines or the VM Layer do not have access public internet.')
+						}
+						let image = hash(oneVm.tasks[0].ref.os);
+						if (images.length === 0) {
+							images.push(image);
 						}
 						else {
-							return callback();
+							valid = images.indexOf(image) !== -1;
+							images.push(image);
 						}
-					},
-					delete: function (callback) {
-						if (toBeDeleted.length > 0) {
+						if (!valid) {
+							return lCb('We are unable to onBoard your VM Layer because we detected a mismatch between the Operating Systems of the Virtual Machine Instance.')
+						}
+						return lCb();
+					}, iCb)
+				},
+				'updateTags': (iCb) => {
+					async.forEach(result, (vmInfo, mCb) => {
+						let tags = [
+							{'Key': 'soajs.env.code', 'Value': options.params.env},
+							{'Key': 'soajs.layer.name', 'Value': options.params.layerName},
+							{'Key': 'soajs.network.name', 'Value': vmInfo.network},
+							{'Key': 'soajs.onBoard', 'Value': 'true'}];
+						
+						if (options.params.release){
 							let dParams = {
 								Resources: options.params.ids,
-								Tags: toBeDeleted
+								Tags: tags
 							};
-							ec2.deleteTags(dParams, callback);
+							ec2.deleteTags(dParams, mCb);
 						}
 						else {
-							return callback();
+							let aParams = {
+								Resources: options.params.ids,
+								Tags: tags
+							};
+							ec2.createTags(aParams, mCb);
 						}
-					}
-				}, cb);
-			}
-			else {
-				return cb(null, {});
-			}
-		});
+					}, iCb)
+				}
+			}, cb);
+		})
 	}
 };
 
