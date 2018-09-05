@@ -56,6 +56,7 @@ const maintenance = {
 			secretAccessKey: aws.secretAccessKey
 		});
 		let params = {};
+
 		if (typeof options.params.id === "string") {
 			params.InstanceIds = [options.params.id];
 		}
@@ -65,6 +66,7 @@ const maintenance = {
 		else {
 			return cb(new Error("Instance id must be of type  sting or  array!"));
 		}
+
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#terminateInstances-property
 		ec2.rebootInstances(params, cb);
 	},

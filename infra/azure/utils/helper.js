@@ -6,8 +6,11 @@ const helper = {
 
 	buildVMRecord: function (opts) {
 		let record = {};
-
 		if (opts.vm) {
+            if (opts.raw){
+                record.raw = opts.vm;
+			}
+            record.executeCommand = true;
 			if (opts.vm.name) record.name = opts.vm.name;
 			if (opts.vm.name) record.id = opts.vm.name;
 
