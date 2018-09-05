@@ -161,7 +161,16 @@ const vms = {
 		 */
 		const aws = options.infra.api;
 		let record = [];
-		index.getRegions({}, (err, response) => {
+		function getRegions (cb){
+			if (options.params.region){
+				return cb([options.params.region]);
+			}
+			else {
+				index.getRegions({}, cb);
+			}
+		}
+		
+		getRegions((err, response) => {
 			let awsObject = {};
 			async.each(response.regions, function (region, mainCB) {
 				awsObject["ec2" + region.v] = getConnector({
@@ -176,8 +185,11 @@ const vms = {
 					keyId: aws.keyId,
 					secretAccessKey: aws.secretAccessKey
 				});
-
-				awsObject["ec2" + region.v].describeInstances({}, (err, reservations) => {
+				let params = {};
+				if (options.params.region && options.params.ids && Array.isArray(options.params.ids) && options.params.ids.length > 0){
+					params.InstanceIds = options.params.ids;
+				}
+				awsObject["ec2" + region.v].describeInstances(params, (err, reservations) => {
 					if (reservations && reservations.Reservations && reservations.Reservations.length > 0) {
 						let opts = {
 							GroupIds: [], ImageIds: [], VolumeIds: [], SubnetIds : []
