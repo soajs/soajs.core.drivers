@@ -256,6 +256,7 @@ const helper = {
 		};
 		let region = opts.region;
 		record.region = region;
+		record.executeCommand = true;
 		if (opts.vm) {
 			if (opts.vm.InstanceId) {
 				record.id = opts.vm.InstanceId;
