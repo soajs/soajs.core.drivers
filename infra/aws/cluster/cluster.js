@@ -76,6 +76,10 @@ const AWSCluster = {
 						ParameterValue: options.params.headers.key
 					},
 					{
+						ParameterKey: 'SoajsEnvCode',
+						ParameterValue: options.soajs.registry.code.toUpperCase()
+					},
+					{
 						ParameterKey: 'ProjectName',
 						ParameterValue: options.params.soajs_project
 					},

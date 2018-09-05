@@ -187,9 +187,19 @@ const vms = {
 							opts.elb = awsObject["elb" + region.v];
 							getVolumesImagesSgroupsElb(opts, (err, results) => {
 								async.each(reservations.Reservations, function (reservation, rCB) {
-									async.map(reservation.Instances, function (vm, iCB) {
+									async.concat(reservation.Instances, function (vm, iCB) {
 										if (vm.State && vm.State.Name === "terminated" || vm.State.Name === "shutting-down"){
-											return iCB(null, []);
+											return iCB();
+										}
+										if (vm.Tags && vm.Tags.length > 0) {
+											let container = false;
+											for (let i = 0; i < vm.Tags.length; i++) {
+												if (vm.Tags[i].Key === "soajs.infra.container"){
+													container = true;
+													break;
+												}
+											}
+											if (container) return iCB();
 										}
 										helper.buildVMRecord({
 											vm,
@@ -201,7 +211,9 @@ const vms = {
 											region: region.v
 										}, iCB);
 									}, function (err, final) {
-										record = record.concat(final);
+										if (final.length > 0){
+											record = record.concat(final);
+										}
 										return rCB(err, true);
 									});
 								}, mainCB);
