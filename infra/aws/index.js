@@ -66,52 +66,6 @@ const driver = {
 	},
 
 	/**
-	 * method used to invoke aws api and deploy instances, security groups, configure load balancer & ip addresses
-	 * @param options
-	 * @param cb
-	 * @returns {*}
-	 */
-	"deployCluster": function (options, cb) {
-		let myDeployment;
-		function callAPI(mCb) {
-			let driver = ClusterDriver.deployCluster;
-
-			// check if a terrafrom template is included in input and invoke terraform driver
-			if(options.params && options.params.template && options.params.template.driver && options.params.template.driver.toLowerCase() === 'terraform') {
-				driver = Terraform.deployCluster;
-			}
-
-			driver(options, (error, oneDeployment) => {
-				if(oneDeployment){
-					myDeployment = oneDeployment;
-				}
-				return mCb(error, oneDeployment);
-			});
-		}
-
-		function preAPICall(mCb) {
-			runCorrespondingDriver('deployClusterPre', options, mCb);
-		}
-
-		function postAPICall(mCb) {
-			if(myDeployment){
-				runCorrespondingDriver('deployClusterPost', options, mCb);
-			}
-			else{
-				return mCb();
-			}
-		}
-
-		let stages = [preAPICall, callAPI, postAPICall];
-		async.series(stages, (error) => {
-			if (error) {
-				return cb(error);
-			}
-			return cb(null, myDeployment);
-		});
-	},
-
-	/**
 	 * This method takes the id of the stack as an input and check if the stack has been deployed
 	 * it returns the ip that can be used to access the machine
 	 * @param options
@@ -222,26 +176,6 @@ const driver = {
 
 	"getCluster": function (options, cb) {
 		ClusterDriver.getCluster(options, cb);
-	},
-
-	"updateCluster": function (options, cb) {
-		// check if a terrafrom template is included in input and invoke terraform driver
-		let driver = ClusterDriver.updateCluster;
-		if(options.params && options.params.template && options.params.template.driver && options.params.template.driver.toLowerCase() === 'terraform') {
-			driver = Terraform.updateCluster;
-		}
-
-		return driver(options, cb);
-	},
-
-	"deleteCluster": function (options, cb) {
-		// check if a terrafrom template is included in input and invoke terraform driver
-		let driver = ClusterDriver.deleteCluster;
-		if(options.params && options.params.templateRecord && options.params.templateRecord.driver && options.params.templateRecord.driver.toLowerCase() === 'terraform') {
-			driver = Terraform.deleteCluster;
-		}
-
-		return driver(options, cb);
 	},
 
 	"publishPorts": function (options, cb) {
@@ -493,10 +427,10 @@ const driver = {
 	deleteSecurityGroup: function (options, cb) {
 		return securityGroups.delete(options, cb);
 	},
-	
+
 	/**
 	 * Sync ports from catalog recipe to selected security groups
-	 
+
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -504,7 +438,7 @@ const driver = {
 	syncPortsFromCatalogRecipe: function(options, cb) {
 		return securityGroups.syncPortsFromCatalogRecipe(options, cb);
 	},
-	
+
 	/**
 	 * List available public ips
 
@@ -636,10 +570,10 @@ const driver = {
 	deleteCertificate: function (options, cb) {
 		return certificates.delete(options, cb);
 	},
-	
+
 	/**
 	 * list roles
-	 
+
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
