@@ -4,6 +4,7 @@ const async = require('async');
 const helper = require('../../utils/helper.js');
 const utils = require('../../../../lib/utils/utils.js');
 const driverUtils = require('../../utils/index.js');
+const hash = require('object-hash');
 
 const vms = {
 
@@ -61,7 +62,9 @@ const vms = {
 									vmRecordOptions.publicIpsList = results.listNetworkExtras.publicIps;
 								}
 							}
-
+							if(options.params.raw === true ){
+                                vmRecordOptions.raw = true;
+							}
 							return cb(null, helper.buildVMRecord(vmRecordOptions));
 						});
 					});
@@ -152,7 +155,6 @@ const vms = {
 	* @return {void}
 	*/
 	updateVmLabels: function(options, cb) {
-		let id = '';
 		driverUtils.authenticate(options, (error, authData) => {
 			utils.checkError(error, 700, cb, () => {
 				const computeClient = driverUtils.getConnector({
@@ -160,62 +162,102 @@ const vms = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-
-				async.each(options.params.vmNames, (vmName, callback) => {
-					computeClient.virtualMachines.get(options.params.group, vmName, function (error, vmInfo) {
-						if(error) return callback(error);
-						let tags = options.params.labels ? options.params.labels : {};
-						if(!vmInfo.tags) vmInfo.tags = {};
-
-						if (Object.keys(tags).length === 0) {
-                            if (Object.keys(vmInfo.tags).length > 0) {
-                            	if (vmInfo.tags['soajs.env.code']) {
-                            		delete vmInfo.tags['soajs.env.code']
-								}
-								if (vmInfo.tags['soajs.layer.name']) {
-                            		delete vmInfo.tags['soajs.layer.name']
-								}
-								if (vmInfo.tags['soajs.network.name']) {
-                            		delete vmInfo.tags['soajs.network.name']
-								}
-								if (vmInfo.tags['soajs.vm.name']) {
-                            		delete vmInfo.tags['soajs.vm.name']
-								}
-								if (vmInfo.tags['soajs.onBoard']) {
-                            		delete vmInfo.tags['soajs.onBoard']
-								}
+				async.map(options.params.ids, (oneId, callback) => {
+					options.params.vmName = oneId;
+					options.params.raw = true;
+                    vms.inspect(options, function (error, vmInfo) {
+                        if(error) return callback(error);
+                        callback(null, vmInfo);
+					})
+				}, (err, vms) => {
+					async.series({
+						'validateVm' : (mCb) => {
+							let images = [];
+							let valid = true;
+							if (options.params.release) {
+								return mCb();
 							}
-                            computeClient.virtualMachines.createOrUpdate(options.params.group, vmName, vmInfo , function (error, response) {
-                                if(error) {
-                                    return callback(error);
+							async.forEach(vms, (oneVm, iCb) => {
+								if (!oneVm.executeCommand) {
+                                    valid = false;
+                                    return iCb('Cannot execude command in this virtual machine')
 								}
-								id = vmInfo.vmId;
-                                return callback();
-                            });
-						} else {
-                            // check if tags are already set, return callback and do no update
-                            async.every(Object.keys(tags), function(oneTag, callback) {
-                                return callback(null, vmInfo.tags[oneTag] && vmInfo.tags[oneTag] === tags[oneTag]);
-                            }, function(error, tagsAlreadyFound) {
-                                if (tagsAlreadyFound) {
-                                    id = vmInfo.vmId;
-                                    return callback()
-                                }
 
-                                vmInfo.tags = Object.assign(vmInfo.tags, tags);
-                                if(options.params.setVmNameAsLabel) vmInfo.tags['soajs.vm.name'] = vmName;
-                                computeClient.virtualMachines.createOrUpdate(options.params.group, vmName, vmInfo , function (error, response) {
-                                    if(error) return callback(error);
-                                    id = vmInfo.vmId;
-                                    return callback();
+                                let image = hash(oneVm.raw.storageProfile.imageReference);
+                                if (images.length === 0) {
+                                    images.push(image);
+                                }
+                                else {
+                                    valid = images.indexOf(image) !== -1;
+                                    images.push(image);
+                                }
+								if (!valid) {
+									return iCb('We are unable to onBoard your VM instance because we detected a mismatch between the Operating Systems of the Virtual Machine Instance.')
+								}
+
+								return iCb();
+							}, mCb)
+						},
+						'updateTags' : (mCb) => {
+                            async.each(vms, (oneVm, lCb) => {
+                            	let vmInfo = oneVm.raw;
+
+                            	if(!vmInfo.tags) vmInfo.tags = {};
+                            	let vmName = vmInfo.name;
+                                if (options.params.release) {
+                                    if (Object.keys(vmInfo.tags).length > 0) {
+                                        if (vmInfo.tags['soajs.env.code']) {
+                                            delete vmInfo.tags['soajs.env.code']
+                                        }
+                                        if (vmInfo.tags['soajs.layer.name']) {
+                                            delete vmInfo.tags['soajs.layer.name']
+                                        }
+                                        if (vmInfo.tags['soajs.network.name']) {
+                                            delete vmInfo.tags['soajs.network.name']
+                                        }
+                                        if (vmInfo.tags['soajs.vm.name']) {
+                                            delete vmInfo.tags['soajs.vm.name']
+                                        }
+                                        if (vmInfo.tags['soajs.onBoard']) {
+                                            delete vmInfo.tags['soajs.onBoard']
+                                        }
+                                    }
+                                    computeClient.virtualMachines.createOrUpdate(options.params.group, vmName, vmInfo, function (error, response) {
+                                        if (error) {
+                                            return lCb(error);
+                                        }
+                                        return lCb();
+                                    });
+                                } else {
+                                	let tags = {
+                                		'soajs.env.code' : options.params.env,
+                                		'soajs.layer.name' : options.params.layerName,
+										'soajs.network.name': oneVm.network,
+                                		'soajs.onBoard' : 'true',
+									};
+                                    async.every(Object.keys(tags), function (oneTag, callback) {
+                                        return callback(null, vmInfo.tags[oneTag] && vmInfo.tags[oneTag] === tags[oneTag]);
+                                    }, function (error, tagsAlreadyFound) {
+                                        if (tagsAlreadyFound) {
+                                            return lCb()
+                                        }
+
+                                        vmInfo.tags = Object.assign(vmInfo.tags, tags);
+                                        if (options.params.setVmNameAsLabel) vmInfo.tags['soajs.vm.name'] = vmName;
+                                        computeClient.virtualMachines.createOrUpdate(options.params.group, vmName, vmInfo, function (error, response) {
+                                            if (error) return lCb(error);
+                                            return lCb();
+                                        });
+                                    });
+								}
+
+							}, function (error) {
+                                utils.checkError(error, 759, mCb, () => {
+                                    return mCb();
                                 });
                             });
 						}
-					});
-				}, function(error) {
-					utils.checkError(error, 759, cb, () => {
-						return cb(null, id);
-					});
+					},cb)
 				});
 			});
 		});

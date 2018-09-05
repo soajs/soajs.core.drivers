@@ -6,7 +6,39 @@ const disks = require('./lib/disks');
 const sizes = require('./lib/sizes');
 const vms = require('./lib/vms');
 
+const Terraform = require('./../terraform');
+
 const driver = {
+
+	/**
+	 * method used to invoke terraform driver and deploy a vm layer
+	 * @param options
+	 * @param cb
+	 * @returns {*}
+	 */
+	deployCluster: function(options, cb) {
+		return Terraform.deployCluster(options, cb);
+	},
+
+	/**
+	 * method used to invoke terraform driver and update a vm layer
+	 * @param options
+	 * @param cb
+	 * @returns {*}
+	 */
+	"updateCluster": function (options, cb) {
+		return Terraform.updateCluster(options, cb);
+	},
+
+	/**
+	 * method used to invoke terraform driver and delete a vm layer
+	 * @param options
+	 * @param cb
+	 * @returns {*}
+	 */
+	"deleteCluster": function (options, cb) {
+		return Terraform.deleteCluster(options, cb);
+	},
 
 	/**
 	* Get information about deployed vitual machine
@@ -205,7 +237,7 @@ const driver = {
 	deleteDisks: function (options, cb){
 		return disks.delete(options, cb);
 	}
-	
+
 };
 
 module.exports = driver;

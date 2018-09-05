@@ -9,7 +9,6 @@ const subnets = require('./cluster/subnets.js');
 const utils = require('../../lib/utils/utils.js');
 const helper = require('./helper.js');
 const driverUtils = require('./utils/index.js');
-const terraform = require('./terraform');
 
 const defaultDriver = 'vm';
 
@@ -29,11 +28,6 @@ const driver = {
 
 	"getExtras": function (options, cb) {
 		return cb(null, {technologies: ['vm'], templates: ['local'], drivers: ['Terraform']});
-	},
-
-	"deployCluster": function (options, cb) {
-		return terraform.deployCluster(options, cb);
-		// return cb(null, true);
 	},
 
 	"getDeployClusterStatus": function (options, cb) {
@@ -72,16 +66,6 @@ const driver = {
 
 	"getCluster": function (options, cb) {
 		return cb(null, true);
-	},
-
-	"updateCluster": function (options, cb) {
-		return terraform.updateCluster(options, cb);
-		// return cb(null, true);
-	},
-
-	"deleteCluster": function (options, cb) {
-		return terraform.deleteCluster(options, cb);
-		// return cb(null, true);
 	},
 
 	"publishPorts": function (options, cb) {
@@ -373,10 +357,10 @@ const driver = {
 	deleteGroup: function (options, cb) {
 		return groups.delete(options, cb);
 	},
-	
+
 	/**
 	 * list roles
-	 
+
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
