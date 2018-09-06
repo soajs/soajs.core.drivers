@@ -390,12 +390,28 @@ const securityGroups = {
 					async.detect(sgPorts, (oneSgPort, detectCallback) => {
 						if(oneSgPort.access === 'allow' && oneSgPort.direction === 'inbound') {
 							if(!oneSgPort.readonly) {
-								if(oneCatalogPort.target == oneSgPort.published && oneCatalogPort.target == oneSgPort.range) {
-									return detectCallback(null, true);
+								try {
+									if (oneSgPort.published && typeof oneSgPort.published  === 'string' && oneSgPort.published.split(' - ').length > 0 ){
+										let target = parseInt(oneSgPort.published.split(' - ')[0]);
+										let range = oneSgPort.published.split(' - ')[1] ? parseInt(oneSgPort.published.split(' - ')[1]) : null;
+										
+										if(oneCatalogPort.target === target) {
+											return detectCallback(null, true);
+										}
+										else if(oneCatalogPort.target > target && oneCatalogPort.target <= range) {
+											return detectCallback(null, true);
+										}
+									}
+									else {
+										return detectCallback(null, false);
+									}
 								}
-								else if(oneCatalogPort.target >= oneSgPort.published && oneCatalogPort.target <= oneSgPort.range) {
-									return detectCallback(null, true);
+								catch (e) {
+									return detectCallback(null, false);
 								}
+							}
+							else {
+								return detectCallback(null, false);
 							}
 						}
 						return detectCallback(null, false);
@@ -403,7 +419,7 @@ const securityGroups = {
 						if(foundPort) {
 							return concatCallback(null, []);
 						}
-
+					
 						let port = {
 							FromPort: oneCatalogPort.target,
 							IpProtocol: "tcp",
