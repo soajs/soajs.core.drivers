@@ -289,6 +289,14 @@ let driver = {
 			template.cluster.network = name;
 			template.cluster.subnetwork = name;
 			
+			if(typeof options.params.template.inputs === 'string'){
+				try{
+					options.params.template.inputs = JSON.parse(options.params.template.inputs);
+				}
+				catch(e){
+					return cb(new Error("Detected invalid template inputs schema !!!"));
+				}
+			}
 			mapTemplateInputsWithValues(options.params.template.inputs, options.params, template.cluster, () => {
 				
 				let request = getConnector(options.infra.api);
