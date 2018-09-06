@@ -226,7 +226,7 @@ const vms = {
 											if (container) return iCB();
 										}
 										if (!vm.IamInstanceProfile || !vm.IamInstanceProfile.Arn) {
-											return cb(new Error(`${options.params.vmName} machine does not have the required policy: ${config.aws.ssmSupportedPolicy.join(",")}`));
+											return iCB();
 										}
 										helper.buildVMRecord({
 											vm,
@@ -302,7 +302,7 @@ const vms = {
 					opts.elb.describeLoadBalancers({}, callback)
 				},
 				checkRoles: function (callback) {
-					async.map(opts.roles, (oneRole, call) => {
+					async.concat(opts.roles, (oneRole, call) => {
 						opts.iam.listAttachedRolePolicies({
 							RoleName: oneRole
 						}, (err, res)=>{
@@ -310,7 +310,12 @@ const vms = {
 								return call(err);
 							}
 							else {
-								return call(null, {[oneRole]: res});
+								if (res){
+                                    return call(null, {[oneRole]: res});
+								}
+								else{
+                                    return call();
+								}
 							}
 						})
 					}, callback)

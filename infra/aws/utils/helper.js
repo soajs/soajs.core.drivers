@@ -445,17 +445,19 @@ const helper = {
 			let arn = opts.vm.IamInstanceProfile.Arn.split("/");
 			let role = arn[arn.length - 1];
 			for (let i = 0; i < opts.roles.length; i++) {
-				let keys = Object.keys(opts.roles[i]);
-				if (keys[0] === role) {
-					for (let j = 0; j < opts.roles[i][role].AttachedPolicies.length; j++) {
-						if (config.aws.ssmSupportedPolicy.includes(opts.roles[i][role].AttachedPolicies[j].PolicyName)) {
-							found = true;
-							break;
-						}
-					}
-				}
-				if (found) {
-					break;
+				if (typeof  opts.roles[i] === 'object'){
+                    let keys = Object.keys(opts.roles[i]);
+                    if (keys[0] === role) {
+                        for (let j = 0; j < opts.roles[i][role].AttachedPolicies.length; j++) {
+                            if (config.aws.ssmSupportedPolicy.includes(opts.roles[i][role].AttachedPolicies[j].PolicyName)) {
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (found) {
+                        break;
+                    }
 				}
 			}
 			if (!found) {
