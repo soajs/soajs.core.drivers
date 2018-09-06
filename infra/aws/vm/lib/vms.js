@@ -161,6 +161,7 @@ const vms = {
 		 */
 		const aws = options.infra.api;
 		let record = [];
+		
 		function getRegions(cb) {
 			if (options.params.region) {
 				return cb(null, {
@@ -200,6 +201,9 @@ const vms = {
 					params.InstanceIds = options.params.ids;
 				}
 				awsObject["ec2" + region.v].describeInstances(params, (err, reservations) => {
+					if (err) {
+						return mainCB(err);
+					}
 					if (reservations && reservations.Reservations && reservations.Reservations.length > 0) {
 						let opts = {
 							GroupIds: [], ImageIds: [], VolumeIds: [], SubnetIds: [], roles: []
@@ -210,10 +214,13 @@ const vms = {
 							opts.elb = awsObject["elb" + region.v];
 							opts.iam = awsObject["iam" + region.v];
 							getVolumesImagesSgroupsElb(opts, (err, results) => {
+								if (err) {
+									return mainCB(err);
+								}
 								async.each(reservations.Reservations, function (reservation, rCB) {
 									async.concat(reservation.Instances, function (vm, iCB) {
 										if (vm.State && vm.State.Name === "terminated" || vm.State.Name === "shutting-down") {
-											return iCB();
+											return iCB(null, []);
 										}
 										if (vm.Tags && vm.Tags.length > 0) {
 											let container = false;
@@ -223,10 +230,10 @@ const vms = {
 													break;
 												}
 											}
-											if (container) return iCB();
+											if (container) return iCB(null, []);
 										}
 										if (!vm.IamInstanceProfile || !vm.IamInstanceProfile.Arn) {
-											return iCB();
+											return iCB(null, []);
 										}
 										helper.buildVMRecord({
 											vm,
@@ -238,7 +245,9 @@ const vms = {
 											region: region.v,
 											roles: results.checkRoles,
 											connection: results.checkConnection
-										}, iCB);
+										}, (err, res) => {
+											return iCB(err, [res]);
+										});
 									}, function (err, final) {
 										if (final.length > 0) {
 											record = record.concat(final);
@@ -305,20 +314,12 @@ const vms = {
 					async.concat(opts.roles, (oneRole, call) => {
 						opts.iam.listAttachedRolePolicies({
 							RoleName: oneRole
-						}, (err, res)=>{
-							if (err){
-								return call(err);
-							}
-							else {
-								if (res){
-                                    return call(null, {[oneRole]: res});
-								}
-								else{
-                                    return call();
-								}
-							}
+						}, (err, res) => {
+							return call(null, [{
+								[oneRole]: res ? res : null
+							}]);
 						})
-					}, callback)
+					}, callback);
 				}
 			}, cb);
 		}
@@ -368,7 +369,7 @@ const vms = {
 							roles: function (callback) {
 								if (oneInstance.IamInstanceProfile && oneInstance.IamInstanceProfile.Arn) {
 									let arn = oneInstance.IamInstanceProfile.Arn.split("/");
-									if (!opts.roles.includes(arn[arn.length - 1])){
+									if (!opts.roles.includes(arn[arn.length - 1])) {
 										opts.roles.push(arn[arn.length - 1]);
 									}
 									return callback();
@@ -441,7 +442,7 @@ const vms = {
 							{'Key': 'soajs.network.name', 'Value': vmInfo.network},
 							{'Key': 'soajs.onBoard', 'Value': 'true'}];
 						
-						if (options.params.release){
+						if (options.params.release) {
 							let dParams = {
 								Resources: options.params.ids,
 								Tags: tags
