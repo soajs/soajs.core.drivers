@@ -76,6 +76,9 @@ const driver = {
 		options.soajs.log.debug("Checking if Cluster is healthy ...");
 		let stack = options.infra.stack;
 
+		let containerOptions = Object.assign({}, options);
+        containerOptions.technology = (containerOptions && containerOptions.params && containerOptions.params.technology) ? containerOptions.params.technology : defaultDriver;
+
 		//get the environment record
 		if (options.soajs.registry.deployer.container[stack.technology].remote.nodes && options.soajs.registry.deployer.container[stack.technology].remote.nodes !== '') {
 			let machineIp = options.soajs.registry.deployer.container[stack.technology].remote.nodes;
@@ -85,19 +88,20 @@ const driver = {
 			let out = false;
 			async.series({
 				"pre": (mCb) => {
-					runCorrespondingDriver('getDeployClusterStatusPre', options, mCb);
+					runCorrespondingDriver('getDeployClusterStatusPre', containerOptions, mCb);
 				},
 				"exec": (mCb) => {
 					ClusterDriver.getDeployClusterStatus(options, (error, response) => {
 						if (response) {
 							out = response;
+							containerOptions.out = out;
 						}
 						return mCb(error, response);
 					});
 				},
 				"post": (mCb) => {
 					if (out) {
-						runCorrespondingDriver('getDeployClusterStatusPost', options, mCb);
+						runCorrespondingDriver('getDeployClusterStatusPost', containerOptions, mCb);
 					}
 					else {
 						return mCb();
