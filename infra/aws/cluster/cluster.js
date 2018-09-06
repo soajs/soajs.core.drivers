@@ -64,6 +64,14 @@ const AWSCluster = {
 				}
 			}
 			let inputs = templateInputsToUse.inputs;
+			if(typeof inputs === 'string'){
+				try{
+					inputs = JSON.parse(inputs);
+				}
+				catch(e){
+					return cb(new Error("Detected invalid template inputs schema !!!"));
+				}
+			}
 			const params = {
 				StackName: oneDeployment.name,
 				Capabilities: [
@@ -97,7 +105,7 @@ const AWSCluster = {
 					}
 					
 				],
-				TemplateURL: config.templateUrl + options.params.infraCodeTemplate
+				TemplateURL: config.templateUrl + encodeURIComponent(options.params.infraCodeTemplate)
 			};
 			options.soajs.log.debug("Deploying Cluster on Cloud Formation with the following inputs:", params);
 			mapTemplateInputsWithValues(inputs, options.params, params, () => {
@@ -117,6 +125,10 @@ const AWSCluster = {
 		
 		function mapTemplateInputsWithValues(inputs, params, template, mapCb){
 			async.each(inputs, (oneInput, iCb) => {
+				if(!oneInput || typeof oneInput !== 'object'){
+					return iCb(new Error("Detected invalid template inputs schema !!!"));
+				}
+				
 				if(oneInput.entries){
 					mapTemplateInputsWithValues(oneInput.entries, params, template, iCb);
 				}
