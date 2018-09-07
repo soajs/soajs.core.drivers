@@ -73,7 +73,7 @@ const driver = {
 			regions.items.forEach(function (oneRegion) {
 				if (oneRegion.status === 'UP') {
 					response.push({
-						'l': 'All Zones',
+						'l': `All Zones - ${oneRegion.name}`,
 						'v': oneRegion.name,
 						'group': oneRegion.name
 					});
