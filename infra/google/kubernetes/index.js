@@ -46,25 +46,25 @@ let driver = {
 			charset: 'alphanumeric',
 			capitalization: 'lowercase'
 		})}`;
-		
+
 		let oneDeployment = {};
-		
+
 		function prepareDeploymentConfiguration(mCb) {
 			options.soajs.log.debug("Preparing Deployment Entry in Project");
-			
+
 			if (!options.infra.deployments) {
 				options.infra.deployments = [];
 			}
-			
+
 			oneDeployment = {
 				technology: "kubernetes",
 				environments: [options.soajs.registry.code.toUpperCase()],
 				options: {}
 			};
-			
+
 			return mCb(null, true);
 		}
-		
+
 		/**
 		 * method used to create a google vpc network
 		 * @returns {*}
@@ -81,16 +81,16 @@ let driver = {
 				if (err) {
 					return cb(err);
 				}
-				
+
 				//assign network name to deployment entry
 				oneDeployment.options.network = name;
-				
+
 				//check if network is ready then update firewall rules
 				checkVpcNetwork(globalOperationResponse, mCb);
 			});
-			
+
 			function checkVpcNetwork(globalOperationResponse, mCb) {
-				
+
 				function globalOperations(miniCB) {
 					options.soajs.log.debug("Checking network Create Status");
 					//Ref https://cloud.google.com/compute/docs/reference/latest/globalOperations/get
@@ -111,7 +111,7 @@ let driver = {
 						}
 					});
 				}
-				
+
 				globalOperations(function (err) {
 					if (err) {
 						return mCb(err);
@@ -208,7 +208,7 @@ let driver = {
 								]
 							}
 						];
-						
+
 						let request = getConnector(options.infra.api);
 						async.each(firewallRules, (oneRule, vCb) => {
 							options.soajs.log.debug("Registering new firewall rule:", oneRule.name);
@@ -217,10 +217,10 @@ let driver = {
 						}, mCb);
 					}
 				});
-				
+
 			}
 		}
-		
+
 		/**
 		 * method used to get cluster version
 		 * @returns {*}
@@ -240,7 +240,7 @@ let driver = {
 							options.soajs.log.debug("Initial Cluster version set to :", version);
 						}
 					});
-					
+
 				}
 				else if (response && response.defaultClusterVersion && !version) {
 					version = response.defaultClusterVersion;
@@ -252,7 +252,7 @@ let driver = {
 				return mCb(null, version);
 			});
 		}
-		
+
 		/**
 		 * delete vpc Network after a certain timeout
 		 * @returns {*}
@@ -270,25 +270,30 @@ let driver = {
 					else {
 						options.soajs.log.debug("VPC Network Deleted Successfully.");
 					}
-					
+
 				});
 			}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 5 * 60 * 1000);
 		}
-		
+
 		function createTemplate(mCb) {
-			
+			if(!options.params.template || !options.params.template.content) {
+				return mCb(new Error('Invalid GKE template provided'));
+			}
 			//Ref: https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters#Cluster
+			if(options.params.template && typeof (options.params.template.content) === 'string') {
+				options.params.template.content = JSON.parse(options.params.template.content);
+			}
 			let template = JSON.parse(JSON.stringify(options.params.template.content));
 			if (!template) {
 				return mCb(new Error("Invalid or Cluster Template detected to create the cluster from!"));
 			}
-			
+
 			template.cluster.name = name; //same name as network
 			template.cluster.zone = options.params.region;
 			// template.cluster.zoneLocation = data.options.region;
 			template.cluster.network = name;
 			template.cluster.subnetwork = name;
-			
+
 			if(typeof options.params.template.inputs === 'string'){
 				try{
 					options.params.template.inputs = JSON.parse(options.params.template.inputs);
@@ -298,10 +303,10 @@ let driver = {
 				}
 			}
 			mapTemplateInputsWithValues(options.params.template.inputs, options.params, template.cluster, () => {
-				
+
 				let request = getConnector(options.infra.api);
 				request.zone = options.params.region;
-				
+
 				options.soajs.log.debug("Retrieving cluster version to use from google");
 				getClusterVersion(request, function (err, version) {
 					if (err) {
@@ -309,7 +314,7 @@ let driver = {
 						deleteNetwork();
 						return mCb(err);
 					}
-					
+
 					template.cluster.initialClusterVersion = version;
 					delete request.project;
 					request.resource = template;
@@ -340,18 +345,18 @@ let driver = {
 				});
 			});
 		}
-		
+
 		let stages = [prepareDeploymentConfiguration];
 		stages.push(createVpcNetwork);
 		stages.push(createTemplate);
-		
+
 		async.series(stages, (error) => {
 			if (error) {
 				return cb(error);
 			}
 			return cb(null, oneDeployment);
 		});
-		
+
 		function mapTemplateInputsWithValues(inputs, params, template, mapCb) {
 			let templateInputs = {};
 			async.each(inputs, (oneInput, iCb) => {
@@ -415,7 +420,7 @@ let driver = {
 		let request = getConnector(options.infra.api);
 		delete request.project;
 		request.zone = [];
-		
+
 		function checkIfClusterisReady(type, miniCB) {
 			setTimeout(function () {
 				options.soajs.log.debug("Checking if Cluster is Ready.");
@@ -432,9 +437,9 @@ let driver = {
 				});
 			}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 5 * 1000);
 		}
-		
+
 		options.soajs.log.debug("Getting Environment Record:", options.soajs.registry.code.toUpperCase());
-		
+
 		//get the environment record
 		if (options.soajs.registry.deployer.container.kubernetes.remote.nodes && options.soajs.registry.deployer.container.kubernetes.remote.nodes !== '') {
 			let machineIp = options.soajs.registry.deployer.container.kubernetes.remote.nodes;
@@ -467,12 +472,12 @@ let driver = {
 								if (err) {
 									return cb(err);
 								}
-								
+
 								if (!clusterInformation || clusterInformation === '' || typeof clusterInformation !== 'object' || Object.keys(clusterInformation).length === 0) {
 									options.soajs.log.debug("Cluster Not Ready Yet.");
 									return cb(null, false);
 								}
-								
+
 								let machineIp = clusterInformation.endpoint;
 								let machineAuth = clusterInformation.masterAuth;
 								let deployer = {};
@@ -484,18 +489,18 @@ let driver = {
 									},
 									request: {strictSSL: false}
 								};
-								
+
 								async.auto({
 									"getKubernetesToken": function (fCb) {
 										options.soajs.log.debug("Creating Kubernetes Token.");
 										deployerConfig.version = 'v1';
-										
+
 										deployer.core = new K8Api.Core(deployerConfig);
 										deployer.core.namespaces.secrets.get({}, (error, secretsList) => {
 											if (error) {
 												return fCb(error);
 											}
-											
+
 											async.detect(secretsList.items, (oneSecret, callback) => {
 												return callback(null, (oneSecret && oneSecret.metadata && oneSecret.metadata.name && oneSecret.metadata.name.match(/default-token-.*/g) && oneSecret.type === 'kubernetes.io/service-account-token'));
 											}, (error, tokenSecret) => {
@@ -535,7 +540,7 @@ let driver = {
 													if (error) {
 														return fCb(error);
 													}
-													
+
 													return fCb(null, true);
 												});
 											});
@@ -562,7 +567,7 @@ let driver = {
 			});
 		}
 	},
-	
+
 	/**
 	 * This method returns the instruction to update the dns to link the domain of this environment
 	 * @param options
@@ -571,7 +576,7 @@ let driver = {
 	 */
 	"getDNSInfo": function (options, cb) {
 		let stack = options.infra.stack;
-		
+
 		let nginxDeploymentName = options.soajs.registry.code.toLowerCase() + '-nginx';
 		let deployer = {};
 		let deployerConfig = {
@@ -582,24 +587,24 @@ let driver = {
 			},
 			request: {strictSSL: false}
 		};
-		
+
 		//build namespace
 		let namespace = options.soajs.registry.deployer.container.kubernetes.remote.namespace.default;
 		if (options.soajs.registry.deployer.container.kubernetes.remote.namespace.perService) {
 			namespace += '-' + nginxDeploymentName;
 		}
-		
+
 		deployer.core = new K8Api.Core(deployerConfig);
 		let nginxServiceName = nginxDeploymentName + '-service';
 		deployer.core.namespaces(namespace).services.get({name: nginxServiceName}, (error, service) => {
 			if (error) {
 				return cb(error);
 			}
-			
+
 			if (!service || !service.metadata || !service.metadata.name || !service.spec) {
 				return cb(new Error("Nginx deployment not found!"));
 			}
-			
+
 			let DNSIPAddress;
 			if (service.spec.type === 'LoadBalancer' && service.status && service.status.loadBalancer && service.status.loadBalancer.ingress) {
 				DNSIPAddress = service.status.loadBalancer.ingress[0].ip; //NOTE: not sure about this, need access to a gke deployment to verify it
@@ -607,11 +612,11 @@ let driver = {
 			else if (service.spec.type === 'NodePort' && service.spec.clusterIP) {
 				DNSIPAddress = service.spec.clusterIP;
 			}
-			
+
 			let mockedResponse = {
 				"id": stack.id
 			};
-			
+
 			if (DNSIPAddress) {
 				mockedResponse = {
 					"id": stack.id,
@@ -630,11 +635,11 @@ let driver = {
 					}
 				};
 			}
-			
+
 			return cb(null, mockedResponse);
 		});
 	},
-	
+
 	/**
 	 * This method scales the deployment for the given cluster
 	 * @param options
@@ -643,7 +648,7 @@ let driver = {
 	 */
 	"scaleCluster": function (options, cb) {
 		let cluster = options.infra.stack;
-		
+
 		//Ref: https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters.nodePools/autoscaling
 		let request = getConnector(options.infra.api);
 		delete request.project;
@@ -656,7 +661,7 @@ let driver = {
 		};
 		v1Container().projects.zones.clusters.nodePools.setSize(request, cb);
 	},
-	
+
 	/**
 	 * This method returns the project cluster id and zone that was used to create a deployment at the google.
 	 *
@@ -666,7 +671,7 @@ let driver = {
 	"getCluster": function (options, cb) {
 		//call google api and get the machines
 		let cluster = options.infra.stack;
-		
+
 		//Ref: https://cloud.google.com/compute/docs/reference/latest/instances/list
 		let request = getConnector(options.infra.api);
 		request.clusterId = cluster.id;
@@ -697,7 +702,7 @@ let driver = {
 						//extract name and ip from response
 						instances.items.forEach((oneInstance) => {
 							let machineIP;
-							
+
 							oneInstance.networkInterfaces.forEach((oneNetInterface) => {
 								if (oneNetInterface.accessConfigs) {
 									oneNetInterface.accessConfigs.forEach((oneAC) => {
@@ -707,7 +712,7 @@ let driver = {
 									});
 								}
 							});
-							
+
 							if (machineIP) {
 								response.machines.push({
 									"name": oneInstance.name,
@@ -728,7 +733,7 @@ let driver = {
 			});
 		});
 	},
-	
+
 	/**
 	 * This method Updates the deployment at google
 	 * @param options
@@ -737,7 +742,7 @@ let driver = {
 	 */
 	"updateCluster": function (options, cb) {
 		return cb(null, true);
-		
+
 		// let cluster = info[0];
 		//
 		// //Ref https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1beta1/projects.zones.clusters/update
@@ -754,7 +759,7 @@ let driver = {
 		// 	return cb(err, true);
 		// });
 	},
-	
+
 	/**
 	 * This method removes the deployment at google and updates the project record infra.google.deployment array
 	 * @param options
@@ -797,7 +802,7 @@ let driver = {
 									newRequest.filter = `network eq .*${clusterInformation.network}`;
 									newRequest.project = options.infra.api.project;
 									options.soajs.log.debug("Removing Firewalls from network: ", clusterInformation.network);
-									
+
 									//list firewalls
 									//Ref: https://cloud.google.com/compute/docs/reference/rest/v1/firewalls/list
 									v1Compute().firewalls.list(newRequest, function (err, firewalls) {
@@ -813,7 +818,7 @@ let driver = {
 											delete newRequest.filter;
 											delete newRequest.network;
 											newRequest.firewall = oneFirewall.name;
-											
+
 											//delete each firewall in parallel calls
 											//Ref: https://cloud.google.com/compute/docs/reference/rest/v1/firewalls/delete
 											v1Compute().firewalls.delete(newRequest, callback);
@@ -849,10 +854,10 @@ let driver = {
 													}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 1000);
 												}
 											});
-											
+
 										});
 									});
-									
+
 									function globalOperations(request, operation, type, cb) {
 										request.operation = operation.name;
 										setTimeout(function () {
@@ -881,7 +886,7 @@ let driver = {
 				});
 			});
 		});
-		
+
 		function checkIfDeleteIsDone(operation, type, vCb) {
 			//Ref: https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.operations/get
 			let request = getConnector(options.infra.api);
@@ -894,7 +899,7 @@ let driver = {
 				if (err) {
 					return vCb(err);
 				}
-				
+
 				if (response && response.operationType === "DELETE_CLUSTER" && response.status === "DONE") {
 					return vCb(null, true);
 				}
@@ -972,11 +977,11 @@ driver.redeployService = function (options, cb) {
 				if (error) {
 					return cb(error);
 				}
-				
+
 				if (options.params.action === 'redeploy') {
 					return cb(null, deployedServiceDetails);
 				}
-				
+
 				infraUtils.updateEnvSettings(driver, LBDriver, options, deployedServiceDetails, (error) => {
 					return cb(error, deployedServiceDetails);
 				});
