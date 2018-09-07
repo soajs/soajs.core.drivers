@@ -203,7 +203,7 @@ const AWSCluster = {
 							options.soajs.registry.deployer.container[stack.technology].remote.nodes = out.ip;
 							options.out = out;
 							
-							return cb(err, out.ip);
+							return cb(err, out);
 						}
 						else {
 							return cb(null, false);
