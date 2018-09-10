@@ -108,8 +108,9 @@ const utils = {
 					//no port allocated yet, restart in 2 seconds
 					//check to see if the service have ports originally
 					if (options.original && !publishedPort){
-						if (options.original.service && options.original.service.ports && options.original.service.ports.length > 0){}
-						publishedPort = true;
+						if (options.original.service && options.original.service.ports && options.original.service.ports.length > 0){
+							publishedPort = true;
+						}
 					}
 					if (!publishedPort && currentAttempt <= maxAttempts) {
 						currentAttempt++;
