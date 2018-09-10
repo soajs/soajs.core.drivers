@@ -454,6 +454,14 @@ const securityGroups = {
 		}
 
 		function getVpc (result, callback){
+			if(!result.getSecurityGroups || !Array.isArray(result.getSecurityGroups) || result.getSecurityGroups.length === 0) {
+				if (options.params.securityGroups && Array.isArray(options.params.securityGroups) && options.params.securityGroups.length > 0){
+					return callback(new Error(`Security Groups: ${options.params.securityGroup.join(' - ')} not found!`));
+				}
+				else {
+					return callback(new Error("Invalid Security groups provided!"));
+				}
+			}
 			ec2.describeVpcs({
 				VpcIds: [result.getSecurityGroups[0].networkId]
 			}, callback);
