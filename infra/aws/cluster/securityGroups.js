@@ -394,7 +394,7 @@ const securityGroups = {
 									if (oneSgPort.published && typeof oneSgPort.published  === 'string' && oneSgPort.published.split(' - ').length > 0 ){
 										let target = parseInt(oneSgPort.published.split(' - ')[0]);
 										let range = oneSgPort.published.split(' - ')[1] ? parseInt(oneSgPort.published.split(' - ')[1]) : null;
-										
+
 										if(oneCatalogPort.target === target) {
 											return detectCallback(null, true);
 										}
@@ -419,7 +419,7 @@ const securityGroups = {
 						if(foundPort) {
 							return concatCallback(null, []);
 						}
-					
+
 						let port = {
 							FromPort: oneCatalogPort.target,
 							IpProtocol: "tcp",
@@ -459,7 +459,8 @@ const securityGroups = {
 					return callback(new Error(`Security Groups: ${options.params.securityGroup.join(' - ')} not found!`));
 				}
 				else {
-					return callback(new Error("Invalid Security groups provided!"));
+					options.soajs.log.warn("No security groups provided!");
+					return callback(null, []);
 				}
 			}
 			ec2.describeVpcs({
