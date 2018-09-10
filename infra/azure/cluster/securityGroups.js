@@ -5,6 +5,7 @@ const helper = require('../utils/helper.js');
 const config = require('./../config');
 const utils = require('../../../lib/utils/utils.js');
 const driverUtils = require('../utils/index.js');
+const vms = require('../vm/index.js');
 
 const request = require('request');
 
@@ -217,7 +218,33 @@ const securityGroups = {
                 return newPriority;
             }
 
-            function getSecurityGroups(callback) {
+            function checkSecurityGroups(callback) {
+                if(!options.params.securityGroups || !Array.isArray(options.params.securityGroups) || options.params.securityGroups.length === 0) {
+                    if(!options.params.vms || !Array.isArray(options.params.vms) || options.params.vms.length === 0) {
+                        return callback(new Error("Missing instance ids, security groups could not be retreived"));
+                    }
+
+                    let inspectOptions = Object.assign({}, options);
+                    inspectOptions.params = {
+                        group: options.params.group,
+                        vmName: options.params.vms[0]
+                    };
+                    vms.inspectService(inspectOptions, (error, vmRecord) => {
+                        if(error) return callback(error);
+                        if(!(vmRecord && vmRecord.securityGroup && Array.isArray(vmRecord.securityGroup) && vmRecord.securityGroup.length > 0)) {
+                            return callback(new Error("Could not find the security groups associated to this layer"));
+                        }
+
+                        options.params.securityGroups = vmRecord.securityGroup;
+                        return callback(null, true);
+                    });
+                }
+                else {
+                    return callback(null, true);
+                }
+            }
+
+            function getSecurityGroups(result, callback) {
                 // no security groups selected
                 if(!options.params.securityGroups || !Array.isArray(options.params.securityGroups) || options.params.securityGroups.length === 0) {
                     return callback(null, []);
@@ -307,8 +334,9 @@ const securityGroups = {
                 }
 
                 async.auto({
-                    getSecurityGroups,
-                    computePorts: ['getSecurityGroups', computePorts],
+                    checkSecurityGroups,
+                    getSecurityGroups: ['checkSecurityGroups', getSecurityGroups],
+                    computePorts: ['checkSecurityGroups', 'getSecurityGroups', computePorts],
                     updateSecurityGroups: ['computePorts', updateSecurityGroups]
                 }, function(error, result) {
                     utils.checkError(error, 734, cb, () => {
