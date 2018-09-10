@@ -204,7 +204,6 @@ const securityGroups = {
             * update security groups
             */
 
-            let matchingPorts = 0;
             function assignPortPriority(existingPorts) {
                 let newPriority = Math.floor((Math.random() * 1000) + 500);
                 if(existingPorts && Array.isArray(existingPorts) && existingPorts.length > 0) {
@@ -291,14 +290,16 @@ const securityGroups = {
                         async.detect(sgPorts, function(oneSgPort, detectCallback) {
                             if(oneSgPort.access === 'allow' && oneSgPort.direction === 'inbound') {
                                 if(oneSgPort.isPublished === oneCatalogPort.isPublished && !oneSgPort.readonly &&
-                                    ((oneSgPort.published == oneCatalogPort.published) || oneSgPort.published === '*') &&
-                                    ((oneSgPort.target == oneCatalogPort.target) || oneSgPort.target === '*')) {
+                                    ((oneSgPort.published.toString() == oneCatalogPort.published.toString()) || oneSgPort.published === '*') &&
+                                    ((oneSgPort.target.toString() == oneCatalogPort.target.toString()) || oneSgPort.target === '*')) {
                                         return detectCallback(null, true);
                                     }
                                 }
                                 return detectCallback(null, false);
                             }, function(error, foundPort) {
-                                if(foundPort) matchingPorts++;
+                                if(foundPort) {
+                                    return concatCallback(null, []);
+                                }
 
                                 return concatCallback(null, [
                                     {
@@ -307,8 +308,8 @@ const securityGroups = {
                                         access: 'allow',
                                         priority: assignPortPriority(sgPorts),
                                         direction: 'inbound',
-                                        target: oneCatalogPort.target || '*',
-                                        published: oneCatalogPort.published || '*',
+                                        target: oneCatalogPort.target.toString() || '*',
+                                        published: oneCatalogPort.published.toString() || '*',
                                         sourceAddress: (oneCatalogPort.isPublished) ? '*' : 'VirtualNetwork',
                                         destinationAddress: (oneCatalogPort.isPublished) ? '*' : 'VirtualNetwork',
                                         isPublished: oneCatalogPort.isPublished || false
@@ -329,11 +330,12 @@ const securityGroups = {
                     }
 
                     async.each(result.computePorts, (oneSecurityGroup, eachCallback) => {
-                        if(!oneSecurityGroup.portsUpdates || oneSecurityGroup.portsUpdates.length === 0 || oneSecurityGroup.portsUpdates.length === matchingPorts) {
+                        if(!oneSecurityGroup.portsUpdates || oneSecurityGroup.portsUpdates.length === 0) {
                             return callback(null, true);
                         }
 
                         let updateOptions = Object.assign({}, options);
+                        oneSecurityGroup.portsUpdates = oneSecurityGroup.portsUpdates.concat(oneSecurityGroup.ports.filter((oneEntry) => { return !oneEntry.readonly; }));
                         updateOptions.params = {
                             region: oneSecurityGroup.region,
                             group: options.params.group,
