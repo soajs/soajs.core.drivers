@@ -62,10 +62,10 @@ let driver = {
 	 * @returns {*}
 	 */
 	"getDeployClusterStatusPost": function (options, cb) {
-		let out = options.out;
+		let outIP = options.out;
 		let stack = options.infra.stack;
 		
-		if (out.ip && stack.options.ElbName) {
+		if (outIP && stack.options.ElbName) {
 			options.soajs.log.debug("Creating SOAJS network.");
 			
 			dockerUtils.getDeployer(options, (error, deployer) => {
