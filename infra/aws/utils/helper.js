@@ -481,8 +481,8 @@ const helper = {
 			}
 			if (opts.securityGroup.Tags && opts.securityGroup.Tags.length > 0) {
 				for (let i = 0; i < opts.securityGroup.Tags.length; i++) {
-					if (opts.securityGroup.Tags[i].Key === "Name") {
-						securityGroup.name = opts.vm.Tags[i].Value;
+					if (opts.securityGroup.Tags && opts.securityGroup.Tags[i] && opts.securityGroup.Tags[i].Key === "Name") {
+						securityGroup.name = opts.securityGroup.Tags[i].Value;
 						break;
 					}
 				}

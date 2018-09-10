@@ -10,10 +10,10 @@ function getConnector(opts) {
 }
 
 const maintenance = {
-
+	
 	/**
 	 * Delete a virtual machine
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -39,10 +39,10 @@ const maintenance = {
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#terminateInstances-property
 		ec2.terminateInstances(params, cb);
 	},
-
+	
 	/**
 	 * Restart a virtual machine
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -56,7 +56,7 @@ const maintenance = {
 			secretAccessKey: aws.secretAccessKey
 		});
 		let params = {};
-
+		
 		if (typeof options.params.id === "string") {
 			params.InstanceIds = [options.params.id];
 		}
@@ -66,14 +66,14 @@ const maintenance = {
 		else {
 			return cb(new Error("Instance id must be of type  sting or  array!"));
 		}
-
+		
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#terminateInstances-property
 		ec2.rebootInstances(params, cb);
 	},
-
+	
 	/**
 	 * Redeploy a virtual machine
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -81,10 +81,10 @@ const maintenance = {
 	redeployService: function (options, cb) {
 		return cb(null, true);
 	},
-
+	
 	/**
 	 * Turn off a virtual machine
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -110,10 +110,10 @@ const maintenance = {
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#terminateInstances-property
 		ec2.stopInstances(params, cb);
 	},
-
+	
 	/**
 	 * Start a virtual machine
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -139,10 +139,10 @@ const maintenance = {
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#terminateInstances-property
 		ec2.startInstances(params, cb);
 	},
-
+	
 	/**
 	 * Execute a command inside a running virtual machine
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -179,11 +179,46 @@ const maintenance = {
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-		ec2.describeInstances({
-			InstanceIds: [
-				options.params.vmName
-			]
-		}, (err, response) => {
+		function getVMS(callback) {
+			let params;
+			if (options.params.vmName && Array.isArray(options.params.vmName) && options.params.vmName.length > 0) {
+				params = {
+					Filters: [
+						{
+							Name: 'tag:Name',
+							Values: options.params.vmName
+						}
+					]
+				};
+			}
+			else if (typeof options.params.vmName === 'string') {
+				params = {
+					Filters: [
+						{
+							Name: 'tag:Name',
+							Values: [options.params.vmName]
+						}
+					]
+				};
+			}
+			else {
+				return callback(new Error("Vms not found!"));
+			}
+			ec2.describeInstances({
+				InstanceIds: [
+					options.params.vmName
+				]
+			}, (err, response) => {
+				if (err || !response || !response.Reservations || response.Reservations.length === 0 || !response.Reservations[0].Instances || response.Reservations[0].Instances.length === 0) {
+					ec2.describeInstances(params, callback);
+				}
+				else {
+					return callback(err, response);
+				}
+			});
+		}
+		
+		getVMS((err, response) => {
 			if (err) {
 				return cb(err);
 			}
@@ -212,7 +247,7 @@ const maintenance = {
 								let params = {
 									DocumentName: vm.Platform && vm.Platform === "windows" ? 'RunPowerShellScript' : 'AWS-RunShellScript', /* required */
 									InstanceIds: [
-										options.params.vmName
+										vm.InstanceId
 									],
 									Parameters: {
 										'commands': script,
@@ -231,10 +266,10 @@ const maintenance = {
 			}
 		});
 	},
-
+	
 	/**
 	 * Get logs of a running virtual machine
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -242,7 +277,7 @@ const maintenance = {
 	getLogs: function (options, cb) {
 		return cb(null, true);
 	},
-
+	
 };
 
 module.exports = maintenance;

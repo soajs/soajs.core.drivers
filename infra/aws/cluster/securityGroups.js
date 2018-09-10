@@ -351,7 +351,7 @@ const securityGroups = {
 		 * update security groups
 		 */
 		const aws = options.infra.api;
-
+		
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
@@ -359,46 +359,71 @@ const securityGroups = {
 			secretAccessKey: aws.secretAccessKey
 		});
 		let vpc = false;
+		
 		function getSecurityGroups(callback) {
-			// no security groups selected
-			if (!options.params.securityGroups || !Array.isArray(options.params.securityGroups) || options.params.securityGroups.length === 0) {
-				return callback(null, []);
-			}
-
-			// catalog recipe does not include any ports
+			
 			if (!options.params.ports || !options.params.ports || !Array.isArray(options.params.ports) || options.params.length === 0) {
 				return callback(null, []);
 			}
 			let getOptions = Object.assign({}, options);
-			getOptions.params = {
-				region: options.params.region,
-				ids: options.params.securityGroups,
-			};
-			securityGroups.list(getOptions, callback);
-		}
-
-		function computePorts(result, callback) {
-			if(!result.getSecurityGroups || !Array.isArray(result.getSecurityGroups) || result.getSecurityGroups.length === 0) {
-				return callback(null, []);
+			
+			if (!options.params.securityGroups || !Array.isArray(options.params.securityGroups) || options.params.securityGroups.length === 0) {
+				getVMS((err, response) => {
+					if (err) {
+						return callback(err);
+					}
+					let sG = [];
+					if (response && response.Reservations) {
+						async.each(response.Reservations, (oneReservation, rCB) => {
+							async.each(oneReservation.Instances, (oneInstance, iCB) => {
+								async.each(oneInstance.SecurityGroups, (group, gCB) => {
+									sG.push(group.GroupId);
+									return gCB();
+								}, iCB)
+							}, (err, result) => {
+								sG = sG.concat(result);
+								return rCB()
+							});
+						}, () => {
+							getOptions.params = {
+								region: options.params.region,
+								ids: options.params.securityGroups,
+							};
+							securityGroups.list(getOptions, callback);
+						});
+					}
+					else {
+						return callback(new Error("Invalid Virtual Machines!"));
+					}
+				});
 			}
-
+			else {
+				getOptions.params = {
+					region: options.params.region,
+					ids: options.params.securityGroups,
+				};
+				securityGroups.list(getOptions, callback);
+			}
+		}
+		
+		function computePorts(result, callback) {
 			let catalogPorts = options.params.ports || [];
 			async.map(result.getSecurityGroups, (oneSecurityGroup, mapCallback) => {
 				let sgPorts = oneSecurityGroup.ports || [];
-
+				
 				async.concat(catalogPorts, (oneCatalogPort, concatCallback) => {
 					async.detect(sgPorts, (oneSgPort, detectCallback) => {
-						if(oneSgPort.access === 'allow' && oneSgPort.direction === 'inbound') {
-							if(!oneSgPort.readonly) {
+						if (oneSgPort.access === 'allow' && oneSgPort.direction === 'inbound') {
+							if (!oneSgPort.readonly) {
 								try {
-									if (oneSgPort.published && typeof oneSgPort.published  === 'string' && oneSgPort.published.split(' - ').length > 0 ){
+									if (oneSgPort.published && typeof oneSgPort.published === 'string' && oneSgPort.published.split(' - ').length > 0) {
 										let target = parseInt(oneSgPort.published.split(' - ')[0]);
 										let range = oneSgPort.published.split(' - ')[1] ? parseInt(oneSgPort.published.split(' - ')[1]) : null;
-
-										if(oneCatalogPort.target === target) {
+										
+										if (oneCatalogPort.target === target) {
 											return detectCallback(null, true);
 										}
-										else if(oneCatalogPort.target > target && oneCatalogPort.target <= range) {
+										else if (oneCatalogPort.target > target && oneCatalogPort.target <= range) {
 											return detectCallback(null, true);
 										}
 									}
@@ -416,10 +441,10 @@ const securityGroups = {
 						}
 						return detectCallback(null, false);
 					}, (error, foundPort) => {
-						if(foundPort) {
+						if (foundPort) {
 							return concatCallback(null, []);
 						}
-
+						
 						let port = {
 							FromPort: oneCatalogPort.target,
 							IpProtocol: "tcp",
@@ -427,12 +452,12 @@ const securityGroups = {
 							vpc: !oneCatalogPort.isPublished
 						};
 						vpc = !oneCatalogPort.isPublished;
-						if (oneCatalogPort.name){
+						if (oneCatalogPort.name) {
 							let supportedProtocols = config.ipProtocolNumbers.concat(config.ipProtocols);
-							if (supportedProtocols.indexOf(oneCatalogPort.name.toLowerCase()) !== -1){
+							if (supportedProtocols.indexOf(oneCatalogPort.name.toLowerCase()) !== -1) {
 								port.IpProtocol = oneCatalogPort.name.toLowerCase();
 							}
-							else if (oneCatalogPort.name === "*"){
+							else if (oneCatalogPort.name === "*") {
 								port.IpProtocol = -1;
 							}
 							else {
@@ -442,20 +467,20 @@ const securityGroups = {
 						else {
 							port.IpProtocol = "tcp"
 						}
-
-						return concatCallback(null, [ port ]);
+						
+						return concatCallback(null, [port]);
 					});
-				}, function(error, portsUpdates) {
+				}, function (error, portsUpdates) {
 					//no error to be handled
 					oneSecurityGroup.portsUpdates = portsUpdates;
 					return mapCallback(null, oneSecurityGroup);
 				});
 			}, callback);
 		}
-
-		function getVpc (result, callback){
-			if(!result.getSecurityGroups || !Array.isArray(result.getSecurityGroups) || result.getSecurityGroups.length === 0) {
-				if (options.params.securityGroups && Array.isArray(options.params.securityGroups) && options.params.securityGroups.length > 0){
+		
+		function getVpc(result, callback) {
+			if (!result.getSecurityGroups || !Array.isArray(result.getSecurityGroups) || result.getSecurityGroups.length === 0) {
+				if (options.params.securityGroups && Array.isArray(options.params.securityGroups) && options.params.securityGroups.length > 0) {
 					return callback(new Error(`Security Groups: ${options.params.securityGroup.join(' - ')} not found!`));
 				}
 				else {
@@ -467,14 +492,13 @@ const securityGroups = {
 				VpcIds: [result.getSecurityGroups[0].networkId]
 			}, callback);
 		}
-
+		
 		function updateSecurityGroups(result, callback) {
 			if (!result.computePorts || !Array.isArray(result.computePorts) || result.computePorts.length === 0) {
 				return callback(null, true);
 			}
-
 			async.each(result.computePorts, (oneSecurityGroup, eachCallback) => {
-				if(!oneSecurityGroup.portsUpdates || oneSecurityGroup.portsUpdates.length === 0) {
+				if (!oneSecurityGroup.portsUpdates || oneSecurityGroup.portsUpdates.length === 0) {
 					return eachCallback(null, true);
 				}
 
@@ -508,7 +532,44 @@ const securityGroups = {
 				}, eachCallback);
 			}, callback);
 		}
-
+		function getVMS (callback){
+			let params;
+			if ( options.params.vms && Array.isArray( options.params.vms) &&  options.params.vms.length > 0){
+				params = {
+					Filters: [
+						{
+							Name: 'tag:Name',
+							Values: options.params.vms
+						}
+					]
+				};
+			}
+			else if (typeof  options.params.vms === 'string'){
+				params = {
+					Filters: [
+						{
+							Name: 'tag:Name',
+							Values: [options.params.vms]
+						}
+					]
+				};
+			}
+			else {
+				return callback(new Error("Vms not found!"));
+			}
+			ec2.describeInstances({
+				InstanceIds: [
+					options.params.vms
+				]
+			}, (err, response) => {
+				if (err || !response || !response.Reservations || response.Reservations.length === 0 || !response.Reservations[0].Instances || response.Reservations[0].Instances.length === 0) {
+					ec2.describeInstances(params, callback);
+				}
+				else {
+					return callback(err, response);
+				}
+			});
+		}
 		async.auto({
 			getSecurityGroups,
 			getVpc: ['getSecurityGroups', getVpc],
