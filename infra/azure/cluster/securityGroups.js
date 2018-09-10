@@ -224,18 +224,30 @@ const securityGroups = {
                         return callback(new Error("Missing instance ids, security groups could not be retreived"));
                     }
 
-                    let inspectOptions = Object.assign({}, options);
-                    inspectOptions.params = {
-                        group: options.params.group,
-                        vmName: options.params.vms[0]
-                    };
-                    vms.inspectService(inspectOptions, (error, vmRecord) => {
+                    options.params.securityGroups = [];
+                    async.concat(options.params.vms, (oneVmId, miniCallback) => {
+                        let inspectOptions = Object.assign({}, options);
+                        inspectOptions.params = {
+                            group: options.params.group,
+                            vmName: oneVmId
+                        };
+                        vms.inspectService(inspectOptions, (error, vmRecord) => {
+                            if(error) return miniCallback(error);
+
+                            return miniCallback(null, vmRecord.securityGroup || []);
+                        });
+                    }, (error, vmsGroups = []) => {
                         if(error) return callback(error);
-                        if(!(vmRecord && vmRecord.securityGroup && Array.isArray(vmRecord.securityGroup) && vmRecord.securityGroup.length > 0)) {
+
+                        vmsGroups.forEach((oneGroup) => {
+                            if(!options.params.securityGroups.includes(oneGroup)) {
+                                options.params.securityGroups.push(oneGroup);
+                            }
+                        });
+                        if(options.params.securityGroups.length === 0) {
                             return callback(new Error("Could not find the security groups associated to this layer"));
                         }
 
-                        options.params.securityGroups = vmRecord.securityGroup;
                         return callback(null, true);
                     });
                 }
