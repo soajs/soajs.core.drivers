@@ -445,7 +445,7 @@ const helper = {
 			let arn = opts.vm.IamInstanceProfile.Arn.split("/");
 			let role = arn[arn.length - 1];
 			for (let i = 0; i < opts.roles.length; i++) {
-				if (opts.roles[i] && typeof  opts.roles[i] === 'object'){
+				if (opts.roles[i] && typeof  opts.roles[i] === 'object' && opts.roles[i][role]){
                     let keys = Object.keys(opts.roles[i]);
                     if (keys[0] === role) {
                         for (let j = 0; j < opts.roles[i][role].AttachedPolicies.length; j++) {
