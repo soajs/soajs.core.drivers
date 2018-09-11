@@ -479,9 +479,9 @@ const helper = {
 				securityGroup.id = opts.securityGroup.GroupId;
 				securityGroup.name = opts.securityGroup.GroupName;
 			}
-			if (opts.securityGroup.Tags && opts.securityGroup.Tags.length > 0) {
+			if (opts.securityGroup.Tags && Array.isArray(opts.securityGroup.Tags) && opts.securityGroup.Tags.length > 0) {
 				for (let i = 0; i < opts.securityGroup.Tags.length; i++) {
-					if (opts.securityGroup.Tags && opts.securityGroup.Tags[i] && opts.securityGroup.Tags[i].Key === "Name") {
+					if (opts.securityGroup.Tags[i] && opts.securityGroup.Tags[i].Key && opts.securityGroup.Tags[i].Key === "Name") {
 						securityGroup.name = opts.securityGroup.Tags[i].Value;
 						break;
 					}

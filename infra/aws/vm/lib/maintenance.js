@@ -154,12 +154,13 @@ const maintenance = {
 		//args
 		//region
 		let script = [];
-		if (options.params.command && Array.isArray(options.params.command)) script = script.concat(options.params.command); // add command
-		if (options.params.args && Array.isArray(options.params.args)) script = script.concat(options.params.args); // add command arguments
-		if (options.params.env && Array.isArray(options.params.env)) script = script.concat(options.params.env.map(oneEnv => `export ${oneEnv}`)); // export environment variables
+		if (options.params && options.params.command && Array.isArray(options.params.command)) script = script.concat(options.params.command); // add command
+		if (options.params && options.params.args && Array.isArray(options.params.args)) script = script.concat(options.params.args); // add command arguments
+		if (options.params && options.params.env && Array.isArray(options.params.env)) script = script.concat(options.params.env.map(oneEnv => `export ${oneEnv}`)); // export environment variables
 		if (script.length === 0) {
 			return cb(null, true);
 		}
+		
 		const aws = options.infra.api;
 		const ec2 = getConnector({
 			api: 'ec2',
@@ -179,37 +180,45 @@ const maintenance = {
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
+		
 		function getVMS(callback) {
-			let params;
-			if (options.params.vmName && Array.isArray(options.params.vmName) && options.params.vmName.length > 0) {
-				params = {
-					Filters: [
-						{
-							Name: 'tag:Name',
-							Values: options.params.vmName
-						}
-					]
-				};
+			let params = null;
+			if(options.params && options.params.vmName){
+				if (Array.isArray(options.params.vmName) && options.params.vmName.length > 0) {
+					params = {
+						Filters: [
+							{
+								Name: 'tag:Name',
+								Values: options.params.vmName
+							}
+						]
+					};
+				}
+				else if (typeof options.params.vmName === 'string') {
+					params = {
+						Filters: [
+							{
+								Name: 'tag:Name',
+								Values: [options.params.vmName]
+							}
+						]
+					};
+				}
 			}
-			else if (typeof options.params.vmName === 'string') {
-				params = {
-					Filters: [
-						{
-							Name: 'tag:Name',
-							Values: [options.params.vmName]
-						}
-					]
-				};
-			}
-			else {
+			
+			if(!params){
 				return callback(new Error("Vms not found!"));
 			}
+			
+			//describe instances using instanceIds = options.params.vmName
 			ec2.describeInstances({
 				InstanceIds: [
 					options.params.vmName
 				]
 			}, (err, response) => {
 				if (err || !response || !response.Reservations || response.Reservations.length === 0 || !response.Reservations[0].Instances || response.Reservations[0].Instances.length === 0) {
+					
+					//if nothing was found describe instances using filters generated via params
 					ec2.describeInstances(params, callback);
 				}
 				else {
@@ -222,8 +231,10 @@ const maintenance = {
 			if (err) {
 				return cb(err);
 			}
+			
 			if (response && response.Reservations && response.Reservations[0] && response.Reservations[0].Instances && response.Reservations[0].Instances[0]) {
 				let vm = response.Reservations[0].Instances[0];
+				// options.soajs.log.debug("About to execute commands:", script, "in VM:", vm);
 				if (!vm.IamInstanceProfile || !vm.IamInstanceProfile.Arn) {
 					return cb(new Error(`${options.params.vmName} machine does not have the required policy: ${config.aws.ssmSupportedPolicy.join(",")}`));
 				}
@@ -232,14 +243,15 @@ const maintenance = {
 					let role = arn[arn.length - 1];
 					iam.listAttachedRolePolicies({
 						RoleName: role, /* required */
-					}, function (err, policies) {
+					}, (err, policies) => {
 						if (err) return cb(err);
+						
 						let instancePolicies = [];
 						if (policies && policies.AttachedPolicies && policies.AttachedPolicies.length > 0) {
-							async.each(policies.AttachedPolicies, function (onePolicy, callback) {
+							async.each(policies.AttachedPolicies, (onePolicy, callback) => {
 								instancePolicies.push(onePolicy.PolicyName);
 								callback();
-							}, function () {
+							}, () => {
 								let notFound = _.differenceBy(config.aws.ssmSupportedPolicy, instancePolicies);
 								if (notFound.length > 0) {
 									return cb(new Error(`${options.params.vmName} machine does not have the required policy: ${config.aws.ssmSupportedPolicy.join(",")}`));
@@ -255,14 +267,26 @@ const maintenance = {
 									},
 									TimeoutSeconds: 60
 								};
-								ssm.sendCommand(params, cb);
+								
+								console.log(JSON.stringify(vm, null, 2));
+								console.log("----");
+								console.log(JSON.stringify(params, null, 2));
+								
+								options.soajs.log.debug("Executing Command from Cloostro");
+								ssm.sendCommand(params, (error, response) => {
+									console.log(error, response);
+									return cb(error, response);
+								});
 							});
+						}
+						else{
+							return cb(new Error(`${options.params.vmName} machine does not have the required policy to support running commands in it.`));
 						}
 					});
 				}
 			}
 			else {
-				return cb(new Error("VM not found!"));
+				return callback(new Error("Invalid Virtual Machines!"));
 			}
 		});
 	},
