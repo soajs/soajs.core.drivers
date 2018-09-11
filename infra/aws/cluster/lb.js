@@ -732,7 +732,7 @@ const AWSLB = {
 											}, call);
 										}
 										else {
-											call();
+											return call();
 										}
 									},
 									delete: (call) => {
@@ -743,7 +743,7 @@ const AWSLB = {
 									},
 									add: (call) => {
 										if (addListeners.Listeners.length === 0) {
-											call();
+											return call();
 										}
 										elb.createLoadBalancerListeners(addListeners, call)
 									}
@@ -787,7 +787,7 @@ const AWSLB = {
 									}, callback);
 							}
 							else {
-								callback();
+								return callback();
 							}
 						},
 						healthCheck: (callback) => {
@@ -796,7 +796,7 @@ const AWSLB = {
 								if (options.params.healthProbe.healthProbeProtocol && options.params.healthProbe.healthProbePort) {
 									healthProbePath += options.params.healthProbe.healthProbeProtocol.toUpperCase();
 									healthProbePath += ":" + options.params.healthProbe.healthProbePort;
-									if (options.params.healthProbe.healthProbeProtocol.toUpperCase() === "HTTP" || options.params.healthProbe.healthProbePort.toUpperCase() === "HTTPS") {
+									if (options.params.healthProbe.healthProbeProtocol.toUpperCase() === "HTTP" || options.params.healthProbe.healthProbeProtocol.toUpperCase() === "HTTPS") {
 										if (options.params.healthProbe.healthProbePath) {
 											healthProbePath += options.params.healthProbe.healthProbePath;
 										}
@@ -825,11 +825,11 @@ const AWSLB = {
 									}, callback);
 								}
 								else {
-									callback();
+									return callback();
 								}
 							}
 							else {
-								callback();
+								return callback();
 							}
 						}
 					}, mCb);
