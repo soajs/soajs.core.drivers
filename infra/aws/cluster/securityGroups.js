@@ -251,6 +251,9 @@ const securityGroups = {
 				if (ip.PrefixListIds && ip.PrefixListIds.length === 0) {
 					delete ip.PrefixListIds;
 				}
+				if (ip.IpRanges && ip.IpRanges.length === 0) {
+					delete ip.IpRanges;
+				}
 				if (ip.Ipv6Ranges && ip.Ipv6Ranges.length === 0) {
 					delete ip.Ipv6Ranges;
 				}
@@ -318,6 +321,14 @@ const securityGroups = {
 					onePort.ipv6.forEach((v6) => {
 						port.Ipv6Ranges.push({
 							CidrIpv6: v6
+						});
+					});
+				}
+				if(onePort.securityGroups && onePort.securityGroups.length > 0) {
+					port.UserIdGroupPairs = [];
+					onePort.securityGroups.forEach((sg) => {
+						port.UserIdGroupPairs.push({
+							GroupId: sg
 						});
 					});
 				}
