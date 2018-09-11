@@ -412,9 +412,6 @@ const securityGroups = {
 			
 			let catalogPorts = options.params.ports || [];
 			
-			// console.log(JSON.stringify(catalogPorts, null, 2));
-			// console.log(JSON.stringify(result, null, 2));
-			
 			async.map(result.getSecurityGroups, (oneSecurityGroup, mapCallback) => {
 				let sgPorts = oneSecurityGroup.ports || [];
 				
@@ -441,9 +438,6 @@ const securityGroups = {
 						return detectCallback(null, false);
 					}, (error, foundPort) => {
 						
-						// console.log("-->", oneCatalogPort);
-						// console.log("-->", foundPort);
-						// console.log("***")
 						if (foundPort) {
 							return concatCallback(null, []);
 						}
@@ -471,7 +465,6 @@ const securityGroups = {
 							port.IpProtocol = "tcp"
 						}
 						
-						// console.log(port);
 						return concatCallback(null, [port]);
 					});
 				}, (error, portsUpdates) => {
@@ -498,9 +491,6 @@ const securityGroups = {
 		}
 		
 		function updateSecurityGroups(result, callback) {
-			// console.log("-----");
-			// console.log(result);
-			// process.exit();
 			
 			if (!result.computePorts || !Array.isArray(result.computePorts) || result.computePorts.length === 0) {
 				return callback(null, true);
@@ -593,10 +583,7 @@ const securityGroups = {
 			getVpc: ['getSecurityGroups', getVpc],
 			computePorts: ['getSecurityGroups', 'getVpc', computePorts],
 			updateSecurityGroups: ['getVpc', updateSecurityGroups]
-		}, (error, response) =>{
-			console.log(error, response);
-			return cb(error, response);
-		});
+		}, cb);
 	}
 };
 

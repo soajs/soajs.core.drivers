@@ -268,13 +268,8 @@ const maintenance = {
 									TimeoutSeconds: 60
 								};
 								
-								console.log(JSON.stringify(vm, null, 2));
-								console.log("----");
-								console.log(JSON.stringify(params, null, 2));
-								
 								options.soajs.log.debug("Executing Command from Cloostro");
 								ssm.sendCommand(params, (error, response) => {
-									console.log(error, response);
 									return cb(error, response);
 								});
 							});
