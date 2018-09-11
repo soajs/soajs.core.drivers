@@ -268,8 +268,10 @@ const maintenance = {
 									TimeoutSeconds: 60
 								};
 								
-								options.soajs.log.debug("Executing Command from Cloostro");
 								ssm.sendCommand(params, (error, response) => {
+									if(error && error.message === null && error.code === 'InvalidInstanceId'){
+										error = new Error(`Error Executing Command in virtual machine ${options.params.vmName}`);
+									}
 									return cb(error, response);
 								});
 							});
