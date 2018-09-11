@@ -270,7 +270,7 @@ const maintenance = {
 								
 								ssm.sendCommand(params, (error, response) => {
 									if(error && error.message === null && error.code === 'InvalidInstanceId'){
-										error = new Error(`Error Executing Command in virtual machine ${options.params.vmName}`);
+										error = new Error(`Error Executing Command in virtual machine ${options.params.vmName}, Refer to <a href="https://soajsorg.atlassian.net/wiki/spaces/DSBRD/pages/729710593/AWS#AWS-Roles" target="_blank">AWS Documentation</a> to troubleshoot the reason.`);
 									}
 									return cb(error, response);
 								});
