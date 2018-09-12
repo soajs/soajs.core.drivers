@@ -129,8 +129,7 @@ let driver = {
 								"sourceRanges": "0.0.0.0/0",
 								"allowed": [
 									{
-										"IPProtocol": "icmp",
-										"ports": "0-65535"
+										"IPProtocol": "icmp"
 									}
 								]
 							},
@@ -210,7 +209,7 @@ let driver = {
 						];
 
 						let request = getConnector(options.infra.api);
-						async.each(firewallRules, (oneRule, vCb) => {
+						async.series(firewallRules, (oneRule, vCb) => {
 							options.soajs.log.debug("Registering new firewall rule:", oneRule.name);
 							request.resource = oneRule;
 							v1Compute().firewalls.insert(request, vCb);
