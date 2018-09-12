@@ -265,7 +265,7 @@ const maintenance = {
 										'commands': script,
 										"executionTimeout": ["60"]
 									},
-									TimeoutSeconds: 60
+									TimeoutSeconds: 600
 								};
 								
 								ssm.sendCommand(params, (error, response) => {
