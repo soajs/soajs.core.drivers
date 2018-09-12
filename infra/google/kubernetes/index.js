@@ -209,7 +209,7 @@ let driver = {
 						];
 
 						let request = getConnector(options.infra.api);
-						async.series(firewallRules, (oneRule, vCb) => {
+						async.eachSeries(firewallRules, (oneRule, vCb) => {
 							options.soajs.log.debug("Registering new firewall rule:", oneRule.name);
 							request.resource = oneRule;
 							v1Compute().firewalls.insert(request, vCb);
