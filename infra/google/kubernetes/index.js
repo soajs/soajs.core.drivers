@@ -57,6 +57,8 @@ let driver = {
 			}
 
 			oneDeployment = {
+				id: name,
+				name: name,
 				technology: "kubernetes",
 				environments: [options.soajs.registry.code.toUpperCase()],
 				options: {}
@@ -344,11 +346,17 @@ let driver = {
 				});
 			});
 		}
-
+		
 		let stages = [prepareDeploymentConfiguration];
-		stages.push(createVpcNetwork);
-		stages.push(createTemplate);
-
+		
+		if(options.soajs.registry.pending && options.params.resume){
+			options.soajs.log.warn(`Detected new call to deploy infra for the same environment ${options.soajs.registry.code}, skipping call...`);
+		}
+		else{
+			stages.push(createVpcNetwork);
+			stages.push(createTemplate);
+		}
+		
 		async.series(stages, (error) => {
 			if (error) {
 				return cb(error);
@@ -445,6 +453,9 @@ let driver = {
 			return cb(null, machineIp);
 		}
 		else {
+			if(!cluster || !cluster.options || !cluster.options.zone){
+				return cb(null, false);
+			}
 			driver.checkZoneRegion(options, cluster.options.zone, false, (err, type) => {
 				if (err) {
 					return cb(err)
