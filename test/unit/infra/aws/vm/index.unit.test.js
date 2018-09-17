@@ -152,6 +152,9 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					describeInternetGateways: (params, cb) => {
 						return cb(null, info.gateway);
+					},
+					listAttachedRolePolicies: (params, cb) => {
+						return cb(null, info.listPolicies);
 					}
 				});
 			
@@ -813,6 +816,54 @@ describe("testing /lib/aws/index.js", function () {
 			sinon.restore();
 			done();
 		});
+		it.skip("Success", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				technology: "vm"
+			};
+			options.params.labels = {"Name": "hadi", "label": "test"};
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeInstances: (params, cb) => {
+						return cb(null, info.listVmInstances);
+					},
+					deleteTags: (params, cb) => {
+						return cb(null, true);
+					},
+					createTags: (params, cb) => {
+						return cb(null, true);
+					},
+					describeImages: (params, cb) => {
+						return cb(null, info.listImages);
+					},
+					describeSecurityGroups: (params, cb) => {
+						return cb(null, info.listSecurityGroups);
+					},
+					describeVolumes: (params, cb) => {
+						return cb(null, info.listDisks);
+					},
+					describeLoadBalancers: (params, cb) => {
+						return cb(null, info.listlb);
+					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnetRaw);
+					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, info.gateway);
+					},
+					listAttachedRolePolicies: (params, cb) => {
+						return cb(null, info.listPolicies);
+					}
+				});
+			service.executeDriver('updateVmLabels', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
+		});
+		
 		it("Success", function (done) {
 			let info = dD();
 			let options = info.deployCluster;
@@ -850,10 +901,12 @@ describe("testing /lib/aws/index.js", function () {
 					describeInternetGateways: (params, cb) => {
 						return cb(null, info.gateway);
 					},
+					listAttachedRolePolicies: (params, cb) => {
+						return cb(null, info.listPolicies);
+					}
 				});
 			service.executeDriver('updateVmLabels', options, function (error, response) {
-				assert.ifError(error);
-				assert.ok(response);
+				assert.ok(error);
 				done();
 			});
 		});

@@ -417,8 +417,8 @@ const vms = {
 					async.forEach(result, (oneVm, lCb) => {
 						if (!oneVm.executeCommand) {
 							valid = false;
-							return lCb('We are unable to onBoard your VM Layer because we do not have the ability to deploy in it. ' +
-								'This might be caused from insufficient access rights to one or more of the Virtual machines or the VM Layer do not have access public internet.')
+							return lCb(new Error ('We are unable to onBoard your VM Layer because we do not have the ability to deploy in it. ' +
+								'This might be caused from insufficient access rights to one or more of the Virtual machines or the VM Layer do not have access public internet.'));
 						}
 						let image = hash(oneVm.tasks[0].ref.os);
 						if (images.length === 0) {
@@ -429,7 +429,7 @@ const vms = {
 							images.push(image);
 						}
 						if (!valid) {
-							return lCb('We are unable to onBoard your VM Layer because we detected a mismatch between the Operating Systems of the Virtual Machine Instance.')
+							return lCb(new Error ('We are unable to onBoard your VM Layer because we detected a mismatch between the Operating Systems of the Virtual Machine Instance.'));
 						}
 						return lCb();
 					}, iCb)

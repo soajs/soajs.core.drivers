@@ -1123,6 +1123,18 @@ module.exports = function () {
 		      "VpcId": "vpc-071112c936l11d639"
 		    }
 		  ]
+		},
+		"listPolicies": {
+			"ResponseMetadata": {
+				"RequestId": "43c"
+			},
+			"AttachedPolicies": [
+				{
+					"PolicyName": "AmazonEC2RoleforSSM",
+					"PolicyArn": "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM"
+				}
+			],
+			"IsTruncated": false
 		}
 	};
 	return data;
