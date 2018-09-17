@@ -283,7 +283,7 @@ const maintenance = {
 				}
 			}
 			else {
-				return callback(new Error("Invalid Virtual Machines!"));
+				return cb(new Error("Invalid Virtual Machines!"));
 			}
 		});
 	},

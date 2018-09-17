@@ -150,6 +150,9 @@ describe("testing /lib/aws/index.js", function () {
 					describeSubnets: (params, cb) => {
 						return cb(null, info.listSubnetRaw);
 					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, info.gateway);
+					}
 				});
 			
 			service.executeDriver('listServices', options, function (error, response) {
@@ -828,7 +831,25 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					createTags: (params, cb) => {
 						return cb(null, true);
-					}
+					},
+					describeImages: (params, cb) => {
+						return cb(null, info.listImages);
+					},
+					describeSecurityGroups: (params, cb) => {
+						return cb(null, info.listSecurityGroups);
+					},
+					describeVolumes: (params, cb) => {
+						return cb(null, info.listDisks);
+					},
+					describeLoadBalancers: (params, cb) => {
+						return cb(null, info.listlb);
+					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnetRaw);
+					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, info.gateway);
+					},
 				});
 			service.executeDriver('updateVmLabels', options, function (error, response) {
 				assert.ifError(error);

@@ -976,6 +976,7 @@ module.exports = function () {
 					}
 				],
 				"region": "us-east-1",
+				"executeCommand": false,
 				"id": "i-0bb24a3de714f9fba",
 				"name": "command",
 				"type": "t2.micro",
@@ -1021,9 +1022,9 @@ module.exports = function () {
 					{
 						"direction": "inbound",
 						"protocol": "tcp",
-						"published": 22,
-						"range": 22,
+						"published": "22",
 						"access": "allow",
+						"isPublished": true,
 						"source": [
 							"0.0.0.0/0"
 						],
@@ -1034,6 +1035,7 @@ module.exports = function () {
 						"protocol": "*",
 						"published": "0 - 65535",
 						"access": "allow",
+						"isPublished": false,
 						"source": [
 							"0.0.0.0/0"
 						],

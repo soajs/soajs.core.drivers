@@ -6,6 +6,7 @@ const sinon = require('sinon');
 
 let dD = require('../../../schemas/aws/cluster.js');
 const driver = helper.requireModule('./infra/aws/index.js');
+const clusterDriver = helper.requireModule('./infra/aws/cluster/index.js');
 const AWSDriver = helper.requireModule('./infra/aws/utils/utils.js');
 const dockerUtils = helper.requireModule("./lib/container/docker/utils.js");
 const dockerDriver = helper.requireModule("./lib/container/docker/index.js");
@@ -190,7 +191,7 @@ describe("testing /infra/aws/index.js", function () {
 					}
 				});
 			
-			driver.deployCluster(options, function (error, response) {
+			clusterDriver.deployCluster(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();
@@ -365,7 +366,7 @@ describe("testing /infra/aws/index.js", function () {
 		let options = info.deployCluster;
 		
 		it("Success", function (done) {
-			driver.updateCluster(options, function (error, response) {
+			clusterDriver.updateCluster(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();
@@ -396,7 +397,7 @@ describe("testing /infra/aws/index.js", function () {
 					}
 				});
 			
-			driver.deleteCluster(options, function (error, response) {
+			clusterDriver.deleteCluster(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();
