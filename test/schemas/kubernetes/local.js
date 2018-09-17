@@ -760,7 +760,7 @@ module.exports = function () {
 							"soajs.secret.type": "Opaque"
 						}
 					}
-					
+
 				}
 			]
 		},
@@ -1185,7 +1185,7 @@ module.exports = function () {
 											}
 										],
 										"resources": {
-											
+
 											"requests": {
 												"cpu": "100m",
 												"memory": "70Mi"
@@ -1255,7 +1255,7 @@ module.exports = function () {
 											}
 										],
 										"resources": {
-										
+
 										},
 										"volumeMounts": [
 											{
@@ -1296,7 +1296,7 @@ module.exports = function () {
 											}
 										],
 										"resources": {
-										
+
 										},
 										"livenessProbe": {
 											"httpGet": {
@@ -2034,7 +2034,7 @@ module.exports = function () {
 							"soajs.service.name": "mongo",
 							"soajs.service.subtype": "mongo",
 							"soajs.service.type": "cluster",
-							"soajs.content": true
+							"soajs.content": "true"
 						}
 					},
 					"spec": {
