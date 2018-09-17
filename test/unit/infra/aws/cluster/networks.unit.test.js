@@ -10,7 +10,7 @@ let dD = require('../../../../schemas/aws/cluster.js');
 
 describe("testing /lib/aws/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
-	
+
 	describe("listNetworks", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -32,7 +32,7 @@ describe("testing /lib/aws/index.js", function () {
 						return cb(null, info.gateway);
 					}
 				});
-			
+
 			options.params = {
 				region: 'us-east-1', /* required */
 			};
@@ -53,7 +53,7 @@ describe("testing /lib/aws/index.js", function () {
 						return cb(null, null);
 					}
 				});
-			
+
 			options.params = {
 				region: 'us-east-1'
 			};
@@ -74,7 +74,7 @@ describe("testing /lib/aws/index.js", function () {
 						return cb(new Error("test error"));
 					}
 				});
-			
+
 			options.params = {
 				region: 'us-east-1'
 			};
@@ -84,7 +84,7 @@ describe("testing /lib/aws/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("createNetwork", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -109,6 +109,12 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					attachInternetGateway: (params, cb) => {
 						return cb(null, true);
+					},
+					describeRouteTables: (params, cb) => {
+						return cb(null, info.describeRouteTables);
+					},
+					createRoute: (params, cb) => {
+						return cb(null, true);
 					}
 				});
 			let info = dD();
@@ -128,7 +134,7 @@ describe("testing /lib/aws/index.js", function () {
 				done();
 			});
 		});
-		
+
 		it("Success default tenancy", function (done) {
 			sinon
 				.stub(AWSDriver, 'getConnector')
@@ -163,7 +169,7 @@ describe("testing /lib/aws/index.js", function () {
 				done();
 			});
 		});
-		
+
 		it("fail", function (done) {
 			let info = dD();
 			let options = info.deployCluster;
@@ -174,7 +180,7 @@ describe("testing /lib/aws/index.js", function () {
 						return cb(new Error("test error"));
 					}
 				});
-			
+
 			options.params = {
 				address: '10.0.0.0/16', /* required */
 				region: 'us-east-1', /* required */
@@ -188,7 +194,7 @@ describe("testing /lib/aws/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("updateNetwork", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -239,6 +245,12 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					describeInternetGateways: (params, cb) => {
 						return cb(null, {});
+					},
+					describeRouteTables: (params, cb) => {
+						return cb(null, info.describeRouteTables);
+					},
+					createRoute: (params, cb) => {
+						return cb(null, true);
 					}
 				});
 			options.params = {
@@ -251,7 +263,7 @@ describe("testing /lib/aws/index.js", function () {
 					availabilityZone: "us-east-1a"
 				}],
 				attachInternetGateway: true
-				
+
 			};
 			service.updateNetwork(options, function (error, response) {
 				assert.ifError(error);
@@ -259,7 +271,7 @@ describe("testing /lib/aws/index.js", function () {
 				done();
 			});
 		});
-		
+
 		it("Success add one address block and delete one", function (done) {
 			let info = dD();
 			let options = info.deployCluster;
@@ -325,6 +337,15 @@ describe("testing /lib/aws/index.js", function () {
 					deleteInternetGateway: (params, cb) => {
 						return cb(null, true);
 					},
+					describeRouteTables: (params, cb) => {
+						return cb(null, info.describeRouteTables);
+					},
+					createRoute: (params, cb) => {
+						return cb(null, true);
+					},
+					deleteRoute: (params, cb) => {
+						return cb(null, true);
+					}
 				});
 			options.params = {
 				network: 'vpc-09fcf25a62b4d020f',
@@ -341,7 +362,7 @@ describe("testing /lib/aws/index.js", function () {
 				done();
 			});
 		});
-		
+
 		it("fail Primary Network address can't be modified", function (done) {
 			let info = dD();
 			let options = info.deployCluster;
@@ -375,7 +396,7 @@ describe("testing /lib/aws/index.js", function () {
 					detachInternetGateway: (params, cb) => {
 						return cb(null, true);
 					}
-					
+
 				});
 			options.params = {
 				region: 'vpc-09fcf25a62b4d020f',
@@ -391,7 +412,7 @@ describe("testing /lib/aws/index.js", function () {
 				done();
 			});
 		});
-		
+
 		it("fail Invalid network address", function (done) {
 			let info = dD();
 			let options = info.deployCluster;
@@ -439,7 +460,7 @@ describe("testing /lib/aws/index.js", function () {
 				done();
 			});
 		});
-		
+
 		it("fail Invalid network address empty array", function (done) {
 			let info = dD();
 			let options = info.deployCluster;
@@ -481,7 +502,7 @@ describe("testing /lib/aws/index.js", function () {
 				done();
 			});
 		});
-		
+
 		it("fail cannot change the instance tenancy attribute", function (done) {
 			let info = dD();
 			let options = info.deployCluster;
@@ -528,7 +549,7 @@ describe("testing /lib/aws/index.js", function () {
 				done();
 			});
 		});
-		
+
 		it("fail error", function (done) {
 			let info = dD();
 			let options = info.deployCluster;
@@ -575,7 +596,7 @@ describe("testing /lib/aws/index.js", function () {
 				done();
 			});
 		});
-		
+
 		it("fail no network", function (done) {
 			let info = dD();
 			let options = info.deployCluster;
@@ -623,7 +644,7 @@ describe("testing /lib/aws/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("deleteNetwork", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -653,6 +674,18 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					deleteInternetGateway: (params, cb) => {
 						return cb(null, info.gateway);
+					},
+					describeRouteTables: (params, cb) => {
+						return cb(null, info.describeRouteTables);
+					},
+					createRoute: (params, cb) => {
+						return cb(null, true);
+					},
+					describeSecurityGroups: (params, cb) => {
+						return cb(null, info.listSecurityGroups);
+					},
+					deleteSecurityGroup: (params, cb) => {
+						return cb(null, true);
 					}
 				});
 			let info = dD();
@@ -691,6 +724,18 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					deleteInternetGateway: (params, cb) => {
 						return cb(null, info.gateway);
+					},
+					describeRouteTables: (params, cb) => {
+						return cb(null, info.describeRouteTables);
+					},
+					createRoute: (params, cb) => {
+						return cb(null, true);
+					},
+					describeSecurityGroups: (params, cb) => {
+						return cb(null, info.listSecurityGroups);
+					},
+					deleteSecurityGroup: (params, cb) => {
+						return cb(null, true);
 					}
 				});
 			let info = dD();
@@ -729,6 +774,18 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					deleteInternetGateway: (params, cb) => {
 						return cb(null, info.gateway);
+					},
+					describeRouteTables: (params, cb) => {
+						return cb(null, info.describeRouteTables);
+					},
+					createRoute: (params, cb) => {
+						return cb(null, true);
+					},
+					describeSecurityGroups: (params, cb) => {
+						return cb(null, info.listSecurityGroups);
+					},
+					deleteSecurityGroup: (params, cb) => {
+						return cb(null, true);
 					}
 				});
 			let info = dD();
