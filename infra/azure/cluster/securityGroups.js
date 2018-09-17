@@ -206,6 +206,10 @@ const securityGroups = {
 
             function assignPortPriority(existingPorts) {
                 let newPriority = Math.floor((Math.random() * 1000) + 500);
+                if(process.env.SOAJS_CLOOSTRO_TEST) {
+                    // override random priority generator during test cases
+                    newPriority = 500;
+                }
                 if(existingPorts && Array.isArray(existingPorts) && existingPorts.length > 0) {
                     for(let i = 0; i < existingPorts.length; i++) {
                         if(existingPorts[i].priority === newPriority) {
@@ -285,10 +289,11 @@ const securityGroups = {
                 let catalogPorts = options.params.ports;
                 async.map(result.getSecurityGroups, (oneSecurityGroup, mapCallback) => {
                     let sgPorts = oneSecurityGroup.ports || [];
-
                     async.concat(catalogPorts, function(oneCatalogPort, concatCallback) {
                         async.detect(sgPorts, function(oneSgPort, detectCallback) {
                             if(oneSgPort.access === 'allow' && oneSgPort.direction === 'inbound') {
+                                if(!oneCatalogPort.published) oneCatalogPort.published = '';
+                                if(!oneCatalogPort.target) oneCatalogPort.target = '';
                                 if(oneSgPort.isPublished === oneCatalogPort.isPublished && !oneSgPort.readonly &&
                                     ((oneSgPort.published.toString() == oneCatalogPort.published.toString()) || oneSgPort.published === '*') &&
                                     ((oneSgPort.target.toString() == oneCatalogPort.target.toString()) || oneSgPort.target === '*')) {
@@ -308,8 +313,8 @@ const securityGroups = {
                                         access: 'allow',
                                         priority: assignPortPriority(sgPorts),
                                         direction: 'inbound',
-                                        target: oneCatalogPort.target.toString() || '*',
-                                        published: oneCatalogPort.published.toString() || '*',
+                                        target: (oneCatalogPort.target) ? oneCatalogPort.target.toString() : '*',
+                                        published: (oneCatalogPort.published) ? oneCatalogPort.published.toString() : '*',
                                         sourceAddress: (oneCatalogPort.isPublished) ? '*' : 'VirtualNetwork',
                                         destinationAddress: (oneCatalogPort.isPublished) ? '*' : 'VirtualNetwork',
                                         isPublished: oneCatalogPort.isPublished || false
