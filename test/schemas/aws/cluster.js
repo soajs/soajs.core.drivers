@@ -1095,6 +1095,31 @@ module.exports = function () {
 					]
 				}
 			]
+		},
+		"describeRouteTables": {
+		  "RouteTables": [
+		    {
+		      "Associations": [
+		        {
+		          "Main": true,
+		          "RouteTableAssociationId": "rtbassoc-0ccf56e05231b3232",
+		          "RouteTableId": "rtb-068119a1ac8d846a9"
+		        }
+		      ],
+		      "PropagatingVgws": [],
+		      "RouteTableId": "rtb-068119a1acmg8aca9",
+		      "Routes": [
+		        {
+		          "DestinationCidrBlock": "10.0.0.0/16",
+		          "GatewayId": "local",
+		          "Origin": "CreateRouteTable",
+		          "State": "active"
+		        }
+		      ],
+		      "Tags": [],
+		      "VpcId": "vpc-071112c936l11d639"
+		    }
+		  ]
 		}
 	};
 	return data;
