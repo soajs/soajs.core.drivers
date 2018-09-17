@@ -197,7 +197,7 @@ const vms = {
 					secretAccessKey: aws.secretAccessKey
 				});
 				let params = {};
-				if (options.params.region && options.params.ids && Array.isArray(options.params.ids) && options.params.ids.length > 0) {
+				if (options.params && options.params.ids && Array.isArray(options.params.ids) && options.params.ids.length > 0) {
 					params.InstanceIds = options.params.ids;
 				}
 				awsObject["ec2" + region.v].describeInstances(params, (err, reservations) => {
@@ -420,14 +420,20 @@ const vms = {
 							return lCb(new Error ('We are unable to onBoard your VM Layer because we do not have the ability to deploy in it. ' +
 								'This might be caused from insufficient access rights to one or more of the Virtual machines or the VM Layer do not have access public internet.'));
 						}
-						let image = hash(oneVm.tasks[0].ref.os);
-						if (images.length === 0) {
-							images.push(image);
+						if (oneVm.tasks[0] && oneVm.tasks[0].ref && oneVm.tasks[0].ref.os){
+							let image = hash(oneVm.tasks[0].ref.os);
+							if (images.length === 0) {
+								images.push(image);
+							}
+							else {
+								valid = images.indexOf(image) !== -1;
+								images.push(image);
+							}
 						}
 						else {
-							valid = images.indexOf(image) !== -1;
-							images.push(image);
+							valid = false;
 						}
+						
 						if (!valid) {
 							return lCb(new Error ('We are unable to onBoard your VM Layer because we detected a mismatch between the Operating Systems of the Virtual Machine Instance.'));
 						}

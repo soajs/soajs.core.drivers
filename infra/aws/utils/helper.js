@@ -418,7 +418,6 @@ const helper = {
 				}
 			}
 		}
-
 		if (opts.vm && opts.vm.VpcId && opts.connection && opts.connection.InternetGateways && opts.connection && opts.connection.InternetGateways.length > 0) {
 			let found = false;
 			for (let i = 0; i < opts.connection.InternetGateways.length; i++) {

@@ -802,7 +802,7 @@ describe("testing /lib/aws/index.js", function () {
 				technology: "vm"
 			};
 			
-			service.executeDriver('listVmImagePublisherOffers', options, function (error, response) {
+			service.executeDriver('listVmImageVersions', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();
@@ -816,59 +816,12 @@ describe("testing /lib/aws/index.js", function () {
 			sinon.restore();
 			done();
 		});
-		it.skip("Success", function (done) {
+		it("error", function (done) {
 			let info = dD();
 			let options = info.deployCluster;
 			options.params = {
-				technology: "vm"
-			};
-			options.params.labels = {"Name": "hadi", "label": "test"};
-			sinon
-				.stub(AWSDriver, 'getConnector')
-				.returns({
-					describeInstances: (params, cb) => {
-						return cb(null, info.listVmInstances);
-					},
-					deleteTags: (params, cb) => {
-						return cb(null, true);
-					},
-					createTags: (params, cb) => {
-						return cb(null, true);
-					},
-					describeImages: (params, cb) => {
-						return cb(null, info.listImages);
-					},
-					describeSecurityGroups: (params, cb) => {
-						return cb(null, info.listSecurityGroups);
-					},
-					describeVolumes: (params, cb) => {
-						return cb(null, info.listDisks);
-					},
-					describeLoadBalancers: (params, cb) => {
-						return cb(null, info.listlb);
-					},
-					describeSubnets: (params, cb) => {
-						return cb(null, info.listSubnetRaw);
-					},
-					describeInternetGateways: (params, cb) => {
-						return cb(null, info.gateway);
-					},
-					listAttachedRolePolicies: (params, cb) => {
-						return cb(null, info.listPolicies);
-					}
-				});
-			service.executeDriver('updateVmLabels', options, function (error, response) {
-				assert.ifError(error);
-				assert.ok(response);
-				done();
-			});
-		});
-		
-		it("Success", function (done) {
-			let info = dD();
-			let options = info.deployCluster;
-			options.params = {
-				technology: "vm"
+				technology: "vm",
+				region: "ca-central-1"
 			};
 			options.params.labels = {"Name": "hadi", "label": "test"};
 			sinon
@@ -907,6 +860,242 @@ describe("testing /lib/aws/index.js", function () {
 				});
 			service.executeDriver('updateVmLabels', options, function (error, response) {
 				assert.ok(error);
+				done();
+			});
+		});
+		
+		it("error", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				technology: "vm",
+				region: "ca-central-1"
+			};
+			let vmInstances = info.listVmInstances;
+			let badVm =  JSON.parse(JSON.stringify(info.listVmInstances.Reservations[0].Instances[0]));
+			badVm.ImageId = "wrong";
+			vmInstances.Reservations[0].Instances.push(badVm);
+			options.params.labels = {"Name": "hadi", "label": "test"};
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeInstances: (params, cb) => {
+						return cb(null, info.listVmInstances);
+					},
+					deleteTags: (params, cb) => {
+						return cb(null, true);
+					},
+					createTags: (params, cb) => {
+						return cb(null, true);
+					},
+					describeImages: (params, cb) => {
+						return cb(null, info.listImages);
+					},
+					describeSecurityGroups: (params, cb) => {
+						return cb(null, info.listSecurityGroups);
+					},
+					describeVolumes: (params, cb) => {
+						return cb(null, info.listDisks);
+					},
+					describeLoadBalancers: (params, cb) => {
+						return cb(null, info.listlb);
+					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnetRaw);
+					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, {
+							"InternetGateways": [
+								{
+									"Attachments": [
+										{
+											"State": "available",
+											"VpcId": "vpc-957300fc"
+										}
+									],
+									"InternetGatewayId": "igw-0d1f93acd9d874950",
+									"Tags": [
+										{
+											"Key": "Name",
+											"Value": "ragheb"
+										}
+									]
+								}
+							]
+						});
+					},
+					listAttachedRolePolicies: (params, cb) => {
+						return cb(null, {
+							"ResponseMetadata": {
+								"RequestId": "43c"
+							},
+							"AttachedPolicies": [
+								{
+									"PolicyName": "AmazonEC2RoleforSSM",
+									"PolicyArn": "arn:aws:iam::aws:policy/service-role/ssm-role-ec2"
+								}
+							],
+							"IsTruncated": false
+						});
+					}
+				});
+			service.executeDriver('updateVmLabels', options, function (error, response) {
+				assert.ok(response);
+				done();
+			});
+		});
+		
+		it("Success", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				technology: "vm",
+				region: "ca-central-1"
+			};
+			options.params.labels = {"Name": "hadi", "label": "test"};
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeInstances: (params, cb) => {
+						return cb(null, info.listVmInstances);
+					},
+					deleteTags: (params, cb) => {
+						return cb(null, true);
+					},
+					createTags: (params, cb) => {
+						return cb(null, true);
+					},
+					describeImages: (params, cb) => {
+						return cb(null, info.listImages);
+					},
+					describeSecurityGroups: (params, cb) => {
+						return cb(null, info.listSecurityGroups);
+					},
+					describeVolumes: (params, cb) => {
+						return cb(null, info.listDisks);
+					},
+					describeLoadBalancers: (params, cb) => {
+						return cb(null, info.listlb);
+					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnetRaw);
+					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, {
+							"InternetGateways": [
+								{
+									"Attachments": [
+										{
+											"State": "available",
+											"VpcId": "vpc-957300fc"
+										}
+									],
+									"InternetGatewayId": "igw-0d1f93acd9d874950",
+									"Tags": [
+										{
+											"Key": "Name",
+											"Value": "ragheb"
+										}
+									]
+								}
+							]
+						});
+					},
+					listAttachedRolePolicies: (params, cb) => {
+						return cb(null, {
+							"ResponseMetadata": {
+								"RequestId": "43c"
+							},
+							"AttachedPolicies": [
+								{
+									"PolicyName": "AmazonEC2RoleforSSM",
+									"PolicyArn": "arn:aws:iam::aws:policy/service-role/ssm-role-ec2"
+								}
+							],
+							"IsTruncated": false
+						});
+					}
+				});
+			service.executeDriver('updateVmLabels', options, function (error, response) {
+				assert.ok(response);
+				done();
+			});
+		});
+		
+		it("Success release", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
+			options.params = {
+				technology: "vm",
+				region: "ca-central-1",
+				release: true
+			};
+			options.params.labels = {"Name": "hadi", "label": "test"};
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeInstances: (params, cb) => {
+						return cb(null, info.listVmInstances);
+					},
+					deleteTags: (params, cb) => {
+						return cb(null, true);
+					},
+					createTags: (params, cb) => {
+						return cb(null, true);
+					},
+					describeImages: (params, cb) => {
+						return cb(null, info.listImages);
+					},
+					describeSecurityGroups: (params, cb) => {
+						return cb(null, info.listSecurityGroups);
+					},
+					describeVolumes: (params, cb) => {
+						return cb(null, info.listDisks);
+					},
+					describeLoadBalancers: (params, cb) => {
+						return cb(null, info.listlb);
+					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnetRaw);
+					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, {
+							"InternetGateways": [
+								{
+									"Attachments": [
+										{
+											"State": "available",
+											"VpcId": "vpc-957300fc"
+										}
+									],
+									"InternetGatewayId": "igw-0d1f93acd9d874950",
+									"Tags": [
+										{
+											"Key": "Name",
+											"Value": "ragheb"
+										}
+									]
+								}
+							]
+						});
+					},
+					listAttachedRolePolicies: (params, cb) => {
+						return cb(null, {
+							"ResponseMetadata": {
+								"RequestId": "43c"
+							},
+							"AttachedPolicies": [
+								{
+									"PolicyName": "AmazonEC2RoleforSSM",
+									"PolicyArn": "arn:aws:iam::aws:policy/service-role/ssm-role-ec2"
+								}
+							],
+							"IsTruncated": false
+						});
+					}
+				});
+			service.executeDriver('updateVmLabels', options, function (error, response) {
+				assert.ok(response);
 				done();
 			});
 		});

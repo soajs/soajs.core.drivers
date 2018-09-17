@@ -2,9 +2,9 @@
 const helper = require("../../../../helper");
 const assert = require("assert");
 const sinon = require('sinon');
-const terraform = helper.requireModule('infra/aws/terraform/index.js');
+const terraformIndex = helper.requireModule('./infra/aws/vm/index.js');
 const terraformUtils = helper.requireModule("./lib/terraform/index.js");
-let fs = require("fs");
+
 
 let dD = require('../../../../schemas/aws/cluster.js');
 let info = {};
@@ -26,7 +26,7 @@ describe("testing terraform  /lib/aws/index.js", function () {
 			sinon
 				.stub(terraformUtils, 'apply')
 				.yields(null, true);
-			terraform.deployCluster(options, function (error, response) {
+			terraformIndex.deployCluster(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();
@@ -46,7 +46,7 @@ describe("testing terraform  /lib/aws/index.js", function () {
 			sinon
 				.stub(terraformUtils, 'apply')
 				.yields(null, true);
-			terraform.updateCluster(options, function (error, response) {
+			terraformIndex.updateCluster(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();
@@ -59,7 +59,7 @@ describe("testing terraform  /lib/aws/index.js", function () {
 			sinon
 				.stub(terraformUtils, 'apply')
 				.yields(null, true);
-			terraform.updateCluster(options, function (error, response) {
+			terraformIndex.updateCluster(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();
@@ -79,7 +79,7 @@ describe("testing terraform  /lib/aws/index.js", function () {
 			sinon
 				.stub(terraformUtils, 'destroy')
 				.yields(null, true);
-			terraform.deleteCluster(options, function (error, response) {
+			terraformIndex.deleteCluster(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();

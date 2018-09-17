@@ -3,7 +3,7 @@ const helper = require("../../../../helper");
 const assert = require("assert");
 const sinon = require('sinon');
 
-const service = helper.requireModule('infra/aws/vm/lib/disks.js');
+const service = helper.requireModule('./infra/aws/vm/index.js');
 let dD = require('../../../../schemas/aws/cluster.js');
 const AWSDriver = helper.requireModule('./infra/aws/utils/utils.js');
 
@@ -24,7 +24,7 @@ describe("testing /lib/disks/index.j", function () {
 						return cb(null, info.listDisks);
 					},
 				});
-			service.list(options, function (error, response) {
+			service.listDisks(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();
@@ -40,7 +40,7 @@ describe("testing /lib/disks/index.j", function () {
 						return cb(null, null);
 					},
 				});
-			service.list(options, function (error, response) {
+			service.listDisks(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();
@@ -56,7 +56,7 @@ describe("testing /lib/disks/index.j", function () {
 						return cb(new Error("Er"));
 					},
 				});
-			service.list(options, function (error, response) {
+			service.listDisks(options, function (error, response) {
 				assert.ok(error);
 				done();
 			});
@@ -67,7 +67,7 @@ describe("testing /lib/disks/index.j", function () {
 			done();
 		});
 		it("Success", function (done) {
-			service.create({}, function (error, response) {
+			service.createDisks({}, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();
@@ -79,7 +79,7 @@ describe("testing /lib/disks/index.j", function () {
 			done();
 		});
 		it("Success", function (done) {
-			service.update({}, function (error, response) {
+			service.updateDisks({}, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();
@@ -91,7 +91,7 @@ describe("testing /lib/disks/index.j", function () {
 			done();
 		});
 		it("Success", function (done) {
-			service.delete({}, function (error, response) {
+			service.deleteDisks({}, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
 				done();

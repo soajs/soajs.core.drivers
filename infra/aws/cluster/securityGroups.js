@@ -372,8 +372,7 @@ const securityGroups = {
 		let vpc = false;
 
 		function getSecurityGroups(callback) {
-
-			if (!options.params || !options.params.ports || !options.params.ports || !Array.isArray(options.params.ports) || options.params.length === 0) {
+			if (!options || !options.params || !options.params.ports || !Array.isArray(options.params.ports) || options.params.ports.length === 0) {
 				return callback(null, []);
 			}
 
@@ -430,8 +429,6 @@ const securityGroups = {
 					async.detect(sgPorts, (oneSgPort, detectCallback) => {
 						if (oneSgPort.isPublished === oneCatalogPort.isPublished && oneSgPort.access === 'allow' && oneSgPort.direction === 'inbound' && !oneSgPort.readonly) {
 							if (oneSgPort.published && typeof oneSgPort.published === 'string') {
-
-								//todo: what about the protocol ?
 								if(oneSgPort.published.indexOf("-") !== -1 && oneSgPort.published.split(' - ').length > 0){
 									let target = parseInt(oneSgPort.published.split(' - ')[0]);
 									let range = oneSgPort.published.split(' - ')[1] ? parseInt(oneSgPort.published.split(' - ')[1]) : null;
@@ -452,7 +449,6 @@ const securityGroups = {
 						if (foundPort) {
 							return concatCallback(null, []);
 						}
-
 						let port = {
 							FromPort: oneCatalogPort.target,
 							IpProtocol: "tcp",
@@ -489,7 +485,7 @@ const securityGroups = {
 		function getVpc(result, callback) {
 			if (!result.getSecurityGroups || !Array.isArray(result.getSecurityGroups) || result.getSecurityGroups.length === 0) {
 				if (options.params.securityGroups && Array.isArray(options.params.securityGroups) && options.params.securityGroups.length > 0) {
-					return callback(new Error(`Security Groups: ${options.params.securityGroup.join(' - ')} not found!`));
+					return callback(new Error(`Security Groups: ${options.params.securityGroups.join(' - ')} not found!`));
 				}
 				else {
 					options.soajs.log.warn("No security groups provided!");
