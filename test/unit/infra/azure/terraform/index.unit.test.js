@@ -2,7 +2,7 @@
 const helper = require("../../../../helper");
 const assert = require("assert");
 const sinon = require('sinon');
-const terraform = helper.requireModule('./infra/azure/index.js');
+const terraform = helper.requireModule('./infra/azure/vm/index.js');
 const terraformUtils = helper.requireModule("./lib/terraform/helper.js");
 let fs = require("fs");
 
@@ -12,13 +12,13 @@ let info = {};
 let terraD = {};
 let options = {};
 describe("testing terraform  /lib/azure/index.js", function () {
-	
+
 	describe("calling deployCluster", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
-		
+
 		it("Success", function (done) {
 			info = dD();
 			terraD = tD();
@@ -65,7 +65,7 @@ describe("testing terraform  /lib/azure/index.js", function () {
 				done();
 			});
 		});
-		
+
 		it("fail 1", function (done) {
 			info = dD();
 			terraD = tD();
@@ -82,7 +82,7 @@ describe("testing terraform  /lib/azure/index.js", function () {
 				done();
 			});
 		});
-		
+
 		it("fail 2", function (done) {
 			info = dD();
 			terraD = tD();
@@ -99,7 +99,7 @@ describe("testing terraform  /lib/azure/index.js", function () {
 				done();
 			});
 		});
-		
+
 		it("fail 3", function (done) {
 			info = dD();
 			terraD = tD();
@@ -129,7 +129,7 @@ describe("testing terraform  /lib/azure/index.js", function () {
 				done();
 			});
 		});
-		
+
 		it("fail 4 ", function (done) {
 			info = dD();
 			terraD = tD();
@@ -189,7 +189,7 @@ describe("testing terraform  /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling updateCluster", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -209,8 +209,8 @@ describe("testing terraform  /lib/azure/index.js", function () {
 			sinon
 				.stub(fs, 'readFile')
 				.yields(null, "{}");
-			
-		
+
+
 			terraform.updateCluster(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
@@ -218,7 +218,7 @@ describe("testing terraform  /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling deleteCluster", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -232,7 +232,7 @@ describe("testing terraform  /lib/azure/index.js", function () {
 			sinon
 				.stub(terraformUtils, 'runChildProcess')
 				.yields(null, {templateOutput: {}});
-			
+
 			terraform.deleteCluster(options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
