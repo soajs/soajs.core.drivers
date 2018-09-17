@@ -84,6 +84,7 @@ describe("testing /lib/azure/index.js", function () {
 			let expectedResponce = {
 				"name": "tester-vm",
 				"id": "tester-vm",
+				"executeCommand": true,
 				"labels": {
 					"soajs.env.code": "tester",
 					"soajs.layer.name": "tester",
@@ -221,6 +222,7 @@ describe("testing /lib/azure/index.js", function () {
 			let expectedResponce = {
 				"name": "tester-vm",
 				"id": "tester-vm",
+				"executeCommand": true,
 				"labels": {
 					"soajs.env.code": "tester",
 					"soajs.layer.name": "tester",
@@ -402,6 +404,7 @@ describe("testing /lib/azure/index.js", function () {
 				{
 					"name": "tester-vm",
 					"id": "tester-vm",
+					"executeCommand": true,
 					"labels": {
 						"soajs.env.code": "tester",
 						"soajs.layer.name": "tester",
@@ -463,6 +466,7 @@ describe("testing /lib/azure/index.js", function () {
 				{
 					"name": "mongo",
 					"id": "mongo",
+					"executeCommand": true,
 					"labels": {
 						"soajs.service.vm.location": "centralus",
 						"soajs.service.vm.group": "SOAJS",
@@ -499,6 +503,7 @@ describe("testing /lib/azure/index.js", function () {
 				{
 					"name": "mysql",
 					"id": "mysql",
+					"executeCommand": true,
 					"labels": {
 						"soajs.service.vm.location": "centralus",
 						"soajs.service.vm.group": "SOAJS",
@@ -1050,7 +1055,6 @@ describe("testing /lib/azure/index.js", function () {
 			service.executeDriver('updateVmLabels', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response, 'f79b8165-53fa-4694-9e82-788c3b630fb3');
 				done();
 			});
 		});
@@ -1088,7 +1092,6 @@ describe("testing /lib/azure/index.js", function () {
 			service.executeDriver('updateVmLabels', options, function (error, response) {
 				assert.ifError(error);
 				assert.ok(response);
-				assert.deepEqual(response, 'f79b8165-53fa-4694-9e82-788c3b630fb3');
 				done();
 			});
 		});

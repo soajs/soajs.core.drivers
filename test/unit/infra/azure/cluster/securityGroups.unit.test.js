@@ -71,7 +71,7 @@ describe("testing /lib/azure/index.js", function () {
 										"sourceAddressPrefix": "*",
 										"sourcePortRange": "*",
 										"destinationAddressPrefix": "*",
-										"destinationPortRange": 30080
+										"destinationPortRange": 1
 									}
 								}
 							]
@@ -515,105 +515,105 @@ describe("testing /lib/azure/index.js", function () {
 				virtualNetworkName: "tester-vn",
 			};
 			let expectedResponce = [
-					{
-						"name": "tester-tester-sg",
-						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-tester-sg",
-						"region": "centralus",
-						"ports": [
-							{
-								"name": "http",
-								"protocol": "tcp",
-								"access": "allow",
-								"priority": 100,
-								"direction": "inbound",
-								"target": "*",
-								"published": "22",
-								"sourceAddress": "*",
-								"destinationAddress": "*",
-								"isPublished": true
-							},
-							{
-								"name": "AllowVnetInBound",
-								"protocol": "*",
-								"access": "allow",
-								"priority": 65000,
-								"direction": "inbound",
-								"target": "*",
-								"published": "*",
-								"sourceAddress": "VirtualNetwork",
-								"destinationAddress": "VirtualNetwork",
-								"readonly": true,
-								"isPublished": true
-							},
-							{
-								"name": "AllowAzureLoadBalancerInBound",
-								"protocol": "*",
-								"access": "allow",
-								"priority": 65001,
-								"direction": "inbound",
-								"target": "*",
-								"published": "*",
-								"sourceAddress": "AzureLoadBalancer",
-								"destinationAddress": "*",
-								"readonly": true,
-								"isPublished": true
-							},
-							{
-								"name": "DenyAllInBound",
-								"protocol": "*",
-								"access": "deny",
-								"priority": 65500,
-								"direction": "inbound",
-								"target": "*",
-								"published": "*",
-								"sourceAddress": "*",
-								"destinationAddress": "*",
-								"readonly": true,
-								"isPublished": true
-							},
-							{
-								"name": "AllowVnetOutBound",
-								"protocol": "*",
-								"access": "allow",
-								"priority": 65000,
-								"direction": "outbound",
-								"target": "*",
-								"published": "*",
-								"sourceAddress": "VirtualNetwork",
-								"destinationAddress": "VirtualNetwork",
-								"readonly": true,
-								"isPublished": true
-							},
-							{
-								"name": "AllowInternetOutBound",
-								"protocol": "*",
-								"access": "allow",
-								"priority": 65001,
-								"direction": "outbound",
-								"target": "*",
-								"published": "*",
-								"sourceAddress": "*",
-								"destinationAddress": "Internet",
-								"readonly": true,
-								"isPublished": true
-							},
-							{
-								"name": "DenyAllOutBound",
-								"protocol": "*",
-								"access": "deny",
-								"priority": 65500,
-								"direction": "outbound",
-								"target": "*",
-								"published": "*",
-								"sourceAddress": "*",
-								"destinationAddress": "*",
-								"readonly": true,
-								"isPublished": true
-							}
-						],
-						"labels": {}
-					}
-				];
+				{
+					"name": "tester-tester-sg",
+					"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkSecurityGroups/tester-tester-sg",
+					"region": "centralus",
+					"ports": [
+						{
+							"name": "http",
+							"protocol": "tcp",
+							"access": "allow",
+							"priority": 100,
+							"direction": "inbound",
+							"target": "*",
+							"published": "22",
+							"sourceAddress": "*",
+							"destinationAddress": "*",
+							"isPublished": true
+						},
+						{
+							"name": "AllowVnetInBound",
+							"protocol": "*",
+							"access": "allow",
+							"priority": 65000,
+							"direction": "inbound",
+							"target": "*",
+							"published": "*",
+							"sourceAddress": "VirtualNetwork",
+							"destinationAddress": "VirtualNetwork",
+							"isPublished": false,
+							"readonly": true
+						},
+						{
+							"name": "AllowAzureLoadBalancerInBound",
+							"protocol": "*",
+							"access": "allow",
+							"priority": 65001,
+							"direction": "inbound",
+							"target": "*",
+							"published": "*",
+							"sourceAddress": "AzureLoadBalancer",
+							"destinationAddress": "*",
+							"isPublished": false,
+							"readonly": true
+						},
+						{
+							"name": "DenyAllInBound",
+							"protocol": "*",
+							"access": "deny",
+							"priority": 65500,
+							"direction": "inbound",
+							"target": "*",
+							"published": "*",
+							"sourceAddress": "*",
+							"destinationAddress": "*",
+							"isPublished": true,
+							"readonly": true
+						},
+						{
+							"name": "AllowVnetOutBound",
+							"protocol": "*",
+							"access": "allow",
+							"priority": 65000,
+							"direction": "outbound",
+							"target": "*",
+							"published": "*",
+							"sourceAddress": "VirtualNetwork",
+							"destinationAddress": "VirtualNetwork",
+							"isPublished": false,
+							"readonly": true
+						},
+						{
+							"name": "AllowInternetOutBound",
+							"protocol": "*",
+							"access": "allow",
+							"priority": 65001,
+							"direction": "outbound",
+							"target": "*",
+							"published": "*",
+							"sourceAddress": "*",
+							"destinationAddress": "Internet",
+							"isPublished": true,
+							"readonly": true
+						},
+						{
+							"name": "DenyAllOutBound",
+							"protocol": "*",
+							"access": "deny",
+							"priority": 65500,
+							"direction": "outbound",
+							"target": "*",
+							"published": "*",
+							"sourceAddress": "*",
+							"destinationAddress": "*",
+							"isPublished": true,
+							"readonly": true
+						}
+					],
+					"labels": {}
+				}
+			];
 
 			service.listSecurityGroups(options, function (error, response) {
 				assert.ifError(error);
