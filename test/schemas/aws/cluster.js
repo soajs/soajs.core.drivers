@@ -1051,9 +1051,9 @@ module.exports = function () {
 					{
 						"direction": "inbound",
 						"protocol": "tcp",
-						"published": 22,
-						"range": 22,
+						"published": "22",
 						"access": "allow",
+						"isPublished": true,
 						"source": [
 							"0.0.0.0/0"
 						],
@@ -1064,6 +1064,7 @@ module.exports = function () {
 						"protocol": "*",
 						"published": "0 - 65535",
 						"access": "allow",
+						"isPublished": false,
 						"source": [
 							"0.0.0.0/0"
 						],
