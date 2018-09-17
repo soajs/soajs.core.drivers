@@ -27,38 +27,35 @@ const certificates = {
 		iam.listRoles({PathPrefix: "/"}, function (err, data) {
 			if (err) return cb(err);
 			let roles = [];
-			async.each(data.Roles, function (oneRole, callback) {
-				try {
-					let doc = decodeURIComponent(oneRole.AssumeRolePolicyDocument);
-					doc = JSON.parse(doc);
-					if (doc && doc.Statement) {
-						async.detect(doc.Statement, function (statement, callback) {
-							callback(null, statement.Principal && statement.Principal.Service && statement.Principal.Service === "ec2.amazonaws.com");
-						}, (err, found) => {
-							if (err) {
-								return callback(err);
-							}
-							if (found) {
-								roles.push({name: oneRole.RoleName});
-							}
+			if (data && data.Roles){
+				async.each(data.Roles, function (oneRole, callback) {
+					try {
+						let doc = decodeURIComponent(oneRole.AssumeRolePolicyDocument);
+						doc = JSON.parse(doc);
+						if (doc && doc.Statement) {
+							async.detect(doc.Statement, function (statement, callback) {
+								callback(null, statement.Principal && statement.Principal.Service && statement.Principal.Service === "ec2.amazonaws.com");
+							}, (err, found) => {
+								if (found) {
+									roles.push({name: oneRole.RoleName});
+								}
+								return callback();
+							});
+						}
+						else {
 							return callback();
-						});
+						}
 					}
-					else {
+					catch (e) {
 						return callback();
 					}
-				}
-				catch (e) {
-					callback(e)
-				}
-			}, function (err) {
-				if (err) {
-					return cb(err);
-				}
-				else {
+				}, function () {
 					return cb(null, roles);
-				}
-			});
+				});
+			}
+			else {
+				return cb(null, roles);
+			}
 		});
 	},
 	

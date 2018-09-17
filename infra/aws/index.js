@@ -1,6 +1,5 @@
 'use strict';
 const async = require('async');
-const AWS = require('aws-sdk');
 const config = require("./config");
 const defaultDriver = 'docker';
 
@@ -17,8 +16,6 @@ const keyPairs = require('./cluster/keyPairs.js');
 const certificates = require('./cluster/certificates.js');
 const roles = require('./cluster/roles.js');
 const utils = require("./utils/utils");
-
-const Terraform = require('./terraform');
 
 function getConnector(opts) {
 	return utils.getConnector(opts, config);
@@ -584,6 +581,39 @@ const driver = {
 	 */
 	listRoles: function (options, cb) {
 		return roles.list(options, cb);
+	},
+	
+	/**
+	 * create roles
+	 
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	createRole: function (options, cb) {
+		return roles.create(options, cb);
+	},
+	
+	/**
+	 * update roles
+	 
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	updateRole: function (options, cb) {
+		return roles.update(options, cb);
+	},
+	
+	/**
+	 * delete roles
+	 
+	 * @param  {Object}   options
+	 * @param  {Function} cb
+	 * @return {void}
+	 */
+	deleteRole: function (options, cb) {
+		return roles.delete(options, cb);
 	},
 
 	"executeDriver": function(method, options, cb){

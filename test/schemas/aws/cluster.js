@@ -1135,6 +1135,94 @@ module.exports = function () {
 				}
 			],
 			"IsTruncated": false
+		},
+		"listRoles": {
+			"ResponseMetadata": {
+				"RequestId": "9e1f719d-ba79-11e8-8d6d-2d5dd18438b8"
+			},
+			"Roles": [
+				{
+					"Path": "/service-role/",
+					"RoleName": "aws-codestar-service-role",
+					"RoleId": "10",
+					"Arn": "arn:aws:iam::019397354664:role/service-role/aws-codestar-service-role",
+					"CreateDate": "2017-10-06T10:37:46.000Z",
+					"AssumeRolePolicyDocument": "%7B%22Version%22%3A%222012-10-17%22%2C%22Statement%22%3A%5B%7B%22Effect%22%3A%22Allow%22%2C%22Principal%22%3A%7B%22Service%22%3A%22codestar.amazonaws.com%22%7D%2C%22Action%22%3A%22sts%3AAssumeRole%22%7D%5D%7D"
+				},
+				{
+					"Path": "/",
+					"RoleName": "aws-elasticbeanstalk-ec2-role",
+					"RoleId": "9",
+					"Arn": "arn:aws:iam::019397354664:role/aws-elasticbeanstalk-ec2-role",
+					"CreateDate": "2017-10-06T16:04:51.000Z",
+					"AssumeRolePolicyDocument": "%7B%22Version%22%3A%222008-10-17%22%2C%22Statement%22%3A%5B%7B%22Effect%22%3A%22Allow%22%2C%22Principal%22%3A%7B%22Service%22%3A%22ec2.amazonaws.com%22%7D%2C%22Action%22%3A%22sts%3AAssumeRole%22%7D%5D%7D"
+				},
+				{
+					"Path": "/",
+					"RoleName": "aws-elasticbeanstalk-service-role",
+					"RoleId": "AROAJUTVLASOX5WK72CFK",
+					"Arn": "8",
+					"CreateDate": "2017-10-06T16:04:52.000Z",
+					"AssumeRolePolicyDocument": "%7B%22Version%22%3A%222012-10-17%22%2C%22Statement%22%3A%5B%7B%22Effect%22%3A%22Allow%22%2C%22Principal%22%3A%7B%22Service%22%3A%22elasticbeanstalk.amazonaws.com%22%7D%2C%22Action%22%3A%22sts%3AAssumeRole%22%2C%22Condition%22%3A%7B%22StringEquals%22%3A%7B%22sts%3AExternalId%22%3A%22elasticbeanstalk%22%7D%7D%7D%5D%7D"
+				},
+				{
+					"Path": "/aws-service-role/autoscaling.amazonaws.com/",
+					"RoleName": "AWSServiceRoleForAutoScaling",
+					"RoleId": "7",
+					"Arn": "arn:aws:iam::019397354664:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
+					"CreateDate": "2018-03-03T06:05:16.000Z",
+					"AssumeRolePolicyDocument": "%7B%22Version%22%3A%222012-10-17%22%2C%22Statement%22%3A%5B%7B%22Effect%22%3A%22Allow%22%2C%22Principal%22%3A%7B%22Service%22%3A%22autoscaling.amazonaws.com%22%7D%2C%22Action%22%3A%22sts%3AAssumeRole%22%7D%5D%7D",
+					"Description": "Default Service-Linked Role enables access to AWS Services and Resources used or managed by Auto Scaling"
+				},
+				{
+					"Path": "/aws-service-role/elasticloadbalancing.amazonaws.com/",
+					"RoleName": "AWSServiceRoleForElasticLoadBalancing",
+					"RoleId": "6",
+					"Arn": "arn:aws:iam::019397354664:role/aws-service-role/elasticloadbalancing.amazonaws.com/AWSServiceRoleForElasticLoadBalancing",
+					"CreateDate": "2018-01-18T12:39:11.000Z",
+					"AssumeRolePolicyDocument": "%7B%22Version%22%3A%222012-10-17%22%2C%22Statement%22%3A%5B%7B%22Effect%22%3A%22Allow%22%2C%22Principal%22%3A%7B%22Service%22%3A%22elasticloadbalancing.amazonaws.com%22%7D%2C%22Action%22%3A%22sts%3AAssumeRole%22%7D%5D%7D",
+					"Description": "Allows ELB to call AWS services on your behalf."
+				},
+				{
+					"Path": "/aws-service-role/organizations.amazonaws.com/",
+					"RoleName": "AWSServiceRoleForOrganizations",
+					"RoleId": "5",
+					"Arn": "arn:aws:iam::019397354664:role/aws-service-role/organizations.amazonaws.com/AWSServiceRoleForOrganizations",
+					"CreateDate": "2017-11-28T12:18:14.000Z",
+					"AssumeRolePolicyDocument": "%7B%22Version%22%3A%222012-10-17%22%2C%22Statement%22%3A%5B%7B%22Effect%22%3A%22Allow%22%2C%22Principal%22%3A%7B%22Service%22%3A%22organizations.amazonaws.com%22%7D%2C%22Action%22%3A%22sts%3AAssumeRole%22%7D%5D%7D",
+					"Description": "Service-linked role used by AWS Organizations to enable integration of other AWS services with Organizations."
+				},
+				{
+					"Path": "/aws-service-role/support.amazonaws.com/",
+					"RoleName": "AWSServiceRoleForSupport",
+					"RoleId": "4",
+					"Arn": "arn:aws:iam::019397354664:role/aws-service-role/support.amazonaws.com/AWSServiceRoleForSupport",
+					"CreateDate": "2018-07-12T09:06:26.000Z",
+					"AssumeRolePolicyDocument": "%7B%22Version%22%3A%222012-10-17%22%2C%22Statement%22%3A%5B%7B%22Effect%22%3A%22Allow%22%2C%22Principal%22%3A%7B%22Service%22%3A%22support.amazonaws.com%22%7D%2C%22Action%22%3A%22sts%3AAssumeRole%22%7D%5D%7D",
+					"Description": "Enables resource access for AWS to provide billing, administrative and support services"
+				},
+				{
+				
+				},
+				{
+					"Path": "/",
+					"RoleName": "eks-role",
+					"RoleId": "1",
+					"Arn": "arn:aws:iam::019397354664:role/eks-role",
+					"CreateDate": "2018-07-27T10:17:37.000Z",
+					"Description": "Allows EKS to manage clusters on your behalf."
+				},
+				{
+					"Path": "/",
+					"RoleName": "ssm-role-ec2",
+					"RoleId": "2",
+					"Arn": "arn:aws:iam::019397354664:role/ssm-role-ec2",
+					"CreateDate": "2018-08-23T12:02:48.000Z",
+					"AssumeRolePolicyDocument": "%7B%22Version%22%3A%222012-10-17%22%2C%22Statement%22%3A%5B%7B%22Sid%22%3A%22%22%2C%22Effect%22%3A%22Allow%22%2C%22Principal%22%3A%7B%22Service%22%3A%22ec2.amazonaws.com%22%7D%2C%22Action%22%3A%22sts%3AAssumeRole%22%7D%5D%7D",
+					"Description": "Allows EC2 instances to call AWS services like CloudWatch and SSM on your behalf."
+				}
+			],
+			"IsTruncated": false
 		}
 	};
 	return data;
