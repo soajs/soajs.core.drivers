@@ -101,8 +101,8 @@ describe("testing /lib/azure/index.js", function () {
 						"priority": 100,
 						"name": "ssh",
 						"direction": "inbound",
-						"target": "*",
-						"published": "22",
+						"target": "22",
+						"published": "*",
 						"sourceAddress": "*",
 						"destinationAddress": "*",
 						"isPublished": true
@@ -239,8 +239,8 @@ describe("testing /lib/azure/index.js", function () {
 						"access": "allow",
 						"priority": 100,
 						"direction": "inbound",
-						"target": "*",
-						"published": "22",
+						"target": "22",
+						"published": "*",
 						"sourceAddress": "*",
 						"destinationAddress": "*",
 						"isPublished": true
@@ -421,8 +421,8 @@ describe("testing /lib/azure/index.js", function () {
 							"priority": 100,
 							"name": "ssh",
 							"direction": "inbound",
-							"target": "*",
-							"published": "22",
+							"target": "22",
+							"published": "*",
 							"sourceAddress": "*",
 							"destinationAddress": "*",
 							"isPublished": true

@@ -527,8 +527,8 @@ describe("testing /lib/azure/index.js", function () {
 							"access": "allow",
 							"priority": 100,
 							"direction": "inbound",
-							"target": "*",
-							"published": "22",
+							"target": "22",
+							"published": "*",
 							"sourceAddress": "*",
 							"destinationAddress": "*",
 							"isPublished": true
@@ -659,8 +659,8 @@ describe("testing /lib/azure/index.js", function () {
 						"access": "allow",
 						"priority": 100,
 						"direction": "inbound",
-						"target": "*",
-						"published": "22",
+						"target": "22",
+						"published": "*",
 						"sourceAddress": "*",
 						"destinationAddress": "*",
 						"isPublished": true
@@ -915,7 +915,7 @@ describe("testing /lib/azure/index.js", function () {
 							            "sourceAddressPrefix": "*",
 							            "sourcePortRange": "*",
 							            "destinationAddressPrefix": "*",
-							            "destinationPortRange": "*"
+							            "destinationPortRange": "22"
 							          }
 							        }
 							      ]
@@ -1120,7 +1120,7 @@ describe("testing /lib/azure/index.js", function () {
 							            "sourceAddressPrefix": "*",
 							            "sourcePortRange": "*",
 							            "destinationAddressPrefix": "*",
-							            "destinationPortRange": "*"
+							            "destinationPortRange": "22"
 							          }
 							        }
 							      ]
