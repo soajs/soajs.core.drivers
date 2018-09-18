@@ -106,7 +106,6 @@ const securityGroups = {
 						tags: options.params.labels || {}
 					}
 				};
-				console.log(JSON.stringify(requestOptions, null, 2))
 				request(requestOptions, function (error, response, body) {
 					if (error) return cb(error);
 					if (body && body.error) return cb(body.error);
