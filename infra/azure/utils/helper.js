@@ -644,8 +644,8 @@ const helper = {
 				access: oneSecurityRule.access.toLowerCase(),
 				priority: oneSecurityRule.priority,
 				direction: oneSecurityRule.direction.toLowerCase(),
-				target: oneSecurityRule.sourcePortRange,
-				published: oneSecurityRule.destinationPortRange,
+				target: oneSecurityRule.destinationPortRange,
+				published: oneSecurityRule.sourcePortRange,
 				sourceAddress: oneSecurityRule.sourceAddressPrefix,
 				destinationAddress: oneSecurityRule.destinationAddressPrefix,
 				isPublished: (["*", "Internet", "0.0.0.0/0"].includes(oneSecurityRule.sourceAddressPrefix)) ? true : false

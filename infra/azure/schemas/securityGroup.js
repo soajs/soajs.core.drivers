@@ -43,7 +43,7 @@ const add = {
                     "protocol": {
                         "required": false,
                         "type": "string",
-                        "enum": ["TCP", "UDP", "*"]
+                        "enum": ["tcp", "udp", "*"]
                     },
                     "access": {
                         "required": false,
