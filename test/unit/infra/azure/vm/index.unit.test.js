@@ -12,7 +12,7 @@ let options = {};
 
 describe("testing /lib/azure/index.js", function () {
 	process.env.SOAJS_CLOOSTRO_TEST = true;
-	
+
 	describe("calling executeDriver - inspectService", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -26,7 +26,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -79,7 +79,7 @@ describe("testing /lib/azure/index.js", function () {
 							return cb(null, info.subnets[vnetName]);
 						}
 					},
-					
+
 				});
 			let expectedResponce = {
 				"name": "tester-vm",
@@ -128,7 +128,7 @@ describe("testing /lib/azure/index.js", function () {
 									"prefix": "Canonical",
 									"version": "latest"
 								}
-								
+
 							}
 						}
 					}
@@ -155,7 +155,7 @@ describe("testing /lib/azure/index.js", function () {
 				done();
 			});
 		});
-		
+
 		it("Success loadBalancer", function (done) {
 			info = dD();
 			options = info.deployCluster;
@@ -164,7 +164,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -217,7 +217,7 @@ describe("testing /lib/azure/index.js", function () {
 							return cb(null, info.subnets[vnetName]);
 						}
 					},
-					
+
 				});
 			let expectedResponce = {
 				"name": "tester-vm",
@@ -265,7 +265,7 @@ describe("testing /lib/azure/index.js", function () {
 									"prefix": "Canonical",
 									"version": "latest"
 								}
-								
+
 							}
 						}
 					}
@@ -331,7 +331,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listServices", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -345,7 +345,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -398,7 +398,7 @@ describe("testing /lib/azure/index.js", function () {
 							return cb(null, info.subnets[vnetName]);
 						}
 					},
-					
+
 				});
 			let expectedResponce = [
 				{
@@ -447,7 +447,7 @@ describe("testing /lib/azure/index.js", function () {
 										"prefix": "Canonical",
 										"version": "latest"
 									}
-									
+
 								}
 							}
 						}
@@ -492,7 +492,7 @@ describe("testing /lib/azure/index.js", function () {
 										"prefix": "Canonical",
 										"version": "latest"
 									}
-									
+
 								}
 							}
 						}
@@ -530,7 +530,44 @@ describe("testing /lib/azure/index.js", function () {
 										"prefix": "Canonical",
 										"version": "latest"
 									}
-									
+
+								}
+							}
+						}
+					],
+					"ip": []
+				},
+				{
+					"name": "windows-vm",
+					"id": "windows-vm",
+					"executeCommand": true,
+					"labels": {
+						"soajs.service.vm.location": "eastus",
+						"soajs.service.vm.group": "TESTER",
+						"soajs.service.vm.size": "Standard_A1"
+					},
+					"ports": [],
+					"voluming": {
+						"volumes": []
+					},
+					"securityGroup": [],
+					"tasks": [
+						{
+							"id": "windows-vm",
+							"name": "windows-vm",
+							"status": {
+								"state": "succeeded",
+							},
+							"ref": {
+								"os": {
+									"type": "Windows",
+									"diskSizeGB": 30,
+									"image": {
+										"name": "WindowsServer__10",
+										"prefix": "Microsoft",
+										"version": "latest"
+									}
+
 								}
 							}
 						}
@@ -545,12 +582,13 @@ describe("testing /lib/azure/index.js", function () {
 				delete response[0].tasks[0].status.ts;
 				delete response[1].tasks[0].status.ts;
 				delete response[2].tasks[0].status.ts;
+				delete response[3].tasks[0].status.ts;
 				assert.deepEqual(expectedResponce, response);
 				done();
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - deleteService", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -562,7 +600,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -581,7 +619,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - restartService", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -593,7 +631,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -627,7 +665,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - redeployService", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -639,7 +677,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -663,7 +701,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - powerOffVM", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -675,7 +713,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -704,7 +742,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - startVM", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -716,7 +754,7 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
@@ -745,7 +783,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listVmSizes", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -767,7 +805,7 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			
+
 			options = info.deployCluster;
 			options.params = {
 				location: "eastus"
@@ -780,7 +818,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listVmImagePublishers", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -788,7 +826,7 @@ describe("testing /lib/azure/index.js", function () {
 		});
 		it("Success", function (done) {
 			info = dD();
-			
+
 			sinon
 				.stub(serviceUtils, 'authenticate')
 				.yields(null, {
@@ -832,7 +870,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listVmImagePublisherOffers", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -854,7 +892,7 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			
+
 			options = info.deployCluster;
 			options.params = {
 				location: "eastus",
@@ -900,7 +938,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - listVmImageVersions", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -943,7 +981,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - runCommand", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -981,7 +1019,7 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 	describe("calling executeDriver - getLogs", function () {
 		afterEach((done) => {
 			sinon.restore();
@@ -1012,14 +1050,15 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
-	
-	describe("calling executeDriver - updtadeVmLabels", function () {
+
+
+	describe("calling executeDriver - updateVmLabels", function () {
 		afterEach((done) => {
 			sinon.restore();
 			done();
 		});
-		it("Success", function (done) {
+
+		it("Success - on board vm layer", function (done) {
 			info = dD();
 			options = info.deployCluster;
 			sinon
@@ -1027,26 +1066,73 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
-			sinon
-				.stub(serviceUtils, 'getConnector')
-				.returns({
-					
-					virtualMachines: {
-						get: (env, vmName, cb) => {
-							return cb(null, info.virtualMachines[0]);
+
+				sinon
+					.stub(serviceUtils, 'getConnector')
+					.returns({
+						resourceGroups: {
+							checkExistence: (env, cb) => {
+								return cb(null, true)
+							}
 						},
-						createOrUpdate: (group, vmName, vmInfo ,cb) =>{
-							return cb(null,true);
+						virtualMachines: {
+							get: (env, vmName, cb) => {
+								return cb(null, info.virtualMachines[0]);
+							},
+							createOrUpdate: (group, vmName, vmInfo ,cb) =>{
+								return cb(null,true);
+							}
+						},
+						networkInterfaces: {
+							get: (resourceGroupName, networkInterfaceName, cb) => {
+								return cb(null, info.networkInterface[networkInterfaceName]);
+							},
+							listAll: (cb) => {
+								return cb(null, [info.networkInterface["tester-ni"]]);
+							}
+						},
+						networkSecurityGroups: {
+							get: (resourceGroupName, networkSecurityGroupName, cb) => {
+								return cb(null, info.networkSecurityGroup[networkSecurityGroupName]);
+							},
+							update: (options, cb) => {
+								return cb(null, true);
+							},
+							listAll: (cb) => {
+								return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+							}
+						},
+						publicIPAddresses: {
+							get: (resourceGroupName, ipName, cb) => {
+								return cb(null, info.publicIp[ipName]);
+							},
+							listAll: (cb) => {
+								return cb(null, [info.publicIp])
+							}
+						},
+						networkInterfaceLoadBalancers: {
+							list: (resourceGroupName, networkInterfaceName, cb) => {
+								return cb(null, []);
+							}
+						},
+						loadBalancers: {
+							listAll: (cb) => {
+								return cb(null, []);
+							}
+						},
+						subnets: {
+							get: (resourceGroupName, vnetName, subnetName, cb) => {
+								return cb(null, info.subnets[vnetName]);
+							}
 						}
-					},
-				});
-			
+					});
+
 			info = dD();
 			options = info.deployCluster;
 			options.params = {
 				group: 'tester',
-				vmNames: ['tester-vm'],
+				ids: ['tester-vm'],
+				setVmNameAsLabel: true,
 				labels: {
 					tag1: 'true',
 					tag2: 'false'
@@ -1058,7 +1144,459 @@ describe("testing /lib/azure/index.js", function () {
 				done();
 			});
 		});
-		
+
+		it("Success - release vm layer", function (done) {
+			info = dD();
+			options = info.deployCluster;
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+
+				sinon
+					.stub(serviceUtils, 'getConnector')
+					.returns({
+						resourceGroups: {
+							checkExistence: (env, cb) => {
+								return cb(null, true)
+							}
+						},
+						virtualMachines: {
+							get: (env, vmName, cb) => {
+								let vmRecord = Object.assign({}, info.virtualMachines[0]);
+								vmRecord.tags['soajs.onBoard'] = 'true';
+								return cb(null, vmRecord);
+							},
+							createOrUpdate: (group, vmName, vmInfo ,cb) =>{
+								return cb(null,true);
+							}
+						},
+						networkInterfaces: {
+							get: (resourceGroupName, networkInterfaceName, cb) => {
+								return cb(null, info.networkInterface[networkInterfaceName]);
+							},
+							listAll: (cb) => {
+								return cb(null, [info.networkInterface["tester-ni"]]);
+							}
+						},
+						networkSecurityGroups: {
+							get: (resourceGroupName, networkSecurityGroupName, cb) => {
+								return cb(null, info.networkSecurityGroup[networkSecurityGroupName]);
+							},
+							update: (options, cb) => {
+								return cb(null, true);
+							},
+							listAll: (cb) => {
+								return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+							}
+						},
+						publicIPAddresses: {
+							get: (resourceGroupName, ipName, cb) => {
+								return cb(null, info.publicIp[ipName]);
+							},
+							listAll: (cb) => {
+								return cb(null, [info.publicIp])
+							}
+						},
+						networkInterfaceLoadBalancers: {
+							list: (resourceGroupName, networkInterfaceName, cb) => {
+								return cb(null, []);
+							}
+						},
+						loadBalancers: {
+							listAll: (cb) => {
+								return cb(null, []);
+							}
+						},
+						subnets: {
+							get: (resourceGroupName, vnetName, subnetName, cb) => {
+								return cb(null, info.subnets[vnetName]);
+							}
+						}
+					});
+
+			info = dD();
+			options = info.deployCluster;
+			options.params = {
+				group: 'tester',
+				ids: ['tester-vm'],
+				release: true,
+				labels: {
+					tag1: 'true',
+					tag2: 'false'
+				}
+			};
+			service.executeDriver('updateVmLabels', options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				done();
+			});
+		});
+
+		it("Fail - on board for vm layer with different operating systems", function (done) {
+			info = dD();
+			options = info.deployCluster;
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+
+				sinon
+					.stub(serviceUtils, 'getConnector')
+					.returns({
+						resourceGroups: {
+							checkExistence: (env, cb) => {
+								return cb(null, true)
+							}
+						},
+						virtualMachines: {
+							get: (env, vmName, cb) => {
+								let matchingVm = info.virtualMachines.find((oneEntry) => { return oneEntry.name === vmName; });
+								return cb(null, matchingVm);
+							},
+							createOrUpdate: (group, vmName, vmInfo ,cb) =>{
+								return cb(null,true);
+							}
+						},
+						networkInterfaces: {
+							get: (resourceGroupName, networkInterfaceName, cb) => {
+								return cb(null, info.networkInterface[networkInterfaceName]);
+							},
+							listAll: (cb) => {
+								return cb(null, [info.networkInterface["tester-ni"]]);
+							}
+						},
+						networkSecurityGroups: {
+							get: (resourceGroupName, networkSecurityGroupName, cb) => {
+								return cb(null, info.networkSecurityGroup[networkSecurityGroupName]);
+							},
+							update: (options, cb) => {
+								return cb(null, true);
+							},
+							listAll: (cb) => {
+								return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+							}
+						},
+						publicIPAddresses: {
+							get: (resourceGroupName, ipName, cb) => {
+								return cb(null, info.publicIp[ipName]);
+							},
+							listAll: (cb) => {
+								return cb(null, [info.publicIp])
+							}
+						},
+						networkInterfaceLoadBalancers: {
+							list: (resourceGroupName, networkInterfaceName, cb) => {
+								return cb(null, []);
+							}
+						},
+						loadBalancers: {
+							listAll: (cb) => {
+								return cb(null, []);
+							}
+						},
+						subnets: {
+							get: (resourceGroupName, vnetName, subnetName, cb) => {
+								return cb(null, info.subnets[vnetName]);
+							}
+						}
+					});
+
+			info = dD();
+			options = info.deployCluster;
+			options.params = {
+				group: 'tester',
+				ids: ['tester-vm', 'windows-vm'],
+				labels: {
+					tag1: 'true',
+					tag2: 'false'
+				}
+			};
+			service.executeDriver('updateVmLabels', options, function (error, response) {
+				assert.ok(error);
+				assert.equal(error, 'We are unable to onBoard your VM instance because we detected a mismatch between the Operating Systems of the Virtual Machine Instance.');
+				done();
+			});
+		});
+
+		it("Fail - on board - error while updating vm", function (done) {
+			info = dD();
+			options = info.deployCluster;
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+
+				sinon
+					.stub(serviceUtils, 'getConnector')
+					.returns({
+						resourceGroups: {
+							checkExistence: (env, cb) => {
+								return cb(null, true)
+							}
+						},
+						virtualMachines: {
+							get: (env, vmName, cb) => {
+								let matchingVm = info.virtualMachines.find((oneEntry) => { return oneEntry.name === vmName; });
+								return cb(null, matchingVm);
+							},
+							createOrUpdate: (group, vmName, vmInfo ,cb) =>{
+								return cb(new Error("An error occured while updating vm"));
+							}
+						},
+						networkInterfaces: {
+							get: (resourceGroupName, networkInterfaceName, cb) => {
+								return cb(null, info.networkInterface[networkInterfaceName]);
+							},
+							listAll: (cb) => {
+								return cb(null, [info.networkInterface["tester-ni"]]);
+							}
+						},
+						networkSecurityGroups: {
+							get: (resourceGroupName, networkSecurityGroupName, cb) => {
+								return cb(null, info.networkSecurityGroup[networkSecurityGroupName]);
+							},
+							update: (options, cb) => {
+								return cb(null, true);
+							},
+							listAll: (cb) => {
+								return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+							}
+						},
+						publicIPAddresses: {
+							get: (resourceGroupName, ipName, cb) => {
+								return cb(null, info.publicIp[ipName]);
+							},
+							listAll: (cb) => {
+								return cb(null, [info.publicIp])
+							}
+						},
+						networkInterfaceLoadBalancers: {
+							list: (resourceGroupName, networkInterfaceName, cb) => {
+								return cb(null, []);
+							}
+						},
+						loadBalancers: {
+							listAll: (cb) => {
+								return cb(null, []);
+							}
+						},
+						subnets: {
+							get: (resourceGroupName, vnetName, subnetName, cb) => {
+								return cb(null, info.subnets[vnetName]);
+							}
+						}
+					});
+
+			info = dD();
+			options = info.deployCluster;
+			options.params = {
+				group: 'tester',
+				ids: ['tester-vm'],
+				labels: {
+					tag1: 'true',
+					tag2: 'false'
+				}
+			};
+			service.executeDriver('updateVmLabels', options, function (error, response) {
+				assert.ok(error);
+				assert.deepEqual(error, {
+					source: 'driver',
+					value: 'An error occured while updating vm',
+					code: 759,
+					msg: 'Unable to update virtual machine'
+				});
+				done();
+			});
+		});
+
+		it("Fail - release - error while updating vm", function (done) {
+			info = dD();
+			options = info.deployCluster;
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+
+				sinon
+					.stub(serviceUtils, 'getConnector')
+					.returns({
+						resourceGroups: {
+							checkExistence: (env, cb) => {
+								return cb(null, true)
+							}
+						},
+						virtualMachines: {
+							get: (env, vmName, cb) => {
+								let matchingVm = info.virtualMachines.find((oneEntry) => { return oneEntry.name === vmName; });
+								return cb(null, matchingVm);
+							},
+							createOrUpdate: (group, vmName, vmInfo ,cb) =>{
+								return cb(new Error("An error occured while updating vm"));
+							}
+						},
+						networkInterfaces: {
+							get: (resourceGroupName, networkInterfaceName, cb) => {
+								return cb(null, info.networkInterface[networkInterfaceName]);
+							},
+							listAll: (cb) => {
+								return cb(null, [info.networkInterface["tester-ni"]]);
+							}
+						},
+						networkSecurityGroups: {
+							get: (resourceGroupName, networkSecurityGroupName, cb) => {
+								return cb(null, info.networkSecurityGroup[networkSecurityGroupName]);
+							},
+							update: (options, cb) => {
+								return cb(null, true);
+							},
+							listAll: (cb) => {
+								return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+							}
+						},
+						publicIPAddresses: {
+							get: (resourceGroupName, ipName, cb) => {
+								return cb(null, info.publicIp[ipName]);
+							},
+							listAll: (cb) => {
+								return cb(null, [info.publicIp])
+							}
+						},
+						networkInterfaceLoadBalancers: {
+							list: (resourceGroupName, networkInterfaceName, cb) => {
+								return cb(null, []);
+							}
+						},
+						loadBalancers: {
+							listAll: (cb) => {
+								return cb(null, []);
+							}
+						},
+						subnets: {
+							get: (resourceGroupName, vnetName, subnetName, cb) => {
+								return cb(null, info.subnets[vnetName]);
+							}
+						}
+					});
+
+			info = dD();
+			options = info.deployCluster;
+			options.params = {
+				group: 'tester',
+				ids: ['tester-vm'],
+				release: true,
+				labels: {
+					tag1: 'true',
+					tag2: 'false'
+				}
+			};
+			service.executeDriver('updateVmLabels', options, function (error, response) {
+				assert.ok(error);
+				assert.deepEqual(error, {
+					source: 'driver',
+					value: 'An error occured while updating vm',
+					code: 759,
+					msg: 'Unable to update virtual machine'
+				});
+				done();
+			});
+		});
+
+		it("Fail - on board - error while inspecting vm", function (done) {
+			info = dD();
+			options = info.deployCluster;
+			sinon
+				.stub(serviceUtils, 'authenticate')
+				.yields(null, {
+					credentials: {},
+				});
+
+				sinon
+					.stub(serviceUtils, 'getConnector')
+					.returns({
+						resourceGroups: {
+							checkExistence: (env, cb) => {
+								return cb(null, true)
+							}
+						},
+						virtualMachines: {
+							get: (env, vmName, cb) => {
+								return cb(new Error("An error occured while inspecting vm"));
+							},
+							createOrUpdate: (group, vmName, vmInfo ,cb) =>{
+								return cb(null, true);
+							}
+						},
+						networkInterfaces: {
+							get: (resourceGroupName, networkInterfaceName, cb) => {
+								return cb(null, info.networkInterface[networkInterfaceName]);
+							},
+							listAll: (cb) => {
+								return cb(null, [info.networkInterface["tester-ni"]]);
+							}
+						},
+						networkSecurityGroups: {
+							get: (resourceGroupName, networkSecurityGroupName, cb) => {
+								return cb(null, info.networkSecurityGroup[networkSecurityGroupName]);
+							},
+							update: (options, cb) => {
+								return cb(null, true);
+							},
+							listAll: (cb) => {
+								return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+							}
+						},
+						publicIPAddresses: {
+							get: (resourceGroupName, ipName, cb) => {
+								return cb(null, info.publicIp[ipName]);
+							},
+							listAll: (cb) => {
+								return cb(null, [info.publicIp])
+							}
+						},
+						networkInterfaceLoadBalancers: {
+							list: (resourceGroupName, networkInterfaceName, cb) => {
+								return cb(null, []);
+							}
+						},
+						loadBalancers: {
+							listAll: (cb) => {
+								return cb(null, []);
+							}
+						},
+						subnets: {
+							get: (resourceGroupName, vnetName, subnetName, cb) => {
+								return cb(null, info.subnets[vnetName]);
+							}
+						}
+					});
+
+			info = dD();
+			options = info.deployCluster;
+			options.params = {
+				group: 'tester',
+				ids: ['tester-vm'],
+				labels: {
+					tag1: 'true',
+					tag2: 'false'
+				}
+			};
+			service.executeDriver('updateVmLabels', options, function (error, response) {
+				assert.ok(error);
+				assert.deepEqual(error, {
+					source: 'driver',
+				  	value: 'An error occured while inspecting vm',
+				  	code: 701,
+				  	msg: 'Unable to get virutal machine'
+				});
+				done();
+			});
+		});
+
 		it("Success", function (done) {
 			info = dD();
 			options = info.deployCluster;
@@ -1067,11 +1605,11 @@ describe("testing /lib/azure/index.js", function () {
 				.yields(null, {
 					credentials: {},
 				});
-			
+
 			sinon
 				.stub(serviceUtils, 'getConnector')
 				.returns({
-					
+
 					virtualMachines: {
 						get: (env, vmName, cb) => {
 							return cb(null, info.virtualMachines[0]);
@@ -1081,13 +1619,13 @@ describe("testing /lib/azure/index.js", function () {
 						}
 					},
 				});
-			
+
 			info = dD();
 			options = info.deployCluster;
 			options.params = {
 				group: 'tester',
 				vmNames: ['tester-vm']
-				
+
 			};
 			service.executeDriver('updateVmLabels', options, function (error, response) {
 				assert.ifError(error);
@@ -1096,5 +1634,5 @@ describe("testing /lib/azure/index.js", function () {
 			});
 		});
 	});
-	
+
 });

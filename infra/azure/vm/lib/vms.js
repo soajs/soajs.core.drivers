@@ -170,6 +170,8 @@ const vms = {
                         callback(null, vmInfo);
 					})
 				}, (err, vms) => {
+					if(err) return cb(err);
+
 					async.series({
 						'validateVm' : (mCb) => {
 							let images = [];

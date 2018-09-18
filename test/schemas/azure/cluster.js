@@ -333,6 +333,51 @@ module.exports = function () {
 						"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/SOAJS/providers/Microsoft.Compute/virtualMachines/mysql/extensions/enablevmaccess"
 					}
 				]
+			},
+			{
+				"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/TESTER/providers/Microsoft.Compute/virtualMachines/tester-vm",
+				"name": "windows-vm",
+				"type": "Microsoft.Compute/virtualMachines",
+				"location": "eastus",
+				"tags": {},
+				"hardwareProfile": {
+					"vmSize": "Standard_A1"
+				},
+				"storageProfile": {
+					"imageReference": {
+						"publisher": "Microsoft",
+						"offer": "WindowsServer",
+						"sku": "10",
+						"version": "latest"
+					},
+					"osDisk": {
+						"osType": "Windows",
+						"name": "myosdisk1",
+						"caching": "ReadWrite",
+						"createOption": "FromImage",
+						"diskSizeGB": 30,
+						"managedDisk": {
+							"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Compute/disks/myosdisk1",
+							"storageAccountType": "Standard_LRS"
+						}
+					},
+					"dataDisks": []
+				},
+				"osProfile": {
+					"computerName": "windows",
+					"adminUsername": "owner",
+					"secrets": []
+				},
+				"networkProfile": {
+					"networkInterfaces": [
+						{
+							"id": "/subscriptions/d159e994-8b44-42f7-b100-78c4508c34a6/resourceGroups/tester/providers/Microsoft.Network/networkInterfaces/windows-vm-ni",
+							"primary": false
+						}
+					]
+				},
+				"provisioningState": "Succeeded",
+				"vmId": "f79b8165-53fa-4694-9e82-788c3b630fg6"
 			}
 		],
 		"networkInterface": {
@@ -1055,7 +1100,7 @@ module.exports = function () {
 				"memoryInMB": 1024,
 				"maxDataDiskCount": 2,
 				"label": "Standard_B1s / CPU: 1 / RAM: 1024MB / HD: 2GB"
-				
+
 			}
 		],
 		"vmImagePublisher": [
