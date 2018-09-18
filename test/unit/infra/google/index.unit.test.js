@@ -69,19 +69,7 @@ describe("testing /lib/google/index.js", function () {
 						'list': (params, cb) => {
 							return cb (null, {
 								items: [
-									{
-										"kind": "compute#region",
-										"id": "1220",
-										"creationTimestamp": "1969-12-31T16:00:00.000-08:00",
-										"name": "asia-east1",
-										"description": "asia-east1",
-										"status": "UP",
-										"zones": [
-											"https://www.googleapis.com/compute/v1/projects/herrontech-rnd/zones/asia-east1-a",
-											"https://www.googleapis.com/compute/v1/projects/herrontech-rnd/zones/asia-east1-b",
-											"https://www.googleapis.com/compute/v1/projects/herrontech-rnd/zones/asia-east1-c"
-										]
-									}
+									info.region
 								]
 							});
 						}
@@ -1184,7 +1172,7 @@ describe("testing /lib/google/index.js", function () {
 		let info = dD();
 		let options = info.deployCluster;
 		
-		it("Success", function (done) {
+		it("Success 1", function (done) {
 			sinon
 				.stub(googleApi, 'compute')
 				.returns({
@@ -1214,15 +1202,69 @@ describe("testing /lib/google/index.js", function () {
 							return cb (null, true);
 						},
 						'get': (params, cb) => {
-							return cb (null, true);
+							return cb (null, info.zones);
 						}
 					},
 					'regions': {
 						'get': (params, cb) => {
-							return cb (null, true);
+							return cb (null, info.region);
 						},
 						'list': (params, cb) => {
+							{
+								return cb (null, true);
+							}
+						}
+					}
+				});
+			
+			service.getCluster(options, function (error, res) {
+				assert.ifError(error);
+				assert.ok(res);
+				done();
+			});
+		});
+		
+		it("Success 2", function (done) {
+			sinon
+				.stub(googleApi, 'compute')
+				.returns({
+					'instances': {
+						'list': (params, cb) => {
+							return cb(null, {
+								items: [
+									{
+										name: "localmachine",
+										networkInterfaces: [
+											{
+												accessConfigs: [
+													{
+														name: 'external-nat',
+														natIP: '192.168.50.50'
+													}
+												]
+											}
+										]
+									}
+								]
+							})
+						}
+					},
+					'zones': {
+						'list': (params, cb) => {
 							return cb (null, true);
+						},
+						'get': (params, cb) => {
+							return cb (null, info.zones);
+						}
+					},
+					'regions': {
+						'get': (params, cb) => {
+							return cb (new Error("not found"), null);
+						},
+						'list': (params, cb) => {
+							{
+								return cb (null, true);
+							}
 						}
 					}
 				});

@@ -320,7 +320,12 @@ module.exports = function () {
 						}
 					],
 					"IsDefault": true,
-					"Tags": []
+					"Tags": [
+						{
+							"Key": "Name",
+							"Value": "networkName"
+						}
+					]
 				}
 			]
 		},
@@ -330,7 +335,7 @@ module.exports = function () {
 				"subnets": [
 					{
 						"id": "subnet-97c7abf3",
-						"name": "subnet-97c7abf3",
+						"name": "subnetName",
 						"address": "172.31.0.0/20",
 						"state": "available",
 						"availabilityZone": "us-east-1a"
@@ -343,7 +348,7 @@ module.exports = function () {
 						"availabilityZone": "us-east-1b"
 					}
 				],
-				"name": "vpc-a5e482dd",
+				"name": "networkName",
 				"id": "vpc-a5e482dd",
 				"state": "available",
 				"instanceTenancy": "dedicated",
@@ -368,7 +373,10 @@ module.exports = function () {
 					"VpcId": "vpc-a5e482dd",
 					"AssignIpv6AddressOnCreation": false,
 					"Ipv6CidrBlockAssociationSet": [],
-					"Tags": []
+					"Tags": [{
+						"Key": "Name",
+						"Value": "subnetName"
+					}]
 				},
 				{
 					"AvailabilityZone": "us-east-1b",
@@ -389,7 +397,7 @@ module.exports = function () {
 		"listSubnets": [
 			{
 				"id": "subnet-97c7abf3",
-				"name": "subnet-97c7abf3",
+				"name": "subnetName",
 				"address": "172.31.0.0/20",
 				"state": "available",
 				"availabilityZone": "us-east-1a"
@@ -934,10 +942,26 @@ module.exports = function () {
 								"CidrIp": "0.0.0.0/0"
 							}
 						],
-						"Ipv6Ranges": [],
+						"Ipv6Ranges": [
+							{
+								"CidrIpv6": "ip6address"
+							}
+						],
 						"PrefixListIds": [],
 						"ToPort": 22,
 						"UserIdGroupPairs": []
+					},
+					{
+						"FromPort": 33,
+						"IpProtocol": "tcp",
+						"Ipv6Ranges": [],
+						"PrefixListIds": [],
+						"ToPort": 33,
+						"UserIdGroupPairs": [
+							{
+								"GroupId": "group"
+							}
+						]
 					}
 				],
 				"OwnerId": "019397354664",
@@ -955,7 +979,12 @@ module.exports = function () {
 						"UserIdGroupPairs": []
 					}
 				],
-				"Tags": [],
+				"Tags": [
+					{
+						"Key": "Name",
+						"Value": "securityGroupNAme"
+					}
+				],
 				"VpcId": "vpc-957300fc"
 			}]
 		},
@@ -1028,6 +1057,231 @@ module.exports = function () {
 						"source": [
 							"0.0.0.0/0"
 						],
+						"ipv6": [
+							"ip6address"
+						]
+					},
+					{
+						"direction": "inbound",
+						"protocol": "tcp",
+						"published": "33",
+						"access": "allow",
+						"isPublished": false,
+						"source": [
+							"group"
+						],
+						"ipv6": []
+					},
+					{
+						"direction": "outbound",
+						"protocol": "*",
+						"published": "0 - 65535",
+						"access": "allow",
+						"isPublished": false,
+						"source": [
+							"0.0.0.0/0"
+						],
+						"ipv6": []
+					}
+				],
+				"securityGroup": [
+					"sg-04031e85cc930b578"
+				]
+			}
+		],
+		"vmExpected2": [
+			{
+				"ip": [
+					{
+						"type": "private",
+						"allocatedTo": "instance",
+						"address": "172.31.43.192",
+						"dns": "ip-172-31-43-192.us-east-2.compute.internal"
+					},
+					{
+						"type": "public",
+						"allocatedTo": "instance",
+						"dns": "ec2-18-218-148-78.us-east-2.compute.amazonaws.com",
+						"address": "18.218.148.78"
+					},
+					{
+						"type": "public",
+						"allocatedTo": "loadBalancer",
+						"address": "test-lb-ragheb-69863322.us-east-2.elb.amazonaws.com",
+						"dns": "test-lb-ragheb-69863322.us-east-2.elb.amazonaws.com"
+					}
+				],
+				"region": "ca-central-1",
+				"executeCommand": false,
+				"id": "i-0bb24a3de714f9fba",
+				"name": "test1",
+				"type": "t2.micro",
+				"keyPair": "ragheb",
+				"labels": {
+					"soajs.service.vm.location": "ca-central-1",
+					"soajs.service.vm.size": "t2.micro",
+					"soajs.vm.name": "test1"
+				},
+				"layer": "subnetId",
+				"network": "vpc-957300fc",
+				"volumes": [
+					{
+						"zone": "us-east-2c",
+						"id": "vol-07cd719b38c1b2b32",
+						"diskSizeGB": 8,
+						"state": "failed",
+						"iops": 100,
+						"type": "gp2",
+						"encrypted": false,
+						"region": "ca-central-1"
+					}
+				],
+				"tasks": [
+					{
+						"name": "test1",
+						"id": "i-0bb24a3de714f9fba",
+						"status": {
+							"state": "succeeded",
+							"ts": 1535025908000
+						},
+						"ref": {
+							"os": {
+								"architecture": "x86_64",
+								"id": "ami-5e8bb23b",
+								"description": "Canonical, Ubuntu, 16.04 LTS, amd64 xenial image build on 2018-06-27",
+								"name": "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-20180627"
+							}
+						}
+					}
+				],
+				"ports": [
+					{
+						"direction": "inbound",
+						"protocol": "tcp",
+						"published": "22",
+						"access": "allow",
+						"isPublished": true,
+						"source": [
+							"0.0.0.0/0"
+						],
+						"ipv6": [
+							"ip6address"
+						]
+					},
+					{
+						"direction": "inbound",
+						"protocol": "tcp",
+						"published": "33",
+						"access": "allow",
+						"isPublished": false,
+						"source": [
+							"group"
+						],
+						"ipv6": []
+					},
+					{
+						"direction": "outbound",
+						"protocol": "*",
+						"published": "0 - 65535",
+						"access": "allow",
+						"isPublished": false,
+						"source": [
+							"0.0.0.0/0"
+						],
+						"ipv6": []
+					}
+				],
+				"securityGroup": [
+					"sg-04031e85cc930b578"
+				]
+			},
+			{
+				"ip": [
+					{
+						"type": "private",
+						"allocatedTo": "instance",
+						"address": "172.31.43.192",
+						"dns": "ip-172-31-43-192.us-east-2.compute.internal"
+					},
+					{
+						"type": "public",
+						"allocatedTo": "instance",
+						"dns": "ec2-18-218-148-78.us-east-2.compute.amazonaws.com",
+						"address": "18.218.148.78"
+					},
+					{
+						"type": "public",
+						"allocatedTo": "loadBalancer",
+						"address": "test-lb-ragheb-69863322.us-east-2.elb.amazonaws.com",
+						"dns": "test-lb-ragheb-69863322.us-east-2.elb.amazonaws.com"
+					}
+				],
+				"region": "ca-central-1",
+				"executeCommand": false,
+				"id": "i-0bb24a3de714f9fba",
+				"name": "command",
+				"type": "t2.micro",
+				"keyPair": "ragheb",
+				"labels": {
+					"Name": "command",
+					"soajs.service.vm.location": "ca-central-1",
+					"soajs.service.vm.size": "t2.micro"
+				},
+				"layer": "subnetId",
+				"network": "vpc-957300fc",
+				"volumes": [
+					{
+						"zone": "us-east-2c",
+						"id": "vol-07cd719b38c1b2b32",
+						"diskSizeGB": 8,
+						"state": "failed",
+						"iops": 100,
+						"type": "gp2",
+						"encrypted": false,
+						"region": "ca-central-1"
+					}
+				],
+				"tasks": [
+					{
+						"id": "i-0bb24a3de714f9fba",
+						"name": "command",
+						"status": {
+							"state": "succeeded",
+							"ts": 1535025908000
+						},
+						"ref": {
+							"os": {
+								"architecture": "x86_64",
+								"id": "ami-5e8bb23b",
+								"description": "Canonical, Ubuntu, 16.04 LTS, amd64 xenial image build on 2018-06-27",
+								"name": "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-20180627"
+							}
+						}
+					}
+				],
+				"ports": [
+					{
+						"direction": "inbound",
+						"protocol": "tcp",
+						"published": "22",
+						"access": "allow",
+						"isPublished": true,
+						"source": [
+							"0.0.0.0/0"
+						],
+						"ipv6": [
+							"ip6address"
+						]
+					},
+					{
+						"direction": "inbound",
+						"protocol": "tcp",
+						"published": "33",
+						"access": "allow",
+						"isPublished": false,
+						"source": [
+							"group"
+						],
 						"ipv6": []
 					},
 					{
@@ -1059,6 +1313,17 @@ module.exports = function () {
 						"source": [
 							"0.0.0.0/0"
 						],
+						"ipv6": ["ip6address"]
+					},
+					{
+						"direction": "inbound",
+						"protocol": "tcp",
+						"published": "33",
+						"access": "allow",
+						"isPublished": false,
+						"source": [
+							"group"
+						],
 						"ipv6": []
 					},
 					{
@@ -1075,7 +1340,8 @@ module.exports = function () {
 				],
 				"region": "us-east-1",
 				"id": "sg-04031e85cc930b578",
-				"name": "launch-wizard-4",
+				"name": "securityGroupNAme",
+				"groupName": "launch-wizard-4",
 				"description": "launch-wizard-4 created 2018-08-14T19:50:39.085+03:00",
 				"networkId": "vpc-957300fc"
 			}

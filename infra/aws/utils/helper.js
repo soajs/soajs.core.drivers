@@ -273,13 +273,15 @@ const helper = {
 			if (opts.vm.Tags.length > 0) {
 				let soajsName, name;
 				for (let i = 0; i < opts.vm.Tags.length; i++) {
-					record.labels[opts.vm.Tags[i].Key] = opts.vm.Tags[i].Value;
-					if (opts.vm.Tags[i].Key === "soajs.vm.name") {
-						soajsName = opts.vm.Tags[i].Value;
-
-					}
-					if (opts.vm.Tags[i].Key === "Name") {
-						name = opts.vm.Tags[i].Value;
+					if (opts.vm.Tags[i].Key && opts.vm.Tags[i].Value){
+						record.labels[opts.vm.Tags[i].Key] = opts.vm.Tags[i].Value;
+						if (opts.vm.Tags[i].Key === "soajs.vm.name") {
+							soajsName = opts.vm.Tags[i].Value;
+							
+						}
+						if (opts.vm.Tags[i].Key === "Name") {
+							name = opts.vm.Tags[i].Value;
+						}
 					}
 				}
 				if (soajsName) {
@@ -476,7 +478,8 @@ const helper = {
 		if (opts.securityGroup) {
 			if (opts.securityGroup.GroupId) {
 				securityGroup.id = opts.securityGroup.GroupId;
-				securityGroup.name = opts.securityGroup.GroupName;
+				securityGroup.name = opts.securityGroup.GroupId;
+				securityGroup.groupName = opts.securityGroup.GroupName;
 			}
 			if (opts.securityGroup.Tags && Array.isArray(opts.securityGroup.Tags) && opts.securityGroup.Tags.length > 0) {
 				for (let i = 0; i < opts.securityGroup.Tags.length; i++) {
