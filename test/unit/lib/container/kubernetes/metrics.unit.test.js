@@ -15,7 +15,7 @@ describe("testing /lib/container/kubernetes/metrics.js", function () {
 			done();
 		});
 		
-		it("Success", function (done) {
+		it("Success no version", function (done) {
 			kubeData = dD();
 			options = kubeData.deployer;
 			options.params = {
@@ -32,6 +32,82 @@ describe("testing /lib/container/kubernetes/metrics.js", function () {
 							}
 						}
 					},
+					extensions : {
+						deployments : {
+							get : (params, cb) => {
+								return cb(null, kubeData.deploymentListSys)
+							}
+						}
+					}
+					
+				});
+			
+			metrics.getServicesMetrics(options, function (error, res) {
+				assert.ok(res);
+				done();
+			});
+			
+		});
+		
+		it("Success v2", function (done) {
+			kubeData = dD();
+			options = kubeData.deployer;
+			options.params = {
+				"action": "post",
+				"resource": "heapster"
+			};
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					metrics: {
+						po: {
+							get : (cb)=> {
+								cb(null, kubeData.serviceMetrics)
+							}
+						}
+					},
+					extensions : {
+						deployments : {
+							get : (params, cb) => {
+								return cb(null, kubeData.deploymentListSysMetricServer)
+							}
+						}
+					}
+					
+				});
+			
+			metrics.getServicesMetrics(options, function (error, res) {
+				assert.ok(res);
+				done();
+			});
+			
+		});
+		
+		it("Success v1", function (done) {
+			kubeData = dD();
+			options = kubeData.deployer;
+			options.params = {
+				"action": "post",
+				"resource": "heapster"
+			};
+			kubeData.deploymentListSysMetricServer.items[0].metadata.labels.version = "v0.1.1";
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					metrics: {
+						po: {
+							get : (cb)=> {
+								cb(null, kubeData.serviceMetrics)
+							}
+						}
+					},
+					extensions : {
+						deployments : {
+							get : (params, cb) => {
+								return cb(null, kubeData.deploymentListSysMetricServer)
+							}
+						}
+					}
 					
 				});
 			
@@ -59,6 +135,14 @@ describe("testing /lib/container/kubernetes/metrics.js", function () {
 							}
 						}
 					},
+					extensions : {
+						deployments : {
+							get : (params, cb) => {
+								return cb(null, kubeData.deploymentListSys)
+							}
+						}
+					}
+					
 				});
 			
 			metrics.getServicesMetrics(options, function (error, res) {
@@ -91,6 +175,13 @@ describe("testing /lib/container/kubernetes/metrics.js", function () {
 							}
 						}
 					},
+					extensions : {
+						deployments : {
+							get : (params, cb) => {
+								return cb(null, kubeData.deploymentListSys)
+							}
+						}
+					}
 					
 				});
 			
@@ -99,6 +190,40 @@ describe("testing /lib/container/kubernetes/metrics.js", function () {
 				done();
 			});
 		});
+		
+		it("Success 2", function (done) {
+			kubeData = dD();
+			options = kubeData.deployer;
+			options.params = {
+				"action": "post",
+				"resource": "heapster"
+			};
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {
+					metrics: {
+						no: {
+							get : (cb)=> {
+								cb(null, kubeData.nodeMetrics)
+							}
+						}
+					},
+					extensions : {
+						deployments : {
+							get : (params, cb) => {
+								return cb(null, kubeData.deploymentListSysMetricServer)
+							}
+						}
+					}
+					
+				});
+			
+			metrics.getNodesMetrics(options, function (error, res) {
+				assert.ok(res);
+				done();
+			});
+		});
+		
 		it("error", function (done) {
 			kubeData = dD();
 			options = kubeData.deployer;
@@ -116,6 +241,13 @@ describe("testing /lib/container/kubernetes/metrics.js", function () {
 							}
 						}
 					},
+					extensions : {
+						deployments : {
+							get : (params, cb) => {
+								return cb(null, kubeData.deploymentListSys)
+							}
+						}
+					}
 					
 				});
 			
