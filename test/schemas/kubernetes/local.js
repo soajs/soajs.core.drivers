@@ -1478,6 +1478,36 @@ module.exports = function () {
 				}
 			]
 		},
+		"deploymentListSysMetricServer": {
+			"kind": "DeploymentList",
+			"apiVersion": "extensions/v1beta1",
+			"metadata": {
+				"selfLink": "/apis/extensions/v1beta1/deployments",
+				"resourceVersion": "234770"
+			},
+			"items": [
+				{
+					"metadata": {
+						"name": "metrics-server",
+						"namespace": "kube-system",
+						"selfLink": "/apis/extensions/v1beta1/namespaces/kube-system/deployments/metrics-server",
+						"uid": "4e95042e-7308-11e8-acce-025000000001",
+						"resourceVersion": "152616",
+						"generation": 1,
+						"creationTimestamp": "2018-06-18T15:00:15Z",
+						"labels": {
+							"k8s-app": "metrics-server",
+							"soajs.service.subtype": "other",
+							"soajs.service.type": "system",
+							"version": "v0.2.1"
+						},
+						"annotations": {
+							"deployment.kubernetes.io/revision": "1"
+						}
+					}
+				}
+			]
+		},
 		"daemonsetListSys": {
 			"kind": "DaemonSetList",
 			"apiVersion": "extensions/v1beta1",
