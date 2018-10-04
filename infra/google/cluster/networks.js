@@ -64,7 +64,7 @@ const networks = {
                                     return iCb(err);
                                 } else {
                                     if (options.soajs.inputmaskData.region) {
-                                        if (options.soajs.inputmaskData.region === region) {
+                                        if (options.soajs.inputmaskData.region.includes(region)) {
                                             record.subnetworks.push({
                                                 region: region,
                                                 name: name,
