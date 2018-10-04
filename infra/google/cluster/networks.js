@@ -24,7 +24,7 @@ const networks = {
         let jwtClient = getConnector(options.infra.api).auth;
         let request = {
             auth: jwtClient,
-            project : project
+            project: project
         };
         let records = [];
         v1Compute().networks.list(request, function (err, response) {
@@ -40,7 +40,7 @@ const networks = {
                 };
                 async.forEach(response.items, (oneResponse, nCb) => {
                     let record = {
-                        id : oneResponse.id,
+                        id: oneResponse.id,
                         name: oneResponse.name,
                         autoCreateSubnetworks: true,
                         description: oneResponse.description,
@@ -63,12 +63,23 @@ const networks = {
                                     options.soajs.log.error(err);
                                     return iCb(err);
                                 } else {
-                                    record.subnetworks.push({
-                                        region: region,
-                                        name: name,
-                                        address: subs.ipCidrRange,
-                                        gateway: subs.gatewayAddress
-                                    });
+                                    if (options.soajs.inputmaskData.region) {
+                                        if (options.soajs.inputmaskData.region === region) {
+                                            record.subnetworks.push({
+                                                region: region,
+                                                name: name,
+                                                address: subs.ipCidrRange,
+                                                gateway: subs.gatewayAddress
+                                            });
+                                        }
+                                    } else {
+                                        record.subnetworks.push({
+                                            region: region,
+                                            name: name,
+                                            address: subs.ipCidrRange,
+                                            gateway: subs.gatewayAddress
+                                        });
+                                    }
                                     iCb();
                                 }
                             });
@@ -76,7 +87,9 @@ const networks = {
                             if (err) {
                                 return nCb(err);
                             }
-                            records.push(record);
+                            if (record.subnetworks.length > 0) {
+                                records.push(record);
+                            }
                             nCb();
                         })
                     } else {
@@ -106,7 +119,7 @@ const networks = {
             resource: {
                 name: options.soajs.inputmaskData.params.name,
                 autoCreateSubnetworks: true,
-                description:options.soajs.inputmaskData.params.description,
+                description: options.soajs.inputmaskData.params.description,
                 routingConfig: {
                     routingMode: 'REGIONAL'
                 },
@@ -134,7 +147,7 @@ const networks = {
         let jwtClient = getConnector(options.infra.api).auth;
         let firewall = {
             auth: jwtClient,
-            filter : `network eq .*${options.soajs.inputmaskData.name}`, // from options
+            filter: `network eq .*${options.soajs.inputmaskData.name}`, // from options
             project: options.infra.api.project
         };
         let request = {
@@ -182,6 +195,7 @@ const networks = {
                 });
             }
         });
+
         function globalOperations(request, operation, type, cb) {
             request.operation = operation.name;
             setTimeout(function () {
