@@ -12,7 +12,7 @@ const defaultDriver = 'kubernetes';
 const LBDriver = require("./cluster/lb.js");
 const ClusterDriver = require("./cluster/cluster.js");
 const utils = require('../../lib/utils/utils.js');
-
+const networksModule = require('./cluster/networks.js');
 function runCorrespondingDriver(method, options, cb) {
 	utils.runCorrespondingDriver(method, options, defaultDriver, cb);
 }
@@ -41,7 +41,7 @@ const driver = {
 	},
 
 	"getExtras": function(options, cb) {
-		return cb(null, {technologies: ['kubernetes'], templates: ['local'], drivers: ['GKE']});
+		return cb(null, {technologies: ['kubernetes', 'vm'], templates: ['local'], drivers: ['GKE']});
 	},
 
 	"deployCluster": function (options, cb) {
@@ -135,7 +135,19 @@ const driver = {
 
 	"executeDriver": function(method, options, cb){
 		runCorrespondingDriver(method, options, cb);
-	}
+	},
+
+    "listNetworks": function (options, cb) {
+        return networksModule.list(options, cb);
+    },
+
+	"deleteNetwork": function (options, cb) {
+        return networksModule.delete(options, cb);
+    },
+
+	"createNetwork": function (options, cb) {
+        return networksModule.add(options, cb);
+    },
 };
 
 module.exports = driver;
