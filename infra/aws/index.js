@@ -55,8 +55,10 @@ const driver = {
 			templates: ['external', 'local'],
 			drivers: ['Cloud Formation', 'Terraform'],
 			override: {
-				'Cloud Formation': {
-					templates: ['external']
+				drivers:{
+					'Cloud Formation': {
+						templates: ['external']
+					}
 				}
 			}
 		});

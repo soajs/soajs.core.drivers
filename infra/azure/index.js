@@ -27,7 +27,7 @@ const driver = {
 	},
 
 	"getExtras": function (options, cb) {
-		return cb(null, {technologies: ['vm'], templates: ['local'], drivers: ['Terraform']});
+		return cb(null, {technologies: ['vm'], templates: ['local'], drivers: ['Terraform'], providerSpecific: [ 'groups' ]});
 	},
 
 	"getDeployClusterStatus": function (options, cb) {
