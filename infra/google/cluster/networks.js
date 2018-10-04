@@ -41,7 +41,7 @@ const networks = {
                 async.forEach(response.items, (oneResponse, nCb) => {
                     let record = {
                         id : oneResponse.id,
-                        network: oneResponse.name,
+                        name: oneResponse.name,
                         autoCreateSubnetworks: true,
                         description: oneResponse.description,
                         type: oneResponse.routingConfig.routingMode,
@@ -152,7 +152,7 @@ const networks = {
                         items: []
                     }
                 }
-                options.soajs.log.debug("Removing Firewalls from network: ", options.network);
+                options.soajs.log.debug("Removing Firewalls from network: ", options.soajs.inputmaskData.name);
                 async.mapSeries(firewalls.items, function (oneFirewall, callback) {
                     delete request.network;
                     request.firewall = oneFirewall.name;
