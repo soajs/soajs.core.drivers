@@ -42,7 +42,7 @@ const networks = {
                     let record = {
                         id: oneResponse.id,
                         name: oneResponse.name,
-                        autoCreateSubnetworks: true,
+                        autoCreateSubnetworks: oneResponse.autoCreateSubnetworks,
                         description: oneResponse.description,
                         type: oneResponse.routingConfig.routingMode,
                         subnetworks: []
@@ -147,7 +147,7 @@ const networks = {
         let jwtClient = getConnector(options.infra.api).auth;
         let firewall = {
             auth: jwtClient,
-            filter: `network eq .*${options.soajs.inputmaskData.name}`, // from options
+            filter: `network eq .*${options.soajs.inputmaskData.name}`,
             project: options.infra.api.project
         };
         let request = {
@@ -156,6 +156,7 @@ const networks = {
             project: options.infra.api.project
 
         };
+        let sub = {};
         v1Compute().firewalls.list(firewall, function (err, firewalls) {
             if (err) {
                 return cb(err);
@@ -181,13 +182,64 @@ const networks = {
                             return cb(err);
                         } else {
                             request.network = options.soajs.inputmaskData.name;
-                            options.soajs.log.debug("Removing Network: ", options.network);
-                            v1Compute().networks.delete(request, (error, res) => {
-                                if (error) {
-                                    return cb(error);
+                            networks.list(options, (err, response) => {
+                                if (err) {
+                                    return cb(err);
                                 } else {
-                                    options.soajs.log.debug("Firewalls and Network Deleted Successfully.");
-                                    return cb(null, "Firewall and Network Deleted Successfully.");
+                                    async.each(response, (oneNet, iCb) => {
+                                        if (oneNet.name === options.soajs.inputmaskData.name) {
+                                            if (oneNet.autoCreateSubnetworks) {
+                                                v1Compute().networks.delete(request, (error) => {
+                                                    if (error) {
+                                                        return iCb(error);
+                                                    } else {
+                                                        options.soajs.log.debug("Firewalls and Network Deleted Successfully.");
+                                                        return iCb();
+                                                    }
+                                                });
+                                            } else {
+                                                async.mapSeries(oneNet.subnetworks, (oneSub, sCb) => {
+                                                    sub = {
+                                                        auth: jwtClient,
+                                                        subnetwork: oneSub.name,
+                                                        region: oneSub.region,
+                                                        project: options.infra.api.project
+                                                    };
+                                                    v1Compute().subnetworks.delete(sub, sCb);
+                                                }, (err, operations) => {
+                                                    if (err) {
+                                                        return iCb(err);
+                                                    } else {
+                                                        async.each(operations, function (oneOperation, callback) {
+                                                            checksubnets(request, callback);
+                                                        }, (err) => {
+                                                            if (err) {
+                                                                return iCb(err);
+                                                            } else {
+                                                                setTimeout(function () {
+                                                                    v1Compute().networks.delete(request, (error) => {
+                                                                        if (error) {
+                                                                            return iCb(error);
+                                                                        } else {
+                                                                            options.soajs.log.debug("Firewalls and Network Deleted Successfully.");
+                                                                            return iCb();
+                                                                        }
+                                                                    });
+                                                                }, 20000)
+                                                            }
+                                                        });
+                                                    }
+                                                })
+                                            }
+                                        } else {
+                                            iCb();
+                                        }
+                                    }, (err) => {
+                                        if (err) {
+                                            return cb(err)
+                                        }
+                                        return cb();
+                                    })
                                 }
                             });
                         }
@@ -195,7 +247,7 @@ const networks = {
                 });
             }
         });
-
+        // check if firewalls deleted
         function globalOperations(request, operation, type, cb) {
             request.operation = operation.name;
             setTimeout(function () {
@@ -212,6 +264,27 @@ const networks = {
                         }
                     }
                 });
+            });
+        }
+        // check if subnets deleted
+        function checksubnets(request, cb) {
+            v1Compute().networks.get(request, (err, response) => {
+                if (err) {
+                    return cb(err);
+                }
+                else {
+                    if (response && (response.subnetworks && response.subnetworks.length === 0 || !response.subnetworks)) {
+                        setTimeout(function () {
+                            return cb(null, true);
+                        }, 1000)
+                    }
+                    else {
+                        options.soajs.log.debug("Checking Subnetworks");
+                        setTimeout(function () {
+                            checksubnets(request, cb);
+                        }, 5000);
+                    }
+                }
             });
         }
     }
