@@ -221,11 +221,11 @@ const networks = {
                                                                         if (error) {
                                                                             return iCb(error);
                                                                         } else {
-                                                                            options.soajs.log.debug("Firewalls and Network Deleted Successfully.");
+                                                                            options.soajs.log.debug("Network Deleted Successfully.");
                                                                             return iCb();
                                                                         }
                                                                     });
-                                                                }, 20000)
+                                                                },(process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 20000)
                                                             }
                                                         });
                                                     }
