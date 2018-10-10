@@ -147,127 +147,117 @@ const vms = {
 	 */
 	list: function (options, cb) {
 		/**
-		 * index.getRegions will be replaced later with regions params coming from the user
-		 *
-		 * 1. get the regions needed
-		 * 2. async call all regions to get all vm in each region ( 12 calls at max)
-		 *      * The variables are dynamically created to lessen error effects
-		 * 3. get data (security groups, volumes, images) for each region.
-		 * 4. call aws and get the specified security groups, volumes, images, and all load balancers ( 4 calls per region, 12 * 4 at max, 0 at min)
-		 *      * This call is done in parallel to all regions as soon as [describeInstances] is done for each region
-		 *      * This call does not wait all describeInstances to finish
-		 *      * If a region have no vm allocated to it, this call is skipped
-		 * 5. compute the vm record
+		 * region is required
+		 * network is optional
+		 * 1. get data (security groups, volumes, images) .
+		 * 2. call aws and get the specified security groups, volumes, images, and all loadBalancers
+		 * 3. compute the vm record
 		 */
 		const aws = options.infra.api;
 		let record = [];
 		
-		function getRegions(cb) {
-			if (options.params.region) {
-				return cb(null, {
-					regions: [{
-						v: options.params.region
-					}]
+		let awsObject = {};
+		let region = options.params.region;
+		awsObject['ec2'] = getConnector({
+			api: 'ec2',
+			region: region,
+			keyId: aws.keyId,
+			secretAccessKey: aws.secretAccessKey
+		});
+		awsObject['elb'] = getConnector({
+			api: 'elb',
+			region: region,
+			keyId: aws.keyId,
+			secretAccessKey: aws.secretAccessKey
+		});
+		awsObject['iam'] = getConnector({
+			api: 'iam',
+			region: region,
+			keyId: aws.keyId,
+			secretAccessKey: aws.secretAccessKey
+		});
+		
+		let params = {};
+		if (options.params.network) {
+			params.Filters = [
+				{
+					Name: 'vpc-id',
+					Values: [
+						options.params.network
+					]
+				},
+			]
+		}
+		if (options.params && options.params.ids && Array.isArray(options.params.ids) && options.params.ids.length > 0) {
+			params.InstanceIds = options.params.ids;
+		}
+		
+		awsObject['ec2'].describeInstances(params, (err, reservations) => {
+			if (err) {
+				return cb(err);
+			}
+			if (reservations && reservations.Reservations && reservations.Reservations.length > 0) {
+				let opts = {
+					GroupIds: [], ImageIds: [], VolumeIds: [], SubnetIds: [], roles: []
+				};
+				
+				extractData(reservations.Reservations, opts, () => {
+					opts.ec2 = awsObject["ec2"];
+					opts.elb = awsObject["elb"];
+					opts.iam = awsObject["iam"];
+					getVolumesImagesSgroupsElb(opts, (err, results) => {
+						if (err) {
+							return cb(err);
+						}
+						async.each(reservations.Reservations, function (reservation, rCB) {
+							async.concat(reservation.Instances, function (vm, iCB) {
+								if (vm.State && vm.State.Name === "terminated" || vm.State.Name === "shutting-down") {
+									return iCB(null, []);
+								}
+								if (vm.Tags && vm.Tags.length > 0) {
+									let container = false;
+									for (let i = 0; i < vm.Tags.length; i++) {
+										if (vm.Tags[i].Key === "soajs.infra.container") {
+											container = true;
+											break;
+										}
+									}
+									if (container) return iCB(null, []);
+								}
+								if (!vm.IamInstanceProfile || !vm.IamInstanceProfile.Arn) {
+									return iCB(null, []);
+								}
+								helper.buildVMRecord({
+									vm,
+									images: results.getImage ? results.getImage.Images : null,
+									securityGroups: results.getSecurityGroup ? results.getSecurityGroup.SecurityGroups : null,
+									volumes: results.getVolumes ? results.getVolumes.Volumes : null,
+									lb: results.getElb ? results.getElb.LoadBalancerDescriptions : null,
+									subnet: results.getSubnets ? results.getSubnets.Subnets : null,
+									region: region,
+									roles: results.checkRoles,
+									connection: results.checkConnection
+								}, (err, res) => {
+									return iCB(err, [res]);
+								});
+							}, function (err, final) {
+								if (final.length > 0) {
+									record = record.concat(final);
+								}
+								return rCB(err, true);
+							});
+						}, (err)=>{
+							if(err){
+								return cb(err);
+							}
+							return cb(null, record);
+						});
+					});
 				});
 			}
 			else {
-				index.getRegions({}, cb);
+				cb();
 			}
-		}
-		
-		getRegions((err, response) => {
-			let awsObject = {};
-			async.each(response.regions, function (region, mainCB) {
-				awsObject["ec2" + region.v] = getConnector({
-					api: 'ec2',
-					region: region.v,
-					keyId: aws.keyId,
-					secretAccessKey: aws.secretAccessKey
-				});
-				awsObject["elb" + region.v] = getConnector({
-					api: 'elb',
-					region: region.v,
-					keyId: aws.keyId,
-					secretAccessKey: aws.secretAccessKey
-				});
-				awsObject["iam" + region.v] = getConnector({
-					api: 'iam',
-					region: region.v,
-					keyId: aws.keyId,
-					secretAccessKey: aws.secretAccessKey
-				});
-				let params = {};
-				if (options.params && options.params.ids && Array.isArray(options.params.ids) && options.params.ids.length > 0) {
-					params.InstanceIds = options.params.ids;
-				}
-				awsObject["ec2" + region.v].describeInstances(params, (err, reservations) => {
-					if (err) {
-						return mainCB(err);
-					}
-					if (reservations && reservations.Reservations && reservations.Reservations.length > 0) {
-						let opts = {
-							GroupIds: [], ImageIds: [], VolumeIds: [], SubnetIds: [], roles: []
-						};
-						
-						extractData(reservations.Reservations, opts, () => {
-							opts.ec2 = awsObject["ec2" + region.v];
-							opts.elb = awsObject["elb" + region.v];
-							opts.iam = awsObject["iam" + region.v];
-							getVolumesImagesSgroupsElb(opts, (err, results) => {
-								if (err) {
-									return mainCB(err);
-								}
-								async.each(reservations.Reservations, function (reservation, rCB) {
-									async.concat(reservation.Instances, function (vm, iCB) {
-										if (vm.State && vm.State.Name === "terminated" || vm.State.Name === "shutting-down") {
-											return iCB(null, []);
-										}
-										if (vm.Tags && vm.Tags.length > 0) {
-											let container = false;
-											for (let i = 0; i < vm.Tags.length; i++) {
-												if (vm.Tags[i].Key === "soajs.infra.container") {
-													container = true;
-													break;
-												}
-											}
-											if (container) return iCB(null, []);
-										}
-										if (!vm.IamInstanceProfile || !vm.IamInstanceProfile.Arn) {
-											return iCB(null, []);
-										}
-										helper.buildVMRecord({
-											vm,
-											images: results.getImage ? results.getImage.Images : null,
-											securityGroups: results.getSecurityGroup ? results.getSecurityGroup.SecurityGroups : null,
-											volumes: results.getVolumes ? results.getVolumes.Volumes : null,
-											lb: results.getElb ? results.getElb.LoadBalancerDescriptions : null,
-											subnet: results.getSubnets ? results.getSubnets.Subnets : null,
-											region: region.v,
-											roles: results.checkRoles,
-											connection: results.checkConnection
-										}, (err, res) => {
-											return iCB(err, [res]);
-										});
-									}, function (err, final) {
-										if (final.length > 0) {
-											record = record.concat(final);
-										}
-										return rCB(err, true);
-									});
-								}, mainCB);
-							});
-						});
-					}
-					else {
-						mainCB();
-					}
-				});
-			}, (err) => {
-				if (err) {
-					return cb(err);
-				}
-				return cb(err, record);
-			});
 		});
 		
 		function getVolumesImagesSgroupsElb(opts, cb) {
@@ -417,10 +407,10 @@ const vms = {
 					async.forEach(result, (oneVm, lCb) => {
 						if (!oneVm.executeCommand) {
 							valid = false;
-							return lCb(new Error ('We are unable to onBoard your VM Layer because we do not have the ability to deploy in it. ' +
+							return lCb(new Error('We are unable to onBoard your VM Layer because we do not have the ability to deploy in it. ' +
 								'This might be caused from insufficient access rights to one or more of the Virtual machines or the VM Layer do not have access public internet.'));
 						}
-						if (oneVm.tasks[0] && oneVm.tasks[0].ref && oneVm.tasks[0].ref.os){
+						if (oneVm.tasks[0] && oneVm.tasks[0].ref && oneVm.tasks[0].ref.os) {
 							let image = hash(oneVm.tasks[0].ref.os);
 							if (images.length === 0) {
 								images.push(image);
@@ -435,7 +425,7 @@ const vms = {
 						}
 						
 						if (!valid) {
-							return lCb(new Error ('We are unable to onBoard your VM Layer because we detected a mismatch between the Operating Systems of the Virtual Machine Instance.'));
+							return lCb(new Error('We are unable to onBoard your VM Layer because we detected a mismatch between the Operating Systems of the Virtual Machine Instance.'));
 						}
 						return lCb();
 					}, iCb)
