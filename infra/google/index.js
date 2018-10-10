@@ -41,7 +41,7 @@ const driver = {
 	},
 
 	"getExtras": function(options, cb) {
-		return cb(null, {technologies: ['kubernetes', 'vm'], templates: ['local'], drivers: ['GKE']});
+		return cb(null, {technologies: ['kubernetes'], templates: ['local'], drivers: ['GKE']});
 	},
 
 	"deployCluster": function (options, cb) {
