@@ -70,6 +70,7 @@ const driver = {
 		let request = getConnector(options.infra.api);
 		let currentDate = new Date().getTime();
 		//cash the regions for 30 min
+		
 		if (cashedRegions && (currentDate - date > config.regionsCashedTime)) {
 			return cb(null, cashedRegions);
 		}
@@ -114,7 +115,7 @@ const driver = {
 						}
 					}
 				});
-				return minCb(null, regions);
+				return minCb(null, response);
 			});
 		}
 		
