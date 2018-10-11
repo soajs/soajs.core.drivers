@@ -16,6 +16,9 @@ const networksModule = require('./cluster/networks.js');
 function runCorrespondingDriver(method, options, cb) {
 	utils.runCorrespondingDriver(method, options, defaultDriver, cb);
 }
+let date = new Date().getTime();
+let config = require('./config.js');
+let cashedRegions;
 
 function getConnector(opts) {
 	return require('./utils/utils.js').connector(opts);
@@ -65,36 +68,58 @@ const driver = {
 	"getRegions": function (options, cb) {
 		//Ref: https://cloud.google.com/compute/docs/reference/latest/zones/list
 		let request = getConnector(options.infra.api);
-		v1Compute().regions.list(request, function (err, regions) {
-			if (err) {
-				return cb(err);
-			}
-			let response = [];
-			regions.items.forEach(function (oneRegion) {
-				if (oneRegion.status === 'UP') {
-					response.push({
-						'l': `All Zones - ${oneRegion.name}`,
-						'v': oneRegion.name,
-						'group': oneRegion.name
-					});
-					if (oneRegion.zones && Array.isArray(oneRegion.zones) && oneRegion.zones.length> 0){
-						oneRegion.zones.forEach((oneZone)=>{
-							let temp =  oneZone.split("/");
-							if (temp.length > 0){
-								response.push({
-									'l': temp[temp.length-1],
-									'v': temp[temp.length-1],
-									'group': oneRegion.name
-								});
-							}
-						});
-					}
-				}
-			});
+		let currentDate = new Date().getTime();
+		//cash the regions for 30 min
+		if (cashedRegions && (currentDate - date > config.regionsCashedTime)) {
 			return cb(null, {
-				"regions": response
+				"regions": cashedRegions
 			});
-		});
+		}
+		else {
+			getRegions((err, result) => {
+				if (err) {
+					return cb(err);
+				}
+				else {
+					cashedRegions = {
+						"regions": result
+					};
+					return cb(null, cashedRegions);
+				}
+			})
+		}
+		
+		function getRegions(minCb) {
+			v1Compute().regions.list(request, function (err, regions) {
+				if (err) {
+					return minCb(err);
+				}
+				let response = [];
+				regions.items.forEach(function (oneRegion) {
+					if (oneRegion.status === 'UP') {
+						response.push({
+							'l': `All Zones - ${oneRegion.name}`,
+							'v': oneRegion.name,
+							'group': oneRegion.name
+						});
+						if (oneRegion.zones && Array.isArray(oneRegion.zones) && oneRegion.zones.length > 0) {
+							oneRegion.zones.forEach((oneZone) => {
+								let temp = oneZone.split("/");
+								if (temp.length > 0) {
+									response.push({
+										'l': temp[temp.length - 1],
+										'v': temp[temp.length - 1],
+										'group': oneRegion.name
+									});
+								}
+							});
+						}
+					}
+				});
+				return minCb(null, regions);
+			});
+		}
+		
 	},
 
 	"listAvailabilityZones": function (options, cb) {
