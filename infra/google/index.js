@@ -71,9 +71,7 @@ const driver = {
 		let currentDate = new Date().getTime();
 		//cash the regions for 30 min
 		if (cashedRegions && (currentDate - date > config.regionsCashedTime)) {
-			return cb(null, {
-				"regions": cashedRegions
-			});
+			return cb(null, cashedRegions);
 		}
 		else {
 			getRegions((err, result) => {
