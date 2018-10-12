@@ -100,25 +100,27 @@ const vms = {
 					subscriptionId: options.infra.api.subscriptionId
 				});
 
-				let group = options.params && options.params.group ? options.params.group.toLowerCase() : null;
-
+				let group = options.params.group.toLowerCase();
+				let network = options.params.network ? options.params.network: null;
 				async.auto({
 
 					listVirtualMachines: function(callback) {
-						computeClient.virtualMachines.listAll(function (error, vms) {
-							if(error) return callback(error);
+						computeClient.virtualMachines.list(group, function (error, vms) {
+							if (error) return callback(error);
 							if (!vms || vms.length === 0) return callback(null, []);
-							return helper.filterVMs(group, vms, callback);
+							else {
+								return callback(null, vms);
+							}
 						});
 					},
 
 					listNetworkExtras: function(callback) {
-						return helper.listNetworkExtras(networkClient, { log: options.soajs.log }, callback);
+						return helper.listNetworkExtras(networkClient, { group, log: options.soajs.log }, callback);
 					}
 
 				}, function(error, results) {
 					utils.checkError(error, 704, cb, () => {
-						async.map(results.listVirtualMachines, function (oneVm, callback) {
+						async.concat(results.listVirtualMachines, function (oneVm, callback) {
 							let opts = {
 								vm: oneVm,
 								log: options.soajs.log,
@@ -137,7 +139,9 @@ const vms = {
 										vmRecordOptions.publicIpsList = results.listNetworkExtras.publicIps;
 									}
 								}
-
+								if (network && vmRecordOptions.virtualNetworkName !== network){
+									return callback();
+								}
 								return callback(null, helper.buildVMRecord(vmRecordOptions));
 							});
 						}, cb);

@@ -182,17 +182,6 @@ const helper = {
 		return record;
 	},
 
-	filterVMs: function (group, vms, cb) {
-		async.filter(vms, function (oneVm, callback) {
-			let valid = false;
-			if (!oneVm.tags || Object.keys(oneVm.tags).length === 0) valid = true;
-			else if (group && oneVm.tags && oneVm.tags['soajs.content'] === 'true' && oneVm.tags['soajs.env.code'] === group) valid = true;
-			else if (oneVm.tags && (!oneVm.tags['soajs.content'] || oneVm.tags['soajs.content'] !== 'true')) valid = true;
-
-			return callback(null, valid);
-		}, cb);
-	},
-
 	getVmNetworkInfo: function (networkClient, opts, cb) {
 		let idInfo, resourceGroupName, networkInterfaceName, networkSecurityGroupName, ipName, subnetName, vnetName;
 		let output = {};
@@ -262,28 +251,28 @@ const helper = {
 		async.auto({
 
 			listNetworkInterfaces: function(callback) {
-				networkClient.networkInterfaces.listAll(function (error, networkInterfaces) {
+				networkClient.networkInterfaces.list(opts.group, function (error, networkInterfaces) {
 					if (error) opts.log.warn(`Unable to list network interfaces`);
 					return callback(null, networkInterfaces || []);
 				});
 			},
 
 			listSecurityGroups: function(callback) {
-				networkClient.networkSecurityGroups.listAll(function (error, securityGroups) {
+				networkClient.networkSecurityGroups.list(opts.group, function (error, securityGroups) {
 					if (error) opts.log.warn(`Unable to list security groups`);
 					return callback(null, securityGroups || []);
 				});
 			},
 
 			listPublicIps: function(callback) {
-				networkClient.publicIPAddresses.listAll(function (error, publicIps) {
+				networkClient.publicIPAddresses.list(opts.group, function (error, publicIps) {
 					if (error) opts.log.warn(`Unable to list public ip addresses`);
 					return callback(null, publicIps || []);
 				});
 			},
 
 			listLoadBalancers: function(callback) {
-				networkClient.loadBalancers.listAll(function (error, loadBalancers) {
+				networkClient.loadBalancers.list(opts.group, function (error, loadBalancers) {
 					if (error) opts.log.warn(`Unable to list load balancers`);
 					return callback(null, loadBalancers || []);
 				});

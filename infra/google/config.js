@@ -12,5 +12,6 @@ module.exports = {
 		},
 		"autoCreateSubnetworks": true
 	},
-	minimumSupportedVersion: "1.7"
+	minimumSupportedVersion: "1.7",
+	regionsCashedTime: 1.8e+6 //30min
 };
