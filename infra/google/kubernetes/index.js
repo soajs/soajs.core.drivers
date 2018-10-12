@@ -6,6 +6,8 @@ const K8Api = require('kubernetes-client');
 const randomstring = require("randomstring");
 const traverse = require("traverse");
 
+const networks = require("../cluster/networks.js");
+
 /**
  * appended code for testing
  */
@@ -40,12 +42,28 @@ let driver = {
 	"deployCluster": function (options, cb) {
 		options.soajs.log.debug("Deploying new Cluster");
 		let request = getConnector(options.infra.api);
-		//no create a name made from ht + deployment type + random string
-		let name = `ht${options.params.soajs_project.toLowerCase()}${randomstring.generate({
-			length: 13,
-			charset: 'alphanumeric',
-			capitalization: 'lowercase'
-		})}`;
+
+		let name = '', createNewNetwork = false;
+		if(options.infra && options.infra._id && options.soajs && options.soajs.registry && options.soajs.registry.restriction && options.soajs.registry.restriction[options.infra._id]) {
+			if(Object.keys(options.soajs.registry.restriction[options.infra._id]).length > 0) {
+				options.params.region = Object.keys(options.soajs.registry.restriction[options.infra._id])[0];
+				if(options.soajs.registry.restriction[options.infra._id][options.params.region] && options.soajs.registry.restriction[options.infra._id][options.params.region].network) {
+					options.soajs.log.debug("Cluster network provided as input, using it to deploy ...");
+					name = options.soajs.registry.restriction[options.infra._id][options.params.region].network;
+				}
+			}
+		}
+
+		if(!name) {
+			options.soajs.log.debug("No cluster network provided, creating a new network for the cluster ...");
+			//no create a name made from ht + deployment type + random string
+			name = `ht${options.params.soajs_project.toLowerCase()}${randomstring.generate({
+				length: 13,
+				charset: 'alphanumeric',
+				capitalization: 'lowercase'
+			})}`;
+			createNewNetwork = true;
+		}
 
 		let oneDeployment = {};
 
@@ -72,17 +90,13 @@ let driver = {
 		 * @returns {*}
 		 */
 		function createVpcNetwork(mCb) {
-			//Ref: https://cloud.google.com/compute/docs/reference/latest/networks/insert
-			request.resource = {
-				name: name,
-				routingConfig: config.vpc.routingConfig,
-				autoCreateSubnetworks: config.vpc.autoCreateSubnetworks
+			let networksOptions = Object.assign({}, options);
+			networksOptions.params = {
+				name,
+				returnGlobalOperation: true
 			};
-			options.soajs.log.debug("Creating new Network:", name);
-			v1Compute().networks.insert(request, function (err, globalOperationResponse) {
-				if (err) {
-					return cb(err);
-				}
+			networks.add(networksOptions, (error, globalOperationResponse) => {
+				if(error) return cb(error);
 
 				//assign network name to deployment entry
 				oneDeployment.options.network = name;
@@ -120,95 +134,7 @@ let driver = {
 					}
 					else {
 						//Ref: https://cloud.google.com/compute/docs/reference/latest/firewalls/insert
-						let firewallRules = [
-							{
-								//gcloud compute --project=ragheb-project firewall-rules create template-cluster-allow-icmp --description=Allows\ ICMP\ connections\ from\ any\ source\ to\ any\ instance\ on\ the\ network. --direction=INGRESS --priority=65534 --network=template-cluster --action=ALLOW --rules=icmp --source-ranges=0.0.0.0/0
-								"kind": "compute#firewall",
-								"name": name + "-allow-icmp",
-								"description": "Allow ICMP Connections",
-								"network": "projects/" + options.infra.api.project + "/global/networks/" + name,
-								"priority": 65534,
-								"sourceRanges": "0.0.0.0/0",
-								"allowed": [
-									{
-										"IPProtocol": "icmp"
-									}
-								]
-							},
-							{
-								//gcloud compute --project=ragheb-project firewall-rules create template-cluster-allow-ssh --description=Allows\ TCP\ connections\ from\ any\ source\ to\ any\ instance\ on\ the\ network\ using\ port\ 22. --direction=INGRESS --priority=65534 --network=template-cluster --action=ALLOW --rules=tcp:22 --source-ranges=0.0.0.0/0
-								"kind": "compute#firewall",
-								"name": name + "-allow-ssh",
-								"description": "Allow SSH Connections",
-								"network": "projects/" + options.infra.api.project + "/global/networks/" + name,
-								"priority": 65534,
-								"sourceRanges": "0.0.0.0/0",
-								"allowed": [
-									{
-										"IPProtocol": "tcp",
-										"ports": "22"
-									}
-								]
-							},
-							{
-								//gcloud compute --project=ragheb-project firewall-rules create template-cluster-allow-rdp --description=Allows\ RDP\ connections\ from\ any\ source\ to\ any\ instance\ on\ the\ network\ using\ port\ 3389. --direction=INGRESS --priority=65534 --network=template-cluster --action=ALLOW --rules=tcp:3389 --source-ranges=0.0.0.0/0
-								"kind": "compute#firewall",
-								"name": name + "-allow-rdp",
-								"description": "Allow RDP Connections",
-								"network": "projects/" + options.infra.api.project + "/global/networks/" + name,
-								"priority": 65534,
-								"sourceRanges": "0.0.0.0/0",
-								"allowed": [
-									{
-										"IPProtocol": "tcp",
-										"ports": "3389"
-									}
-								]
-							},
-							{
-								"kind": "compute#firewall",
-								"name": name + "-allow-http",
-								"description": "Allow HTTP Connections",
-								"network": "projects/" + options.infra.api.project + "/global/networks/" + name,
-								"priority": 65534,
-								"sourceRanges": "0.0.0.0/0",
-								"allowed": [
-									{
-										"IPProtocol": "tcp",
-										"ports": "80"
-									}
-								]
-							},
-							{
-								"kind": "compute#firewall",
-								"name": name + "-allow-https",
-								"description": "Allow HTTPS Connections",
-								"network": "projects/" + options.infra.api.project + "/global/networks/" + name,
-								"priority": 65534,
-								"sourceRanges": "0.0.0.0/0",
-								"allowed": [
-									{
-										"IPProtocol": "tcp",
-										"ports": "443"
-									}
-								]
-							},
-							{
-								//gcloud compute --project=ragheb-project firewall-rules create template-cluster-allow-internal --description=Allows\ connections\ from\ any\ source\ in\ the\ network\ IP\ range\ to\ any\ instance\ on\ the\ network\ using\ all\ protocols. --direction=INGRESS --priority=65534 --network=template-cluster --action=ALLOW --rules=all --source-ranges=10.128.0.0/9
-								"kind": "compute#firewall",
-								"name": name + "-allow-internal",
-								"description": "Allow All Internal Connections",
-								"network": "projects/" + options.infra.api.project + "/global/networks/" + name,
-								"priority": 65534,
-								"sourceRanges": "10.128.0.0/9",
-								"allowed": [
-									{
-										"IPProtocol": "tcp",
-										"ports": "0-65535"
-									}
-								]
-							}
-						];
+						let firewallRules = getFirewallRules(oneDeployment.options.network);
 
 						let request = getConnector(options.infra.api);
 						async.eachSeries(firewallRules, (oneRule, vCb) => {
@@ -220,6 +146,141 @@ let driver = {
 				});
 
 			}
+		}
+
+		/**
+		 * method used to use an existing google vpc network
+		 * @returns {*}
+		 */
+		function useVpcNetwork(mCb) {
+			//assign network name to deployment entry
+			oneDeployment.options.network = name;
+
+			function patchFirewall() {
+				let firewallRules = getFirewallRules(oneDeployment.options.network);
+
+				let request = getConnector(options.infra.api);
+				request.filter = `network eq .*${oneDeployment.options.network}`;
+				request.project = options.infra.api.project;
+
+				//list firewalls
+				//Ref: https://cloud.google.com/compute/docs/reference/rest/v1/firewalls/list
+				v1Compute().firewalls.list(request, function(error, firewalls) {
+					if(error) return mCb(error);
+
+					if(!firewalls.items) firewalls.items = [];
+
+					async.eachSeries(firewallRules, (oneRule, vCb) => {
+						let foundFirewall = firewalls.items.find((oneEntry) => { return oneEntry.name === oneRule.name });
+
+						if(foundFirewall) {
+							options.soajs.log.debug("Firewall rule:", oneRule.name, "already exists, skipping");
+							return vCb();
+						}
+						else {
+							options.soajs.log.debug("Creating firewall rule:", oneRule.name);
+							request.resource = oneRule;
+							return v1Compute().firewalls.insert(request, vCb);
+						}
+					}, mCb);
+				});
+			}
+
+			patchFirewall();
+		}
+
+		function getFirewallRules(network) {
+			let firewallRules = [
+				{
+					//gcloud compute --project=ragheb-project firewall-rules create template-cluster-allow-icmp --description=Allows\ ICMP\ connections\ from\ any\ source\ to\ any\ instance\ on\ the\ network. --direction=INGRESS --priority=65534 --network=template-cluster --action=ALLOW --rules=icmp --source-ranges=0.0.0.0/0
+					"kind": "compute#firewall",
+					"name": network + "-allow-icmp",
+					"description": "Allow ICMP Connections",
+					"network": "projects/" + options.infra.api.project + "/global/networks/" + network,
+					"priority": 65534,
+					"sourceRanges": "0.0.0.0/0",
+					"allowed": [
+						{
+							"IPProtocol": "icmp"
+						}
+					]
+				},
+				{
+					//gcloud compute --project=ragheb-project firewall-rules create template-cluster-allow-ssh --description=Allows\ TCP\ connections\ from\ any\ source\ to\ any\ instance\ on\ the\ network\ using\ port\ 22. --direction=INGRESS --priority=65534 --network=template-cluster --action=ALLOW --rules=tcp:22 --source-ranges=0.0.0.0/0
+					"kind": "compute#firewall",
+					"name": network + "-allow-ssh",
+					"description": "Allow SSH Connections",
+					"network": "projects/" + options.infra.api.project + "/global/networks/" + network,
+					"priority": 65534,
+					"sourceRanges": "0.0.0.0/0",
+					"allowed": [
+						{
+							"IPProtocol": "tcp",
+							"ports": [ "22" ]
+						}
+					]
+				},
+				{
+					//gcloud compute --project=ragheb-project firewall-rules create template-cluster-allow-rdp --description=Allows\ RDP\ connections\ from\ any\ source\ to\ any\ instance\ on\ the\ network\ using\ port\ 3389. --direction=INGRESS --priority=65534 --network=template-cluster --action=ALLOW --rules=tcp:3389 --source-ranges=0.0.0.0/0
+					"kind": "compute#firewall",
+					"name": network + "-allow-rdp",
+					"description": "Allow RDP Connections",
+					"network": "projects/" + options.infra.api.project + "/global/networks/" + network,
+					"priority": 65534,
+					"sourceRanges": "0.0.0.0/0",
+					"allowed": [
+						{
+							"IPProtocol": "tcp",
+							"ports": [ "3389" ]
+						}
+					]
+				},
+				{
+					"kind": "compute#firewall",
+					"name": network + "-allow-http",
+					"description": "Allow HTTP Connections",
+					"network": "projects/" + options.infra.api.project + "/global/networks/" + network,
+					"priority": 65534,
+					"sourceRanges": "0.0.0.0/0",
+					"allowed": [
+						{
+							"IPProtocol": "tcp",
+							"ports": [ "80" ]
+						}
+					]
+				},
+				{
+					"kind": "compute#firewall",
+					"name": network + "-allow-https",
+					"description": "Allow HTTPS Connections",
+					"network": "projects/" + options.infra.api.project + "/global/networks/" + network,
+					"priority": 65534,
+					"sourceRanges": "0.0.0.0/0",
+					"allowed": [
+						{
+							"IPProtocol": "tcp",
+							"ports": [ "443" ]
+						}
+					]
+				},
+				{
+					//gcloud compute --project=ragheb-project firewall-rules create template-cluster-allow-internal --description=Allows\ connections\ from\ any\ source\ in\ the\ network\ IP\ range\ to\ any\ instance\ on\ the\ network\ using\ all\ protocols. --direction=INGRESS --priority=65534 --network=template-cluster --action=ALLOW --rules=all --source-ranges=10.128.0.0/9
+					"kind": "compute#firewall",
+					"name": network + "-allow-internal",
+					"description": "Allow All Internal Connections",
+					"network": "projects/" + options.infra.api.project + "/global/networks/" + network,
+					"priority": 65534,
+					"sourceRanges": "10.128.0.0/9",
+					"allowed": [
+						{
+							"IPProtocol": "tcp",
+							"ports": [ "0-65535" ]
+						}
+					]
+				}
+			];
+
+			return firewallRules;
 		}
 
 		/**
@@ -260,18 +321,16 @@ let driver = {
 		 */
 		function deleteNetwork() {
 			setTimeout(function () {
-				//cluster failed, delete network
-				//Ref: https://cloud.google.com/compute/docs/reference/latest/networks/delete
-				let request = getConnector(options.infra.api);
-				request.network = oneDeployment.options.network;
-				v1Compute().networks.delete(request, (error) => {
+				//cluster failed, delete network if it was not provided by the user
+				let networksOptions = Object.assign({}, options);
+				networksOptions.params = { name: oneDeployment.options.network };
+				networks.delete(networksOptions, (error) => {
 					if (error) {
 						options.soajs.log.error(error);
 					}
 					else {
 						options.soajs.log.debug("VPC Network Deleted Successfully.");
 					}
-
 				});
 			}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 5 * 60 * 1000);
 		}
@@ -289,11 +348,11 @@ let driver = {
 				return mCb(new Error("Invalid or Cluster Template detected to create the cluster from!"));
 			}
 
-			template.cluster.name = name; //same name as network
+			template.cluster.name = oneDeployment.options.network; //same name as network
 			template.cluster.zone = options.params.region;
 			// template.cluster.zoneLocation = data.options.region;
-			template.cluster.network = name;
-			template.cluster.subnetwork = name;
+			template.cluster.network = oneDeployment.options.network;
+			template.cluster.subnetwork = oneDeployment.options.network;
 
 			if(typeof options.params.template.inputs === 'string'){
 				try{
@@ -311,8 +370,10 @@ let driver = {
 				options.soajs.log.debug("Retrieving cluster version to use from google");
 				getClusterVersion(request, function (err, version) {
 					if (err) {
-						options.soajs.log.debug("Deleting VPC network...");
-						deleteNetwork();
+						if(createNewNetwork) {
+							options.soajs.log.debug("Deleting VPC network...");
+							deleteNetwork();
+						}
 						return mCb(err);
 					}
 
@@ -321,7 +382,7 @@ let driver = {
 					request.resource = template;
 					request.zone = [];
 					//Ref: https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters/create
-					options.soajs.log.debug("Deploying new Cluster from Template:", name);
+					options.soajs.log.debug("Deploying new Cluster from Template:", oneDeployment.options.network);
 					driver.checkZoneRegion(options, options.params.region, false, (err, type) => {
 						if (err) {
 							return cb(err)
@@ -329,13 +390,15 @@ let driver = {
 						request.parent = `projects/${options.infra.api.project}/locations/${options.params.region}`
 						v1beta1container().projects[type].clusters.create(request, function (err, operation) {
 							if (err) {
-								options.soajs.log.debug("Deleting VPC network...");
-								deleteNetwork();
+								if(createNewNetwork) {
+									options.soajs.log.debug("Deleting VPC network...");
+									deleteNetwork();
+								}
 								return mCb(err);
 							}
 							else {
-								oneDeployment.id = name;
-								oneDeployment.name = name;
+								oneDeployment.id = oneDeployment.options.network;
+								oneDeployment.name = oneDeployment.options.network;
 								oneDeployment.options.nodePoolId = template.cluster.nodePools[0].name;
 								oneDeployment.options.zone = options.params.region;
 								oneDeployment.options.operationId = operation.name;
@@ -346,17 +409,23 @@ let driver = {
 				});
 			});
 		}
-		
+
 		let stages = [prepareDeploymentConfiguration];
-		
+
 		if(options.soajs.registry.pending && options.params.resume){
 			options.soajs.log.warn(`Detected new call to deploy infra for the same environment ${options.soajs.registry.code}, skipping call...`);
 		}
 		else{
-			stages.push(createVpcNetwork);
+			if(createNewNetwork) {
+				stages.push(createVpcNetwork);
+			}
+			else {
+				stages.push(useVpcNetwork);
+			}
+
 			stages.push(createTemplate);
 		}
-		
+
 		async.series(stages, (error) => {
 			if (error) {
 				return cb(error);
@@ -798,96 +867,39 @@ let driver = {
 						return cb(err);
 					}
 					if (operation) {
-						//check cluster status and delete network in the background
+
 						checkIfDeleteIsDone(operation, type, (error) => {
 							if (error) {
 								options.soajs.log.error(error);
 							}
 							else {
-								options.soajs.log.debug("waiting 1 min for network propagation before deleting Firewalls.");
-								setTimeout(function () {
-									//cluster deleted, save to remove network
-									//Ref: https://cloud.google.com/compute/docs/reference/latest/networks/delete
-									let newRequest = getConnector(options.infra.api);
-									newRequest.filter = `network eq .*${clusterInformation.network}`;
-									newRequest.project = options.infra.api.project;
-									options.soajs.log.debug("Removing Firewalls from network: ", clusterInformation.network);
-
-									//list firewalls
-									//Ref: https://cloud.google.com/compute/docs/reference/rest/v1/firewalls/list
-									v1Compute().firewalls.list(newRequest, function (err, firewalls) {
-										if (err) {
-											options.soajs.log.error(err);
-										}
-										if (!firewalls || !firewalls.items) {
-											firewalls = {
-												items: []
+								let deleteNetwork = true;
+								if(options.infra && options.infra._id && options.soajs && options.soajs.registry && options.soajs.registry.restriction && options.soajs.registry.restriction[options.infra._id]) {
+									if(Object.keys(options.soajs.registry.restriction[options.infra._id]).length > 0) {
+										let region = stack.options.zone;
+										if(options.soajs.registry.restriction[options.infra._id][region] && options.soajs.registry.restriction[options.infra._id][region].network) {
+											if(options.soajs.registry.restriction[options.infra._id][region].network === clusterInformation.network) {
+												options.soajs.log.debug("Cluster network provided as input, it will not be deleted ...");
+												options.soajs.log.debug("Cluster deleted successfully");
+												deleteNetwork = false;
 											}
 										}
-										async.map(firewalls.items, function (oneFirewall, callback) {
-											delete newRequest.filter;
-											delete newRequest.network;
-											newRequest.firewall = oneFirewall.name;
-
-											//delete each firewall in parallel calls
-											//Ref: https://cloud.google.com/compute/docs/reference/rest/v1/firewalls/delete
-											v1Compute().firewalls.delete(newRequest, callback);
-										}, function (err, operations) {
-											delete newRequest.firewall;
-											async.each(operations, function (oneOperation, callback) {
-												//check each firewall operation if done
-												globalOperations(newRequest, oneOperation, "Firewall", callback);
-											}, function (err) {
-												if (err) {
-													options.soajs.log.error(err);
-												}
-												else {
-													setTimeout(function () {
-														delete newRequest.operation;
-														newRequest.network = clusterInformation.network;
-														request.project = options.infra.api.project;
-														options.soajs.log.debug("Removing Network: ", clusterInformation.network);
-														//delete network
-														//Ref: https://cloud.google.com/compute/docs/reference/latest/networks/delete
-														v1Compute().networks.delete(newRequest, (error, response) => {
-															if (error) {
-																options.soajs.log.error(error);
-															}
-															else {
-																delete newRequest.network;
-																//check each network operation operations is done
-																globalOperations(newRequest, response, "Network", () => {
-																	options.soajs.log.debug("Cluster and Network Deleted Successfully.");
-																});
-															}
-														});
-													}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 1000);
-												}
-											});
-
-										});
-									});
-
-									function globalOperations(request, operation, type, cb) {
-										request.operation = operation.name;
-										setTimeout(function () {
-											//Ref: https://cloud.google.com/compute/docs/reference/rest/v1/globalOperations/get
-											v1Compute().globalOperations.get(request, (err, response) => {
-												if (err) {
-													return cb(err);
-												}
-												else {
-													if (response && response.status === "DONE") {
-														return cb(null, true);
-													}
-													else {
-														globalOperations(request, operation, type, cb);
-													}
-												}
-											});
-										}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 5 * 1000);
 									}
-								}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 60 * 1000);
+								}
+
+								if(deleteNetwork) {
+									options.soajs.log.debug("waiting 1 min for network propagation before deleting Firewalls.");
+									let networkOptions = Object.assign({}, options);
+									networkOptions.params = { name: clusterInformation.network };
+									networks.delete(networkOptions, (error) => {
+										if(error) {
+											options.soajs.log.error(error);
+										}
+										else {
+											options.soajs.log.debug("Cluster and Network Deleted Successfully.");
+										}
+									});
+								}
 							}
 						});
 					}
