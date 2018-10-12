@@ -63,8 +63,8 @@ const networks = {
                                     options.soajs.log.error(err);
                                     return iCb(err);
                                 } else {
-                                    if (options.soajs.inputmaskData.region) {
-                                        if (options.soajs.inputmaskData.region.includes(region)) {
+                                    if (options.params.region) {
+                                        if (options.params.region.includes(region)) {
                                             record.subnetworks.push({
                                                 region: region,
                                                 name: name,
@@ -117,9 +117,9 @@ const networks = {
         let request = {
             auth: jwtClient,
             resource: {
-                name: options.soajs.inputmaskData.params.name,
+                name: options.params.name,
                 autoCreateSubnetworks: true,
-                description: options.soajs.inputmaskData.params.description,
+                description: options.params.description,
                 routingConfig: {
                     routingMode: 'REGIONAL'
                 },
@@ -127,11 +127,17 @@ const networks = {
             project: options.infra.api.project
 
         };
+        //Ref: https://cloud.google.com/compute/docs/reference/latest/networks/insert
         v1Compute().networks.insert(request, function (err, response) {
             if (err) {
                 return cb(err);
             } else {
-                return cb(null, "This is for testing -- insert")
+                if(options.params.returnGlobalOperation) {
+                    return cb(null, response);
+                }
+                else {
+                    return cb(null, true);
+                }
             }
         });
     },
@@ -147,12 +153,12 @@ const networks = {
         let jwtClient = getConnector(options.infra.api).auth;
         let firewall = {
             auth: jwtClient,
-            filter: `network eq .*${options.soajs.inputmaskData.name}`,
+            filter: `network eq .*${options.params.name}`,
             project: options.infra.api.project
         };
         let request = {
             auth: jwtClient,
-            network: options.soajs.inputmaskData.name,
+            network: options.params.name,
             project: options.infra.api.project
 
         };
@@ -166,7 +172,7 @@ const networks = {
                         items: []
                     }
                 }
-                options.soajs.log.debug("Removing Firewalls from network: ", options.soajs.inputmaskData.name);
+                options.soajs.log.debug("Removing Firewalls from network: ", options.params.name);
                 async.mapSeries(firewalls.items, function (oneFirewall, callback) {
                     delete request.network;
                     request.firewall = oneFirewall.name;
@@ -181,13 +187,13 @@ const networks = {
                             options.soajs.log.error(err);
                             return cb(err);
                         } else {
-                            request.network = options.soajs.inputmaskData.name;
+                            request.network = options.params.name;
                             networks.list(options, (err, response) => {
                                 if (err) {
                                     return cb(err);
                                 } else {
                                     async.each(response, (oneNet, iCb) => {
-                                        if (oneNet.name === options.soajs.inputmaskData.name) {
+                                        if (oneNet.name === options.params.name) {
                                             if (oneNet.autoCreateSubnetworks) {
                                                 v1Compute().networks.delete(request, (error) => {
                                                     if (error) {
@@ -217,6 +223,7 @@ const networks = {
                                                                 return iCb(err);
                                                             } else {
                                                                 setTimeout(function () {
+                                                                    //Ref: https://cloud.google.com/compute/docs/reference/latest/networks/delete
                                                                     v1Compute().networks.delete(request, (error) => {
                                                                         if (error) {
                                                                             return iCb(error);
