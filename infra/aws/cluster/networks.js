@@ -13,7 +13,64 @@ function getConnector(opts) {
 }
 
 const driver = {
-
+	
+	/**
+	 * get network
+	 
+	 * @param  {Object}   options  Data passed to function as params
+	 * @param  {Function} cb    Callback function
+	 * @return {void}
+	 */
+	get: function (options, cb) {
+		const aws = options.infra.api;
+		
+		const ec2 = getConnector({
+			api: 'ec2',
+			region: options.params.region,
+			keyId: aws.keyId,
+			secretAccessKey: aws.secretAccessKey
+		});
+		
+		ec2.describeVpcs({
+			VpcIds: [options.params.network]
+		}, function (err, networks) {
+			if (err) {
+				return cb(err);
+			}
+			if (networks && networks.Vpcs && Array.isArray(networks.Vpcs) && networks.Vpcs.length > 0) {
+				let network = networks.Vpcs[0];
+				options.params.network = network.VpcId;
+				async.parallel({
+					internetGateway: (call) => {
+						ec2.describeInternetGateways({
+							Filters: [
+								{
+									Name: "attachment.vpc-id",
+									Values: [
+										network.VpcId
+									]
+								}
+							]
+						}, call)
+					},
+					subnet: (call) => {
+						subnetDriver.list(options, call);
+					}
+				}, (err, result) => {
+					return cb(err, helper.buildNetworkRecord({
+						network,
+						region: options.params.region,
+						subnets: result.subnet,
+						attachInternetGateway: result.internetGateway
+					}));
+				});
+			}
+			else {
+				return cb(new Error ("Network not found!"));
+			}
+		});
+	},
+	
 	/**
 	 * List available networks
 

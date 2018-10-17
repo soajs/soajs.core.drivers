@@ -4,6 +4,7 @@ const randomString = require("randomstring");
 const config = require("../config");
 const utils = require("../utils/utils");
 const S3Driver = require("./s3.js");
+const networkDriver = require("./networks.js");
 
 function getConnector(opts) {
 	return utils.getConnector(opts, config);
@@ -50,78 +51,104 @@ const AWSCluster = {
 		}
 		
 		options.templateName = options.params.infraCodeTemplate;
-		S3Driver.getTemplateInputs(options, (error, templateInputsToUse) => {
+		getNetworkInputs(options, (error, network) => {
 			if(error){
 				return cb(error);
 			}
-			
-			if(typeof(templateInputsToUse) !== 'object'){
-				try{
-					templateInputsToUse = JSON.parse(templateInputsToUse);
+			S3Driver.getTemplateInputs(options, (error, templateInputsToUse) => {
+				if(error){
+					return cb(error);
 				}
-				catch(e){
-					options.soajs.log.error(e);
-				}
-			}
-			let inputs = templateInputsToUse.inputs;
-			if(typeof inputs === 'string'){
-				try{
-					inputs = JSON.parse(inputs);
-				}
-				catch(e){
-					return cb(new Error("Detected invalid template inputs schema !!!"));
-				}
-			}
-			const params = {
-				StackName: oneDeployment.name,
-				Capabilities: [
-					'CAPABILITY_IAM'
-				],
-				OnFailure: 'DELETE',
-				Parameters: [
-					{
-						ParameterKey: 'ProjectKey',
-						ParameterValue: options.params.headers.key
-					},
-					{
-						ParameterKey: 'SoajsEnvCode',
-						ParameterValue: options.soajs.registry.code.toUpperCase()
-					},
-					{
-						ParameterKey: 'ProjectName',
-						ParameterValue: options.params.soajs_project
-					},
-					{
-						ParameterKey: 'DriverName',
-						ParameterValue: options.params.resource.driver
-					},
-					{
-						ParameterKey: 'ApiDomain',
-						ParameterValue: domain
-					},
-					{
-						ParameterKey: 'SwarmApiToken',
-						ParameterValue: options.soajs.registry.deployer.container[options.params.technology].remote.auth.token,
+				
+				if(typeof(templateInputsToUse) !== 'object'){
+					try{
+						templateInputsToUse = JSON.parse(templateInputsToUse);
 					}
-					
-				],
-				TemplateURL: config.templateUrl + encodeURIComponent(options.params.infraCodeTemplate)
-			};
-			options.soajs.log.debug("Deploying Cluster on Cloud Formation with the following inputs:", params);
-			mapTemplateInputsWithValues(inputs, options.params, params, () => {
-				cloudFormation.createStack(params, function (err, response) {
-					if (err) {
-						return cb(err);
+					catch(e){
+						options.soajs.log.error(e);
 					}
+				}
+				let inputs = templateInputsToUse.inputs;
+				if(typeof inputs === 'string'){
+					try{
+						inputs = JSON.parse(inputs);
+					}
+					catch(e){
+						return cb(new Error("Detected invalid template inputs schema !!!"));
+					}
+				}
+				const params = {
+					StackName: oneDeployment.name,
+					Capabilities: [
+						'CAPABILITY_IAM'
+					],
+					OnFailure: 'DO_NOTHING',
+					Parameters: [
+						{
+							ParameterKey: 'ProjectKey',
+							ParameterValue: options.params.headers.key
+						},
+						{
+							ParameterKey: 'SoajsEnvCode',
+							ParameterValue: options.soajs.registry.code.toUpperCase()
+						},
+						{
+							ParameterKey: 'ProjectName',
+							ParameterValue: options.params.soajs_project
+						},
+						{
+							ParameterKey: 'DriverName',
+							ParameterValue: options.params.resource.driver
+						},
+						{
+							ParameterKey: 'ApiDomain',
+							ParameterValue: domain
+						},
+						{
+							ParameterKey: 'SwarmApiToken',
+							ParameterValue: options.soajs.registry.deployer.container[options.params.technology].remote.auth.token,
+						},
+						{
+							ParameterKey: 'Vpc',
+							ParameterValue: network.id,
+						},
+						{
+							ParameterKey: 'VpcCidr',
+							ParameterValue: network.primaryAddress,
+						},
+						{
+							ParameterKey: 'PubSubnetAz1',
+							ParameterValue: network.subnets[0].id,
+						},
+						{
+							ParameterKey: 'PubSubnetAz2',
+							ParameterValue: network.subnets[1].id,
+						},
+						{
+							ParameterKey: 'PubSubnetAz3',
+							ParameterValue: network.subnets[2].id,
+						}
 					
-					oneDeployment.id = response.StackId;
-					oneDeployment.environments = [options.soajs.registry.code.toUpperCase()];
-					oneDeployment.options.zone = options.params.region;
-					oneDeployment.options.template = options.params.infraCodeTemplate;
-					return cb(null, oneDeployment);
+					],
+					TemplateURL: config.templateUrl + encodeURIComponent(options.params.infraCodeTemplate)
+				};
+				options.soajs.log.debug("Deploying Cluster on Cloud Formation with the following inputs:", params);
+				mapTemplateInputsWithValues(inputs, options.params, params, () => {
+					cloudFormation.createStack(params, function (err, response) {
+						if (err) {
+							return cb(err);
+						}
+						
+						oneDeployment.id = response.StackId;
+						oneDeployment.environments = [options.soajs.registry.code.toUpperCase()];
+						oneDeployment.options.zone = options.params.region;
+						oneDeployment.options.template = options.params.infraCodeTemplate;
+						return cb(null, oneDeployment);
+					});
 				});
 			});
 		});
+		
 		
 		function mapTemplateInputsWithValues(inputs, params, template, mapCb){
 			async.each(inputs, (oneInput, iCb) => {
@@ -150,6 +177,18 @@ const AWSCluster = {
 					return iCb();
 				}
 			}, mapCb);
+		}
+		
+		function getNetworkInputs (options, netCb) {
+			networkDriver.get(options, (err, network)=>{
+				if (err) {
+					return netCb(err);
+				}
+				if (!network.attachInternetGateway || !network.subnets || (network.subnets.length < 3)){
+					return netCb(new Error("Invalid network configuration provided!"));
+				}
+				return netCb(null, network);
+			});
 		}
 	},
 	
