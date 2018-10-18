@@ -29,6 +29,10 @@ const vms = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
+				
+				if(!options.params.group){
+					return cb(new Error("Unable to list Virtual Machines, missing group value"));
+				}
 
 				async.auto({
 
@@ -40,7 +44,7 @@ const vms = {
 					},
 
 					listNetworkExtras: function(callback) {
-						return helper.listNetworkExtras(networkClient, { log: options.soajs.log }, callback);
+						return helper.listNetworkExtras(networkClient, {group: options.params.group.toLowerCase(), log: options.soajs.log }, callback);
 					}
 
 				}, function(error, results) {
