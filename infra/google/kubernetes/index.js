@@ -41,6 +41,13 @@ let driver = {
 	 */
 	"deployCluster": function (options, cb) {
 		options.soajs.log.debug("Deploying new Cluster");
+		
+		let uniqueName = `ht${options.params.soajs_project.toLowerCase()}${randomstring.generate({
+			length: 13,
+			charset: 'alphanumeric',
+			capitalization: 'lowercase'
+		})}`;
+		
 		let request = getConnector(options.infra.api);
 
 		let name = '', createNewNetwork = false;
@@ -57,11 +64,7 @@ let driver = {
 		if(!name) {
 			options.soajs.log.debug("No cluster network provided, creating a new network for the cluster ...");
 			//no create a name made from ht + deployment type + random string
-			name = `ht${options.params.soajs_project.toLowerCase()}${randomstring.generate({
-				length: 13,
-				charset: 'alphanumeric',
-				capitalization: 'lowercase'
-			})}`;
+			name = uniqueName;
 			createNewNetwork = true;
 		}
 
@@ -75,8 +78,8 @@ let driver = {
 			}
 
 			oneDeployment = {
-				id: name,
-				name: name,
+				id: uniqueName,
+				name: uniqueName,
 				technology: "kubernetes",
 				environments: [options.soajs.registry.code.toUpperCase()],
 				options: {}
@@ -348,7 +351,7 @@ let driver = {
 				return mCb(new Error("Invalid or Cluster Template detected to create the cluster from!"));
 			}
 
-			template.cluster.name = oneDeployment.options.network; //same name as network
+			template.cluster.name = uniqueName; //same name as network
 			template.cluster.zone = options.params.region;
 			// template.cluster.zoneLocation = data.options.region;
 			template.cluster.network = oneDeployment.options.network;
@@ -397,8 +400,6 @@ let driver = {
 								return mCb(err);
 							}
 							else {
-								oneDeployment.id = oneDeployment.options.network;
-								oneDeployment.name = oneDeployment.options.network;
 								oneDeployment.options.nodePoolId = template.cluster.nodePools[0].name;
 								oneDeployment.options.zone = options.params.region;
 								oneDeployment.options.operationId = operation.name;
