@@ -99,11 +99,14 @@ const vms = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-
+				
+				if(!options.params.group){
+					return cb(new Error("Unable to list Virtual Machines, missing group value"));
+				}
+				
 				let group = options.params.group.toLowerCase();
 				let network = options.params.network ? options.params.network: null;
 				async.auto({
-
 					listVirtualMachines: function(callback) {
 						computeClient.virtualMachines.list(group, function (error, vms) {
 							if (error) return callback(error);
