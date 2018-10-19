@@ -6,6 +6,7 @@ const helper = require('../../utils/helper.js');
 const config = require("../../config");
 const index = require('../../index.js');
 const hash = require('object-hash');
+const network = require("../../cluster/networks");
 
 function getConnector(opts) {
 	return utils.getConnector(opts, config);
@@ -158,6 +159,7 @@ const vms = {
 		
 		let awsObject = {};
 		let region = options.params.region;
+		
 		awsObject['ec2'] = getConnector({
 			api: 'ec2',
 			region: region,
@@ -177,88 +179,117 @@ const vms = {
 			secretAccessKey: aws.secretAccessKey
 		});
 		
-		let params = {};
-		if (options.params.network) {
-			params.Filters = [
-				{
-					Name: 'vpc-id',
-					Values: [
-						options.params.network
-					]
-				},
-			]
-		}
-		if (options.params && options.params.ids && Array.isArray(options.params.ids) && options.params.ids.length > 0) {
-			params.InstanceIds = options.params.ids;
-		}
-		
-		awsObject['ec2'].describeInstances(params, (err, reservations) => {
-			if (err) {
-				return cb(err);
+		getNetworkIdFromName(options, (error, networkToUse) =>{
+			if(error){
+				return cb(error);
 			}
-			if (reservations && reservations.Reservations && reservations.Reservations.length > 0) {
-				let opts = {
-					GroupIds: [], ImageIds: [], VolumeIds: [], SubnetIds: [], roles: []
-				};
-				
-				extractData(reservations.Reservations, opts, () => {
-					opts.ec2 = awsObject["ec2"];
-					opts.elb = awsObject["elb"];
-					opts.iam = awsObject["iam"];
-					getVolumesImagesSgroupsElb(opts, (err, results) => {
-						if (err) {
-							return cb(err);
-						}
-						async.each(reservations.Reservations, function (reservation, rCB) {
-							async.concat(reservation.Instances, function (vm, iCB) {
-								if (vm.State && vm.State.Name === "terminated" || vm.State.Name === "shutting-down") {
-									return iCB(null, []);
-								}
-								if (vm.Tags && vm.Tags.length > 0) {
-									let container = false;
-									for (let i = 0; i < vm.Tags.length; i++) {
-										if (vm.Tags[i].Key === "soajs.infra.container") {
-											container = true;
-											break;
-										}
-									}
-									if (container) return iCB(null, []);
-								}
-								if (!vm.IamInstanceProfile || !vm.IamInstanceProfile.Arn) {
-									return iCB(null, []);
-								}
-								helper.buildVMRecord({
-									vm,
-									images: results.getImage ? results.getImage.Images : null,
-									securityGroups: results.getSecurityGroup ? results.getSecurityGroup.SecurityGroups : null,
-									volumes: results.getVolumes ? results.getVolumes.Volumes : null,
-									lb: results.getElb ? results.getElb.LoadBalancerDescriptions : null,
-									subnet: results.getSubnets ? results.getSubnets.Subnets : null,
-									region: region,
-									roles: results.checkRoles,
-									connection: results.checkConnection
-								}, (err, res) => {
-									return iCB(err, [res]);
-								});
-							}, function (err, final) {
-								if (final.length > 0) {
-									record = record.concat(final);
-								}
-								return rCB(err, true);
-							});
-						}, (err)=>{
-							if(err){
+			
+			let params = {};
+			if (options.params.network) {
+				params.Filters = [
+					{
+						Name: 'vpc-id',
+						Values: [
+							//options.params.network // i need the id not the name !
+							networkToUse.id
+						]
+					},
+				]
+			}
+			if (options.params && options.params.ids && Array.isArray(options.params.ids) && options.params.ids.length > 0) {
+				params.InstanceIds = options.params.ids;
+			}
+			awsObject['ec2'].describeInstances(params, (err, reservations) => {
+				if (err) {
+					return cb(err);
+				}
+				if (reservations && reservations.Reservations && reservations.Reservations.length > 0) {
+					let opts = {
+						GroupIds: [], ImageIds: [], VolumeIds: [], SubnetIds: [], roles: []
+					};
+					
+					extractData(reservations.Reservations, opts, () => {
+						opts.ec2 = awsObject["ec2"];
+						opts.elb = awsObject["elb"];
+						opts.iam = awsObject["iam"];
+						getVolumesImagesSgroupsElb(opts, (err, results) => {
+							if (err) {
 								return cb(err);
 							}
-							return cb(null, record);
+							async.each(reservations.Reservations, function (reservation, rCB) {
+								async.concat(reservation.Instances, function (vm, iCB) {
+									if (vm.State && vm.State.Name === "terminated" || vm.State.Name === "shutting-down") {
+										return iCB(null, []);
+									}
+									if (vm.Tags && vm.Tags.length > 0) {
+										let container = false;
+										for (let i = 0; i < vm.Tags.length; i++) {
+											if (vm.Tags[i].Key === "soajs.infra.container") {
+												container = true;
+												break;
+											}
+										}
+										if (container) return iCB(null, []);
+									}
+									if (!vm.IamInstanceProfile || !vm.IamInstanceProfile.Arn) {
+										return iCB(null, []);
+									}
+									helper.buildVMRecord({
+										vm,
+										images: results.getImage ? results.getImage.Images : null,
+										securityGroups: results.getSecurityGroup ? results.getSecurityGroup.SecurityGroups : null,
+										volumes: results.getVolumes ? results.getVolumes.Volumes : null,
+										lb: results.getElb ? results.getElb.LoadBalancerDescriptions : null,
+										subnet: results.getSubnets ? results.getSubnets.Subnets : null,
+										region: region,
+										roles: results.checkRoles,
+										connection: results.checkConnection
+									}, (err, res) => {
+										return iCB(err, [res]);
+									});
+								}, function (err, final) {
+									if (final.length > 0) {
+										record = record.concat(final);
+									}
+									return rCB(err, true);
+								});
+							}, (err)=>{
+								if(err){
+									return cb(err);
+								}
+								return cb(null, record);
+							});
 						});
 					});
-				});
-			}
-			else {
-				cb();
-			}
+				}
+				else {
+					cb();
+				}
+			});
 		});
+		
+		function getNetworkIdFromName(options, cb){
+			let originalNetworkName = options.params.network;
+			network.list(options, (error, response) => {
+				if(error){
+					return cb(error);
+				}
+				options.params.network = originalNetworkName;
+				
+				let data;
+				// console.log(response);
+				response.forEach((oneNetwork) => {
+					if(oneNetwork.name === options.params.network){
+						data = oneNetwork;
+					}
+					else if(oneNetwork.id === options.params.network){
+						data = oneNetwork;
+					}
+				});
+				
+				return cb(null, data);
+			});
+		}
 		
 		function getVolumesImagesSgroupsElb(opts, cb) {
 			async.parallel({

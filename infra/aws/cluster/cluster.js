@@ -82,7 +82,7 @@ const AWSCluster = {
 					Capabilities: [
 						'CAPABILITY_IAM'
 					],
-					OnFailure: 'DO_NOTHING',
+					OnFailure: 'DELETE',
 					Parameters: [
 						{
 							ParameterKey: 'ProjectKey',
@@ -107,31 +107,32 @@ const AWSCluster = {
 						{
 							ParameterKey: 'SwarmApiToken',
 							ParameterValue: options.soajs.registry.deployer.container[options.params.technology].remote.auth.token,
-						},
-						{
-							ParameterKey: 'Vpc',
-							ParameterValue: network.id,
-						},
-						{
-							ParameterKey: 'VpcCidr',
-							ParameterValue: network.primaryAddress,
-						},
-						{
-							ParameterKey: 'PubSubnetAz1',
-							ParameterValue: network.subnets[0].id,
-						},
-						{
-							ParameterKey: 'PubSubnetAz2',
-							ParameterValue: network.subnets[1].id,
-						},
-						{
-							ParameterKey: 'PubSubnetAz3',
-							ParameterValue: network.subnets[2].id,
 						}
-					
 					],
 					TemplateURL: config.templateUrl + encodeURIComponent(options.params.infraCodeTemplate)
 				};
+				if (network){
+					params.Parameters.push({
+						ParameterKey: 'Vpc',
+						ParameterValue: network.id,
+					});
+					params.Parameters.push({
+						ParameterKey: 'VpcCidr',
+						ParameterValue: network.primaryAddress,
+					});
+					params.Parameters.push({
+						ParameterKey: 'PubSubnetAz1',
+						ParameterValue: network.subnets[0].id,
+					});
+					params.Parameters.push({
+						ParameterKey: 'PubSubnetAz2',
+						ParameterValue: network.subnets[1].id,
+					});
+					params.Parameters.push({
+						ParameterKey: 'PubSubnetAz3',
+						ParameterValue: network.subnets[2].id,
+					});
+				}
 				options.soajs.log.debug("Deploying Cluster on Cloud Formation with the following inputs:", params);
 				mapTemplateInputsWithValues(inputs, options.params, params, () => {
 					cloudFormation.createStack(params, function (err, response) {
@@ -180,6 +181,9 @@ const AWSCluster = {
 		}
 		
 		function getNetworkInputs (options, netCb) {
+			if (options.params.network){
+				return netCb(null, null);
+			}
 			networkDriver.get(options, (err, network)=>{
 				if (err) {
 					return netCb(err);
