@@ -282,6 +282,9 @@ const vms = {
 					if(oneNetwork.name === options.params.network){
 						data = oneNetwork;
 					}
+					else if(oneNetwork.id === options.params.network){
+						data = oneNetwork;
+					}
 				});
 				
 				return cb(null, data);
