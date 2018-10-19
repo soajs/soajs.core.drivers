@@ -99,7 +99,8 @@ const vms = {
 					credentials: authData.credentials,
 					subscriptionId: options.infra.api.subscriptionId
 				});
-
+				console.log( "listAdam" ); // ToDelete #2del
+				console.log( options.params ); // ToDelete #2del
 				let group = options.params.group.toLowerCase();
 				let network = options.params.network ? options.params.network: null;
 				async.auto({

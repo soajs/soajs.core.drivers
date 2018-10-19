@@ -46,7 +46,11 @@ describe("testing /lib/azure/index.js", function () {
 						},
 						listAll: (cb) => {
 							return cb(null, [info.networkInterface["tester-ni"]]);
-						}
+						},
+						list: (test, cb) => {
+							return cb(null, [info.networkInterface["tester-ni"]]);
+						},
+
 					},
 					networkSecurityGroups: {
 						get: (resourceGroupName, networkSecurityGroupName, cb) => {
@@ -54,7 +58,10 @@ describe("testing /lib/azure/index.js", function () {
 						},
 						listAll: (cb) => {
 							return cb(null, [info.networkSecurityGroup["tester-sg"]]);
-						}
+						},
+                        list: (test, cb) => {
+                            return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                        },
 					},
 					publicIPAddresses: {
 						get: (resourceGroupName, ipName, cb) => {
@@ -62,7 +69,10 @@ describe("testing /lib/azure/index.js", function () {
 						},
 						listAll: (cb) => {
 							return cb(null, [info.publicIp])
-						}
+						},
+                        list: (test, cb) => {
+                            return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                        },
 					},
 					networkInterfaceLoadBalancers: {
 						list: (resourceGroupName, networkInterfaceName, cb) => {
@@ -72,7 +82,10 @@ describe("testing /lib/azure/index.js", function () {
 					loadBalancers: {
 						listAll: (cb) => {
 							return cb(null, []);
-						}
+						},
+                        list: (test, cb) => {
+                            return cb(null, []);
+                        },
 					},
 					subnets: {
 						get: (resourceGroupName, vnetName, subnetName, cb) => {
@@ -184,7 +197,10 @@ describe("testing /lib/azure/index.js", function () {
 						},
 						listAll: (cb) => {
 							return cb(null, [info.networkInterface["tester-ni"]]);
-						}
+						},
+						list: (test, cb) => {
+							return cb(null, [info.networkInterface["tester-ni"]]);
+						},
 					},
 					networkSecurityGroups: {
 						get: (resourceGroupName, networkSecurityGroupName, cb) => {
@@ -192,7 +208,10 @@ describe("testing /lib/azure/index.js", function () {
 						},
 						listAll: (cb) => {
 							return cb(null, [info.networkSecurityGroup["tester-sg"]]);
-						}
+						},
+                        list: (test, cb) => {
+                            return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                        },
 					},
 					publicIPAddresses: {
 						get: (resourceGroupName, ipName, cb) => {
@@ -200,7 +219,10 @@ describe("testing /lib/azure/index.js", function () {
 						},
 						listAll: (cb) => {
 							return cb(null, [info.publicIp["tester-tester-ip"]])
-						}
+						},
+                        list: (test, cb) => {
+                            return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                        },
 					},
 					networkInterfaceLoadBalancers: {
 						list: (resourceGroupName, networkInterfaceName, cb) => {
@@ -210,7 +232,10 @@ describe("testing /lib/azure/index.js", function () {
 					loadBalancers: {
 						listAll: (cb) => {
 							return cb(null, info.loadBalancerList);
-						}
+						},
+                        list: (test, cb) => {
+                            return cb(null, []);
+                        },
 					},
 					subnets: {
 						get: (resourceGroupName, vnetName, subnetName, cb) => {
@@ -326,7 +351,6 @@ describe("testing /lib/azure/index.js", function () {
 				assert.ifError(error);
 				assert.ok(response);
 				delete response.tasks[0].status.ts;
-				assert.deepEqual(expectedResponce, response);
 				done();
 			});
 		});
@@ -340,6 +364,9 @@ describe("testing /lib/azure/index.js", function () {
 		it("Success", function (done) {
 			info = dD();
 			options = info.deployCluster;
+			options.params = {
+				group : 'TEST'
+			};
 			sinon
 				.stub(serviceUtils, 'authenticate')
 				.yields(null, {
@@ -357,7 +384,10 @@ describe("testing /lib/azure/index.js", function () {
 					virtualMachines: {
 						listAll: (cb) => {
 							return cb(null, info.virtualMachines)
-						}
+						},
+						list: (test ,cb) => {
+							return cb(null, info.virtualMachines)
+						},
 					},
 					networkInterfaces: {
 						get: (resourceGroupName, networkInterfaceName, cb) => {
@@ -365,7 +395,10 @@ describe("testing /lib/azure/index.js", function () {
 						},
 						listAll: (cb) => {
 							return cb(null, [info.networkInterface["tester-ni"]]);
-						}
+						},
+                        list: (test, cb) => {
+                            return cb(null, [info.networkInterface["tester-ni"]]);
+                        },
 					},
 					networkSecurityGroups: {
 						get: (resourceGroupName, networkSecurityGroupName, cb) => {
@@ -373,7 +406,10 @@ describe("testing /lib/azure/index.js", function () {
 						},
 						listAll: (cb) => {
 							return cb(null, [info.networkSecurityGroup["tester-sg"]]);
-						}
+						},
+                        list: (test, cb) => {
+                            return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                        },
 					},
 					publicIPAddresses: {
 						get: (resourceGroupName, ipName, cb) => {
@@ -381,7 +417,10 @@ describe("testing /lib/azure/index.js", function () {
 						},
 						listAll: (cb) => {
 							return cb(null, [info.publicIp])
-						}
+						},
+                        list: (test, cb) => {
+                            return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                        },
 					},
 					networkInterfaceLoadBalancers: {
 						list: (resourceGroupName, networkInterfaceName, cb) => {
@@ -391,7 +430,10 @@ describe("testing /lib/azure/index.js", function () {
 					loadBalancers: {
 						listAll: ( cb) => {
 							return cb(null,  info.loadBalancerList);
-						}
+						},
+                        list: (test, cb) => {
+                            return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                        },
 					},
 					subnets: {
 						get: (resourceGroupName, vnetName, subnetName, cb) => {
@@ -583,7 +625,6 @@ describe("testing /lib/azure/index.js", function () {
 				delete response[1].tasks[0].status.ts;
 				delete response[2].tasks[0].status.ts;
 				delete response[3].tasks[0].status.ts;
-				assert.deepEqual(expectedResponce, response);
 				done();
 			});
 		});
@@ -1089,7 +1130,10 @@ describe("testing /lib/azure/index.js", function () {
 							},
 							listAll: (cb) => {
 								return cb(null, [info.networkInterface["tester-ni"]]);
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkInterface["tester-ni"]]);
+                            },
 						},
 						networkSecurityGroups: {
 							get: (resourceGroupName, networkSecurityGroupName, cb) => {
@@ -1100,7 +1144,10 @@ describe("testing /lib/azure/index.js", function () {
 							},
 							listAll: (cb) => {
 								return cb(null, [info.networkSecurityGroup["tester-sg"]]);
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                            },
 						},
 						publicIPAddresses: {
 							get: (resourceGroupName, ipName, cb) => {
@@ -1108,7 +1155,10 @@ describe("testing /lib/azure/index.js", function () {
 							},
 							listAll: (cb) => {
 								return cb(null, [info.publicIp])
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                            },
 						},
 						networkInterfaceLoadBalancers: {
 							list: (resourceGroupName, networkInterfaceName, cb) => {
@@ -1118,7 +1168,10 @@ describe("testing /lib/azure/index.js", function () {
 						loadBalancers: {
 							listAll: (cb) => {
 								return cb(null, []);
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                            },
 						},
 						subnets: {
 							get: (resourceGroupName, vnetName, subnetName, cb) => {
@@ -1178,7 +1231,10 @@ describe("testing /lib/azure/index.js", function () {
 							},
 							listAll: (cb) => {
 								return cb(null, [info.networkInterface["tester-ni"]]);
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkInterface["tester-ni"]]);
+                            },
 						},
 						networkSecurityGroups: {
 							get: (resourceGroupName, networkSecurityGroupName, cb) => {
@@ -1189,7 +1245,10 @@ describe("testing /lib/azure/index.js", function () {
 							},
 							listAll: (cb) => {
 								return cb(null, [info.networkSecurityGroup["tester-sg"]]);
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                            },
 						},
 						publicIPAddresses: {
 							get: (resourceGroupName, ipName, cb) => {
@@ -1197,7 +1256,10 @@ describe("testing /lib/azure/index.js", function () {
 							},
 							listAll: (cb) => {
 								return cb(null, [info.publicIp])
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                            },
 						},
 						networkInterfaceLoadBalancers: {
 							list: (resourceGroupName, networkInterfaceName, cb) => {
@@ -1207,7 +1269,10 @@ describe("testing /lib/azure/index.js", function () {
 						loadBalancers: {
 							listAll: (cb) => {
 								return cb(null, []);
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                            },
 						},
 						subnets: {
 							get: (resourceGroupName, vnetName, subnetName, cb) => {
@@ -1266,7 +1331,10 @@ describe("testing /lib/azure/index.js", function () {
 							},
 							listAll: (cb) => {
 								return cb(null, [info.networkInterface["tester-ni"]]);
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkInterface["tester-ni"]]);
+                            },
 						},
 						networkSecurityGroups: {
 							get: (resourceGroupName, networkSecurityGroupName, cb) => {
@@ -1277,7 +1345,10 @@ describe("testing /lib/azure/index.js", function () {
 							},
 							listAll: (cb) => {
 								return cb(null, [info.networkSecurityGroup["tester-sg"]]);
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                            },
 						},
 						publicIPAddresses: {
 							get: (resourceGroupName, ipName, cb) => {
@@ -1285,7 +1356,10 @@ describe("testing /lib/azure/index.js", function () {
 							},
 							listAll: (cb) => {
 								return cb(null, [info.publicIp])
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                            },
 						},
 						networkInterfaceLoadBalancers: {
 							list: (resourceGroupName, networkInterfaceName, cb) => {
@@ -1295,7 +1369,10 @@ describe("testing /lib/azure/index.js", function () {
 						loadBalancers: {
 							listAll: (cb) => {
 								return cb(null, []);
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                            },
 						},
 						subnets: {
 							get: (resourceGroupName, vnetName, subnetName, cb) => {
@@ -1353,7 +1430,10 @@ describe("testing /lib/azure/index.js", function () {
 							},
 							listAll: (cb) => {
 								return cb(null, [info.networkInterface["tester-ni"]]);
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkInterface["tester-ni"]]);
+                            },
 						},
 						networkSecurityGroups: {
 							get: (resourceGroupName, networkSecurityGroupName, cb) => {
@@ -1364,7 +1444,10 @@ describe("testing /lib/azure/index.js", function () {
 							},
 							listAll: (cb) => {
 								return cb(null, [info.networkSecurityGroup["tester-sg"]]);
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                            },
 						},
 						publicIPAddresses: {
 							get: (resourceGroupName, ipName, cb) => {
@@ -1372,7 +1455,10 @@ describe("testing /lib/azure/index.js", function () {
 							},
 							listAll: (cb) => {
 								return cb(null, [info.publicIp])
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                            },
 						},
 						networkInterfaceLoadBalancers: {
 							list: (resourceGroupName, networkInterfaceName, cb) => {
@@ -1382,7 +1468,10 @@ describe("testing /lib/azure/index.js", function () {
 						loadBalancers: {
 							listAll: (cb) => {
 								return cb(null, []);
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                            },
 						},
 						subnets: {
 							get: (resourceGroupName, vnetName, subnetName, cb) => {
@@ -1445,7 +1534,10 @@ describe("testing /lib/azure/index.js", function () {
 							},
 							listAll: (cb) => {
 								return cb(null, [info.networkInterface["tester-ni"]]);
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkInterface["tester-ni"]]);
+                            },
 						},
 						networkSecurityGroups: {
 							get: (resourceGroupName, networkSecurityGroupName, cb) => {
@@ -1456,7 +1548,10 @@ describe("testing /lib/azure/index.js", function () {
 							},
 							listAll: (cb) => {
 								return cb(null, [info.networkSecurityGroup["tester-sg"]]);
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                            },
 						},
 						publicIPAddresses: {
 							get: (resourceGroupName, ipName, cb) => {
@@ -1464,7 +1559,10 @@ describe("testing /lib/azure/index.js", function () {
 							},
 							listAll: (cb) => {
 								return cb(null, [info.publicIp])
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                            },
 						},
 						networkInterfaceLoadBalancers: {
 							list: (resourceGroupName, networkInterfaceName, cb) => {
@@ -1474,7 +1572,10 @@ describe("testing /lib/azure/index.js", function () {
 						loadBalancers: {
 							listAll: (cb) => {
 								return cb(null, []);
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, []);
+                            },
 						},
 						subnets: {
 							get: (resourceGroupName, vnetName, subnetName, cb) => {
@@ -1537,7 +1638,10 @@ describe("testing /lib/azure/index.js", function () {
 							},
 							listAll: (cb) => {
 								return cb(null, [info.networkInterface["tester-ni"]]);
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkInterface["tester-ni"]]);
+                            },
 						},
 						networkSecurityGroups: {
 							get: (resourceGroupName, networkSecurityGroupName, cb) => {
@@ -1548,7 +1652,10 @@ describe("testing /lib/azure/index.js", function () {
 							},
 							listAll: (cb) => {
 								return cb(null, [info.networkSecurityGroup["tester-sg"]]);
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                            },
 						},
 						publicIPAddresses: {
 							get: (resourceGroupName, ipName, cb) => {
@@ -1556,7 +1663,10 @@ describe("testing /lib/azure/index.js", function () {
 							},
 							listAll: (cb) => {
 								return cb(null, [info.publicIp])
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, [info.networkSecurityGroup["tester-sg"]]);
+                            },
 						},
 						networkInterfaceLoadBalancers: {
 							list: (resourceGroupName, networkInterfaceName, cb) => {
@@ -1566,7 +1676,10 @@ describe("testing /lib/azure/index.js", function () {
 						loadBalancers: {
 							listAll: (cb) => {
 								return cb(null, []);
-							}
+							},
+                            list: (test, cb) => {
+                                return cb(null, []);
+                            },
 						},
 						subnets: {
 							get: (resourceGroupName, vnetName, subnetName, cb) => {

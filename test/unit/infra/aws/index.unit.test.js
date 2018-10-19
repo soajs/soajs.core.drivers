@@ -11,6 +11,7 @@ const AWSDriver = helper.requireModule('./infra/aws/utils/utils.js');
 const dockerUtils = helper.requireModule("./lib/container/docker/utils.js");
 const dockerDriver = helper.requireModule("./lib/container/docker/index.js");
 const LBDriver = helper.requireModule("./infra/aws/cluster/lb.js");
+const networkDriver = helper.requireModule("./infra/aws/cluster/networks.js");
 
 //TODO : Move to seperate files (cluster, lb, s3)
 describe("testing /infra/aws/index.js", function () {
@@ -188,8 +189,39 @@ describe("testing /infra/aws/index.js", function () {
 								}
 							))
 						});
-					}
+					},
+                    describeVpcs: (params, cb) => {
+                        return cb(null, {
+                            Vpcs: [
+                                {
+                                    Key: 'templateInputs'
+                                }
+                            ]
+                        });
+                    },
+                    describeInternetGateways: (params, cb) => {
+                        return cb(null, {
+                            Vpcs: [
+                                {
+                                    Key: 'templateInputs'
+                                }
+                            ]
+                        });
+                    },
+					describeSubnets: (params, cb) => {
+                        return cb(null, {
+                            Vpcs: [
+                                {
+                                    Key: 'templateInputs'
+                                }
+                            ]
+                        });
+                    },
 				});
+
+			sinon
+				.stub(networkDriver, 'get')
+				.yields(null, {"attachInternetGateway" : true, subnets : ["test1", "test2", "test3"]});
 			
 			clusterDriver.deployCluster(options, function (error, response) {
 				assert.ifError(error);

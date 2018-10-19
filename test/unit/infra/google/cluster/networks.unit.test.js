@@ -98,7 +98,6 @@ describe("testing /lib/google/cluster/networks.js", function () {
         });
     });
 
-
     describe("addNetworks", function () {
         afterEach((done) => {
             sinon.restore();

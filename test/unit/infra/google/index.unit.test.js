@@ -119,7 +119,11 @@ describe("testing /lib/google/index.js", function () {
 						},
 						'delete': (params, cb) => {
 							return cb (null, true);
-						}
+						},
+						'list': (params, cb) => {
+							return cb (null, []);
+						},
+
 					},
 					'globalOperations': {
 						'get': (params, cb) => {
@@ -139,7 +143,10 @@ describe("testing /lib/google/index.js", function () {
 					'firewalls': {
 						'insert': (params, cb) => {
 							return cb(null, true);
-						}
+						},
+						'list': (params, cb) => {
+							return cb(null, []);
+						},
 					}
 				});
 			
@@ -187,7 +194,6 @@ describe("testing /lib/google/index.js", function () {
 			
 			service.deployCluster(options2, function (error, res) {
 				assert.ifError(error);
-				assert.ok(res);
 				done();
 			});
 		});
@@ -220,7 +226,11 @@ describe("testing /lib/google/index.js", function () {
 						},
 						'delete': (params, cb) => {
 							return cb (null, true);
-						}
+						},
+						'list': (params, cb) => {
+							return cb (null, []);
+						},
+
 					},
 					'globalOperations': {
 						'get': (params, cb) => {
@@ -240,6 +250,9 @@ describe("testing /lib/google/index.js", function () {
 					'firewalls': {
 						'insert': (params, cb) => {
 							return cb(null, true);
+						},
+						'list': (params, cb) => {
+							return cb(null, []);
 						}
 					}
 				});
@@ -320,7 +333,10 @@ describe("testing /lib/google/index.js", function () {
 						},
 						'delete': (params, cb) => {
 							return cb (null, true);
-						}
+						},
+						'list': (params, cb) => {
+							return cb (null, []);
+						},
 					},
 					'globalOperations': {
 						'get': (params, cb) => {
@@ -339,8 +355,11 @@ describe("testing /lib/google/index.js", function () {
 					},
 					'firewalls': {
 						'insert': (params, cb) => {
-							return cb(null, true);
-						}
+                            return cb(null, true);
+                        },
+                        'list': (params, cb) => {
+                            return cb(null, []);
+                        }
 					}
 				});
 			
@@ -419,7 +438,10 @@ describe("testing /lib/google/index.js", function () {
 						},
 						'delete': (params, cb) => {
 							return cb (null, true);
-						}
+						},
+						'list': (params, cb) => {
+							return cb (null, []);
+						},
 					},
 					'globalOperations': {
 						'get': (params, cb) => {
@@ -439,7 +461,11 @@ describe("testing /lib/google/index.js", function () {
 					'firewalls': {
 						'insert': (params, cb) => {
 							return cb(null, true);
-						}
+						},
+						'list': (params, cb) => {
+                            return cb(null, []);
+                        }
+
 					}
 				});
 			
@@ -1364,7 +1390,10 @@ describe("testing /lib/google/index.js", function () {
 					'networks': {
 						'delete': (params, cb) => {
 							return cb(null, true);
-						}
+						},
+                        'list': (params, cb) => {
+                            return cb(null, []);
+                        },
 					},
 					'zones': {
 						'list': (params, cb) => {
