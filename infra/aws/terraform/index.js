@@ -27,8 +27,9 @@ const driver = {
 		    if (error) {
 			    return cb(error);
 		    }
-		
-		    options.params.input.networkId = networkToUse.id;
+			if (networkToUse){
+				options.params.input.networkId = networkToUse.id;
+			}
 			    
 	        terraform.apply(options,function(error, result){
 	            utils.checkError(error, 738, cb, () => {
