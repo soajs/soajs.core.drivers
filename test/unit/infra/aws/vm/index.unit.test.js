@@ -63,6 +63,7 @@ describe("testing /lib/aws/index.js", function () {
 				done();
 			});
 		});
+
 		it("Success", function (done) {
 			let info = dD();
 			let options = info.deployCluster;
@@ -155,7 +156,16 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					listAttachedRolePolicies: (params, cb) => {
 						return cb(null, info.listPolicies);
-					}
+					},
+                    describeVpcs: (params, cb) => {
+                        return cb(null, {
+                            Vpcs: [
+                                {
+                                    Key: 'templateInputs'
+                                }
+                            ]
+                        });
+                    },
 				});
 			
 			service.executeDriver('listServices', options, function (error, response) {
@@ -215,7 +225,16 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					listAttachedRolePolicies: (params, cb) => {
 						return cb(null, info.listPolicies);
-					}
+					},
+                    describeVpcs: (params, cb) => {
+                        return cb(null, {
+                            Vpcs: [
+                                {
+                                    Key: 'templateInputs'
+                                }
+                            ]
+                        });
+                    },
 				});
 			
 			service.executeDriver('listServices', options, function (error, response) {
@@ -261,7 +280,16 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					listAttachedRolePolicies: (params, cb) => {
 						return cb(null, info.listPolicies);
-					}
+					},
+                    describeVpcs: (params, cb) => {
+                        return cb(null, {
+                            Vpcs: [
+                                {
+                                    Key: 'templateInputs'
+                                }
+                            ]
+                        });
+                    },
 				});
 			
 			service.executeDriver('listServices', options, function (error, response) {
@@ -319,7 +347,16 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					listAttachedRolePolicies: (params, cb) => {
 						return cb(null, info.listPolicies);
-					}
+					},
+                    describeVpcs: (params, cb) => {
+                        return cb(null, {
+                            Vpcs: [
+                                {
+                                    Key: 'templateInputs'
+                                }
+                            ]
+                        });
+                    },
 				});
 			
 			service.executeDriver('listServices', options, function (error, response) {
@@ -670,7 +707,16 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					listAttachedRolePolicies: (params, cb) => {
 						return cb(null, info.listPolicies);
-					}
+					},
+                    describeVpcs: (params, cb) => {
+                        return cb(null, {
+                            Vpcs: [
+                                {
+                                    Key: 'templateInputs'
+                                }
+                            ]
+                        });
+                    },
 				});
 			service.executeDriver('listServices', options, function (error, response) {
 				let expected = info.vmExpected2;
@@ -696,6 +742,33 @@ describe("testing /lib/aws/index.js", function () {
 					describeInstances: (params, cb) => {
 						return cb(new Error("test"), null);
 					},
+                    describeVpcs: (params, cb) => {
+                        return cb(null, {
+                            Vpcs: [
+                                {
+                                    Key: 'templateInputs'
+                                }
+                            ]
+                        });
+                    },
+                    describeInternetGateways: (params, cb) => {
+                        return cb(null, {
+                            Vpcs: [
+                                {
+                                    Key: 'templateInputs'
+                                }
+                            ]
+                        });
+                    },
+                    describeSubnets: (params, cb) => {
+                        return cb(null, {
+                            Vpcs: [
+                                {
+                                    Key: 'templateInputs'
+                                }
+                            ]
+                        });
+                    },
 				});
 			
 			service.executeDriver('listServices', options, function (error, response) {
@@ -1391,7 +1464,16 @@ describe("testing /lib/aws/index.js", function () {
 					},
 					listAttachedRolePolicies: (params, cb) => {
 						return cb(null, info.listPolicies);
-					}
+					},
+                    describeVpcs: (params, cb) => {
+                        return cb(null, {
+                            Vpcs: [
+                                {
+                                    Key: 'templateInputs'
+                                }
+                            ]
+                        });
+                    },
 				});
 			service.executeDriver('updateVmLabels', options, function (error, response) {
 				assert.ok(error);
@@ -1472,7 +1554,16 @@ describe("testing /lib/aws/index.js", function () {
 							],
 							"IsTruncated": false
 						});
-					}
+					},
+                    describeVpcs: (params, cb) => {
+                        return cb(null, {
+                            Vpcs: [
+                                {
+                                    Key: 'templateInputs'
+                                }
+                            ]
+                        });
+                    },
 				});
 			service.executeDriver('updateVmLabels', options, function (error, response) {
 				assert.ok(response);
@@ -1549,7 +1640,16 @@ describe("testing /lib/aws/index.js", function () {
 							],
 							"IsTruncated": false
 						});
-					}
+					},
+                    describeVpcs: (params, cb) => {
+                        return cb(null, {
+                            Vpcs: [
+                                {
+                                    Key: 'templateInputs'
+                                }
+                            ]
+                        });
+                    },
 				});
 			service.executeDriver('updateVmLabels', options, function (error, response) {
 				assert.ok(response);
@@ -1627,7 +1727,16 @@ describe("testing /lib/aws/index.js", function () {
 							],
 							"IsTruncated": false
 						});
-					}
+					},
+                    describeVpcs: (params, cb) => {
+                        return cb(null, {
+                            Vpcs: [
+                                {
+                                    Key: 'templateInputs'
+                                }
+                            ]
+                        });
+                    },
 				});
 			service.executeDriver('updateVmLabels', options, function (error, response) {
 				assert.ok(response);

@@ -201,6 +201,7 @@ describe("testing /lib/google/cluster/networks.js", function () {
 
             options.params = {
                 resourceGroupName: "tester",
+                name: 'test'
             };
 
             options.soajs = {

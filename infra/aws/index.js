@@ -255,6 +255,10 @@ const driver = {
 		return networks.list(options, cb);
 	},
 
+    getNetwork: function (options, cb) {
+        return networks.get(options, cb);
+    },
+
 	/**
 	 * Create network
 
@@ -287,6 +291,7 @@ const driver = {
 	deleteNetwork: function (options, cb) {
 		return networks.delete(options, cb);
 	},
+
 
 	/**
 	 * List available loadbalancers

@@ -85,6 +85,80 @@ describe("testing /lib/aws/index.js", function () {
 		});
 	});
 
+	describe("getNetwork", function () {
+		afterEach((done) => {
+			sinon.restore();
+			done();
+		});
+		it("Success", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeVpcs: (params, cb) => {
+						return cb(null, info.listNetworkRaw);
+					},
+					describeSubnets: (params, cb) => {
+						return cb(null, info.listSubnetRaw);
+					},
+					describeInternetGateways: (params, cb) => {
+						return cb(null, info.gateway);
+					}
+				});
+
+			options.params = {
+				region: 'us-east-1', /* required */
+			};
+			service.getNetwork(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				assert.deepEqual(response, info.getNetwork);
+				done();
+			});
+		});
+		it("Success empty", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeVpcs: (params, cb) => {
+						return cb(null, null);
+					}
+				});
+
+			options.params = {
+				region: 'us-east-1'
+			};
+			service.listNetworks(options, function (error, response) {
+				assert.ifError(error);
+				assert.ok(response);
+				assert.deepEqual(response, [])
+				done();
+			});
+		});
+		it("fail", function (done) {
+			let info = dD();
+			let options = info.deployCluster;
+			sinon
+				.stub(AWSDriver, 'getConnector')
+				.returns({
+					describeVpcs: (params, cb) => {
+						return cb(new Error("test error"));
+					}
+				});
+
+			options.params = {
+				region: 'us-east-1'
+			};
+			service.listNetworks(options, function (error, response) {
+				assert.ok(error);
+				done();
+			});
+		});
+	});
+
 	describe("createNetwork", function () {
 		afterEach((done) => {
 			sinon.restore();

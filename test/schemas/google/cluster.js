@@ -85,6 +85,14 @@ let registry = {
 	"profile": "/opt/soajs/FILES/profiles/profile.js",
 	"sitePrefix": "site",
 	"apiPrefix": "api",
+	"restriction" : {
+		"5b044a4df920c675412f82e3" : {
+			'eastus' : {
+				network : '',
+				group : ''
+			}
+		}
+	},
 	"dbs": {
 		"config": {
 			"prefix": ""

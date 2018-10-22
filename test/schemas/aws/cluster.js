@@ -360,6 +360,35 @@ module.exports = function () {
 				]
 			}
 		],
+        "getNetwork": {
+                "region": "us-east-1",
+                "subnets": [
+                    {
+                        "id": "subnet-97c7abf3",
+                        "name": "subnetName",
+                        "address": "172.31.0.0/20",
+                        "state": "available",
+                        "availabilityZone": "us-east-1a"
+                    },
+                    {
+                        "id": "subnet-1336e83c",
+                        "name": "subnet-1336e83c",
+                        "address": "172.31.80.0/20",
+                        "state": "available",
+                        "availabilityZone": "us-east-1b"
+                    }
+                ],
+                "name": "networkName",
+                "id": "vpc-a5e482dd",
+                "state": "available",
+                "instanceTenancy": "dedicated",
+                "attachInternetGateway": true,
+                "primaryAddress": "172.31.0.0/16",
+                "IsDefault": true,
+                "address": [
+                    "172.31.0.0/16"
+                ]
+            },
 		"listSubnetRaw": {
 			"Subnets": [
 				{

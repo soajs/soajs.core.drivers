@@ -158,7 +158,8 @@ describe("testing /lib/azure/index.js", function () {
 			};
 			options.env = 'tester';
 			options.params = {
-				vmName: 'tester-vm'
+				vmName: 'tester-vm',
+                group : 'test'
 			};
 			service.executeDriver('inspectService', options, function (error, response) {
 				assert.ifError(error);
@@ -172,6 +173,11 @@ describe("testing /lib/azure/index.js", function () {
 		it("Success loadBalancer", function (done) {
 			info = dD();
 			options = info.deployCluster;
+            options.env = 'tester';
+            options.params = {
+                vmName: 'tester-vm',
+                group : 'test'
+            };
 			sinon
 				.stub(serviceUtils, 'authenticate')
 				.yields(null, {
