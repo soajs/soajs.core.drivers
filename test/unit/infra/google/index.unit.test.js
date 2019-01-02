@@ -507,7 +507,14 @@ describe("testing /lib/google/index.js", function () {
 				});
 			let options2 = dD().deployCluster;
 			delete options2.infra.deployments;
-			
+			options2.soajs.registry.restriction =  {
+				"5b044a4df920c675412f82e3" : {
+					'eastus' : {
+						network : 'test',
+						group : ''
+					}
+				}
+			};
 			service.deployCluster(options2, function (error, res) {
 				assert.ok(res);
 				done();
@@ -900,6 +907,39 @@ describe("testing /lib/google/index.js", function () {
 			sinon
 				.stub(googleApi, 'compute')
 				.returns({
+					'regions': {
+						'list': (params, cb) => {
+							return cb (null, {
+								items: [
+									info.region
+								]
+							});
+						},
+						'get': (params, cb) => {
+							return cb (null, info.region);
+						}
+					},
+					'instances': {
+						'list': (params, cb) => {
+							return cb(null, {
+								items: [
+									{
+										name: "localmachine",
+										networkInterfaces: [
+											{
+												accessConfigs: [
+													{
+														name: 'external-nat',
+														natIP: '192.168.50.50'
+													}
+												]
+											}
+										]
+									}
+								]
+							})
+						}
+					},
 					'zones': {
 						'list': (params, cb) => {
 							return cb (null, true);
@@ -908,11 +948,63 @@ describe("testing /lib/google/index.js", function () {
 							return cb (null, true);
 						}
 					},
-					'regions': {
-						'get': (params, cb) => {
+					'addresses': {
+						'list': (params, cb) => {
+							return cb(null, {
+									"kind": "compute#addressList",
+									"id": "projects/soajs-test-/regions/asia-northeast1/addresses",
+									"items": [
+										{
+											"kind": "compute#address",
+											"id": "2033832849827816932",
+											"creationTimestamp": "2019-01-01T22:32:43.258-08:00",
+											"name": "gke-htlocalcix25ddz4ac4-template-pool-1",
+											"description": "",
+											"address": "35.243.98.13",
+											"status": "IN_USE",
+											"region": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1",
+											"selfLink": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1/addresses/gke-htlocalcix25ddz4ac4-template-pool-1",
+											"users": [
+												"https://www.googleapis.com/compute/v1/projects/soajs-test-/zones/asia-northeast1-a/instances/gke-htlocalcix25ddz4ac4-template-pool-de1d2727-4xc1"
+											],
+											"networkTier": "PREMIUM"
+										},
+										{
+											"kind": "compute#address",
+											"id": "2888439983482463715",
+											"creationTimestamp": "2019-01-01T22:32:44.852-08:00",
+											"name": "gke-htlocalcix25ddz4ac4-template-pool-2",
+											"description": "",
+											"address": "35.221.64.78",
+											"status": "IN_USE",
+											"region": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1",
+											"selfLink": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1/addresses/gke-htlocalcix25ddz4ac4-template-pool-2",
+											"users": [
+												"https://www.googleapis.com/compute/v1/projects/soajs-test/zones/asia-northeast1-a/instances/gke-htlocalcix25ddz4ac4-template-pool-de1d2727-kfs2"
+											],
+											"networkTier": "PREMIUM"
+										},
+										{
+											"kind": "compute#address",
+											"id": "8719778344675171157",
+											"creationTimestamp": "2019-01-01T23:18:18.891-08:00",
+											"name": "gke-htlocalcix25ddz4ac4-template-pool-3",
+											"description": "",
+											"address": "35.243.80.107",
+											"status": "RESERVED",
+											"region": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1",
+											"selfLink": "https://www.googleapis.com/compute/v1/projects/soaj/regions/asia-northeast1/addresses/gke-htlocalcix25ddz4ac4-template-pool-3",
+											"networkTier": "PREMIUM"
+										}
+									],
+									"selfLink": "https://www.googleapis.com/compute/v1/projects/soajs-test-221814/regions/asia-northeast1/addresses"
+								}
+							)
+						},
+						'delete': (params, cb) => {
 							return cb (null, true);
 						},
-						'list': (params, cb) => {
+						'insert': (params, cb) => {
 							return cb (null, true);
 						}
 					}
@@ -1165,7 +1257,8 @@ describe("testing /lib/google/index.js", function () {
 		let info = dD();
 		let options = info.deployCluster;
 		
-		it("Success", function (done) {
+		it("Success 1", function (done) {
+			options.params.number = 2;
 			sinon
 				.stub(googleApi, 'container')
 				.returns({
@@ -1176,6 +1269,142 @@ describe("testing /lib/google/index.js", function () {
 									'setSize': (params, cb) => {
 										return cb(null, true);
 									}
+								},
+								'get': (params, cb) => {
+									return cb(null, {currentNodeCount: 1});
+								}
+							}
+						}
+					}
+				});
+			sinon
+				.stub(googleApi, 'compute')
+				.returns({
+					'regions': {
+						'list': (params, cb) => {
+							return cb (null, {
+								items: [
+									info.region
+								]
+							});
+						},
+						'get': (params, cb) => {
+							return cb (null, info.region);
+						}
+					},
+					'instances': {
+						'list': (params, cb) => {
+							return cb(null, {
+								items: [
+									{
+										name: "localmachine",
+										networkInterfaces: [
+											{
+												accessConfigs: [
+													{
+														name: 'external-nat',
+														natIP: '192.168.50.50'
+													}
+												]
+											}
+										]
+									}
+								]
+							})
+						}
+					},
+					'addresses': {
+						'list': (params, cb) => {
+							return cb(null, {
+									"kind": "compute#addressList",
+									"id": "projects/soajs-test-/regions/asia-northeast1/addresses",
+									"items": [
+										{
+											"kind": "compute#address",
+											"id": "2033832849827816932",
+											"creationTimestamp": "2019-01-01T22:32:43.258-08:00",
+											"name": "gke-htlocalcix25ddz4ac4-template-pool-1",
+											"description": "",
+											"address": "35.243.98.13",
+											"status": "IN_USE",
+											"region": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1",
+											"selfLink": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1/addresses/gke-htlocalcix25ddz4ac4-template-pool-1",
+											"users": [
+												"https://www.googleapis.com/compute/v1/projects/soajs-test-/zones/asia-northeast1-a/instances/gke-htlocalcix25ddz4ac4-template-pool-de1d2727-4xc1"
+											],
+											"networkTier": "PREMIUM"
+										},
+										{
+											"kind": "compute#address",
+											"id": "2888439983482463715",
+											"creationTimestamp": "2019-01-01T22:32:44.852-08:00",
+											"name": "gke-htlocalcix25ddz4ac4-template-pool-2",
+											"description": "",
+											"address": "35.221.64.78",
+											"status": "IN_USE",
+											"region": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1",
+											"selfLink": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1/addresses/gke-htlocalcix25ddz4ac4-template-pool-2",
+											"users": [
+												"https://www.googleapis.com/compute/v1/projects/soajs-test/zones/asia-northeast1-a/instances/gke-htlocalcix25ddz4ac4-template-pool-de1d2727-kfs2"
+											],
+											"networkTier": "PREMIUM"
+										},
+										{
+											"kind": "compute#address",
+											"id": "8719778344675171157",
+											"creationTimestamp": "2019-01-01T23:18:18.891-08:00",
+											"name": "gke-htlocalcix25ddz4ac4-template-pool-3",
+											"description": "",
+											"address": "35.243.80.107",
+											"status": "RESERVED",
+											"region": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1",
+											"selfLink": "https://www.googleapis.com/compute/v1/projects/soaj/regions/asia-northeast1/addresses/gke-htlocalcix25ddz4ac4-template-pool-3",
+											"networkTier": "PREMIUM"
+										}
+									],
+									"selfLink": "https://www.googleapis.com/compute/v1/projects/soajs-test-221814/regions/asia-northeast1/addresses"
+								}
+							)
+						},
+						'delete': (params, cb) => {
+							return cb (null, true);
+						},
+						'insert': (params, cb) => {
+							return cb (null, true);
+						}
+					},
+				});
+			sinon
+				.stub(googleApi, 'v1beta1container')
+				.returns({
+					'projects': {
+						'zones': {
+							'operations': {
+								'get': (params, cb) => {
+									return cb(null, { operationType: 'SET_NODE_POOL_SIZE', status: 'DONE'})
+								}
+							},
+							'clusters': {
+								'get': (params, cb) => {
+									return cb(null, {
+										'endpoint': machineip,
+										'masterAuth': options.registry.deployer.container.kubernetes.remote.auth.token
+									});
+								}
+							}
+						},
+						'locations': {
+							'operations': {
+								'get': (params, cb) => {
+									return cb(null, { operationType: 'SET_NODE_POOL_SIZE', status: 'DONE'})
+								}
+							},
+							'clusters': {
+								'get': (params, cb) => {
+									return cb(null, {
+										'endpoint': machineip,
+										'masterAuth': options.registry.deployer.container.kubernetes.remote.auth.token
+									});
 								}
 							}
 						}
@@ -1183,9 +1412,501 @@ describe("testing /lib/google/index.js", function () {
 				});
 			
 			service.scaleCluster(options, function (error, res) {
-				assert.ifError(error);
-				assert.ok(res);
-				done();
+				setTimeout(function () {
+					assert.ifError(error);
+					assert.ok(res);
+					done();
+				}, 1000);
+				
+			});
+		});
+		
+		it("Success 2", function (done) {
+			options.params.number = 1;
+			sinon
+				.stub(googleApi, 'container')
+				.returns({
+					'projects': {
+						'zones': {
+							'clusters': {
+								'nodePools': {
+									'setSize': (params, cb) => {
+										return cb(null, true);
+									}
+								},
+								'get': (params, cb) => {
+									return cb(null, {currentNodeCount: 2});
+								}
+							}
+						}
+					}
+				});
+			sinon
+				.stub(googleApi, 'compute')
+				.returns({
+					'regions': {
+						'list': (params, cb) => {
+							return cb (null, {
+								items: [
+									info.region
+								]
+							});
+						},
+						'get': (params, cb) => {
+							return cb (null, info.region);
+						}
+					},
+					'instances': {
+						'list': (params, cb) => {
+							return cb(null, {
+								items: [
+									{
+										name: "localmachine",
+										networkInterfaces: [
+											{
+												accessConfigs: [
+													{
+														name: 'external-nat',
+														natIP: '192.168.50.50'
+													}
+												]
+											}
+										]
+									}
+								]
+							})
+						}
+					},
+					'addresses': {
+						'list': (params, cb) => {
+							return cb(null, {
+									"kind": "compute#addressList",
+									"id": "projects/soajs-test-/regions/asia-northeast1/addresses",
+									"items": [
+										{
+											"kind": "compute#address",
+											"id": "2033832849827816932",
+											"creationTimestamp": "2019-01-01T22:32:43.258-08:00",
+											"name": "gke-htlocalcix25ddz4ac4-template-pool-1",
+											"description": "",
+											"address": "35.243.98.13",
+											"status": "IN_USE",
+											"region": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1",
+											"selfLink": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1/addresses/gke-htlocalcix25ddz4ac4-template-pool-1",
+											"users": [
+												"https://www.googleapis.com/compute/v1/projects/soajs-test-/zones/asia-northeast1-a/instances/gke-htlocalcix25ddz4ac4-template-pool-de1d2727-4xc1"
+											],
+											"networkTier": "PREMIUM"
+										},
+										{
+											"kind": "compute#address",
+											"id": "2888439983482463715",
+											"creationTimestamp": "2019-01-01T22:32:44.852-08:00",
+											"name": "gke-htlocalcix25ddz4ac4-template-pool-2",
+											"description": "",
+											"address": "35.221.64.78",
+											"status": "IN_USE",
+											"region": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1",
+											"selfLink": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1/addresses/gke-htlocalcix25ddz4ac4-template-pool-2",
+											"users": [
+												"https://www.googleapis.com/compute/v1/projects/soajs-test/zones/asia-northeast1-a/instances/gke-htlocalcix25ddz4ac4-template-pool-de1d2727-kfs2"
+											],
+											"networkTier": "PREMIUM"
+										},
+										{
+											"kind": "compute#address",
+											"id": "8719778344675171157",
+											"creationTimestamp": "2019-01-01T23:18:18.891-08:00",
+											"name": "gke-htlocalcix25ddz4ac4-template-pool-3",
+											"description": "",
+											"address": "35.243.80.107",
+											"status": "RESERVED",
+											"region": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1",
+											"selfLink": "https://www.googleapis.com/compute/v1/projects/soaj/regions/asia-northeast1/addresses/gke-htlocalcix25ddz4ac4-template-pool-3",
+											"networkTier": "PREMIUM"
+										}
+									],
+									"selfLink": "https://www.googleapis.com/compute/v1/projects/soajs-test-221814/regions/asia-northeast1/addresses"
+								}
+							)
+						},
+						'delete': (params, cb) => {
+							return cb (null, true);
+						},
+						'insert': (params, cb) => {
+							return cb (null, true);
+						}
+					}
+				});
+			sinon
+				.stub(googleApi, 'v1beta1container')
+				.returns({
+					'projects': {
+						'zones': {
+							'operations': {
+								'get': (params, cb) => {
+									return cb(null, { operationType: 'SET_NODE_POOL_SIZE', status: 'DONE'})
+								}
+							},
+							'clusters': {
+								'get': (params, cb) => {
+									return cb(null, {
+										'endpoint': machineip,
+										'masterAuth': options.registry.deployer.container.kubernetes.remote.auth.token
+									});
+								}
+							}
+						},
+						'locations': {
+							'operations': {
+								'get': (params, cb) => {
+									return cb(null, { operationType: 'SET_NODE_POOL_SIZE', status: 'DONE'})
+								}
+							},
+							'clusters': {
+								'get': (params, cb) => {
+									return cb(null, {
+										'endpoint': machineip,
+										'masterAuth': options.registry.deployer.container.kubernetes.remote.auth.token
+									});
+								}
+							}
+						}
+					}
+				});
+			
+			service.scaleCluster(options, function (error, res) {
+				setTimeout(function () {
+					assert.ifError(error);
+					assert.ok(res);
+					done();
+				}, 1000);
+			});
+		});
+		
+		it("Success 3", function (done) {
+			options.params.number = 2;
+			sinon
+				.stub(googleApi, 'container')
+				.returns({
+					'projects': {
+						'zones': {
+							'clusters': {
+								'nodePools': {
+									'setSize': (params, cb) => {
+										return cb(null, true);
+									}
+								},
+								'get': (params, cb) => {
+									return cb(null, {currentNodeCount: 2});
+								}
+							}
+						}
+					}
+				});
+			sinon
+				.stub(googleApi, 'compute')
+				.returns({
+					'regions': {
+						'list': (params, cb) => {
+							return cb (null, {
+								items: [
+									info.region
+								]
+							});
+						},
+						'get': (params, cb) => {
+							return cb (null, info.region);
+						}
+					},
+					'instances': {
+						'list': (params, cb) => {
+							return cb(null, {
+								items: [
+									{
+										name: "localmachine",
+										networkInterfaces: [
+											{
+												accessConfigs: [
+													{
+														name: 'external-nat',
+														natIP: '192.168.50.50'
+													}
+												]
+											}
+										]
+									}
+								]
+							})
+						}
+					},
+					'addresses': {
+						'list': (params, cb) => {
+							return cb(null, {
+									"kind": "compute#addressList",
+									"id": "projects/soajs-test-/regions/asia-northeast1/addresses",
+									"items": [
+										{
+											"kind": "compute#address",
+											"id": "2033832849827816932",
+											"creationTimestamp": "2019-01-01T22:32:43.258-08:00",
+											"name": "gke-htlocalcix25ddz4ac4-template-pool-1",
+											"description": "",
+											"address": "35.243.98.13",
+											"status": "IN_USE",
+											"region": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1",
+											"selfLink": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1/addresses/gke-htlocalcix25ddz4ac4-template-pool-1",
+											"users": [
+												"https://www.googleapis.com/compute/v1/projects/soajs-test-/zones/asia-northeast1-a/instances/gke-htlocalcix25ddz4ac4-template-pool-de1d2727-4xc1"
+											],
+											"networkTier": "PREMIUM"
+										},
+										{
+											"kind": "compute#address",
+											"id": "2888439983482463715",
+											"creationTimestamp": "2019-01-01T22:32:44.852-08:00",
+											"name": "gke-htlocalcix25ddz4ac4-template-pool-2",
+											"description": "",
+											"address": "35.221.64.78",
+											"status": "IN_USE",
+											"region": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1",
+											"selfLink": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1/addresses/gke-htlocalcix25ddz4ac4-template-pool-2",
+											"users": [
+												"https://www.googleapis.com/compute/v1/projects/soajs-test/zones/asia-northeast1-a/instances/gke-htlocalcix25ddz4ac4-template-pool-de1d2727-kfs2"
+											],
+											"networkTier": "PREMIUM"
+										},
+										{
+											"kind": "compute#address",
+											"id": "8719778344675171157",
+											"creationTimestamp": "2019-01-01T23:18:18.891-08:00",
+											"name": "gke-htlocalcix25ddz4ac4-template-pool-3",
+											"description": "",
+											"address": "35.243.80.107",
+											"status": "RESERVED",
+											"region": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1",
+											"selfLink": "https://www.googleapis.com/compute/v1/projects/soaj/regions/asia-northeast1/addresses/gke-htlocalcix25ddz4ac4-template-pool-3",
+											"networkTier": "PREMIUM"
+										}
+									],
+									"selfLink": "https://www.googleapis.com/compute/v1/projects/soajs-test-221814/regions/asia-northeast1/addresses"
+								}
+							)
+						},
+						'delete': (params, cb) => {
+							return cb (null, true);
+						},
+						'insert': (params, cb) => {
+							return cb (null, true);
+						}
+					}
+				});
+			sinon
+				.stub(googleApi, 'v1beta1container')
+				.returns({
+					'projects': {
+						'zones': {
+							'operations': {
+								'get': (params, cb) => {
+									return cb(null, { operationType: 'SET_NODE_POOL_SIZE', status: 'DONE'})
+								}
+							},
+							'clusters': {
+								'get': (params, cb) => {
+									return cb(null, {
+										'endpoint': machineip,
+										'masterAuth': options.registry.deployer.container.kubernetes.remote.auth.token
+									});
+								}
+							}
+						},
+						'locations': {
+							'operations': {
+								'get': (params, cb) => {
+									return cb(null, { operationType: 'SET_NODE_POOL_SIZE', status: 'DONE'})
+								}
+							},
+							'clusters': {
+								'get': (params, cb) => {
+									return cb(null, {
+										'endpoint': machineip,
+										'masterAuth': options.registry.deployer.container.kubernetes.remote.auth.token
+									});
+								}
+							}
+						}
+					}
+				});
+			
+			service.scaleCluster(options, function (error, res) {
+				setTimeout(function () {
+					assert.ifError(error);
+					assert.ok(res);
+					done();
+				}, 1000);
+			});
+		});
+		
+		it("Success 4", function (done) {
+			options.params.number = 1;
+			sinon
+				.stub(googleApi, 'container')
+				.returns({
+					'projects': {
+						'zones': {
+							'clusters': {
+								'nodePools': {
+									'setSize': (params, cb) => {
+										return cb(null, true);
+									}
+								},
+								'get': (params, cb) => {
+									return cb(null, {currentNodeCount: 2});
+								}
+							}
+						}
+					}
+				});
+			sinon
+				.stub(googleApi, 'compute')
+				.returns({
+					'regions': {
+						'list': (params, cb) => {
+							return cb (null, {
+								items: [
+									info.region
+								]
+							});
+						},
+						'get': (params, cb) => {
+							return cb (null, info.region);
+						}
+					},
+					'instances': {
+						'list': (params, cb) => {
+							return cb(null, {
+								items: [
+									{
+										name: "localmachine",
+										networkInterfaces: [
+											{
+												accessConfigs: [
+													{
+														name: 'external-nat',
+														natIP: '192.168.50.50'
+													}
+												]
+											}
+										]
+									}
+								]
+							})
+						}
+					},
+					'addresses': {
+						'list': (params, cb) => {
+							return cb(null, {
+									"kind": "compute#addressList",
+									"id": "projects/soajs-test-/regions/asia-northeast1/addresses",
+									"items": [
+										{
+											"kind": "compute#address",
+											"id": "2033832849827816932",
+											"creationTimestamp": "2019-01-01T22:32:43.258-08:00",
+											"name": "gke-htlocalcix25ddz4ac4-template-pool-1",
+											"description": "",
+											"address": "35.243.98.13",
+											"status": "IN_USE",
+											"region": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1",
+											"selfLink": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1/addresses/gke-htlocalcix25ddz4ac4-template-pool-1",
+											"users": [
+												"https://www.googleapis.com/compute/v1/projects/soajs-test-/zones/asia-northeast1-a/instances/gke-htlocalcix25ddz4ac4-template-pool-de1d2727-4xc1"
+											],
+											"networkTier": "PREMIUM"
+										},
+										{
+											"kind": "compute#address",
+											"id": "2888439983482463715",
+											"creationTimestamp": "2019-01-01T22:32:44.852-08:00",
+											"name": "gke-htlocalcix25ddz4ac4-template-pool-2",
+											"description": "",
+											"address": "35.221.64.78",
+											"status": "IN_USE",
+											"region": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1",
+											"selfLink": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1/addresses/gke-htlocalcix25ddz4ac4-template-pool-2",
+											"users": [
+												"https://www.googleapis.com/compute/v1/projects/soajs-test/zones/asia-northeast1-a/instances/gke-htlocalcix25ddz4ac4-template-pool-de1d2727-kfs2"
+											],
+											"networkTier": "PREMIUM"
+										},
+										{
+											"kind": "compute#address",
+											"id": "8719778344675171157",
+											"creationTimestamp": "2019-01-01T23:18:18.891-08:00",
+											"name": "gke-htlocalcix25ddz4ac4-template-pool-3",
+											"description": "",
+											"address": "35.243.80.107",
+											"status": "RESERVED",
+											"region": "https://www.googleapis.com/compute/v1/projects/soajs-test-/regions/asia-northeast1",
+											"selfLink": "https://www.googleapis.com/compute/v1/projects/soaj/regions/asia-northeast1/addresses/gke-htlocalcix25ddz4ac4-template-pool-3",
+											"networkTier": "PREMIUM"
+										}
+									],
+									"selfLink": "https://www.googleapis.com/compute/v1/projects/soajs-test-221814/regions/asia-northeast1/addresses"
+								}
+							)
+						},
+						'delete': (params, cb) => {
+							return cb (null, true);
+						},
+						'insert': (params, cb) => {
+							return cb (null, true);
+						}
+					}
+				});
+			sinon
+				.stub(googleApi, 'v1beta1container')
+				.returns({
+					'projects': {
+						'zones': {
+							'operations': {
+								'get': (params, cb) => {
+									return cb(null, { operationType: 'SET_NODE_POOL_SIZE_1', status: 'DONE'})
+								}
+							},
+							'clusters': {
+								'get': (params, cb) => {
+									return cb(null, {
+										'endpoint': machineip,
+										'masterAuth': options.registry.deployer.container.kubernetes.remote.auth.token
+									});
+								}
+							}
+						},
+						'locations': {
+							'operations': {
+								'get': (params, cb) => {
+									return cb(null, { operationType: 'SET_NODE_POOL_SIZE_1', status: 'DONE'})
+								}
+							},
+							'clusters': {
+								'get': (params, cb) => {
+									return cb(null, {
+										'endpoint': machineip,
+										'masterAuth': options.registry.deployer.container.kubernetes.remote.auth.token
+									});
+								}
+							}
+						}
+					}
+				});
+			
+			service.scaleCluster(options, function (error, res) {
+				setTimeout(function () {
+					assert.ifError(error);
+					assert.ok(res);
+					done();
+				}, 1000);
 			});
 		});
 	});
@@ -1414,6 +2135,19 @@ describe("testing /lib/google/index.js", function () {
 					'firewalls': {
 						'list': (params, cb) => {
 							return cb (null, true);
+						},
+						'delete': (params, cb) => {
+							return cb (null, true);
+						}
+					},
+					'addresses': {
+						'list': (params, cb) => {
+							return cb (null, {
+								items: [{
+									name: 'name',
+									address: "12.1.1.1"
+								}]
+							});
 						},
 						'delete': (params, cb) => {
 							return cb (null, true);
