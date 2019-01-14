@@ -432,7 +432,10 @@ let driver = {
 				if (oneInput.entries) {
 					mapTemplateInputsWithValues(oneInput.entries, params, template, iCb);
 				} else {
-					let paramValue = params[oneInput.name].toString();
+					let paramValue;
+					if (params[oneInput.name]){
+						paramValue = params[oneInput.name].toString();
+					}
 					if (!paramValue) {
 						paramValue = oneInput.value.toString();
 					}
@@ -586,7 +589,7 @@ let driver = {
 											kind: 'Namespace',
 											apiVersion: 'v1',
 											metadata: {
-												name: "soajs",
+												name: options.soajs.registry.deployer.container.kubernetes.remote.namespace.default,
 												labels: {'soajs.content': 'true'}
 											}
 										};

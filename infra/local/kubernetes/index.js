@@ -27,11 +27,14 @@ let driver = {
 				return cb(error);
 			}
 			
+			let env = options.env === 'dashboard' ? "soajs" : options.env;
+			
+			let namespaceName =  options.deployerConfig ? options.deployerConfig.namespace.default.toLowerCase(): env;
 			let namespace = {
 				kind: 'Namespace',
 				apiVersion: 'v1',
 				metadata: {
-					name: "soajs",
+					name: namespaceName || "soajs",
 					labels: {'soajs.content': 'true'}
 				}
 			};
@@ -86,29 +89,33 @@ let driver = {
 	 * @returns {*}
 	 */
 	"deployCluster": function (options, cb) {
-		
-		options.soajs.registry.deployer.container.kubernetes.remote.apiProtocol = options.infra.api.protocol;
-		options.soajs.registry.deployer.container.kubernetes.remote.apiPort = options.infra.api.port;
-		options.soajs.registry.deployer.container.kubernetes.remote.auth.token = options.infra.api.token;
-		
-		let oneDeployment = {
-			technology: "kubernetes",
-			options: {},
-			environments:[],
-			loadBalancers: {}
-		};
-		
-		oneDeployment.name = `ht${options.params.soajs_project}${randomString.generate({
-			length: 13,
-			charset: 'alphanumeric',
-			capitalization: 'lowercase'
-		})}`;
-		
-		oneDeployment.id = oneDeployment.name;
-		oneDeployment.environments = [options.env.toUpperCase()];
-		oneDeployment.options.zone = 'local';
-		
-		return cb(null, oneDeployment);
+		driver.authenticate(options, (err)=>{
+			if (err){
+				return cb(err);
+			}
+			options.soajs.registry.deployer.container.kubernetes.remote.apiProtocol = options.infra.api.protocol;
+			options.soajs.registry.deployer.container.kubernetes.remote.apiPort = options.infra.api.port;
+			options.soajs.registry.deployer.container.kubernetes.remote.auth.token = options.infra.api.token;
+			
+			let oneDeployment = {
+				technology: "kubernetes",
+				options: {},
+				environments:[],
+				loadBalancers: {}
+			};
+			
+			oneDeployment.name = `ht${options.params.soajs_project}${randomString.generate({
+				length: 13,
+				charset: 'alphanumeric',
+				capitalization: 'lowercase'
+			})}`;
+			
+			oneDeployment.id = oneDeployment.name;
+			oneDeployment.environments = [options.env.toUpperCase()];
+			oneDeployment.options.zone = 'local';
+			
+			return cb(null, oneDeployment);
+		});
 	},
 	
 	/**
