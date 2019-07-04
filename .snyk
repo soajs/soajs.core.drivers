@@ -1,0 +1,36 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.13.5
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  SNYK-JS-LODASH-450202:
+    - soajs.core.modules > elasticsearch > lodash:
+        patched: '2019-07-04T07:46:48.368Z'
+    - lodash:
+        patched: '2019-07-04T07:46:48.368Z'
+    - soajs.core.modules > async > lodash:
+        patched: '2019-07-04T07:46:48.368Z'
+    - kubernetes-client > async > lodash:
+        patched: '2019-07-04T07:46:48.368Z'
+    - aws-sdk > xmlbuilder > lodash:
+        patched: '2019-07-04T07:46:48.368Z'
+    - ms-rest-azure > async > lodash:
+        patched: '2019-07-04T07:46:48.368Z'
+    - handlebars > async > lodash:
+        patched: '2019-07-04T07:46:48.368Z'
+    - async > lodash:
+        patched: '2019-07-04T07:46:48.368Z'
+    - googleapis > async > lodash:
+        patched: '2019-07-04T07:46:48.368Z'
+    - azure-arm-storage > ms-rest-azure > async > lodash:
+        patched: '2019-07-04T07:46:48.368Z'
+    - azure-arm-resource > ms-rest-azure > async > lodash:
+        patched: '2019-07-04T07:46:48.368Z'
+    - azure-arm-compute > ms-rest-azure > async > lodash:
+        patched: '2019-07-04T07:46:48.368Z'
+    - aws-sdk > xml2js > xmlbuilder > lodash:
+        patched: '2019-07-04T07:46:48.368Z'
+    - soajs.core.modules > handlebars > async > lodash:
+        patched: '2019-07-04T07:46:48.368Z'
+    - azure-arm-network > ms-rest-azure > async > lodash:
+        patched: '2019-07-04T07:46:48.368Z'
