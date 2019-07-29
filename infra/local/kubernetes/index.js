@@ -4,6 +4,7 @@ const randomString = require("randomstring");
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 const kubeDriver = require("../../../lib/container/kubernetes/index.js");
+const kubeWrapper = require("../../../lib/container/kubernetes/wrapper.js");
 const kubeUtils = require("../../../lib/container/kubernetes/utils.js");
 
 const infraUtils = require("../../utils");
@@ -16,11 +17,14 @@ let driver = {
 	 */
 	"authenticate": function(options, cb){
 		options.kubeConfig = {
-			url: `https://${options.infra.api.ipaddress}:${options.infra.api.port}`,
-			auth: {
-				bearer: options.infra.api.token
+			config:{
+				url: `https://${options.infra.api.ipaddress}:${options.infra.api.port}`,
+				auth: {
+					bearer: options.infra.api.token
+				},
+				insecureSkipTlsVerify: true,
 			},
-			request: {strictSSL: false}
+			version: '1.13'
 		};
 		kubeUtils.getDeployer(options, (error, deployer) => {
 			if (error) {
@@ -31,14 +35,14 @@ let driver = {
 			
 			let namespaceName =  options.deployerConfig ? options.deployerConfig.namespace.default.toLowerCase(): env;
 			let namespace = {
-				kind: 'Namespace',
+				type: 'Namespace',
 				apiVersion: 'v1',
 				metadata: {
 					name: namespaceName || "soajs",
 					labels: {'soajs.content': 'true'}
 				}
 			};
-			deployer.core.namespaces.get({}, function (error, namespacesList) {
+			kubeWrapper.namespace.get(deployer, {}, function (error, namespacesList) {
 				if (error) {
 					return cb(error);
 				}
@@ -54,7 +58,7 @@ let driver = {
 						return cb(null, true);
 					}
 					
-					deployer.core.namespaces.post({body: namespace}, (error, response) => {
+					kubeWrapper.namespace.post(deployer, {body: namespace}, (error, response) => {
 						if (error) {
 							return cb(error);
 						}
