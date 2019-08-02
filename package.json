@@ -37,7 +37,7 @@
     "rimraf": "^2.6.2",
     "parse-large-json": "^1.2.0",
     "soajs.core.libs": "1.2.0",
-    "soajs.core.modules": "2.5.10",
+    "soajs.core.modules": "2.5.11",
     "stdio": "0.2.7",
     "strip-ansi": "^4.0.0",
     "traverse": "0.6.6",
