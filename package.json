@@ -28,7 +28,7 @@
     "easy-zip": "0.0.4",
     "googleapis": "^23.0.0",
     "gridfs-stream": "1.1.1",
-    "handlebars": "4.0.14",
+    "handlebars": "4.3.0",
     "kubernetes-client": "soajs/kubernetes-client.git",
     "lodash": "4.17.12",
     "ms-rest-azure": "^2.5.5",
