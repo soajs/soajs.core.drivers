@@ -1,7 +1,7 @@
 {
   "name": "soajs.core.drivers",
   "description": "SOAJS Driver Strategies",
-  "version": "3.5.18",
+  "version": "3.5.19",
   "author": {
     "name": "soajs team",
     "email": "team@soajs.org"
@@ -37,7 +37,7 @@
     "rimraf": "^2.6.2",
     "parse-large-json": "^1.2.0",
     "soajs.core.libs": "1.2.0",
-    "soajs.core.modules": "2.5.19",
+    "soajs.core.modules": "2.5.21",
     "stdio": "0.2.7",
     "strip-ansi": "^4.0.0",
     "traverse": "0.6.6",
