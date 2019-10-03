@@ -54,6 +54,7 @@ module.exports = function (grunt) {
 			options: {
 				sourceMap: true,
 				presets: ['@babel/preset-env'],
+				plugins: ["@babel/plugin-transform-runtime"],
 			},
 			dist: {
 				files: [{
@@ -185,7 +186,7 @@ module.exports = function (grunt) {
 					reporter: 'spec',
 					timeout: 90000
 				},
-				src: ['dist/test/unit/*.js', 'dist/test/unit/**/*.js', 'dist/test/unit/***/**/*.js']
+				src: ['dist/test/unit/*.js', 'dist/test/unit/**/*.js', 'dist/test/unit/***/**/*.js','dist/test/unit/****/***/**/*.js']
 			}
 		},
 		

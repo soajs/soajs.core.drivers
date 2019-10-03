@@ -3,12 +3,13 @@ const helper = require("../../../helper.js");
 const assert = require("assert");
 const sinon = require('sinon');
 
-const K8Api = require('kubernetes-client');
 const service = helper.requireModule('./infra/google/index.js');
 const googleApi = helper.requireModule('./infra/google/utils/utils.js');
 const kubeDriver = helper.requireModule("./lib/container/kubernetes/index.js");
 const infraUtils = helper.requireModule("./infra/utils");
-
+const secretWrapper = helper.requireModule("./lib/container/kubernetes/clients/secret.js");
+const namespaceWrapper = helper.requireModule("./lib/container/kubernetes/clients/namespace.js");
+const serviceWrapper = helper.requireModule("./lib/container/kubernetes/clients/service.js");
 let dD = require('../../../schemas/google/cluster.js');
 
 describe("testing /lib/google/index.js", function () {
@@ -529,7 +530,6 @@ describe("testing /lib/google/index.js", function () {
 		});
 		let info = dD();
 		let options = info.deployCluster;
-		
 		it("Success 1", function (done) {
 			let machineip = options.registry.deployer.container.kubernetes.remote.nodes;
 			sinon
@@ -605,46 +605,36 @@ describe("testing /lib/google/index.js", function () {
 					}
 				});
 			sinon
-				.stub(K8Api, 'Core')
-				.returns({
-					'namespaces': {
-						'secrets': {
-							'get': (params, cb) => {
-								return cb(null, {
-									items : [
-										{
-											metadata: {
-												name: 'default-token-1234',
-												
-											},
-											type: 'kubernetes.io/service-account-token',
-											data: {
-												token: options.registry.deployer.container.kubernetes.remote.auth.token
-											}
-										}
-									]
-								});
+				.stub(secretWrapper, 'get')
+				.yields(null, {
+					items : [
+						{
+							metadata: {
+								name: 'default-token-1234',
+								
+							},
+							type: 'kubernetes.io/service-account-token',
+							data: {
+								token: options.registry.deployer.container.kubernetes.remote.auth.token
 							}
-						},
-						'get': (params, cb) => {
-							return cb(null, {
-								items : [
-									{
-										metadata: {
-											name: 'default',
-											
-										}
-									}
-								]
-							});
 						}
-					},
-					'namespace': {
-						'post': (params, cb) => {
-							return cb(null, true);
+					]
+				});
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, {
+					items : [
+						{
+							metadata: {
+								name: 'default',
+								
+							}
 						}
-					}
-			});
+					]
+				});
+			sinon
+				.stub(namespaceWrapper, 'post')
+				.yields(null, true);
 			
 			let options2 = dD().deployCluster;
 			options2.registry.deployer.container.kubernetes.remote.nodes = '';
@@ -731,46 +721,36 @@ describe("testing /lib/google/index.js", function () {
 					}
 				});
 			sinon
-				.stub(K8Api, 'Core')
-				.returns({
-					'namespaces': {
-						'secrets': {
-							'get': (params, cb) => {
-								return cb(null, {
-									items : [
-										{
-											metadata: {
-												name: 'default-token-1234',
-												
-											},
-											type: 'kubernetes.io/service-account-token',
-											data: {
-												token: options.registry.deployer.container.kubernetes.remote.auth.token
-											}
-										}
-									]
-								});
+				.stub(secretWrapper, 'get')
+				.yields(null, {
+					items : [
+						{
+							metadata: {
+								name: 'default-token-1234',
+								
+							},
+							type: 'kubernetes.io/service-account-token',
+							data: {
+								token: options.registry.deployer.container.kubernetes.remote.auth.token
 							}
-						},
-						'get': (params, cb) => {
-							return cb(null, {
-								items : [
-									{
-										metadata: {
-											name: 'default',
-											
-										}
-									}
-								]
-							});
 						}
-					},
-					'namespace': {
-						'post': (params, cb) => {
-							return cb(null, true);
-						}
-					}
+					]
 				});
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, {
+					items : [
+						{
+							metadata: {
+								name: 'default',
+								
+							}
+						}
+					]
+				});
+			sinon
+				.stub(namespaceWrapper, 'post')
+				.yields(null, true);
 			
 			service.getDeployClusterStatus(options, function (error, res) {
 				assert.ifError(error);
@@ -852,46 +832,36 @@ describe("testing /lib/google/index.js", function () {
 					}
 				});
 			sinon
-				.stub(K8Api, 'Core')
-				.returns({
-					'namespaces': {
-						'secrets': {
-							'get': (params, cb) => {
-								return cb(null, {
-									items : [
-										{
-											metadata: {
-												name: 'default-token-1234',
-												
-											},
-											type: 'kubernetes.io/service-account-token',
-											data: {
-												token: options.registry.deployer.container.kubernetes.remote.auth.token
-											}
-										}
-									]
-								});
+				.stub(namespaceWrapper, 'get')
+				.yields(null, {
+					items : [
+						{
+							metadata: {
+								name: 'default',
+								
 							}
-						},
-						'get': (params, cb) => {
-							return cb(null, {
-								items : [
-									{
-										metadata: {
-											name: 'default',
-											
-										}
-									}
-								]
-							});
 						}
-					},
-					'namespace': {
-						'post': (params, cb) => {
-							return cb(null, true);
-						}
-					}
+					]
 				});
+			sinon
+				.stub(secretWrapper, 'get')
+				.yields(null, {
+					items : [
+						{
+							metadata: {
+								name: 'default-token-1234',
+								
+							},
+							type: 'kubernetes.io/service-account-token',
+							data: {
+								token: options.registry.deployer.container.kubernetes.remote.auth.token
+							}
+						}
+					]
+				});
+			sinon
+				.stub(namespaceWrapper, 'post')
+				.yields(null, true);
 			
 			let options2 = dD().deployCluster;
 			options2.registry.deployer.container.kubernetes.remote.nodes = '';
@@ -1059,47 +1029,36 @@ describe("testing /lib/google/index.js", function () {
 					}
 				});
 			sinon
-				.stub(K8Api, 'Core')
-				.returns({
-					'namespaces': {
-						'secrets': {
-							'get': (params, cb) => {
-								return cb(null, {
-									items : [
-										{
-											metadata: {
-												name: 'default-token-1234',
-												
-											},
-											type: 'kubernetes.io/service-account-token',
-											data: {
-												token: options.registry.deployer.container.kubernetes.remote.auth.token
-											}
-										}
-									]
-								});
+				.stub(namespaceWrapper, 'get')
+				.yields(null, {
+					items : [
+						{
+							metadata: {
+								name: 'default',
+								
 							}
-						},
-						'get': (params, cb) => {
-							return cb(null, {
-								items : [
-									{
-										metadata: {
-											name: 'default',
-											
-										}
-									}
-								]
-							});
 						}
-					},
-					'namespace': {
-						'post': (params, cb) => {
-							return cb(null, true);
-						}
-					}
+					]
 				});
-			
+			sinon
+				.stub(secretWrapper, 'get')
+				.yields(null,  {
+					items : [
+						{
+							metadata: {
+								name: 'default-token-1234',
+								
+							},
+							type: 'kubernetes.io/service-account-token',
+							data: {
+								token: options.registry.deployer.container.kubernetes.remote.auth.token
+							}
+						}
+					]
+				});
+			sinon
+				.stub(namespaceWrapper, 'post')
+				.yields(null, true);
 			let options2 = dD().deployCluster;
 			options2.registry.deployer.container.kubernetes.remote.nodes = '';
 			service.getDeployClusterStatus(options2, function (error, res) {
@@ -1120,36 +1079,25 @@ describe("testing /lib/google/index.js", function () {
 		
 		it("Success", function (done) {
 			sinon
-				.stub(K8Api, 'Core')
-				.returns({
-					'namespaces': (namespaceValue) => {
-						return {
-							'services': {
-								'get': (params, cb) => {
-									return cb(null, {
-										metadata: {
-											name: 'nginx',
-										},
-										spec: {
-											type: 'LoadBalancer',
-											
-										},
-										status: {
-											loadBalancer: {
-												ingress: [
-													{
-														ip: "192.168.50.50"
-													}
-												]
-											}
-										}
-									});
+				.stub(serviceWrapper, 'get')
+				.yields(null, {
+					metadata: {
+						name: 'nginx',
+					},
+					spec: {
+						type: 'LoadBalancer',
+						
+					},
+					status: {
+						loadBalancer: {
+							ingress: [
+								{
+									ip: "192.168.50.50"
 								}
-							}
+							]
 						}
 					}
 				});
-			
 			
 			service.getDNSInfo(options, function (error, res) {
 				assert.ifError(error);
@@ -1161,28 +1109,17 @@ describe("testing /lib/google/index.js", function () {
 		//need a test case where deployment is node port
 		it("Success", function (done) {
 			sinon
-				.stub(K8Api, 'Core')
-				.returns({
-					'namespaces': (namespaceValue) => {
-						return {
-							'services': {
-								'get': (params, cb) => {
-									return cb(null, {
-										metadata: {
-											name: 'nginx',
-										},
-										spec: {
-											type: 'NodePort',
-											clusterIP: "192.168.50.50"
-											
-										}
-									});
-								}
-							}
-						}
+				.stub(serviceWrapper, 'get')
+				.yields(null, {
+					metadata: {
+						name: 'nginx',
+					},
+					spec: {
+						type: 'NodePort',
+						clusterIP: "192.168.50.50"
+						
 					}
 				});
-			
 			
 			service.getDNSInfo(options, function (error, res) {
 				assert.ifError(error);
@@ -1194,28 +1131,17 @@ describe("testing /lib/google/index.js", function () {
 		//need a test case where names is per service
 		it("Success", function (done) {
 			sinon
-				.stub(K8Api, 'Core')
-				.returns({
-					'namespaces': (namespaceValue) => {
-						return {
-							'services': {
-								'get': (params, cb) => {
-									return cb(null, {
-										metadata: {
-											name: 'nginx',
-										},
-										spec: {
-											type: 'NodePort',
-											clusterIP: "192.168.50.50"
-											
-										}
-									});
-								}
-							}
-						}
+				.stub(serviceWrapper, 'get')
+				.yields(null, {
+					metadata: {
+						name: 'nginx',
+					},
+					spec: {
+						type: 'NodePort',
+						clusterIP: "192.168.50.50"
+						
 					}
 				});
-			
 			let options2 = dD().deployCluster;
 			options2.registry.deployer.container.kubernetes.remote.namespace.perService = true;
 			service.getDNSInfo(options, function (error, res) {
@@ -1228,19 +1154,8 @@ describe("testing /lib/google/index.js", function () {
 		//need a test case where cluster has no data
 		it("Success", function (done) {
 			sinon
-				.stub(K8Api, 'Core')
-				.returns({
-					'namespaces': (namespaceValue) => {
-						return {
-							'services': {
-								'get': (params, cb) => {
-									return cb(null, null);
-								}
-							}
-						}
-					}
-				});
-			
+				.stub(serviceWrapper, 'get')
+				.yields(null, null);
 			
 			service.getDNSInfo(options, function (error, res) {
 				assert.ok(error);

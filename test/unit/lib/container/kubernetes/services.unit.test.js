@@ -6,6 +6,17 @@ const sinon = require('sinon');
 const helper = require("../../../../helper.js");
 const services = helper.requireModule('./lib/container/kubernetes/services.js');
 const utils = helper.requireModule('./lib/container/kubernetes/utils.js');
+const serviceWrapper = helper.requireModule("./lib/container/kubernetes/clients/service.js");
+const deploymentWrapper = helper.requireModule("./lib/container/kubernetes/clients/deployment.js");
+const daemonsetWrapper = helper.requireModule("./lib/container/kubernetes/clients/daemonset.js");
+const autoScaleWrapper = helper.requireModule("./lib/container/kubernetes/clients/autoscale.js");
+const namespaceWrapper = helper.requireModule("./lib/container/kubernetes/clients/namespace.js");
+const nodeWrapper = helper.requireModule("./lib/container/kubernetes/clients/node.js");
+const podWrapper = helper.requireModule("./lib/container/kubernetes/clients/pod.js");
+const secretWrapper = helper.requireModule("./lib/container/kubernetes/clients/secret.js");
+const cronJobWrapper = helper.requireModule("./lib/container/kubernetes/clients/cronjob.js");
+const serviceAccountWrapper = helper.requireModule("./lib/container/kubernetes/clients/serviceaccount.js");
+const replicaWrapper = helper.requireModule("./lib/container/kubernetes/clients/replicaset.js");
 let dD = require('../../../../schemas/kubernetes/local.js');
 let kubeData = {};
 let options = {};
@@ -24,50 +35,33 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 			};
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core : {
-						nodes : {
-							get : (params, cb) => {
-								return cb(null, kubeData.nodeList)
-							}
-						},
-						services : {
-							get : (params, cb) => {
-								return cb(null, kubeData.serviceList)
-							}
-						},
-						pods : {
-							get : (params, cb) => {
-								return cb(null, kubeData.podList)
-							}
-						}
-					},
-					extensions : {
-						deployments : {
-							get : (params, cb) => {
-								return cb(null, kubeData.deploymentListSys)
-							}
-						},
-						daemonsets : {
-							get : (params, cb) => {
-								return cb(null, kubeData.daemonsetListSys)
-							}
-						}
-					},
-					autoscaling: {
-						namespaces : ()=>{
-							return {
-								hpa: {
-									get : (params, cb) => {
-										return cb(null, {})
-									}
-								}
-							}
-						}
-					}
-				});
+				.yields(null, {});
+			sinon
+				.stub(serviceWrapper, 'get')
+				.yields(null, kubeData.serviceList);
+			sinon
+				.stub(deploymentWrapper, 'get')
+				.yields(null, kubeData.deploymentListSys);
+			sinon
+				.stub(daemonsetWrapper, 'get')
+				.yields(null, kubeData.daemonsetListSys);
+			sinon
+				.stub(autoScaleWrapper, 'get')
+				.yields(null, {});
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
+			sinon
+				.stub(nodeWrapper, 'get')
+				.yields(null, kubeData.nodeList);
+			sinon
+				.stub(podWrapper, 'get')
+				.yields(null, kubeData.podList);
+			sinon
+				.stub(cronJobWrapper, 'get')
+				.yields(null, kubeData.deploymentListSys);
 			services.listServices(options, function (error, res) {
-				assert.equal(res.length, 4);
+				assert.equal(res.length, 7);
 				done();
 			});
 		});
@@ -81,50 +75,34 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 			};
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core : {
-						nodes : {
-							get : (params, cb) => {
-								return cb(null, kubeData.nodeList)
-							}
-						},
-						services : {
-							get : (params, cb) => {
-								return cb(null, kubeData.serviceList)
-							}
-						},
-						pods : {
-							get : (params, cb) => {
-								return cb(null, kubeData.podList)
-							}
-						}
-					},
-					extensions : {
-						deployments : {
-							get : (params, cb) => {
-								return cb(null, kubeData.deploymentListSys)
-							}
-						},
-						daemonsets : {
-							get : (params, cb) => {
-								return cb(null, kubeData.daemonsetListSys)
-							}
-						}
-					},
-					autoscaling: {
-						namespaces : ()=>{
-							return {
-								hpa: {
-									get : (params, cb) => {
-										return cb(null, {})
-									}
-								}
-							}
-						}
-					}
-				});
+				.yields(null, {});
+			sinon
+				.stub(serviceWrapper, 'get')
+				.yields(null, kubeData.serviceList);
+			sinon
+				.stub(deploymentWrapper, 'get')
+				.yields(null, kubeData.deploymentListSys);
+			sinon
+				.stub(daemonsetWrapper, 'get')
+				.yields(null, kubeData.daemonsetListSys);
+			sinon
+				.stub(autoScaleWrapper, 'get')
+				.yields(null, {});
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
+			sinon
+				.stub(nodeWrapper, 'get')
+				.yields(null, kubeData.nodeList);
+			sinon
+				.stub(podWrapper, 'get')
+				.yields(null, kubeData.podList);
+			sinon
+				.stub(cronJobWrapper, 'get')
+				.yields(null, kubeData.deploymentListSys);
+			
 			services.listServices(options, function (error, res) {
-				assert.equal(res.length, 4);
+				assert.equal(res.length, 7);
 				done();
 			});
 		});
@@ -137,48 +115,31 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 			};
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core : {
-						nodes : {
-							get : (params, cb) => {
-								return cb(null, kubeData.nodeList)
-							}
-						},
-						services : {
-							get : (params, cb) => {
-								return cb(null, kubeData.serviceList)
-							}
-						},
-						pods : {
-							get : (params, cb) => {
-								return cb(null, kubeData.podList)
-							}
-						}
-					},
-					extensions : {
-						deployments : {
-							get : (params, cb) => {
-								return cb(null, kubeData.deploymentMongo)
-							}
-						},
-						daemonsets : {
-							get : (params, cb) => {
-								return cb(null, null)
-							}
-						}
-					},
-					autoscaling: {
-						namespaces : ()=>{
-							return {
-								hpa: {
-									get : (params, cb) => {
-										return cb(null, {})
-									}
-								}
-							}
-						}
-					}
-				});
+				.yields(null, {});
+			sinon
+				.stub(serviceWrapper, 'get')
+				.yields(null, kubeData.serviceList);
+			sinon
+				.stub(deploymentWrapper, 'get')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(daemonsetWrapper, 'get')
+				.yields(null, null);
+			sinon
+				.stub(autoScaleWrapper, 'get')
+				.yields(null, {});
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
+			sinon
+				.stub(nodeWrapper, 'get')
+				.yields(null, kubeData.nodeList);
+			sinon
+				.stub(podWrapper, 'get')
+				.yields(null, kubeData.podList);
+			sinon
+				.stub(cronJobWrapper, 'get')
+				.yields(null, null);
 			services.listServices(options, function (error, res) {
 				assert.equal(res.length, 1);
 				done();
@@ -243,59 +204,51 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 			let nocks = nock('https://hub.docker.com', {'cache-control': 'no-cache'})
 				.get('/v2/repositories/library/mongo/tags/3.4.10')
 				.reply(200, response);
-			
-			let namespaces = () => {
-				return {
-					services: {
-						post: (params, cb) => {
-							return cb(null, true)
-						}
-					},
-					hpa: {
-						post: (params, cb) => {
-							return cb(null, true)
-						}
-					},
-					serviceaccounts :{
-						post: (params, cb) => {
-							return cb(null, true)
-						}
-					},
-					deployment :{
-						post: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						}
-					}
-				}
-			};
-			namespaces.get = (params, cb)=>{
-				return cb(null, kubeData.namespaces)
-			};
-			
-			//deployer.core.namespaces.get
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						namespaces: namespaces,
-						secrets : {
-							get: (cb) => {
-								return cb(null, kubeData.secrets)
-							}
-						},
-						namespace: {
-							post: (params, cb)=>{
-								return cb(null, true);
-							}
-						}
-					},
-					autoscaling: {
-						namespaces: namespaces,
-					},
-					extensions: {
-						namespaces: namespaces,
-					}
-				});
+				.yields(null, {});
+			sinon
+				.stub(serviceWrapper, 'get')
+				.yields(null, kubeData.serviceList);
+			sinon
+				.stub(serviceWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(secretWrapper, 'get')
+				.yields(null, kubeData.secrets);
+			sinon
+				.stub(deploymentWrapper, 'get')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(deploymentWrapper, 'post')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(daemonsetWrapper, 'get')
+				.yields(null, null);
+			sinon
+				.stub(autoScaleWrapper, 'get')
+				.yields(null, {});
+			sinon
+				.stub(autoScaleWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
+			sinon
+				.stub(namespaceWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(nodeWrapper, 'get')
+				.yields(null, kubeData.nodeList);
+			sinon
+				.stub(podWrapper, 'get')
+				.yields(null, kubeData.podList);
+			sinon
+				.stub(cronJobWrapper, 'get')
+				.yields(null, null);
+			sinon
+				.stub(serviceAccountWrapper, 'post')
+				.yields(null, null);
 			services.deployService(options, function (error, res) {
 				assert.ok(res);
 				done();
@@ -351,58 +304,54 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 				.get('/v2/repositories/library/mongo/tags/3.4.10')
 				.reply(200, response);
 			
-			let namespaces = () => {
-				return {
-					services: {
-						post: (params, cb) => {
-							return cb(null, true)
-						}
-					},
-					hpa: {
-						post: (params, cb) => {
-							return cb(null, true)
-						}
-					},
-					serviceaccounts :{
-						post: (params, cb) => {
-							return cb(null, true)
-						}
-					},
-					daemonset :{
-						post: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						}
-					}
-				}
-			};
-			namespaces.get = (params, cb)=>{
-				return cb(null, kubeData.namespaces)
-			};
-			
-			//deployer.core.namespaces.get
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						namespaces: namespaces,
-						secrets : {
-							get: (cb) => {
-								return cb(null, kubeData.secrets)
-							}
-						},
-						namespace: {
-							post: (params, cb)=>{
-								return cb(null, true);
-							}
-						}
-					},
-					autoscaling: {
-						namespaces: namespaces,
-					},
-					extensions: {
-						namespaces: namespaces,
-					}
-				});
+				.yields(null, {});
+			sinon
+				.stub(serviceWrapper, 'get')
+				.yields(null, kubeData.serviceList);
+			sinon
+				.stub(serviceWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(secretWrapper, 'get')
+				.yields(null, kubeData.secrets);
+			sinon
+				.stub(deploymentWrapper, 'get')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(deploymentWrapper, 'post')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(daemonsetWrapper, 'get')
+				.yields(null, null);
+			sinon
+				.stub(daemonsetWrapper, 'post')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(autoScaleWrapper, 'get')
+				.yields(null, {});
+			sinon
+				.stub(autoScaleWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
+			sinon
+				.stub(namespaceWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(nodeWrapper, 'get')
+				.yields(null, kubeData.nodeList);
+			sinon
+				.stub(podWrapper, 'get')
+				.yields(null, kubeData.podList);
+			sinon
+				.stub(cronJobWrapper, 'get')
+				.yields(null, null);
+			sinon
+				.stub(serviceAccountWrapper, 'post')
+				.yields(null, null);
 			services.deployService(options, function (error, res) {
 				assert.ok(res);
 				done();
@@ -462,58 +411,54 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 				.get('/v2/repositories/library/mongo/tags/3.4.10')
 				.reply(200, response);
 			
-			let namespaces = () => {
-				return {
-					services: {
-						post: (params, cb) => {
-							return cb(null, true)
-						}
-					},
-					hpa: {
-						post: (params, cb) => {
-							return cb(null, true)
-						}
-					},
-					serviceaccounts :{
-						post: (params, cb) => {
-							return cb(null, true)
-						}
-					},
-					deployment :{
-						post: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						}
-					}
-				}
-			};
-			namespaces.get = (params, cb)=>{
-				return cb(null, kubeData.namespaces)
-			};
-			
-			//deployer.core.namespaces.get
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						namespaces: namespaces,
-						secrets : {
-							get: (cb) => {
-								return cb(null, kubeData.secrets)
-							}
-						},
-						namespace: {
-							post: (params, cb)=>{
-								return cb(null, true);
-							}
-						}
-					},
-					autoscaling: {
-						namespaces: namespaces,
-					},
-					extensions: {
-						namespaces: namespaces,
-					}
-				});
+				.yields(null, {});
+			sinon
+				.stub(serviceWrapper, 'get')
+				.yields(null, kubeData.serviceList);
+			sinon
+				.stub(serviceWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(secretWrapper, 'get')
+				.yields(null, kubeData.secrets);
+			sinon
+				.stub(deploymentWrapper, 'get')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(deploymentWrapper, 'post')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(daemonsetWrapper, 'get')
+				.yields(null, null);
+			sinon
+				.stub(daemonsetWrapper, 'post')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(autoScaleWrapper, 'get')
+				.yields(null, {});
+			sinon
+				.stub(autoScaleWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
+			sinon
+				.stub(namespaceWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(nodeWrapper, 'get')
+				.yields(null, kubeData.nodeList);
+			sinon
+				.stub(podWrapper, 'get')
+				.yields(null, kubeData.podList);
+			sinon
+				.stub(cronJobWrapper, 'get')
+				.yields(null, null);
+			sinon
+				.stub(serviceAccountWrapper, 'post')
+				.yields(null, null);
 			services.deployService(options, function (error, res) {
 				assert.ok(res);
 				done();
@@ -580,78 +525,65 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 			options = kubeData.deployer;
 			options.params = kubeData.redepolyServiceParams;
 			options.params.action = kubeData.redepolyServiceParams.inputmaskData.action;
-			let namespaces = () => {
-				return {
-					services: {
-						post: (params, cb) => {
-							return cb(null, true)
-						},
-						get: (params, cb) => {
-							return cb(null, [])
-						},
-						put: (params, cb) => {
-							return cb(null, true)
-						}
-					},
-					hpa: {
-						post: (params, cb) => {
-							return cb(null, true)
-						}
-					},
-					serviceaccounts :{
-						post: (params, cb) => {
-							return cb(null, true)
-						}
-					},
-					deployment :{
-						post: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						},
-						put: (params, cb) => {
-							return cb(null, true)
-						},
-						get: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						},
-					},
-					daemonset :{
-						post: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						}
-					}
-				}
-			};
-			namespaces.get = (params, cb)=>{
-				return cb(null, kubeData.namespaces)
-			};
-			
-			//deployer.core.namespaces.get
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						namespaces: namespaces,
-						secrets : {
-							get: (cb) => {
-								return cb(null, kubeData.secrets)
-							}
-						},
-						namespace: {
-							post: (params, cb)=>{
-								return cb(null, true);
-							}
-						}
-					},
-					autoscaling: {
-						namespaces: namespaces,
-					},
-					extensions: {
-						namespaces: namespaces,
-					}
-				});
-			
+				.yields(null, {});
+			sinon
+				.stub(serviceWrapper, 'get')
+				.yields(null, kubeData.serviceList);
+			sinon
+				.stub(serviceWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(serviceWrapper, 'put')
+				.yields(null, true);
+			sinon
+				.stub(secretWrapper, 'get')
+				.yields(null, kubeData.secrets);
+			sinon
+				.stub(deploymentWrapper, 'get')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(deploymentWrapper, 'post')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(deploymentWrapper, 'put')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(daemonsetWrapper, 'get')
+				.yields(null, null);
+			sinon
+				.stub(daemonsetWrapper, 'post')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(autoScaleWrapper, 'get')
+				.yields(null, {});
+			sinon
+				.stub(autoScaleWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(autoScaleWrapper, 'put')
+				.yields(null, true);
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
+			sinon
+				.stub(namespaceWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(nodeWrapper, 'get')
+				.yields(null, kubeData.nodeList);
+			sinon
+				.stub(podWrapper, 'get')
+				.yields(null, kubeData.podList);
+			sinon
+				.stub(cronJobWrapper, 'get')
+				.yields(null, null);
+			sinon
+				.stub(serviceAccountWrapper, 'post')
+				.yields(null, null);
 			services.redeployService(options, function (error, res) {
-				assert.ok(res)
+				assert.ok(res);
 				done();
 			});
 		});
@@ -662,78 +594,65 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 			options = kubeData.deployer;
 			options.params = kubeData.redepolyServiceParams;
 			options.params.action = kubeData.redepolyServiceParams.inputmaskData.action;
-			let namespaces = () => {
-				return {
-					services: {
-						post: (params, cb) => {
-							return cb(null, true)
-						},
-						get: (params, cb) => {
-							return cb(null, kubeData.serviceList)
-						},
-						put: (params, cb) => {
-							return cb(null, true)
-						}
-					},
-					hpa: {
-						post: (params, cb) => {
-							return cb(null, true)
-						}
-					},
-					serviceaccounts :{
-						post: (params, cb) => {
-							return cb(null, true)
-						}
-					},
-					deployment :{
-						post: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						},
-						put: (params, cb) => {
-							return cb(null, true)
-						},
-						get: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						},
-					},
-					daemonset :{
-						post: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						}
-					}
-				}
-			};
-			namespaces.get = (params, cb)=>{
-				return cb(null, kubeData.namespaces)
-			};
-			
-			//deployer.core.namespaces.get
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						namespaces: namespaces,
-						secrets : {
-							get: (cb) => {
-								return cb(null, kubeData.secrets)
-							}
-						},
-						namespace: {
-							post: (params, cb)=>{
-								return cb(null, true);
-							}
-						}
-					},
-					autoscaling: {
-						namespaces: namespaces,
-					},
-					extensions: {
-						namespaces: namespaces,
-					}
-				});
-			
+				.yields(null, {});
+			sinon
+				.stub(serviceWrapper, 'get')
+				.yields(null, kubeData.serviceList);
+			sinon
+				.stub(serviceWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(serviceWrapper, 'put')
+				.yields(null, true);
+			sinon
+				.stub(secretWrapper, 'get')
+				.yields(null, kubeData.secrets);
+			sinon
+				.stub(deploymentWrapper, 'get')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(deploymentWrapper, 'post')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(deploymentWrapper, 'put')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(daemonsetWrapper, 'get')
+				.yields(null, null);
+			sinon
+				.stub(daemonsetWrapper, 'post')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(autoScaleWrapper, 'get')
+				.yields(null, {});
+			sinon
+				.stub(autoScaleWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(autoScaleWrapper, 'put')
+				.yields(null, true);
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
+			sinon
+				.stub(namespaceWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(nodeWrapper, 'get')
+				.yields(null, kubeData.nodeList);
+			sinon
+				.stub(podWrapper, 'get')
+				.yields(null, kubeData.podList);
+			sinon
+				.stub(cronJobWrapper, 'get')
+				.yields(null, null);
+			sinon
+				.stub(serviceAccountWrapper, 'post')
+				.yields(null, null);
 			services.redeployService(options, function (error, res) {
-				assert.ok(res)
+				assert.ok(res);
 				done();
 			});
 		});
@@ -745,78 +664,65 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 			options.params = kubeData.redepolyServiceParams;
 			kubeData.redepolyServiceParams.inputmaskData.action = 'redeploy';
 			options.params.action = 'redeploy';
-			let namespaces = () => {
-				return {
-					services: {
-						post: (params, cb) => {
-							return cb(null, true)
-						},
-						get: (params, cb) => {
-							return cb(null, kubeData.serviceList)
-						},
-						put: (params, cb) => {
-							return cb(null, true)
-						}
-					},
-					hpa: {
-						post: (params, cb) => {
-							return cb(null, true)
-						}
-					},
-					serviceaccounts :{
-						post: (params, cb) => {
-							return cb(null, true)
-						}
-					},
-					deployment :{
-						post: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						},
-						put: (params, cb) => {
-							return cb(null, true)
-						},
-						get: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						},
-					},
-					daemonset :{
-						post: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						}
-					}
-				}
-			};
-			namespaces.get = (params, cb)=>{
-				return cb(null, kubeData.namespaces)
-			};
-			
-			//deployer.core.namespaces.get
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						namespaces: namespaces,
-						secrets : {
-							get: (cb) => {
-								return cb(null, kubeData.secrets)
-							}
-						},
-						namespace: {
-							post: (params, cb)=>{
-								return cb(null, true);
-							}
-						}
-					},
-					autoscaling: {
-						namespaces: namespaces,
-					},
-					extensions: {
-						namespaces: namespaces,
-					}
-				});
-			
+				.yields(null, {});
+			sinon
+				.stub(serviceWrapper, 'get')
+				.yields(null, kubeData.serviceList);
+			sinon
+				.stub(serviceWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(serviceWrapper, 'put')
+				.yields(null, true);
+			sinon
+				.stub(secretWrapper, 'get')
+				.yields(null, kubeData.secrets);
+			sinon
+				.stub(deploymentWrapper, 'get')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(deploymentWrapper, 'post')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(deploymentWrapper, 'put')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(daemonsetWrapper, 'get')
+				.yields(null, null);
+			sinon
+				.stub(daemonsetWrapper, 'post')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(autoScaleWrapper, 'get')
+				.yields(null, {});
+			sinon
+				.stub(autoScaleWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(autoScaleWrapper, 'put')
+				.yields(null, true);
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
+			sinon
+				.stub(namespaceWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(nodeWrapper, 'get')
+				.yields(null, kubeData.nodeList);
+			sinon
+				.stub(podWrapper, 'get')
+				.yields(null, kubeData.podList);
+			sinon
+				.stub(cronJobWrapper, 'get')
+				.yields(null, null);
+			sinon
+				.stub(serviceAccountWrapper, 'post')
+				.yields(null, null);
 			services.redeployService(options, function (error, res) {
-				assert.ok(res)
+				assert.ok(res);
 				done();
 			});
 		});
@@ -838,33 +744,24 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 				"id": "9xabk0pf9wdfdul8vh913jvqs",
 				"scale": 2
 			};
-			let namespaces = () => {
-				return {
-					deployments :{
-						post: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						},
-						put: (params, cb) => {
-							return cb(null, true)
-						},
-						get: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						},
-					}
-				}
-			};
-			namespaces.get = (params, cb)=>{
-				return cb(null, kubeData.namespaces)
-			};
-			
-			//deployer.core.namespaces.get
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					extensions: {
-						namespaces: namespaces,
-					}
-				});
+				.yields(null, {});
+			sinon
+				.stub(deploymentWrapper, 'get')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(deploymentWrapper, 'post')
+				.yields(null, true);
+			sinon
+				.stub(deploymentWrapper, 'put')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(deploymentWrapper, 'patch')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
 			services.scaleService(options, function (error, res) {
 				assert.ok(res);
 				done();
@@ -888,41 +785,30 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 				serviceName : "controller",
 				version : "1"
 			};
-			let namespaces = () => {
-				return {
-					deployments :{
-						get: (params, cb) => {
-							return cb(null, kubeData.deploymentListSys)
-						},
-					},
-					daemonsets :{
-						get: (params, cb) => {
-							return cb(null,  kubeData.daemonsetListSys)
-						},
-					},
-					services :{
-						get: (params, cb) => {
-							return cb(null, kubeData.serviceList)
-						},
-					}
-				}
-			};
-			
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						nodes: {
-							get: (params, cb) => {
-								return cb(null, kubeData.nodeList)
-							},
-						},
-						namespaces: namespaces
-					},
-					extensions: {
-						namespaces: namespaces,
-					}
-				});
+				.yields(null, {});
+			sinon
+				.stub(deploymentWrapper, 'get')
+				.yields(null, kubeData.deploymentListSys);
+			sinon
+				.stub(serviceWrapper, 'get')
+				.yields(null, kubeData.serviceList);
+			sinon
+				.stub(daemonsetWrapper, 'get')
+				.yields(null, kubeData.daemonsetListSys);
+			sinon
+				.stub(secretWrapper, 'get')
+				.yields(null, kubeData.serviceList);
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
+			sinon
+				.stub(cronJobWrapper, 'get')
+				.yields(null, kubeData.deploymentListSys);
+			sinon
+				.stub(nodeWrapper, 'get')
+				.yields(null, kubeData.nodeList);
 			services.findService(options, function (error, res) {
 				assert.ok(res);
 				done();
@@ -949,15 +835,10 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 			let options = kubeData.deployer;
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						services :{
-							get: (params, cb) => {
-								return cb(null, kubeData.serviceList)
-							}
-						}
-					}
-				});
+				.yields(null, {});
+			sinon
+				.stub(serviceWrapper, 'get')
+				.yields(null, kubeData.serviceList);
 			services.listKubeServices(options, function (error, res) {
 				assert.ok(res);
 				done();
@@ -981,69 +862,63 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 			options.params = {
 				"id": "9xabk0pf9wdfdul8vh913jvqs"
 			};
-			
-			let namespaces = () => {
-				return {
-					deployment :{
-						get: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						},
-						delete: (params, cb) => {
-							return cb(null,  true)
-						},
-					},
-					deployments :{
-						get: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						},
-						put: (params, cb) => {
-							return cb(null,  true)
-						},
-					},
-					daemonset :{
-						get: (params, cb) => {
-							return cb(null,  kubeData.daemonsetNginx)
-						},
-						delete: (params, cb) => {
-							return cb(null,  true)
-						},
-					},
-					services :{
-						get: (params, cb) => {
-							return cb(null, kubeData.serviceList)
-						},
-						delete: (params, cb) => {
-							return cb(null,  true)
-						},
-					},
-					replicasets :{
-						delete: (params, cb) => {
-							return cb(null,  true)
-						},
-					},
-					pods :{
-						delete: (params, cb) => {
-							return cb(null,  true)
-						},
-					},
-					hpa :{
-						get: (params, cb) => {
-							return cb(null, kubeData.autoscale)
-						},
-						delete: (params, cb) => {
-							return cb(null, true)
-						},
-					}
-				}
-			};
-			
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {namespaces},
-					extensions: {namespaces},
-					autoscaling: {namespaces}
-				});
+				.yields(null, {});
+			sinon
+				.stub(serviceWrapper, 'get')
+				.yields(null, kubeData.serviceList);
+			sinon
+				.stub(serviceWrapper, 'delete')
+				.yields(null, true);
+			sinon
+				.stub(deploymentWrapper, 'get')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(deploymentWrapper, 'patch')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(deploymentWrapper, 'delete')
+				.yields(null, true);
+			sinon
+				.stub(deploymentWrapper, 'put')
+				.yields(null, true);
+			sinon
+				.stub(daemonsetWrapper, 'get')
+				.yields(null, kubeData.daemonsetNginx);
+			sinon
+				.stub(daemonsetWrapper, 'delete')
+				.yields(null, true);
+			sinon
+				.stub(autoScaleWrapper, 'get')
+				.yields(null, {});
+			sinon
+				.stub(autoScaleWrapper, 'delete')
+				.yields(null, true);
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
+			sinon
+				.stub(podWrapper, 'get')
+				.yields(null, kubeData.podList);
+			sinon
+				.stub(podWrapper, 'delete')
+				.yields(null, true);
+			sinon
+				.stub(cronJobWrapper, 'get')
+				.yields(null, null);
+			sinon
+				.stub(cronJobWrapper, 'delete')
+				.yields(null, null);
+			sinon
+				.stub(serviceAccountWrapper, 'get')
+				.yields(null, null);
+			sinon
+				.stub(serviceAccountWrapper, 'delete')
+				.yields(null, null);
+			sinon
+				.stub(replicaWrapper, 'delete')
+				.yields(null, null);
 			services.deleteService(options, function (error, res) {
 				assert.ok(res);
 				done();
@@ -1057,68 +932,63 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 				"id": "9xabk0pf9wdfdul8vh913jvqs"
 			};
 			
-			let namespaces = () => {
-				return {
-					deployment :{
-						get: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						},
-						delete: (params, cb) => {
-							return cb(null,  true)
-						},
-					},
-					deployments :{
-						get: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						},
-						put: (params, cb) => {
-							return cb(null,  true)
-						},
-					},
-					daemonset :{
-						get: (params, cb) => {
-							return cb(null,  kubeData.daemonsetNginx)
-						},
-						delete: (params, cb) => {
-							return cb(null,  true)
-						},
-					},
-					services :{
-						get: (params, cb) => {
-							return cb(null, [])
-						},
-						delete: (params, cb) => {
-							return cb(null,  true)
-						},
-					},
-					replicasets :{
-						delete: (params, cb) => {
-							return cb(null,  true)
-						},
-					},
-					pods :{
-						delete: (params, cb) => {
-							return cb(null,  true)
-						},
-					},
-					hpa :{
-						get: (params, cb) => {
-							return cb(null, kubeData.autoscale)
-						},
-						delete: (params, cb) => {
-							return cb(null, true)
-						},
-					}
-				}
-			};
-			
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {namespaces},
-					extensions: {namespaces},
-					autoscaling: {namespaces}
-				});
+				.yields(null, {});
+			sinon
+				.stub(serviceWrapper, 'get')
+				.yields(null, []);
+			sinon
+				.stub(serviceWrapper, 'delete')
+				.yields(null, true);
+			sinon
+				.stub(deploymentWrapper, 'get')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(deploymentWrapper, 'patch')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(deploymentWrapper, 'delete')
+				.yields(null, true);
+			sinon
+				.stub(deploymentWrapper, 'put')
+				.yields(null, true);
+			sinon
+				.stub(daemonsetWrapper, 'get')
+				.yields(null, kubeData.daemonsetNginx);
+			sinon
+				.stub(daemonsetWrapper, 'delete')
+				.yields(null, true);
+			sinon
+				.stub(autoScaleWrapper, 'get')
+				.yields(null, {});
+			sinon
+				.stub(autoScaleWrapper, 'delete')
+				.yields(null, true);
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
+			sinon
+				.stub(podWrapper, 'get')
+				.yields(null, kubeData.podList);
+			sinon
+				.stub(podWrapper, 'delete')
+				.yields(null, true);
+			sinon
+				.stub(cronJobWrapper, 'get')
+				.yields(null, null);
+			sinon
+				.stub(cronJobWrapper, 'delete')
+				.yields(null, null);
+			sinon
+				.stub(serviceAccountWrapper, 'get')
+				.yields(null, null);
+			sinon
+				.stub(serviceAccountWrapper, 'delete')
+				.yields(null, null);
+			sinon
+				.stub(replicaWrapper, 'delete')
+				.yields(null, null);
 			services.deleteService(options, function (error, res) {
 				assert.ok(res);
 				done();
@@ -1127,8 +997,6 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 	});
 
 	describe("calling  getLatestVersion", function () {
-
-		
 		afterEach((done) => {
 			sinon.restore();
 			done();
@@ -1144,38 +1012,18 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 				env : "kubetest",
 				serviceName : "kube-proxy"
 			};
-			
-			let namespaces = () => {
-				return {
-					deployments :{
-						get: (params, cb) => {
-							return cb(null, kubeData.deploymentListSys)
-						},
-					},
-					daemonsets :{
-						get: (params, cb) => {
-							return cb(null,  kubeData.daemonsetListSys)
-						},
-					}
-				}
-			};
-			
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					extensions: {
-						deployments :{
-							get: (params, cb) => {
-								return cb(null, kubeData.deploymentListSys)
-							},
-						},
-						daemonsets :{
-							get: (params, cb) => {
-								return cb(null,  kubeData.daemonsetListSys)
-							},
-						}
-					}
-				});
+				.yields(null, {});
+			sinon
+				.stub(deploymentWrapper, 'get')
+				.yields(null, kubeData.deploymentListSys);
+			sinon
+				.stub(daemonsetWrapper, 'get')
+				.yields(null, kubeData.daemonsetListSys);
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
 			services.getLatestVersion(options, function (error, res) {
 				assert.equal(res, "0");
 				done();
@@ -1201,76 +1049,39 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 				env : "kubetest",
 				serviceName : "mongo-service"
 			};
-			let namespaces = () => {
-				return {
-					deployment :{
-						get: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						},
-						delete: (params, cb) => {
-							return cb(null,  true)
-						},
-					},
-					deployments :{
-						get: (params, cb) => {
-							return cb(null, kubeData.deploymentMongo)
-						},
-						put: (params, cb) => {
-							return cb(null,  true)
-						},
-					},
-					daemonset :{
-						get: (params, cb) => {
-							return cb(null,  kubeData.daemonsetNginx)
-						},
-						delete: (params, cb) => {
-							return cb(null,  true)
-						},
-					},
-					services :{
-						get: (params, cb) => {
-							return cb(null, kubeData.serviceList)
-						},
-						delete: (params, cb) => {
-							return cb(null,  true)
-						},
-					},
-					replicasets :{
-						delete: (params, cb) => {
-							return cb(null,  true)
-						},
-					},
-					pods :{
-						get: (params, cb) => {
-							return cb(null,  {})
-						},
-					},
-					hpa :{
-						get: (params, cb) => {
-							return cb(null, kubeData.autoscale)
-						},
-						delete: (params, cb) => {
-							return cb(null, true)
-						},
-					}
-				}
-			};
-			
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						namespaces: namespaces,
-						nodes: {
-							get: (params, cb) => {
-								return cb(null, kubeData.nodeList)
-							},
-						}
-					},
-					extensions : {
-						namespaces: namespaces,
-					}
-				});
+				.yields(null, {});
+			sinon
+				.stub(serviceWrapper, 'get')
+				.yields(null, kubeData.serviceList);
+			sinon
+				.stub(secretWrapper, 'get')
+				.yields(null, kubeData.secrets);
+			sinon
+				.stub(deploymentWrapper, 'get')
+				.yields(null, kubeData.deploymentMongo);
+			sinon
+				.stub(daemonsetWrapper, 'get')
+				.yields(null, kubeData.daemonsetNginx);
+			sinon
+				.stub(autoScaleWrapper, 'get')
+				.yields(null, {});
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
+			sinon
+				.stub(podWrapper, 'get')
+				.yields(null, kubeData.podList);
+			sinon
+				.stub(cronJobWrapper, 'get')
+				.yields(null, null);
+			sinon
+				.stub(serviceAccountWrapper, 'post')
+				.yields(null, null);
+			sinon
+				.stub(nodeWrapper, 'get')
+				.yields(null,  kubeData.nodeList);
 			services.inspectService(options, function (error, res) {
 				assert.ok(res);
 				done();
@@ -1297,22 +1108,12 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 				serviceName : "kube-proxy",
 				version: 1
 			};
-			
-			let namespaces = () => {
-				return {
-					services :{
-						get: (params, cb) => {
-							return cb(null, kubeData.serviceList)
-						},
-					}
-				}
-			};
-			
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {namespaces}
-				});
+				.yields(null, {});
+			sinon
+				.stub(serviceWrapper, 'get')
+				.yields(null, kubeData.serviceList);
 			services.getServiceHost(options, function (error, res) {
 				assert.ok(res);
 				done();
@@ -1326,21 +1127,12 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 				serviceName : "kube-proxy"
 			};
 			
-			let namespaces = () => {
-				return {
-					services :{
-						get: (params, cb) => {
-							return cb(null,{items: []})
-						},
-					}
-				}
-			};
-			
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {namespaces}
-				});
+				.yields(null, {});
+			sinon
+				.stub(serviceWrapper, 'get')
+				.yields(null, []);
 			services.getServiceHost(options, function (error, res) {
 				assert.ok(error);
 				done();
@@ -1353,22 +1145,12 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 				env : "kubetest",
 				serviceName : "kube-proxy"
 			};
-			
-			let namespaces = () => {
-				return {
-					services :{
-						get: (params, cb) => {
-							return cb(null, {items: [{}]})
-						},
-					}
-				}
-			};
-			
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {namespaces}
-				});
+				.yields(null, {});
+			sinon
+				.stub(serviceWrapper, 'get')
+				.yields(null, {items: [{}]});
 			services.getServiceHost(options, function (error, res) {
 				assert.ok(error);
 				done();

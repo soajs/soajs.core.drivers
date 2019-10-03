@@ -6,6 +6,7 @@ const sinon = require('sinon');
 const helper = require("../../../../helper.js");
 const services = helper.requireModule('./lib/container/kubernetes/task.js');
 const utils = helper.requireModule('./lib/container/kubernetes/utils.js');
+const podWrapper = helper.requireModule("./lib/container/kubernetes/clients/pod.js");
 let dD = require('../../../../schemas/kubernetes/local.js');
 let kubeData = {};
 let options = {};
@@ -33,9 +34,10 @@ describe("testing /lib/container/kubernetes/task.js", function () {
 			};
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core : {namespaces}
-				});
+				.yields(null, {});
+			sinon
+				.stub(podWrapper, 'get')
+				.yields(null, kubeData.podList[1].items[0]);
 			services.inspectTask(options, function (error, res) {
 				assert.ok(res);
 				done();
@@ -62,36 +64,15 @@ describe("testing /lib/container/kubernetes/task.js", function () {
 				"taskId": "mongo-7548f86496-vt8rw",
 				"filter": ""
 			};
-			let pods = () => {
-				return {
-					log : {
-						getStream: (params, cb)=>{
-							return cb(null, {})
-						},
-						get: (params, cb)=>{
-							return cb(null, {})
-						}
-					}
-				}
-			};
-			
-			let namespaces = () => {
-				return {
-					pods: pods
-				}
-			};
-			
-			pods.get = (params, cb)=>{
-				return cb(null, true)
-			};
-			//deployer.core.namespaces.get
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						namespaces: namespaces,
-					}
-				});
+				.yields(null, {});
+			sinon
+				.stub(podWrapper, 'get')
+				.yields(null, true);
+			sinon
+				.stub(podWrapper, 'getLogs')
+				.yields(null, {});
 			services.getContainerLogs(options, function (error, res) {
 				assert.ok(res);
 				done();
@@ -107,37 +88,15 @@ describe("testing /lib/container/kubernetes/task.js", function () {
 				"filter": "",
 				"follow": true,
 			};
-			let pods = () => {
-				return {
-					log : {
-						getStream: (params)=>{
-							return {params};
-						},
-						get: (params, cb)=>{
-							return cb(null, {});
-						}
-					}
-				}
-			};
-			
-			let namespaces = () => {
-				return {
-					pods: pods
-				}
-			};
-			
-			pods.get = (params, cb)=>{
-				return cb(null, true)
-			};
-			
-			//deployer.core.namespaces.get
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						namespaces: namespaces,
-					}
-				});
+				.yields(null, {});
+			sinon
+				.stub(podWrapper, 'get')
+				.yields(null, true);
+			sinon
+				.stub(podWrapper, 'getLogs')
+				.returns({});
 			services.getContainerLogs(options, function (error, res) {
 				assert.ok(res);
 				done();
@@ -167,23 +126,12 @@ describe("testing /lib/container/kubernetes/task.js", function () {
 				"vmName": "controller",
 				"maintenancePort": 5000
 			};
-			let namespaces = () => {
-				return {
-					pods: {
-						get: (params, cb) => {
-							return cb(null, kubeData.PodListController)
-						}
-					}
-				}
-			};
-			
-			//deployer.core.namespaces.get
+			sinon
+				.stub(podWrapper, 'get')
+				.yields(null, kubeData.PodListController);
 			sinon
 				.stub(utils, 'getDeployer')
 				.yields(null, {
-					core: {
-						namespaces: namespaces,
-					},
 					config : { url: 'https://127.0.0.1:80',
 						auth: { bearer: 'eA' },
 						request:

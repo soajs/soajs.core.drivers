@@ -1,11 +1,11 @@
 'use strict';
-const config = require('../config');
 const _ = require('lodash');
 const async = require("async");
-const K8Api = require('kubernetes-client');
+const Client = require('kubernetes-client').Client;
+const wrapper = require('../../../lib/container/kubernetes/wrapper.js');
 const randomstring = require("randomstring");
 const traverse = require("traverse");
-
+const swagger = require('../../../lib/schemas/kubernetes/swagger/swagger');
 const networks = require("../cluster/networks.js");
 
 /**
@@ -551,25 +551,30 @@ let driver = {
 								let machineAuth = clusterInformation.masterAuth;
 								let deployer = {};
 								let deployerConfig = {
-									url: `https://${machineIp}`,
-									auth: {
-										user: machineAuth.username,
-										pass: machineAuth.password
+									config :{
+										url: `https://${machineIp}`,
+										auth: {
+											user: machineAuth.username,
+											pass: machineAuth.password
+										},
+										request: {strictSSL: false}
 									},
-									request: {strictSSL: false}
+									spec: swagger
 								};
 								let machineIPs = [];
 								async.auto({
 									"getKubernetesToken": function (fCb) {
 										options.soajs.log.debug("Creating Kubernetes Token.");
-										deployerConfig.version = 'v1';
-										
-										deployer.core = new K8Api.Core(deployerConfig);
-										deployer.core.namespaces.secrets.get({}, (error, secretsList) => {
+										try {
+											deployer = new Client(deployerConfig);
+										}
+										catch (e) {
+											return fCb(e);
+										}
+										wrapper.secret.get({}, (error, secretsList) => {
 											if (error) {
 												return fCb(error);
 											}
-											
 											async.detect(secretsList.items, (oneSecret, callback) => {
 												return callback(null, (oneSecret && oneSecret.metadata && oneSecret.metadata.name && oneSecret.metadata.name.match(/default-token-.*/g) && oneSecret.type === 'kubernetes.io/service-account-token'));
 											}, (error, tokenSecret) => {
@@ -584,7 +589,14 @@ let driver = {
 									"createNameSpace": ['getKubernetesToken', function (info, fCb) {
 										options.soajs.log.debug("Creating new namespace for SOAJS.");
 										deployerConfig.version = 'v1';
-										deployerConfig.auth = {bearer: info.getKubernetesToken};
+										deployerConfig.config.auth = {bearer: info.getKubernetesToken};
+										try {
+											deployer = new Client(deployerConfig);
+											
+										}
+										catch (e) {
+											return fCb(e);
+										}
 										let namespace = {
 											kind: 'Namespace',
 											apiVersion: 'v1',
@@ -593,8 +605,7 @@ let driver = {
 												labels: {'soajs.content': 'true'}
 											}
 										};
-										deployer.core = new K8Api.Core(deployerConfig);
-										deployer.core.namespaces.get({}, function (error, namespacesList) {
+										wrapper.namespace.get(deployer, {}, function (error, namespacesList) {
 											if (error) {
 												return fCb(error);
 											}
@@ -604,7 +615,7 @@ let driver = {
 												if (foundNamespace) {
 													return fCb(null, true);
 												}
-												deployer.core.namespace.post({body: namespace}, (error, response) => {
+												wrapper.namespace.post(deployer,{body: namespace}, (error, response) => {
 													if (error) {
 														return fCb(error);
 													}
@@ -738,23 +749,33 @@ let driver = {
 		let nginxDeploymentName = options.soajs.registry.code.toLowerCase() + '-nginx';
 		let deployer = {};
 		let deployerConfig = {
-			url: `https://${options.soajs.registry.deployer.container.kubernetes.remote.nodes}:${options.soajs.registry.deployer.container.kubernetes.remote.apiPort}`,
-			version: 'v1',
-			auth: {
-				bearer: options.soajs.registry.deployer.container.kubernetes.remote.auth.token
+			config :{
+				url: `https://${options.soajs.registry.deployer.container.kubernetes.remote.nodes}:${options.soajs.registry.deployer.container.kubernetes.remote.apiPort}`,
+				auth: {
+					bearer: options.soajs.registry.deployer.container.kubernetes.remote.auth.token
+				},
+				request: {strictSSL: false}
 			},
-			request: {strictSSL: false}
+			spec: swagger
 		};
-		
+		try {
+			deployer = new Client(deployerConfig);
+			
+		}
+		catch (e) {
+			return cb(e);
+		}
 		//build namespace
 		let namespace = options.soajs.registry.deployer.container.kubernetes.remote.namespace.default;
 		if (options.soajs.registry.deployer.container.kubernetes.remote.namespace.perService) {
 			namespace += '-' + nginxDeploymentName;
 		}
 		
-		deployer.core = new K8Api.Core(deployerConfig);
 		let nginxServiceName = nginxDeploymentName + '-service';
-		deployer.core.namespaces(namespace).services.get({name: nginxServiceName}, (error, service) => {
+		wrapper.service.get(deployer, {
+			namespace: namespace,
+			service: nginxServiceName
+		}, (error, service) =>{
 			if (error) {
 				return cb(error);
 			}
