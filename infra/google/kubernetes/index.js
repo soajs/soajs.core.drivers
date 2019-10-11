@@ -774,7 +774,7 @@ let driver = {
 		let nginxServiceName = nginxDeploymentName + '-service';
 		wrapper.service.get(deployer, {
 			namespace: namespace,
-			service: nginxServiceName
+			name: nginxServiceName
 		}, (error, service) =>{
 			if (error) {
 				return cb(error);

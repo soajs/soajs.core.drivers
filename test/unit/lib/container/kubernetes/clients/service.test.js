@@ -65,7 +65,7 @@ describe("testing /lib/container/kubernetes/clients/service.js", function () {
 			};
 			let opts = {
 				namespace: "soajs",
-				service: "service",
+				name: "service",
 				qs: {}
 			};
 			service.get(deployer, opts, function (error, res) {
