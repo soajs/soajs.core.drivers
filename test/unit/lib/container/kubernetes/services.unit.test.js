@@ -1024,6 +1024,9 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 			sinon
 				.stub(namespaceWrapper, 'get')
 				.yields(null, kubeData.namespaces);
+			sinon
+				.stub(cronJobWrapper, 'get')
+				.yields(null, null);
 			services.getLatestVersion(options, function (error, res) {
 				assert.equal(res, "0");
 				done();
