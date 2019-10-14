@@ -3,6 +3,7 @@ const assert = require("assert");
 const sinon = require('sinon');
 const helper = require("../../../../helper.js");
 const secrets = helper.requireModule('./lib/container/kubernetes/namespace.js');
+const namespaceWrapper = helper.requireModule("./lib/container/kubernetes/clients/namespace.js");
 const utils = helper.requireModule('./lib/container/kubernetes/utils.js');
 let dD = require('../../../../schemas/kubernetes/local.js');
 let kubeData = {};
@@ -23,20 +24,13 @@ describe("testing /lib/container/kubernetes/namespace.js", function () {
 			options.namespace = 'test';
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						namespace: {
-							post: (params, cb)=> {
-								return cb(null, true);
-							}
-						},
-						namespaces: {
-							get: (params, cb)=>{
-								return cb(null, kubeData.namespaces);
-							}
-						}
-					},
-				});
+				.yields(null, {});
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
+			sinon
+				.stub(namespaceWrapper, 'post')
+				.yields(null, true);
 			secrets.createNameSpace(options, function (error, res) {
 				assert.ok(res);
 				done();
@@ -57,15 +51,13 @@ describe("testing /lib/container/kubernetes/namespace.js", function () {
 			options = kubeData.deployer;
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						namespaces: {
-							get: (params, cb)=>{
-								return cb(null, kubeData.namespaces);
-							}
-						}
-					},
-				});
+				.yields(null, {});
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
+			sinon
+				.stub(namespaceWrapper, 'post')
+				.yields(null, true);
 			secrets.listNameSpaces(options, function (error, res) {
 				assert.equal(res.length, 5);
 				done();
@@ -90,15 +82,10 @@ describe("testing /lib/container/kubernetes/namespace.js", function () {
 			options.namespace = 'test';
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						namespaces: {
-							delete: (params, cb)=>{
-								return cb(null, kubeData.namespaces);
-							}
-						}
-					},
-				});
+				.yields(null, {});
+			sinon
+				.stub(namespaceWrapper, 'delete')
+				.yields(null,  kubeData.namespaces);
 			secrets.deleteNameSpace(options, function (error, res) {
 				assert.ok(res);
 				done();

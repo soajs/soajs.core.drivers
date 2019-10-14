@@ -4,6 +4,7 @@ const sinon = require('sinon');
 const helper = require("../../../../helper.js");
 const api = helper.requireModule('./lib/container/kubernetes/autoscale.js');
 const utils = helper.requireModule('./lib/container/kubernetes/utils.js');
+const austoScaleWrapper = helper.requireModule("./lib/container/kubernetes/clients/autoscale.js");
 let dD = require('../../../../schemas/kubernetes/local.js');
 let kubeData = {};
 let options = {};
@@ -23,20 +24,10 @@ describe("testing /lib/container/kubernetes/autoscale.js", function () {
 			};
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					autoscaling: {
-						namespaces: function (oneResource) {
-							return {
-								hpa: {
-									"get": (params, cb) => {
-										return cb({code: 404}, kubeData.hpa)
-									}
-								}
-							}
-						}
-					},
-					
-				});
+				.yields(null, {});
+			sinon
+				.stub(austoScaleWrapper, 'get')
+				.yields({code: 404}, kubeData.hpa);
 			
 			api.getAutoscaler(options, function (error, res) {
 				assert.ok(res);
@@ -52,21 +43,10 @@ describe("testing /lib/container/kubernetes/autoscale.js", function () {
 			};
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					autoscaling: {
-						namespaces: function (oneResource) {
-							return {
-								hpa: {
-									"get": (params, cb) => {
-										return cb(null, kubeData.hpa)
-									}
-								}
-							}
-						}
-					},
-					
-				});
-			
+				.yields(null, {});
+			sinon
+				.stub(austoScaleWrapper, 'get')
+				.yields(null, kubeData.hpa);
 			api.getAutoscaler(options, function (error, res) {
 				assert.ok(res);
 				done();
@@ -84,25 +64,37 @@ describe("testing /lib/container/kubernetes/autoscale.js", function () {
 			kubeData = dD();
 			options = kubeData.deployer;
 			options.params = {
-				"id": "service"
+				"id": "service",
+				"type" : 'deployment',
+				"min" : 10,
+				"max" : 100,
+				"metrics": {
+					"cpu": 1
+				}
 			};
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					autoscaling: {
-						namespaces: function (oneResource) {
-							return {
-								hpa: {
-									"get": (params, cb) => {
-										return cb(null, kubeData)
-									}
-								}
-							}
-						}
-					},
-					
-				});
-			
+				.yields(null, {});
+			sinon
+				.stub(austoScaleWrapper, 'post')
+				.yields(null, kubeData);
+			api.createAutoscaler(options, function (error, res) {
+				//assert.ok(error);
+				done();
+			});
+		});
+		it("fail", function (done) {
+			kubeData = dD();
+			options = kubeData.deployer;
+			options.params = {
+				"id": "service",
+			};
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {});
+			sinon
+				.stub(austoScaleWrapper, 'post')
+				.yields(null, kubeData);
 			api.createAutoscaler(options, function (error, res) {
 				//assert.ok(error);
 				done();
@@ -132,24 +124,13 @@ describe("testing /lib/container/kubernetes/autoscale.js", function () {
 			};
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					autoscaling: {
-						namespaces: function (oneResource) {
-							return {
-								hpa: {
-									"get": (params, cb) => {
-										return cb(null, kubeData.hpa)
-									},
-									"put": (params, cb) => {
-										return cb(null, true)
-									}
-								}
-							}
-						}
-					},
-					
-				});
-			
+				.yields(null, {});
+			sinon
+				.stub(austoScaleWrapper, 'get')
+				.yields(null,  kubeData.hpa);
+			sinon
+				.stub(austoScaleWrapper, 'put')
+				.yields(null, true);
 			api.updateAutoscaler(options, function (error, res) {
 				//assert.ok(res);
 				done();
@@ -171,21 +152,10 @@ describe("testing /lib/container/kubernetes/autoscale.js", function () {
 			};
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					autoscaling: {
-						namespaces: function (oneResource) {
-							return {
-								hpa: {
-									"delete": (params, cb) => {
-										return cb(null, kubeData)
-									}
-								}
-							}
-						}
-					},
-					
-				});
-			
+				.yields(null, {});
+			sinon
+				.stub(austoScaleWrapper, 'delete')
+				.yields(null, true);
 			api.deleteAutoscaler(options, function (error, res) {
 				assert.ok(res);
 				done();

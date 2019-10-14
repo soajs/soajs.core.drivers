@@ -2,8 +2,9 @@
 const assert = require("assert");
 const sinon = require('sinon');
 const helper = require("../../../../helper.js");
-const secrets = helper.requireModule('./lib/container/kubernetes/nodes.js');
+const nodes = helper.requireModule('./lib/container/kubernetes/nodes.js');
 const utils = helper.requireModule('./lib/container/kubernetes/utils.js');
+const nodeWrapper = helper.requireModule("./lib/container/kubernetes/clients/node.js");
 let dD = require('../../../../schemas/kubernetes/local.js');
 let kubeData = {};
 let options = {};
@@ -24,16 +25,11 @@ describe("testing /lib/container/kubernetes/nodes.js", function () {
 			options.namespace = 'test';
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						node: {
-							get: (params, cb)=> {
-								return cb(null, kubeData.nodeList.items[0]);
-							}
-						}
-					},
-				});
-			secrets.inspectNode(options, function (error, res) {
+				.yields(null, {});
+			sinon
+				.stub(nodeWrapper, 'get')
+				.yields(null, kubeData.nodeList.items[0]);
+			nodes.inspectNode(options, function (error, res) {
 				assert.ok(res);
 				done();
 			});
@@ -53,16 +49,11 @@ describe("testing /lib/container/kubernetes/nodes.js", function () {
 			options = kubeData.deployer;
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						nodes: {
-							get: (params, cb)=> {
-								return cb(null, kubeData.nodeList);
-							}
-						}
-					},
-				});
-			secrets.listNodes(options, function (error, res) {
+				.yields(null, {});
+			sinon
+				.stub(nodeWrapper, 'get')
+				.yields(null, kubeData.nodeList);
+			nodes.listNodes(options, function (error, res) {
 				assert.equal(res[0].id, "docker-for-desktop");
 				done();
 			});
@@ -87,16 +78,11 @@ describe("testing /lib/container/kubernetes/nodes.js", function () {
 			};
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						node: {
-							delete: (params, cb)=>{
-								return cb(null, true);
-							}
-						}
-					},
-				});
-			secrets.removeNode(options, function (error, res) {
+				.yields(null, {});
+			sinon
+				.stub(nodeWrapper, 'delete')
+				.yields(null, true);
+			nodes.removeNode(options, function (error, res) {
 				assert.ok(res);
 				done();
 			});
@@ -123,21 +109,14 @@ describe("testing /lib/container/kubernetes/nodes.js", function () {
 			};
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						node: {
-							get: (params, cb)=>{
-								return cb(null, kubeData.nodeList.items[0]);
-							}
-						},
-						nodes: {
-							put: (params, cb)=>{
-								return cb(null, true);
-							}
-						}
-					},
-				});
-			secrets.updateNode(options, function (error, res) {
+				.yields(null, {});
+			sinon
+				.stub(nodeWrapper, 'get')
+				.yields(null, kubeData.nodeList.items[0]);
+			sinon
+				.stub(nodeWrapper, 'put')
+				.yields(null, true);
+			nodes.updateNode(options, function (error, res) {
 				assert.ok(res);
 				done();
 			});
@@ -151,26 +130,17 @@ describe("testing /lib/container/kubernetes/nodes.js", function () {
 			};
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {
-						node: {
-							get: (params, cb)=>{
-								return cb(null, kubeData.nodeList.items[0]);
-							}
-						},
-						nodes: {
-							put: (params, cb)=>{
-								return cb(null, true);
-							}
-						}
-					},
-				});
-			secrets.updateNode(options, function (error, res) {
+				.yields(null, {});
+			sinon
+				.stub(nodeWrapper, 'get')
+				.yields(null, kubeData.nodeList.items[0]);
+			sinon
+				.stub(nodeWrapper, 'put')
+				.yields(null, true);
+			nodes.updateNode(options, function (error, res) {
 				assert.ok(res);
 				done();
 			});
 		});
-		
-		
 	});
 });

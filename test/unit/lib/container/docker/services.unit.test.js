@@ -108,7 +108,7 @@ describe("testing /lib/container/docker/services.js", function () {
 			options.params.custom = {};
 			options.params.excludeTasks = true;
 			services.listServices(options, function (error, res) {
-				assert.equal(res.length, 0);
+				assert.equal(res.length, 1);
 				done();
 			});
 		});

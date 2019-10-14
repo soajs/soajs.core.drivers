@@ -4,6 +4,7 @@ const randomString = require("randomstring");
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 const kubeDriver = require("../../../lib/container/kubernetes/index.js");
+const kubeWrapper = require("../../../lib/container/kubernetes/wrapper.js");
 const kubeUtils = require("../../../lib/container/kubernetes/utils.js");
 
 const infraUtils = require("../../utils");
@@ -16,26 +17,32 @@ let driver = {
 	 */
 	"authenticate": function(options, cb){
 		options.kubeConfig = {
-			url: `https://${options.infra.api.ipaddress}:${options.infra.api.port}`,
-			auth: {
-				bearer: options.infra.api.token
+			config:{
+				url: `https://${options.infra.api.ipaddress}:${options.infra.api.port}`,
+				auth: {
+					bearer: options.infra.api.token
+				},
+				insecureSkipTlsVerify: true,
 			},
-			request: {strictSSL: false}
+			version: '1.13'
 		};
 		kubeUtils.getDeployer(options, (error, deployer) => {
 			if (error) {
 				return cb(error);
 			}
 			
+			let env = options.env === 'dashboard' ? "soajs" : options.env;
+			
+			let namespaceName =  options.deployerConfig ? options.deployerConfig.namespace.default.toLowerCase(): env;
 			let namespace = {
-				kind: 'Namespace',
+				type: 'Namespace',
 				apiVersion: 'v1',
 				metadata: {
-					name: "soajs",
+					name: namespaceName || "soajs",
 					labels: {'soajs.content': 'true'}
 				}
 			};
-			deployer.core.namespaces.get({}, function (error, namespacesList) {
+			kubeWrapper.namespace.get(deployer, {}, function (error, namespacesList) {
 				if (error) {
 					return cb(error);
 				}
@@ -51,7 +58,7 @@ let driver = {
 						return cb(null, true);
 					}
 					
-					deployer.core.namespaces.post({body: namespace}, (error, response) => {
+					kubeWrapper.namespace.post(deployer, {body: namespace}, (error, response) => {
 						if (error) {
 							return cb(error);
 						}
@@ -86,29 +93,33 @@ let driver = {
 	 * @returns {*}
 	 */
 	"deployCluster": function (options, cb) {
-		
-		options.soajs.registry.deployer.container.kubernetes.remote.apiProtocol = options.infra.api.protocol;
-		options.soajs.registry.deployer.container.kubernetes.remote.apiPort = options.infra.api.port;
-		options.soajs.registry.deployer.container.kubernetes.remote.auth.token = options.infra.api.token;
-		
-		let oneDeployment = {
-			technology: "kubernetes",
-			options: {},
-			environments:[],
-			loadBalancers: {}
-		};
-		
-		oneDeployment.name = `ht${options.params.soajs_project}${randomString.generate({
-			length: 13,
-			charset: 'alphanumeric',
-			capitalization: 'lowercase'
-		})}`;
-		
-		oneDeployment.id = oneDeployment.name;
-		oneDeployment.environments = [options.env.toUpperCase()];
-		oneDeployment.options.zone = 'local';
-		
-		return cb(null, oneDeployment);
+		driver.authenticate(options, (err)=>{
+			if (err){
+				return cb(err);
+			}
+			options.soajs.registry.deployer.container.kubernetes.remote.apiProtocol = options.infra.api.protocol;
+			options.soajs.registry.deployer.container.kubernetes.remote.apiPort = options.infra.api.port;
+			options.soajs.registry.deployer.container.kubernetes.remote.auth.token = options.infra.api.token;
+			
+			let oneDeployment = {
+				technology: "kubernetes",
+				options: {},
+				environments:[],
+				loadBalancers: {}
+			};
+			
+			oneDeployment.name = `ht${options.params.soajs_project}${randomString.generate({
+				length: 13,
+				charset: 'alphanumeric',
+				capitalization: 'lowercase'
+			})}`;
+			
+			oneDeployment.id = oneDeployment.name;
+			oneDeployment.environments = [options.env.toUpperCase()];
+			oneDeployment.options.zone = 'local';
+			
+			return cb(null, oneDeployment);
+		});
 	},
 	
 	/**

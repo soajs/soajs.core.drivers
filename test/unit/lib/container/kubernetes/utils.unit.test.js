@@ -7,7 +7,7 @@ const services = helper.requireModule('./lib/container/kubernetes/utils.js');
 let dD = require('../../../../schemas/kubernetes/local.js');
 let kubeData = {};
 let options = {};
-describe("testing /lib/container/kubernetes/utils.js", function () {
+describe.skip("testing /lib/container/kubernetes/utils.js", function () {
 	
 	describe("calling buildNameSpace", function () {
 		afterEach((done) => {

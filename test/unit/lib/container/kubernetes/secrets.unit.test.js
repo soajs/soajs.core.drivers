@@ -3,6 +3,8 @@ const assert = require("assert");
 const sinon = require('sinon');
 const helper = require("../../../../helper.js");
 const secrets = helper.requireModule('./lib/container/kubernetes/secrets.js');
+const secretWrapper = helper.requireModule("./lib/container/kubernetes/clients/secret.js");
+const namespaceWrapper = helper.requireModule("./lib/container/kubernetes/clients/namespace.js");
 const utils = helper.requireModule('./lib/container/kubernetes/utils.js');
 let dD = require('../../../../schemas/kubernetes/local.js');
 let kubeData = {};
@@ -18,24 +20,15 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 		it("Success", function (done) {
 			kubeData = dD();
 			options = kubeData.deployer;
-			let namespaces = () => {
-				return {
-					secrets: {
-						get: (params, cb) => {
-							return cb(null, kubeData.secret)
-						}
-					}
-				}
-			};
-			namespaces.get = (params, cb)=>{
-				return cb(null, kubeData.namespaces)
-			};
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core: {namespaces}
-					
-				});
+				.yields(null, {});
+			sinon
+				.stub(secretWrapper, 'get')
+				.yields(null, kubeData.secret);
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
 			options.params = {
 				name: 'test-secret-1'
 			};
@@ -64,23 +57,15 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 				},
 				"type": "Opaque"
 			};
-			let namespaces = () => {
-				return {
-					secrets: {
-						post: (params, cb) => {
-							return cb(null, kubeData.secret)
-						}
-					}
-				}
-			};
-			namespaces.get = (params, cb)=>{
-				return cb(null, kubeData.namespaces)
-			};
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core : {namespaces}
-				});
+				.yields(null, {});
+			sinon
+				.stub(secretWrapper, 'post')
+				.yields(null,  kubeData.secret);
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
 			secrets.createSecret(options, function (error, res) {
 				assert.equal(res.name, "test-secret-1");
 				done();
@@ -96,23 +81,38 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 				},
 				"type": "Opaque"
 			};
-			let namespaces = () => {
-				return {
-					secrets: {
-						post: (params, cb) => {
-							return cb(null, kubeData.secret)
-						}
-					}
-				}
-			};
-			namespaces.get = (params, cb)=>{
-				return cb(null, kubeData.namespaces)
+			sinon
+				.stub(utils, 'getDeployer')
+				.yields(null, {});
+			sinon
+				.stub(secretWrapper, 'post')
+				.yields(null, kubeData.secret);
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
+			secrets.createSecret(options, function (error, res) {
+				assert.equal(res.name, 'test-secret-1');
+				done();
+			});
+		});
+		
+		it("Success 3 secrets", function (done) {
+			options.params = {
+				"name": "test-secret-1",
+				"data": {
+					"test-secret-1": "123456",
+				},
+				"type": "kubernetes.io/dockercfg"
 			};
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core : {namespaces}
-				});
+				.yields(null, {});
+			sinon
+				.stub(secretWrapper, 'post')
+				.yields(null, kubeData.secret);
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
 			secrets.createSecret(options, function (error, res) {
 				assert.equal(res.name, 'test-secret-1');
 				done();
@@ -135,23 +135,15 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 			options.params = {
 				"name": "test-secret-1"
 			};
-			let namespaces = () => {
-				return {
-					secrets: {
-						delete: (params, cb) => {
-							return cb(null, {status: "Success"})
-						}
-					}
-				}
-			};
-			namespaces.get = (params, cb)=>{
-				return cb(null, kubeData.namespaces)
-			};
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core : {namespaces}
-				});
+				.yields(null, {});
+			sinon
+				.stub(secretWrapper, 'delete')
+				.yields(null, {status: "Success"});
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
 			secrets.deleteSecret(options, function (error, res) {
 				assert.ok(res);
 				done();
@@ -171,31 +163,15 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 		it("Success", function (done) {
 			kubeData = dD();
 			options = kubeData.deployer;
-			let namespaces = () => {
-				return {
-					secrets: {
-						get: (params, cb) => {
-							return cb(null, kubeData.secrets)
-						}
-					}
-				}
-			};
-			namespaces.get = (params, cb)=>{
-				return cb(null, kubeData.namespaces)
-			};
-			
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core : {
-						namespaces,
-						secrets: {
-							get : (cb)=>{
-								return cb(null, kubeData.secrets)
-							}
-						}
-					}
-				});
+				.yields(null, {});
+			sinon
+				.stub(secretWrapper, 'get')
+				.yields(null,  kubeData.secrets);
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
 			secrets.listSecrets(options, function (error, res) {
 				assert.ok(res);
 				assert.equal(res.length, 2);
@@ -211,31 +187,15 @@ describe("testing /lib/container/kubernetes/secrets.js", function () {
 				"name": "test-secret-1"
 			};
 			options.params.namespace = 'soajs';
-			let namespaces = () => {
-				return {
-					secrets: {
-						get: (cb) => {
-							return cb(null, kubeData.secrets)
-						}
-					}
-				}
-			};
-			namespaces.get = (params, cb)=>{
-				return cb(null, kubeData.namespaces)
-			};
-			
 			sinon
 				.stub(utils, 'getDeployer')
-				.yields(null, {
-					core : {
-						namespaces,
-						secrets: {
-							get : (cb)=>{
-								return cb(null, kubeData.secrets)
-							}
-						}
-					}
-				});
+				.yields(null, {});
+			sinon
+				.stub(secretWrapper, 'get')
+				.yields(null,  kubeData.secrets);
+			sinon
+				.stub(namespaceWrapper, 'get')
+				.yields(null, kubeData.namespaces);
 			secrets.listSecrets(options, function (error, res) {
 				assert.ok(res);
 				assert.equal(res.length, 2);
