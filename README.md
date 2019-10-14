@@ -84,3 +84,8 @@ kubectl proxy -p 8080
 ```
 
 * Running the test cases will delete all previous docker services and containers.
+
+### License
+*Copyright SOAJS All Rights Reserved.*
+
+Use of this source code is governed by an Apache license that can be found in the LICENSE file at the root of this repository.
