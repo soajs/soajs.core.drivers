@@ -42,7 +42,7 @@ describe("testing /lib/container/kubernetes/clients/daemonset.js", function () {
 			});
 		});
 		
-		it("Success get with service", function (done) {
+		it("Success get with daemonset", function (done) {
 			deployer = {
 				apis: {
 					apps: {
@@ -69,7 +69,7 @@ describe("testing /lib/container/kubernetes/clients/daemonset.js", function () {
 			};
 			let opts = {
 				namespace: "soajs",
-				daemonset: "daemonset",
+				name: "daemonset",
 				qs: {}
 			};
 			service.get(deployer, opts, function (error, res) {
