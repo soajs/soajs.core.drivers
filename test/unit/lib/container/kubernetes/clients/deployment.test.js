@@ -13,7 +13,7 @@ describe("testing /lib/container/kubernetes/clients/deployment.js", function () 
 			deployer = {
 				apis: {
 					apps: {
-						v1beta1: {
+						v1: {
 							namespaces: () => {
 								return {
 									deployments: {
@@ -46,7 +46,7 @@ describe("testing /lib/container/kubernetes/clients/deployment.js", function () 
 			deployer = {
 				apis: {
 					apps: {
-						v1beta1: {
+						v1: {
 							namespaces: () => {
 								return {
 									deployments: () => {
@@ -82,7 +82,7 @@ describe("testing /lib/container/kubernetes/clients/deployment.js", function () 
 			deployer = {
 				apis: {
 					apps: {
-						v1beta1: {
+						v1: {
 							namespaces: () => {
 								return {};
 							}
@@ -101,11 +101,11 @@ describe("testing /lib/container/kubernetes/clients/deployment.js", function () 
 		});
 		
 		it("Success post", function (done) {
-			//return await deployer.apis.apps.v1beta1.namespaces(opts.namespace).deployments.post({body: opts.body, qs: opts.qs});
+			//return await deployer.apis.apps.v1.namespaces(opts.namespace).deployments.post({body: opts.body, qs: opts.qs});
 			deployer = {
 				apis: {
 					apps: {
-						v1beta1: {
+						v1: {
 							namespaces: () => {
 								return {
 									deployments: {
@@ -137,7 +137,7 @@ describe("testing /lib/container/kubernetes/clients/deployment.js", function () 
 			deployer = {
 				apis: {
 					apps: {
-						v1beta1: {
+						v1: {
 							namespaces: () => {
 								return {};
 							}
@@ -162,7 +162,7 @@ describe("testing /lib/container/kubernetes/clients/deployment.js", function () 
 			deployer = {
 				apis: {
 					apps: {
-						v1beta1: {
+						v1: {
 							namespaces: () => {
 								return {
 									deployments: () => {
@@ -196,7 +196,7 @@ describe("testing /lib/container/kubernetes/clients/deployment.js", function () 
 			deployer = {
 				apis: {
 					apps: {
-						v1beta1: {
+						v1: {
 							namespaces: () => {
 								return {};
 							}
@@ -217,7 +217,7 @@ describe("testing /lib/container/kubernetes/clients/deployment.js", function () 
 			deployer = {
 				apis: {
 					apps: {
-						v1beta1: {
+						v1: {
 							namespaces: () => {
 								return {
 									deployments: () => {
@@ -251,7 +251,7 @@ describe("testing /lib/container/kubernetes/clients/deployment.js", function () 
 			deployer = {
 				apis: {
 					apps: {
-						v1beta1: {
+						v1: {
 							namespaces: () => {
 								return {};
 							}
@@ -268,7 +268,7 @@ describe("testing /lib/container/kubernetes/clients/deployment.js", function () 
 			deployer = {
 				apis: {
 					apps: {
-						v1beta1: {
+						v1: {
 							namespaces: () => {
 								return {
 									deployments: () => {
@@ -303,7 +303,7 @@ describe("testing /lib/container/kubernetes/clients/deployment.js", function () 
 			deployer = {
 				apis: {
 					apps: {
-						v1beta1: {
+						v1: {
 							namespaces: () => {
 								return {};
 							}

@@ -571,7 +571,7 @@ let driver = {
 										catch (e) {
 											return fCb(e);
 										}
-										wrapper.secret.get({}, (error, secretsList) => {
+										wrapper.secret.get(deployer,{}, (error, secretsList) => {
 											if (error) {
 												return fCb(error);
 											}
