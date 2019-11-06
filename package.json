@@ -1,7 +1,7 @@
 {
   "name": "soajs.core.drivers",
   "description": "SOAJS Driver Strategies",
-  "version": "3.5.25",
+  "version": "3.5.26",
   "author": {
     "name": "soajs team",
     "email": "team@soajs.org"
@@ -28,7 +28,7 @@
     "easy-zip": "0.0.4",
     "googleapis": "^23.0.0",
     "gridfs-stream": "1.1.1",
-    "handlebars": "4.4.3",
+    "handlebars": "4.5.1",
     "kubernetes-client": "8.3.4",
     "lodash": "4.17.15",
     "ms-rest-azure": "^2.5.5",
