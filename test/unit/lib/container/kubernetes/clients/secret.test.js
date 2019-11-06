@@ -65,7 +65,7 @@ describe("testing /lib/container/kubernetes/clients/secret.js", function () {
 			};
 			let opts = {
 				namespace: "soajs",
-				secret: "service",
+				name: "service",
 				qs: {}
 			};
 			service.get(deployer, opts, function (error, res) {
@@ -86,7 +86,7 @@ describe("testing /lib/container/kubernetes/clients/secret.js", function () {
 			};
 			let opts = {
 				namespace: "soajs",
-				service: "service",
+				name: "service",
 				qs: {}
 			};
 			service.get(deployer, opts, function (error, res) {
