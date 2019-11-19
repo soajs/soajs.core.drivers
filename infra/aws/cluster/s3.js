@@ -1,3 +1,5 @@
+'use strict';
+
 const async = require('async');
 const config = require("../config");
 const utils = require("../utils/utils");
@@ -7,43 +9,43 @@ function getConnector(opts) {
 }
 
 const AWSS3 = {
-	"getFiles": function(options, cb) {
+	"getFiles": function (options, cb) {
 		let aws = options.infra.api;
 		let s3 = getConnector({api: 's3', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey});
-
-		s3.listObjectsV2({Bucket: 'soajs'}, (error, data) =>{
-			if(error){ return cb(error); }
-
-			let files =[];
+		
+		s3.listObjectsV2({Bucket: 'soajs'}, (error, data) => {
+			if (error) {
+				return cb(error);
+			}
+			
+			let files = [];
 			async.map(data.Contents, (oneFile, mCb) => {
 				s3.getObjectTagging({Bucket: 'soajs', Key: oneFile.Key}, (error, tags) => {
-					if(error){ return mCb(error); }
-
+					if (error) {
+						return mCb(error);
+					}
+					
 					let tempFile = {
 						id: oneFile.Key,
 						name: oneFile.Key,
 						tags: {}
 					};
-
+					
 					tags.TagSet.forEach((oneTag) => {
-						if(oneTag.Key === 'description'){
+						if (oneTag.Key === 'description') {
 							tempFile.description = oneTag.Value;
-						}
-						else if(oneTag.Key === 'type'){
+						} else if (oneTag.Key === 'type') {
 							tempFile.type = oneTag.Value;
-						}
-						else if(oneTag.Key === 'template'){
+						} else if (oneTag.Key === 'template') {
 							tempFile.template = oneTag.Value;
-						}
-						else if(oneTag.Key === 'driver'){
+						} else if (oneTag.Key === 'driver') {
 							tempFile.driver = oneTag.Value;
-						}
-						else if(oneTag.Key === 'technology'){
+						} else if (oneTag.Key === 'technology') {
 							tempFile.technology = oneTag.Value;
 						}
 						tempFile.tags[oneTag.Key] = oneTag.Value;
 					});
-
+					
 					files.push(tempFile);
 					return mCb(null, true);
 				});
@@ -52,62 +54,65 @@ const AWSS3 = {
 			});
 		});
 	},
-
-	"getTemplateInputs": function(options, cb){
+	
+	"getTemplateInputs": function (options, cb) {
 		let aws = options.infra.api;
 		let s3 = getConnector({api: 's3', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey});
-
-		s3.listObjectsV2({Bucket: 'soajs'}, (error, data) =>{
-			if(error){ return cb(error); }
-
-			let files =[];
+		
+		s3.listObjectsV2({Bucket: 'soajs'}, (error, data) => {
+			if (error) {
+				return cb(error);
+			}
+			
+			let files = [];
 			async.map(data.Contents, (oneFile, mCb) => {
 				s3.getObjectTagging({Bucket: 'soajs', Key: oneFile.Key}, (error, tags) => {
-					if(error){ return mCb(error); }
-
+					if (error) {
+						return mCb(error);
+					}
+					
 					let tempFile = {
 						id: oneFile.Key,
 						name: oneFile.Key,
 						tags: {}
 					};
-
+					
 					tags.TagSet.forEach((oneTag) => {
-						if(oneTag.Key === 'description'){
+						if (oneTag.Key === 'description') {
 							tempFile.description = oneTag.Value;
-						}
-						else if(oneTag.Key === 'type'){
+						} else if (oneTag.Key === 'type') {
 							tempFile.type = oneTag.Value;
-						}
-						else if(oneTag.Key === 'template'){
+						} else if (oneTag.Key === 'template') {
 							tempFile.template = oneTag.Value;
-						}
-						else if(oneTag.Key === 'technology'){
+						} else if (oneTag.Key === 'technology') {
 							tempFile.technology = oneTag.Value;
 						}
-
-						tempFile.tags[oneTag.Key] = oneTag.Value
+						
+						tempFile.tags[oneTag.Key] = oneTag.Value;
 					});
-
+					
 					files.push(tempFile);
 					return mCb(null, true);
 				});
 			}, (error) => {
-				if(error){
+				if (error) {
 					return cb(error);
 				}
-
+				
 				let templateToUse;
 				files.forEach((oneFile) => {
-					if(oneFile.tags.template === options.templateName){
+					if (oneFile.tags.template === options.templateName) {
 						templateToUse = oneFile;
 					}
 				});
-
-				if(!templateToUse){ return cb(null, null); }
-
+				
+				if (!templateToUse) {
+					return cb(null, null);
+				}
+				
 				options.params.id = templateToUse.name;
 				AWSS3.downloadFile(options, (error, response) => {
-					if(error){
+					if (error) {
 						return cb(error);
 					}
 					return cb(null, response.content);
@@ -115,31 +120,36 @@ const AWSS3 = {
 			});
 		});
 	},
-
-	'downloadFile': function(options, cb) {
+	
+	'downloadFile': function (options, cb) {
 		let aws = options.infra.api;
 		let s3 = getConnector({api: 's3', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey});
-
+		
 		s3.getObject({Bucket: 'soajs', Key: options.params.id}, (error, data) => {
-			if(error) { return cb(error); }
-			return cb(null, {'info': {'contenttype': data.ContentType, size: data.ContentLength }, 'content': data.Body.toString()});
+			if (error) {
+				return cb(error);
+			}
+			return cb(null, {
+				'info': {'contenttype': data.ContentType, size: data.ContentLength},
+				'content': data.Body.toString()
+			});
 		});
-
+		
 	},
-
-	'deleteFile': function(options, cb) {
+	
+	'deleteFile': function (options, cb) {
 		let aws = options.infra.api;
 		let s3 = getConnector({api: 's3', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey});
 		s3.deleteObject({Bucket: 'soajs', Key: options.params.id}, (error) => {
 			return cb(error, true);
 		});
 	},
-
+	
 	"uploadFile": function (options, cb) {
-
+		
 		let aws = options.infra.api;
 		let s3 = getConnector({api: 's3', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey});
-
+		
 		async.series({
 			'assertSoajsBucket': (mCb) => {
 				//list buckets
@@ -149,18 +159,19 @@ const AWSS3 = {
 					if (error) {
 						return mCb(error);
 					}
-
+					
 					let found = false;
 					buckets.Buckets.forEach((oneBucket) => {
 						if (oneBucket.Name === 'soajs') {
 							found = true;
 						}
 					});
-
+					
 					if (!found) {
-						s3.createBucket({ Bucket: "soajs" }, mCb);
+						s3.createBucket({Bucket: "soajs"}, mCb);
+					} else {
+						return mCb();
 					}
-					else return mCb();
 				});
 			},
 			'uploadFileToBucket': (mCb) => {
@@ -172,13 +183,12 @@ const AWSS3 = {
 					ContentType: options.params.contenttype,
 					Tagging: []
 				};
-
-				if(typeof(options.params.tags) !== 'object'){
+				
+				if (typeof (options.params.tags) !== 'object') {
 					try {
 						//parse incomming tags to JSON
 						options.params.tags = JSON.parse(options.params.tags);
-					}
-					catch (e) {
+					} catch (e) {
 						options.params.tags = {};
 					}
 				}

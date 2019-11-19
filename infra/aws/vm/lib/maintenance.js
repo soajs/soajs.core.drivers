@@ -29,11 +29,9 @@ const maintenance = {
 		let params = {};
 		if (typeof options.params.id === "string") {
 			params.InstanceIds = [options.params.id];
-		}
-		else if (Array.isArray(options.params.id) && options.params.id.length > 0) {
-			params.InstanceIds = options.params.id
-		}
-		else {
+		} else if (Array.isArray(options.params.id) && options.params.id.length > 0) {
+			params.InstanceIds = options.params.id;
+		} else {
 			return cb(new Error("Instance id must be of type  sting or  array!"));
 		}
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#terminateInstances-property
@@ -59,11 +57,9 @@ const maintenance = {
 		
 		if (typeof options.params.id === "string") {
 			params.InstanceIds = [options.params.id];
-		}
-		else if (Array.isArray(options.params.id) && options.params.id.length > 0) {
-			params.InstanceIds = options.params.id
-		}
-		else {
+		} else if (Array.isArray(options.params.id) && options.params.id.length > 0) {
+			params.InstanceIds = options.params.id;
+		} else {
 			return cb(new Error("Instance id must be of type  sting or  array!"));
 		}
 		
@@ -100,11 +96,9 @@ const maintenance = {
 		let params = {};
 		if (typeof options.params.id === "string") {
 			params.InstanceIds = [options.params.id];
-		}
-		else if (Array.isArray(options.params.id) && options.params.id.length > 0) {
-			params.InstanceIds = options.params.id
-		}
-		else {
+		} else if (Array.isArray(options.params.id) && options.params.id.length > 0) {
+			params.InstanceIds = options.params.id;
+		} else {
 			return cb(new Error("Instance id must be of type  sting or  array!"));
 		}
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#terminateInstances-property
@@ -129,11 +123,9 @@ const maintenance = {
 		let params = {};
 		if (typeof options.params.id === "string") {
 			params.InstanceIds = [options.params.id];
-		}
-		else if (Array.isArray(options.params.id) && options.params.id.length > 0) {
-			params.InstanceIds = options.params.id
-		}
-		else {
+		} else if (Array.isArray(options.params.id) && options.params.id.length > 0) {
+			params.InstanceIds = options.params.id;
+		} else {
 			return cb(new Error("Instance id must be of type  sting or  array!"));
 		}
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#terminateInstances-property
@@ -154,9 +146,15 @@ const maintenance = {
 		//args
 		//region
 		let script = [];
-		if (options.params && options.params.command && Array.isArray(options.params.command)) script = script.concat(options.params.command); // add command
-		if (options.params && options.params.args && Array.isArray(options.params.args)) script = script.concat(options.params.args); // add command arguments
-		if (options.params && options.params.env && Array.isArray(options.params.env)) script = script.concat(options.params.env.map(oneEnv => `export ${oneEnv}`)); // export environment variables
+		if (options.params && options.params.command && Array.isArray(options.params.command)) {
+			script = script.concat(options.params.command);
+		} // add command
+		if (options.params && options.params.args && Array.isArray(options.params.args)) {
+			script = script.concat(options.params.args);
+		} // add command arguments
+		if (options.params && options.params.env && Array.isArray(options.params.env)) {
+			script = script.concat(options.params.env.map(oneEnv => `export ${oneEnv}`));
+		} // export environment variables
 		if (script.length === 0) {
 			return cb(null, true);
 		}
@@ -183,7 +181,7 @@ const maintenance = {
 		
 		function getVMS(callback) {
 			let params = null;
-			if(options.params && options.params.vmName){
+			if (options.params && options.params.vmName) {
 				if (Array.isArray(options.params.vmName) && options.params.vmName.length > 0) {
 					params = {
 						Filters: [
@@ -193,8 +191,7 @@ const maintenance = {
 							}
 						]
 					};
-				}
-				else if (typeof options.params.vmName === 'string') {
+				} else if (typeof options.params.vmName === 'string') {
 					params = {
 						Filters: [
 							{
@@ -206,7 +203,7 @@ const maintenance = {
 				}
 			}
 			
-			if(!params){
+			if (!params) {
 				return callback(new Error("Vms not found!"));
 			}
 			
@@ -220,8 +217,7 @@ const maintenance = {
 					
 					//if nothing was found describe instances using filters generated via params
 					ec2.describeInstances(params, callback);
-				}
-				else {
+				} else {
 					return callback(err, response);
 				}
 			});
@@ -237,14 +233,15 @@ const maintenance = {
 				// options.soajs.log.debug("About to execute commands:", script, "in VM:", vm);
 				if (!vm.IamInstanceProfile || !vm.IamInstanceProfile.Arn) {
 					return cb(new Error(`${options.params.vmName} machine does not have the required policy: ${config.aws.ssmSupportedPolicy.join(",")}`));
-				}
-				else {
+				} else {
 					let arn = vm.IamInstanceProfile.Arn.split("/");
 					let role = arn[arn.length - 1];
 					iam.listAttachedRolePolicies({
 						RoleName: role, /* required */
 					}, (err, policies) => {
-						if (err) return cb(err);
+						if (err) {
+							return cb(err);
+						}
 						
 						let instancePolicies = [];
 						if (policies && policies.AttachedPolicies && policies.AttachedPolicies.length > 0) {
@@ -269,20 +266,18 @@ const maintenance = {
 								};
 								
 								ssm.sendCommand(params, (error, response) => {
-									if(error && error.message === null && error.code === 'InvalidInstanceId'){
+									if (error && error.message === null && error.code === 'InvalidInstanceId') {
 										error = new Error(`Error Executing Command in virtual machine ${options.params.vmName}, Refer to <a href="https://soajsorg.atlassian.net/wiki/spaces/DSBRD/pages/729710593/AWS#AWS-Roles" target="_blank">AWS Documentation</a> to troubleshoot the reason.`);
 									}
 									return cb(error, response);
 								});
 							});
-						}
-						else{
+						} else {
 							return cb(new Error(`${options.params.vmName} machine does not have the required policy to support running commands in it.`));
 						}
 					});
 				}
-			}
-			else {
+			} else {
 				return cb(new Error("Invalid Virtual Machines!"));
 			}
 		});

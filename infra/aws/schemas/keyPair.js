@@ -1,3 +1,5 @@
+'use strict';
+
 const add = {
     "type": "object",
     "additionalProperties": false,

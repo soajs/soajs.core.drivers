@@ -1,15 +1,14 @@
 'use strict';
 
-const async = require('async');
-const config = require('../config')
+const config = require('../config');
 const helper = {
-
+	
 	buildNetworkRecord: function (opts) {
 		let record = {};
 		if (opts.region) {
 			record.region = opts.region;
 		}
-
+		
 		if (opts.subnets) {
 			record.subnets = opts.subnets;
 		}
@@ -17,7 +16,7 @@ const helper = {
 		if (opts.attachInternetGateway && opts.attachInternetGateway.InternetGateways && opts.attachInternetGateway.InternetGateways.length > 0) {
 			record.attachInternetGateway = true;
 		}
-
+		
 		if (opts.network) {
 			if (opts.network.VpcId) {
 				record.name = opts.network.VpcId;
@@ -44,25 +43,24 @@ const helper = {
 				record.state = opts.network.State;
 			}
 			record.address = [];
-			if (opts.network.CidrBlockAssociationSet
-				&& Array.isArray(opts.network.CidrBlockAssociationSet)
-				&& opts.network.CidrBlockAssociationSet.length > 0) {
+			if (opts.network.CidrBlockAssociationSet &&
+				Array.isArray(opts.network.CidrBlockAssociationSet) &&
+				opts.network.CidrBlockAssociationSet.length > 0) {
 				opts.network.CidrBlockAssociationSet.forEach((oneAddress) => {
 					if (oneAddress && oneAddress.CidrBlock) {
 						record.address.push(oneAddress.CidrBlock
 						);
 					}
 				});
-			}
-			else {
+			} else {
 				record.address.push(opts.network.CidrBlock);
 			}
 		}
-
-
+		
+		
 		return record;
 	},
-
+	
 	buildSubnetkRecord: function (opts) {
 		let record = {};
 		if (opts.subnet) {
@@ -90,7 +88,7 @@ const helper = {
 		}
 		return record;
 	},
-
+	
 	buildClassicLbRecord: function (opts) {
 		let record = {};
 		record.type = "classic";
@@ -163,7 +161,7 @@ const helper = {
 				record.zones.push({
 					name: oneSubnet.AvailabilityZone,
 					subnetId: oneSubnet.SubnetId
-				})
+				});
 			});
 		}
 		record.instances = [];
@@ -172,28 +170,38 @@ const helper = {
 				record.instances.push({
 					id: onVm.InstanceId,
 					state: onVm.State
-				})
+				});
 			});
 		}
 		return record;
 	},
-
+	
 	buildCertificateRecord: function (opts) {
 		let output = {};
 		output.region = opts.region;
-
+		
 		if (opts.tags) {
 			let nameTag = opts.tags.find((oneEntry) => {
-				return oneEntry.Key === 'Name'
+				return oneEntry.Key === 'Name';
 			});
-			if (nameTag) output.name = nameTag.Value;
+			if (nameTag) {
+				output.name = nameTag.Value;
+			}
 		}
-
+		
 		if (opts.certificate) {
-			if (opts.certificate.CertificateArn) output.id = opts.certificate.CertificateArn;
-			if (opts.certificate.DomainName) output.domain = opts.certificate.DomainName;
-			if (opts.certificate.SubjectAlternativeNames) output.alternativeDomains = opts.certificate.SubjectAlternativeNames;
-			if (opts.certificate.Type) output.type = opts.certificate.Type.toLowerCase();
+			if (opts.certificate.CertificateArn) {
+				output.id = opts.certificate.CertificateArn;
+			}
+			if (opts.certificate.DomainName) {
+				output.domain = opts.certificate.DomainName;
+			}
+			if (opts.certificate.SubjectAlternativeNames) {
+				output.alternativeDomains = opts.certificate.SubjectAlternativeNames;
+			}
+			if (opts.certificate.Type) {
+				output.type = opts.certificate.Type.toLowerCase();
+			}
 			if (opts.certificate.InUseBy && Array.isArray(opts.certificate.InUseBy)) {
 				output.loadBalancers = [];
 				opts.certificate.InUseBy.forEach((oneEntry) => {
@@ -206,16 +214,27 @@ const helper = {
 					}
 				});
 			}
-
+			
 			output.details = {};
-			if (opts.certificate.Issuer) output.details.issuer = opts.certificate.Issuer;
-			else if (opts.certificate.Type === 'AMAZON_ISSUED') output.details.issuer = 'Amazon';
-
-			if (opts.certificate.ImportedAt) output.details.importDate = opts.certificate.ImportedAt;
-			if (opts.certificate.Status) output.details.status = helper.getCertificateStatus({status: opts.certificate.Status});
-			if (opts.certificate.NotBefore) output.details.validFrom = opts.certificate.NotBefore;
-			if (opts.certificate.NotAfter) output.details.validTo = opts.certificate.NotAfter;
-
+			if (opts.certificate.Issuer) {
+				output.details.issuer = opts.certificate.Issuer;
+			} else if (opts.certificate.Type === 'AMAZON_ISSUED') {
+				output.details.issuer = 'Amazon';
+			}
+			
+			if (opts.certificate.ImportedAt) {
+				output.details.importDate = opts.certificate.ImportedAt;
+			}
+			if (opts.certificate.Status) {
+				output.details.status = helper.getCertificateStatus({status: opts.certificate.Status});
+			}
+			if (opts.certificate.NotBefore) {
+				output.details.validFrom = opts.certificate.NotBefore;
+			}
+			if (opts.certificate.NotAfter) {
+				output.details.validTo = opts.certificate.NotAfter;
+			}
+			
 			output.dnsConfig = [];
 			if (opts.certificate.DomainValidationOptions && Array.isArray(opts.certificate.DomainValidationOptions)) {
 				opts.certificate.DomainValidationOptions.forEach((oneOption) => {
@@ -230,13 +249,15 @@ const helper = {
 				});
 			}
 		}
-
+		
 		return output;
 	},
-
+	
 	getCertificateStatus: function (opts) {
-		if (!opts.status) opts.status = '';
-
+		if (!opts.status) {
+			opts.status = '';
+		}
+		
 		let availableStatuses = {
 			issued: 'active',
 			pending_validation: 'pending',
@@ -246,10 +267,10 @@ const helper = {
 			revoked: 'revoked',
 			failed: 'failed'
 		};
-
+		
 		return availableStatuses[opts.status.toLowerCase()] || 'unknown';
 	},
-
+	
 	buildVMRecord: (opts, cb) => {
 		let record = {
 			ip: []
@@ -268,12 +289,12 @@ const helper = {
 			if (opts.vm.KeyName) {
 				record.keyPair = opts.vm.KeyName;
 			}
-
+			
 			record.labels = {};
 			if (opts.vm.Tags.length > 0) {
 				let soajsName, name;
 				for (let i = 0; i < opts.vm.Tags.length; i++) {
-					if (opts.vm.Tags[i].Key && opts.vm.Tags[i].Value){
+					if (opts.vm.Tags[i].Key && opts.vm.Tags[i].Value) {
 						record.labels[opts.vm.Tags[i].Key] = opts.vm.Tags[i].Value;
 						if (opts.vm.Tags[i].Key === "soajs.vm.name") {
 							soajsName = opts.vm.Tags[i].Value;
@@ -286,21 +307,20 @@ const helper = {
 				}
 				if (soajsName) {
 					record.name = soajsName;
-				}
-				else if (name) {
+				} else if (name) {
 					record.name = name;
 				}
 			}
 			record.labels['soajs.service.vm.location'] = region;
 			record.labels['soajs.service.vm.size'] = (opts.vm.InstanceType) ? opts.vm.InstanceType : '';
-
+			
 			if (opts.vm.SubnetId) {
 				record.layer = opts.vm.SubnetId;
 			}
 			if (opts.vm.VpcId) {
 				record.network = opts.vm.VpcId;
 			}
-
+			
 			if (opts.vm.PrivateIpAddress || opts.vm.PrivateDnsName) {
 				let privateIp = {};
 				privateIp.type = "private";
@@ -331,7 +351,7 @@ const helper = {
 					if (block.Ebs && block.Ebs.VolumeId && opts.volumes) {
 						opts.volumes.forEach((oneVolume) => {
 							if (oneVolume.VolumeId === block.Ebs.VolumeId) {
-								record.volumes.push(helper.computeVolumes({volumes: oneVolume, region}))
+								record.volumes.push(helper.computeVolumes({volumes: oneVolume, region}));
 							}
 						});
 					}
@@ -437,8 +457,7 @@ const helper = {
 			if (!found) {
 				record.executeCommand = false;
 			}
-		}
-		else {
+		} else {
 			record.executeCommand = false;
 		}
 		if (opts.roles && Array.isArray(opts.roles) && opts.vm && opts.vm.IamInstanceProfile) {
@@ -446,19 +465,19 @@ const helper = {
 			let arn = opts.vm.IamInstanceProfile.Arn.split("/");
 			let role = arn[arn.length - 1];
 			for (let i = 0; i < opts.roles.length; i++) {
-				if (opts.roles[i] && typeof  opts.roles[i] === 'object' && opts.roles[i][role]){
-                    let keys = Object.keys(opts.roles[i]);
-                    if (keys[0] === role) {
-                        for (let j = 0; j < opts.roles[i][role].AttachedPolicies.length; j++) {
-                            if (config.aws.ssmSupportedPolicy.includes(opts.roles[i][role].AttachedPolicies[j].PolicyName)) {
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (found) {
-                        break;
-                    }
+				if (opts.roles[i] && typeof opts.roles[i] === 'object' && opts.roles[i][role]) {
+					let keys = Object.keys(opts.roles[i]);
+					if (keys[0] === role) {
+						for (let j = 0; j < opts.roles[i][role].AttachedPolicies.length; j++) {
+							if (config.aws.ssmSupportedPolicy.includes(opts.roles[i][role].AttachedPolicies[j].PolicyName)) {
+								found = true;
+								break;
+							}
+						}
+					}
+					if (found) {
+						break;
+					}
 				}
 			}
 			if (!found) {
@@ -468,9 +487,9 @@ const helper = {
 			record.executeCommand = false;
 		}
 		return cb(null, record);
-
+		
 	},
-
+	
 	buildSecurityGroupsRecord: (opts) => {
 		let securityGroup = {};
 		securityGroup.ports = [];
@@ -508,7 +527,7 @@ const helper = {
 		}
 		return securityGroup;
 	},
-
+	
 	buildPorts: (opts) => {
 		let ports = {};
 		ports.direction = opts.type;
@@ -517,13 +536,12 @@ const helper = {
 				if (opts.ports.IpProtocol === "-1") {
 					ports.protocol = "*";
 					ports.published = "0 - 65535";
-				}
-				else {
+				} else {
 					ports.protocol = opts.ports.IpProtocol;
 					if (opts.ports.hasOwnProperty('FromPort')) {
 						ports.published = opts.ports.FromPort.toString();
 					}
-					if (opts.ports.hasOwnProperty('ToPort') && opts.ports.ToPort != opts.ports.FromPort) {
+					if (opts.ports.hasOwnProperty('ToPort') && opts.ports.ToPort !== opts.ports.FromPort) {
 						ports.published += ' - ' + opts.ports.ToPort;
 					}
 				}
@@ -556,12 +574,12 @@ const helper = {
 		}
 		return ports;
 	},
-
+	
 	computeState: (state) => {
 		let states = ["running", "succeeded", "available"];
 		return states.indexOf(state) !== -1 ? "succeeded" : "failed";
 	},
-
+	
 	computeVolumes: (opts) => {
 		let volume = {};
 		if (opts.volumes) {

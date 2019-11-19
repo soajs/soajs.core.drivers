@@ -36,7 +36,7 @@ const driver = {
 		let aws = options.infra.api;
 		let ec2 = getConnector({api: 'ec2', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey});
 		let params = {};
-
+		
 		// Retrieves all regions/endpoints that work with EC2
 		ec2.describeRegions(params, function (error, data) {
 			if (error) {
@@ -48,14 +48,14 @@ const driver = {
 			return cb(null, true);
 		});
 	},
-
+	
 	"getExtras": function (options, cb) {
 		return cb(null, {
 			technologies: ['docker', 'vm'],
 			templates: ['external', 'local'],
 			drivers: ['Cloud Formation', 'Terraform'],
 			override: {
-				drivers:{
+				drivers: {
 					'Cloud Formation': {
 						templates: ['external']
 					}
@@ -63,7 +63,7 @@ const driver = {
 			}
 		});
 	},
-
+	
 	/**
 	 * This method takes the id of the stack as an input and check if the stack has been deployed
 	 * it returns the ip that can be used to access the machine
@@ -74,16 +74,15 @@ const driver = {
 	"getDeployClusterStatus": function (options, cb) {
 		options.soajs.log.debug("Checking if Cluster is healthy ...");
 		let stack = options.infra.stack;
-
+		
 		let containerOptions = Object.assign({}, options);
-        containerOptions.technology = (containerOptions && containerOptions.params && containerOptions.params.technology) ? containerOptions.params.technology : defaultDriver;
-
+		containerOptions.technology = (containerOptions && containerOptions.params && containerOptions.params.technology) ? containerOptions.params.technology : defaultDriver;
+		
 		//get the environment record
 		if (options.soajs.registry.deployer.container[stack.technology].remote.nodes && options.soajs.registry.deployer.container[stack.technology].remote.nodes !== '') {
 			let machineIp = options.soajs.registry.deployer.container[stack.technology].remote.nodes;
 			return cb(null, machineIp);
-		}
-		else {
+		} else {
 			let out = false;
 			async.series({
 				"pre": (mCb) => {
@@ -101,8 +100,7 @@ const driver = {
 				"post": (mCb) => {
 					if (out) {
 						runCorrespondingDriver('getDeployClusterStatusPost', containerOptions, mCb);
-					}
-					else {
+					} else {
 						return mCb();
 					}
 				}
@@ -111,11 +109,11 @@ const driver = {
 			});
 		}
 	},
-
+	
 	"getDNSInfo": function (options, cb) {
 		LBDriver.getDNSInfo(options, cb);
 	},
-
+	
 	/**
 	 * This method returns the available deployment regions at aws
 	 * @param options
@@ -142,78 +140,81 @@ const driver = {
 			{v: 'ap-southeast-2', 'l': 'Asia Pacific (Sydney)'},
 			{v: 'sa-east-1', 'l': 'South America (São Paulo)'}
 		];
-
+		
 		return cb(null, response);
 	},
 	"listAvailabilityZones": function (options, cb) {
 		let aws = options.infra.api;
-		let ec2 = getConnector({api: 'ec2', keyId: aws.keyId, secretAccessKey: aws.secretAccessKey, region: options.params.region});
-
+		let ec2 = getConnector({
+			api: 'ec2',
+			keyId: aws.keyId,
+			secretAccessKey: aws.secretAccessKey,
+			region: options.params.region
+		});
+		
 		ec2.describeAvailabilityZones({}, function (error, data) {
 			if (error) {
 				return cb(error);
 			}
 			if (!data) {
 				return cb(new Error("Unable to reach AWS API!"));
-			}
-			else if (data.AvailabilityZones && data.AvailabilityZones.length > 0){
+			} else if (data.AvailabilityZones && data.AvailabilityZones.length > 0) {
 				let zones = [];
-				data.AvailabilityZones.forEach((zone)=>{
-					if (zone.State === 'available'){
+				data.AvailabilityZones.forEach((zone) => {
+					if (zone.State === 'available') {
 						zones.push(zone.ZoneName);
 					}
 				});
 				return cb(null, {
 					[options.params.region]: zones
-				})
-			}
-			else {
-				return cb(null, {})
+				});
+			} else {
+				return cb(null, {});
 			}
 		});
 	},
-
+	
 	"scaleCluster": function (options, cb) {
 		ClusterDriver.scaleCluster(options, cb);
 	},
-
+	
 	"getCluster": function (options, cb) {
 		ClusterDriver.getCluster(options, cb);
 	},
-
+	
 	"publishPorts": function (options, cb) {
 		LBDriver.publishPorts(options, cb);
 	},
 	"getFiles": function (options, cb) {
 		S3Driver.getFiles(options, cb);
 	},
-
+	
 	'downloadFile': function (options, cb) {
 		S3Driver.downloadFile(options, cb);
 	},
-
+	
 	'deleteFile': function (options, cb) {
 		S3Driver.deleteFile(options, cb);
 	},
-
+	
 	"uploadFile": function (options, cb) {
 		S3Driver.uploadFile(options, cb);
 	},
-
+	
 	/**
 	 * List available resource groups
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	listGroups: function(options, cb) {
+	listGroups: function (options, cb) {
 		return groups.list(options, cb);
 	},
-
+	
 	/**
 	 * Create a resource group
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -221,10 +222,10 @@ const driver = {
 	createGroup: function (options, cb) {
 		return groups.create(options, cb);
 	},
-
+	
 	/**
 	 * Update a resource group
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -232,10 +233,10 @@ const driver = {
 	updateGroup: function (options, cb) {
 		return groups.update(options, cb);
 	},
-
+	
 	/**
 	 * Delete a resource group
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -243,10 +244,10 @@ const driver = {
 	deleteGroup: function (options, cb) {
 		return groups.delete(options, cb);
 	},
-
+	
 	/**
 	 * List available Networks
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -254,14 +255,14 @@ const driver = {
 	listNetworks: function (options, cb) {
 		return networks.list(options, cb);
 	},
-
-    getNetwork: function (options, cb) {
-        return networks.get(options, cb);
-    },
-
+	
+	getNetwork: function (options, cb) {
+		return networks.get(options, cb);
+	},
+	
 	/**
 	 * Create network
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -269,10 +270,10 @@ const driver = {
 	createNetwork: function (options, cb) {
 		return networks.create(options, cb);
 	},
-
+	
 	/**
 	 * Update network
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -280,10 +281,10 @@ const driver = {
 	updateNetwork: function (options, cb) {
 		return networks.update(options, cb);
 	},
-
+	
 	/**
 	 * Delete network
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -291,11 +292,11 @@ const driver = {
 	deleteNetwork: function (options, cb) {
 		return networks.delete(options, cb);
 	},
-
-
+	
+	
 	/**
 	 * List available loadbalancers
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -303,10 +304,10 @@ const driver = {
 	listLoadBalancers: function (options, cb) {
 		return LBDriver.list(options, cb);
 	},
-
+	
 	/**
 	 * Create loadbalancer
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -314,10 +315,10 @@ const driver = {
 	createLoadBalancer: function (options, cb) {
 		return LBDriver.create(options, cb);
 	},
-
+	
 	/**
 	 * Update loadbalancer
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -325,10 +326,10 @@ const driver = {
 	updateLoadBalancer: function (options, cb) {
 		return LBDriver.update(options, cb);
 	},
-
+	
 	/**
 	 * Delete loadbalancer
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -336,10 +337,10 @@ const driver = {
 	deleteLoadBalancer: function (options, cb) {
 		return LBDriver.delete(options, cb);
 	},
-
+	
 	/**
 	 * List available subnets
-
+	 
 	 * @param  {Object}   options  Data passed to function listsubas params
 	 * @param  {Function} cb    Callback fspub
 	 * @return {void}listsub
@@ -347,10 +348,10 @@ const driver = {
 	listSubnets: function (options, cb) {
 		return subnets.list(options, cb);
 	},
-
+	
 	/**
 	 * Create subnet
-
+	 
 	 * @param  {Object}   options  Data passed to function listsubas params
 	 * @param  {Function} cb    Callback fspub
 	 * @return {void}listsub
@@ -358,10 +359,10 @@ const driver = {
 	createSubnet: function (options, cb) {
 		return subnets.create(options, cb);
 	},
-
+	
 	/**
 	 * Update subnet
-
+	 
 	 * @param  {Object}   options  Data passed to function listsubas params
 	 * @param  {Function} cb    Callback fspub
 	 * @return {void}listsub
@@ -369,10 +370,10 @@ const driver = {
 	updateSubnet: function (options, cb) {
 		return subnets.update(options, cb);
 	},
-
+	
 	/**
 	 * Delete subnet
-
+	 
 	 * @param  {Object}   options  Data passed to function listsubas params
 	 * @param  {Function} cb    Callback fspub
 	 * @return {void}listsub
@@ -380,10 +381,10 @@ const driver = {
 	deleteSubnet: function (options, cb) {
 		return subnets.delete(options, cb);
 	},
-
+	
 	/**
 	 * List available securitygroups
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -391,10 +392,10 @@ const driver = {
 	listSecurityGroups: function (options, cb) {
 		return securityGroups.list(options, cb);
 	},
-
+	
 	/**
 	 * Get existing security group
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -402,10 +403,10 @@ const driver = {
 	getSecurityGroup: function (options, cb) {
 		return securityGroups.get(options, cb);
 	},
-
+	
 	/**
 	 * Create security group
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -413,10 +414,10 @@ const driver = {
 	createSecurityGroup: function (options, cb) {
 		return securityGroups.create(options, cb);
 	},
-
+	
 	/**
 	 * Update security group
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -424,10 +425,10 @@ const driver = {
 	updateSecurityGroup: function (options, cb) {
 		return securityGroups.update(options, cb);
 	},
-
+	
 	/**
 	 * Delete security group
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -435,21 +436,21 @@ const driver = {
 	deleteSecurityGroup: function (options, cb) {
 		return securityGroups.delete(options, cb);
 	},
-
+	
 	/**
 	 * Sync ports from catalog recipe to selected security groups
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
-	syncPortsFromCatalogRecipe: function(options, cb) {
+	syncPortsFromCatalogRecipe: function (options, cb) {
 		return securityGroups.syncPortsFromCatalogRecipe(options, cb);
 	},
-
+	
 	/**
 	 * List available public ips
-
+	 
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
@@ -457,10 +458,10 @@ const driver = {
 	listPublicIps: function (options, cb) {
 		return ips.list(options, cb);
 	},
-
+	
 	/**
 	 * Create public ip
-
+	 
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
@@ -468,10 +469,10 @@ const driver = {
 	createPublicIp: function (options, cb) {
 		return ips.create(options, cb);
 	},
-
+	
 	/**
 	 * Update public ip
-
+	 
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
@@ -479,10 +480,10 @@ const driver = {
 	updatePublicIp: function (options, cb) {
 		return ips.update(options, cb);
 	},
-
+	
 	/**
 	 * Delete public ip
-
+	 
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
@@ -490,10 +491,10 @@ const driver = {
 	deletePublicIp: function (options, cb) {
 		return ips.delete(options, cb);
 	},
-
+	
 	/**
 	 * List available public ips
-
+	 
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
@@ -501,10 +502,10 @@ const driver = {
 	listKeyPairs: function (options, cb) {
 		return keyPairs.list(options, cb);
 	},
-
+	
 	/**
 	 * Create Key Pair
-
+	 
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
@@ -512,10 +513,10 @@ const driver = {
 	createKeyPair: function (options, cb) {
 		return keyPairs.create(options, cb);
 	},
-
+	
 	/**
 	 * Update Key Pair
-
+	 
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
@@ -523,10 +524,10 @@ const driver = {
 	updateKeyPair: function (options, cb) {
 		return keyPairs.update(options, cb);
 	},
-
+	
 	/**
 	 * Delete public ip
-
+	 
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
@@ -534,10 +535,10 @@ const driver = {
 	deleteKeyPair: function (options, cb) {
 		return keyPairs.delete(options, cb);
 	},
-
+	
 	/**
 	 * List certificates
-
+	 
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
@@ -545,10 +546,10 @@ const driver = {
 	listCertificates: function (options, cb) {
 		return certificates.list(options, cb);
 	},
-
+	
 	/**
 	 * Create certificate
-
+	 
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
@@ -556,10 +557,10 @@ const driver = {
 	createCertificate: function (options, cb) {
 		return certificates.create(options, cb);
 	},
-
+	
 	/**
 	 * Update certificate
-
+	 
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
@@ -567,10 +568,10 @@ const driver = {
 	updateCertificate: function (options, cb) {
 		return certificates.update(options, cb);
 	},
-
+	
 	/**
 	 * Delete certificate
-
+	 
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
@@ -578,10 +579,10 @@ const driver = {
 	deleteCertificate: function (options, cb) {
 		return certificates.delete(options, cb);
 	},
-
+	
 	/**
 	 * list roles
-
+	 
 	 * @param  {Object}   options
 	 * @param  {Function} cb
 	 * @return {void}
@@ -622,8 +623,8 @@ const driver = {
 	deleteRole: function (options, cb) {
 		return roles.delete(options, cb);
 	},
-
-	"executeDriver": function(method, options, cb){
+	
+	"executeDriver": function (method, options, cb) {
 		runCorrespondingDriver(method, options, cb);
 	}
 };

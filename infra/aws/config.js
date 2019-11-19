@@ -1,12 +1,12 @@
 "use strict";
 
-var config = {
+const config = {
 	"templateUrl": "https://s3.amazonaws.com/soajs/",
-	"api":{
+	"api": {
 		"region": "us-east-1"
 	},
 	aws: {
-		ssmSupportedPolicy:["AmazonEC2RoleforSSM"]
+		ssmSupportedPolicy: ["AmazonEC2RoleforSSM"]
 	},
 	ipProtocolNumbers: Array.apply(null, {length: 141}).map(Function.call, Number),
 	ipProtocols: ["tcp", "udp", "icmp"]

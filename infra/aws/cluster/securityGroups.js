@@ -10,17 +10,17 @@ function getConnector(opts) {
 }
 
 const securityGroups = {
-
+	
 	/**
 	 * get security groups
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	get: function (options, cb) {
 		const aws = options.infra.api;
-
+		
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
@@ -40,23 +40,22 @@ const securityGroups = {
 					securityGroup: response.SecurityGroups[0],
 					region: options.params.region
 				}));
-			}
-			else {
+			} else {
 				return cb(null, {});
 			}
 		});
 	},
-
+	
 	/**
 	 * List available security groups
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	list: function (options, cb) {
 		const aws = options.infra.api;
-
+		
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
@@ -78,23 +77,22 @@ const securityGroups = {
 						region: options.params.region
 					}));
 				}, cb);
-			}
-			else {
+			} else {
 				return cb(null, []);
 			}
 		});
 	},
-
+	
 	/**
 	 * Create a new security group
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	create: function (options, cb) {
 		const aws = options.infra.api;
-
+		
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
@@ -114,7 +112,7 @@ const securityGroups = {
 			let inbound = {
 				GroupId: response.GroupId,
 				IpPermissions: []
-
+				
 			};
 			let outbound = {
 				GroupId: response.GroupId,
@@ -129,33 +127,31 @@ const securityGroups = {
 				inbound: function (callback) {
 					if (inbound.IpPermissions.length > 0) {
 						ec2.authorizeSecurityGroupIngress(inbound, callback);
-					}
-					else {
+					} else {
 						callback();
 					}
 				},
 				outbound: function (callback) {
 					if (outbound.IpPermissions.length > 0) {
 						ec2.authorizeSecurityGroupEgress(outbound, callback);
-					}
-					else {
+					} else {
 						callback();
 					}
 				}
 			}, cb);
 		});
 	},
-
+	
 	/**
 	 * Update a security group
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	update: function (options, cb) {
 		const aws = options.infra.api;
-
+		
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
@@ -168,15 +164,17 @@ const securityGroups = {
 		let inbound = {
 			GroupId: options.params.id,
 			IpPermissions: []
-
+			
 		};
 		let outbound = {
 			GroupId: options.params.id,
 			IpPermissions: []
 		};
 		ec2.describeSecurityGroups(params, (err, response) => {
-			if (err) return cb(err);
-
+			if (err) {
+				return cb(err);
+			}
+			
 			if (response && response.SecurityGroups && Array.isArray(response.SecurityGroups) && response.SecurityGroups.length > 0) {
 				async.series({
 					delete: (minCb) => {
@@ -199,20 +197,18 @@ const securityGroups = {
 							inbound: function (call) {
 								if (Ingress.IpPermissions.length > 0) {
 									ec2.revokeSecurityGroupIngress(Ingress, call);
-								}
-								else {
+								} else {
 									call();
 								}
 							},
 							outbound: function (call) {
 								if (Egress.IpPermissions.length > 0) {
 									ec2.revokeSecurityGroupEgress(Egress, call);
-								}
-								else {
+								} else {
 									call();
 								}
 							}
-						}, minCb)
+						}, minCb);
 					},
 					create: (minCb) => {
 						if (options.params.ports) {
@@ -224,28 +220,25 @@ const securityGroups = {
 							inbound: function (call) {
 								if (inbound.IpPermissions.length > 0) {
 									ec2.authorizeSecurityGroupIngress(inbound, call);
-								}
-								else {
+								} else {
 									call();
 								}
 							},
 							outbound: function (call) {
 								if (outbound.IpPermissions.length > 0) {
 									ec2.authorizeSecurityGroupEgress(outbound, call);
-								}
-								else {
+								} else {
 									call();
 								}
 							}
 						}, minCb);
 					}
 				}, cb);
-			}
-			else {
+			} else {
 				return cb(new Error("Security Group not Found"));
 			}
 		});
-
+		
 		function stripIps(oneSG) {
 			oneSG.forEach((ip) => {
 				if (ip.PrefixListIds && ip.PrefixListIds.length === 0) {
@@ -263,10 +256,10 @@ const securityGroups = {
 			});
 		}
 	},
-
+	
 	/**
 	 * Delete a security group
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -286,11 +279,11 @@ const securityGroups = {
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#deleteSecurityGroup-property
 		ec2.deleteSecurityGroup(params, cb);
 	},
-
+	
 	computeSecurityGroupPorts: function (ports) {
 		let inbound = {
 			IpPermissions: []
-
+			
 		};
 		let outbound = {
 			IpPermissions: []
@@ -304,9 +297,8 @@ const securityGroups = {
 				};
 				if (!onePort.range) {
 					port.ToPort = onePort.published;
-				}
-				else {
-					port.ToPort = onePort.range
+				} else {
+					port.ToPort = onePort.range;
 				}
 				if (onePort.source && onePort.source.length > 0) {
 					port.IpRanges = [];
@@ -324,7 +316,7 @@ const securityGroups = {
 						});
 					});
 				}
-				if(onePort.securityGroups && onePort.securityGroups.length > 0) {
+				if (onePort.securityGroups && onePort.securityGroups.length > 0) {
 					port.UserIdGroupPairs = [];
 					onePort.securityGroups.forEach((sg) => {
 						port.UserIdGroupPairs.push({
@@ -334,18 +326,17 @@ const securityGroups = {
 				}
 				if (onePort.direction === "inbound") {
 					inbound.IpPermissions.push(port);
-				}
-				else if (onePort.direction === "outbound") {
+				} else if (onePort.direction === "outbound") {
 					outbound.IpPermissions.push(port);
 				}
 			});
 		}
-		return {inbound, outbound}
+		return {inbound, outbound};
 	},
-
+	
 	/**
 	 * Update security group based on the ports found in the catalog recipe
-
+	 
 	 * @param  {object}   options  The list of ports
 	 * @param  {object}   cb  The list of ports
 	 * @return {void}
@@ -362,7 +353,7 @@ const securityGroups = {
 		 * update security groups
 		 */
 		const aws = options.infra.api;
-
+		
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
@@ -370,20 +361,20 @@ const securityGroups = {
 			secretAccessKey: aws.secretAccessKey
 		});
 		let vpc = false;
-
+		
 		function getSecurityGroups(callback) {
 			if (!options || !options.params || !options.params.ports || !Array.isArray(options.params.ports) || options.params.ports.length === 0) {
 				return callback(null, []);
 			}
-
+			
 			let getOptions = Object.assign({}, options);
-
+			
 			if (!options.params || !options.params.securityGroups || !Array.isArray(options.params.securityGroups) || options.params.securityGroups.length === 0) {
 				getVMS((err, response) => {
 					if (err) {
 						return callback(err);
 					}
-
+					
 					let sG = [];
 					if (response && response.Reservations && response.Reservations[0] && response.Reservations[0].Instances && response.Reservations[0].Instances.length > 0) {
 						async.each(response.Reservations, (oneReservation, rCB) => {
@@ -391,10 +382,10 @@ const securityGroups = {
 								async.each(oneInstance.SecurityGroups, (group, gCB) => {
 									sG.push(group.GroupId);
 									return gCB();
-								}, iCB)
+								}, iCB);
 							}, (err, result) => {
 								sG = sG.concat(result);
-								return rCB()
+								return rCB();
 							});
 						}, () => {
 							getOptions.params = {
@@ -403,13 +394,11 @@ const securityGroups = {
 							};
 							securityGroups.list(getOptions, callback);
 						});
-					}
-					else {
+					} else {
 						return callback(new Error("Invalid Virtual Machines!"));
 					}
 				});
-			}
-			else {
+			} else {
 				getOptions.params = {
 					region: options.params.region,
 					ids: options.params.securityGroups,
@@ -417,35 +406,34 @@ const securityGroups = {
 				securityGroups.list(getOptions, callback);
 			}
 		}
-
+		
 		function computePorts(result, callback) {
-
+			
 			let catalogPorts = options.params.ports || [];
-
+			
 			async.map(result.getSecurityGroups, (oneSecurityGroup, mapCallback) => {
 				let sgPorts = oneSecurityGroup.ports || [];
-
+				
 				async.concat(catalogPorts, (oneCatalogPort, concatCallback) => {
 					async.detect(sgPorts, (oneSgPort, detectCallback) => {
 						if (oneSgPort.isPublished === oneCatalogPort.isPublished && oneSgPort.access === 'allow' && oneSgPort.direction === 'inbound' && !oneSgPort.readonly) {
 							if (oneSgPort.published && typeof oneSgPort.published === 'string') {
-								if(oneSgPort.published.indexOf("-") !== -1 && oneSgPort.published.split(' - ').length > 0){
+								if (oneSgPort.published.indexOf("-") !== -1 && oneSgPort.published.split(' - ').length > 0) {
 									let target = parseInt(oneSgPort.published.split(' - ')[0]);
 									let range = oneSgPort.published.split(' - ')[1] ? parseInt(oneSgPort.published.split(' - ')[1]) : null;
-
+									
 									if (oneCatalogPort.target >= target && oneCatalogPort.target <= range) {
 										return detectCallback(null, true);
 									}
-								}
-								else if(parseInt(oneSgPort.published) === parseInt(oneCatalogPort.target)){
+								} else if (parseInt(oneSgPort.published) === parseInt(oneCatalogPort.target)) {
 									return detectCallback(null, true);
 								}
 							}
 						}
-
+						
 						return detectCallback(null, false);
 					}, (error, foundPort) => {
-
+						
 						if (foundPort) {
 							return concatCallback(null, []);
 						}
@@ -460,18 +448,15 @@ const securityGroups = {
 							let supportedProtocols = config.ipProtocolNumbers.concat(config.ipProtocols);
 							if (supportedProtocols.indexOf(oneCatalogPort.name.toLowerCase()) !== -1) {
 								port.IpProtocol = oneCatalogPort.name.toLowerCase();
-							}
-							else if (oneCatalogPort.name === "*") {
+							} else if (oneCatalogPort.name === "*") {
 								port.IpProtocol = -1;
-							}
-							else {
+							} else {
 								port.IpProtocol = "tcp";
 							}
+						} else {
+							port.IpProtocol = "tcp";
 						}
-						else {
-							port.IpProtocol = "tcp"
-						}
-
+						
 						return concatCallback(null, [port]);
 					});
 				}, (error, portsUpdates) => {
@@ -481,13 +466,12 @@ const securityGroups = {
 				});
 			}, callback);
 		}
-
+		
 		function getVpc(result, callback) {
 			if (!result.getSecurityGroups || !Array.isArray(result.getSecurityGroups) || result.getSecurityGroups.length === 0) {
 				if (options.params.securityGroups && Array.isArray(options.params.securityGroups) && options.params.securityGroups.length > 0) {
 					return callback(new Error(`Security Groups: ${options.params.securityGroups.join(' - ')} not found!`));
-				}
-				else {
+				} else {
 					options.soajs.log.warn("No security groups provided!");
 					return callback(null, []);
 				}
@@ -496,28 +480,27 @@ const securityGroups = {
 				VpcIds: [result.getSecurityGroups[0].networkId]
 			}, callback);
 		}
-
+		
 		function updateSecurityGroups(result, callback) {
-
+			
 			if (!result.computePorts || !Array.isArray(result.computePorts) || result.computePorts.length === 0) {
 				return callback(null, true);
 			}
-
+			
 			async.each(result.computePorts, (oneSecurityGroup, eachCallback) => {
 				if (!oneSecurityGroup.portsUpdates || oneSecurityGroup.portsUpdates.length === 0) {
 					return eachCallback(null, true);
 				}
-
+				
 				async.each(oneSecurityGroup.portsUpdates, (onePort, internalCallback) => {
-					if(onePort && onePort.vpc) {
-						onePort.IpRanges= [
+					if (onePort && onePort.vpc) {
+						onePort.IpRanges = [
 							{
 								CidrIp: result.getVpc.Vpcs[0].CidrBlock,
 								Description: "Internal Network only"
 							}
 						];
-					}
-					else {
+					} else {
 						onePort.IpRanges = [{
 							CidrIp: "0.0.0.0/0",
 							Description: "Anywhere Ipv4"
@@ -527,22 +510,22 @@ const securityGroups = {
 							Description: "Anywhere Ipv6"
 						}];
 					}
-
+					
 					delete onePort.vpc;
-
+					
 					let params = {
 						GroupId: oneSecurityGroup.id,
-						IpPermissions: [ onePort ]
+						IpPermissions: [onePort]
 					};
 					return ec2.authorizeSecurityGroupIngress(params, internalCallback);
 				}, eachCallback);
 			}, callback);
 		}
-
-		function getVMS (callback){
+		
+		function getVMS(callback) {
 			let params = null;
-			if(options.params && options.params.vms){
-				if (Array.isArray( options.params.vms) &&  options.params.vms.length > 0){
+			if (options.params && options.params.vms) {
+				if (Array.isArray(options.params.vms) && options.params.vms.length > 0) {
 					params = {
 						Filters: [
 							{
@@ -551,8 +534,7 @@ const securityGroups = {
 							}
 						]
 					};
-				}
-				else if (typeof  options.params.vms === 'string'){
+				} else if (typeof options.params.vms === 'string') {
 					params = {
 						Filters: [
 							{
@@ -563,11 +545,11 @@ const securityGroups = {
 					};
 				}
 			}
-
-			if(!params) {
+			
+			if (!params) {
 				return callback(new Error("Vms not found!"));
 			}
-
+			
 			//describe instances using instanceIds = options.params.vms
 			ec2.describeInstances({
 				InstanceIds: [
@@ -575,16 +557,15 @@ const securityGroups = {
 				]
 			}, (err, response) => {
 				if (err || !response || !response.Reservations || response.Reservations.length === 0 || !response.Reservations[0].Instances || response.Reservations[0].Instances.length === 0) {
-
+					
 					//if nothing was found describe instances using filters generated via params
 					ec2.describeInstances(params, callback);
-				}
-				else {
+				} else {
 					return callback(err, response);
 				}
 			});
 		}
-
+		
 		async.auto({
 			getSecurityGroups,
 			getVpc: ['getSecurityGroups', getVpc],
