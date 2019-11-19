@@ -147,7 +147,9 @@ const certificates = {
 			}
 			
 			let certificate = {};
-			if (response.CertificateArn) certificate.id = response.CertificateArn;
+			if (response.CertificateArn) {
+				certificate.id = response.CertificateArn;
+			}
 			certificate.region = options.params.region;
 			
 			let tags = [{Key: 'Name', Value: options.params.name}];

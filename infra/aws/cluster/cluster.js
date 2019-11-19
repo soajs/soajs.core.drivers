@@ -52,28 +52,26 @@ const AWSCluster = {
 		
 		options.templateName = options.params.infraCodeTemplate;
 		getNetworkInputs(options, (error, network) => {
-			if(error){
+			if (error) {
 				return cb(error);
 			}
 			S3Driver.getTemplateInputs(options, (error, templateInputsToUse) => {
-				if(error){
+				if (error) {
 					return cb(error);
 				}
 				
-				if(typeof(templateInputsToUse) !== 'object'){
-					try{
+				if (typeof (templateInputsToUse) !== 'object') {
+					try {
 						templateInputsToUse = JSON.parse(templateInputsToUse);
-					}
-					catch(e){
+					} catch (e) {
 						options.soajs.log.error(e);
 					}
 				}
 				let inputs = templateInputsToUse.inputs;
-				if(typeof inputs === 'string'){
-					try{
+				if (typeof inputs === 'string') {
+					try {
 						inputs = JSON.parse(inputs);
-					}
-					catch(e){
+					} catch (e) {
 						return cb(new Error("Detected invalid template inputs schema !!!"));
 					}
 				}
@@ -111,7 +109,7 @@ const AWSCluster = {
 					],
 					TemplateURL: config.templateUrl + encodeURIComponent(options.params.infraCodeTemplate)
 				};
-				if (network){
+				if (network) {
 					params.Parameters.push({
 						ParameterKey: 'Vpc',
 						ParameterValue: network.id,
@@ -151,22 +149,21 @@ const AWSCluster = {
 		});
 		
 		
-		function mapTemplateInputsWithValues(inputs, params, template, mapCb){
+		function mapTemplateInputsWithValues(inputs, params, template, mapCb) {
 			async.each(inputs, (oneInput, iCb) => {
-				if(!oneInput || typeof oneInput !== 'object'){
+				if (!oneInput || typeof oneInput !== 'object') {
 					return iCb(new Error("Detected invalid template inputs schema !!!"));
 				}
 				
-				if(oneInput.entries){
+				if (oneInput.entries) {
 					mapTemplateInputsWithValues(oneInput.entries, params, template, iCb);
-				}
-				else{
+				} else {
 					let paramValue = params[oneInput.name];
-					if(!paramValue){
+					if (!paramValue) {
 						paramValue = oneInput.value.toString();
 					}
 					
-					if(!paramValue) {
+					if (!paramValue) {
 						return iCb();
 					}
 					
@@ -180,15 +177,15 @@ const AWSCluster = {
 			}, mapCb);
 		}
 		
-		function getNetworkInputs (options, netCb) {
-			if (options.params.network){
+		function getNetworkInputs(options, netCb) {
+			if (options.params.network) {
 				return netCb(null, null);
 			}
-			networkDriver.get(options, (err, network)=>{
+			networkDriver.get(options, (err, network) => {
 				if (err) {
 					return netCb(err);
 				}
-				if (!network.attachInternetGateway || !network.subnets || (network.subnets.length < 3)){
+				if (!network.attachInternetGateway || !network.subnets || (network.subnets.length < 3)) {
 					return netCb(new Error("Invalid network configuration provided!"));
 				}
 				return netCb(null, network);
@@ -221,8 +218,7 @@ const AWSCluster = {
 		cloudFormation.describeStacks(param, function (err, response) {
 			if (err) {
 				return cb(err);
-			}
-			else {
+			} else {
 				if (response && response.Stacks && response.Stacks.length > 0 && response.Stacks[0] && response.Stacks[0].StackStatus) {
 					if ((response.Stacks[0].StackStatus === 'CREATE_COMPLETE' || response.Stacks[0].StackStatus === 'UPDATE_COMPLETE') && response.Stacks[0].Outputs && response.Stacks[0].Outputs.length > 0) {
 						let out = {};
@@ -247,19 +243,15 @@ const AWSCluster = {
 							options.out = out;
 							
 							return cb(err, out.ip);
-						}
-						else {
+						} else {
 							return cb(null, false);
 						}
-					}
-					else if (response.Stacks[0].StackStatus === 'DELETE_IN_PROGRESS') {
+					} else if (response.Stacks[0].StackStatus === 'DELETE_IN_PROGRESS') {
 						return cb(new Error('Error Creating Stack'));
-					}
-					else {
+					} else {
 						return cb(null, false);
 					}
-				}
-				else {
+				} else {
 					return cb(null, false);
 				}
 			}
@@ -388,8 +380,7 @@ const AWSCluster = {
 			cloudFormation.updateStack(params, function (err) {
 				if (err) {
 					return cb(err);
-				}
-				else {
+				} else {
 					updateELB(instanceBefore);
 					options.soajs.log.debug("Updating load balancers");
 					return cb(null, true);
@@ -431,8 +422,7 @@ const AWSCluster = {
 				if (err) {
 					//only log the error
 					options.soajs.log.error(err);
-				}
-				else {
+				} else {
 					//update done
 					if (res.Stacks[0].StackStatus.indexOf("UPDATE_COMPLETE") !== -1) {
 						addInstances(elbs, instanceBefore);
@@ -443,8 +433,7 @@ const AWSCluster = {
 						setTimeout(function () {
 							checkStackStatus(stackParams, elbs, instanceBefore);
 						}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 20 * 1000);
-					}
-					else {
+					} else {
 						//log the status and stop
 						options.soajs.log.error(new Error(`Stack status is ${res.Stacks[0].StackStatus}`));
 					}
@@ -465,9 +454,8 @@ const AWSCluster = {
 			};
 			ec2.describeInstances(instanceParams, function (err, instances) {
 				if (err) {
-					return cb(err)
-				}
-				else {
+					return cb(err);
+				} else {
 					let instanceIds = [];
 					for (let i = 0; i < instances.Reservations.length; i++) {
 						for (let y = 0; y < instances.Reservations[i].Instances.length; y++) {
@@ -498,8 +486,7 @@ const AWSCluster = {
 								elb.registerInstancesWithLoadBalancer(registerParams, callback);
 								
 							}, call);
-						}
-						else {
+						} else {
 							return call(null, true);
 						}
 					},
@@ -513,16 +500,14 @@ const AWSCluster = {
 								};
 								elb.deregisterInstancesFromLoadBalancer(registerParams, callback);
 							}, call);
-						}
-						else {
+						} else {
 							return call(null, true);
 						}
 					}
 				], function (err) {
 					if (err) {
 						options.soajs.log.error(err);
-					}
-					else {
+					} else {
 						options.soajs.log.debug("External Load Balancers updated");
 					}
 				});
@@ -545,7 +530,7 @@ const AWSCluster = {
 			return ({
 				newInstances: makeObject(newInstances),
 				deleteInstances: makeObject(deleteInstances)
-			})
+			});
 		}
 		
 		function makeObject(instance) {
@@ -612,8 +597,7 @@ const AWSCluster = {
 			ec2.describeInstances(params, function (err, data) {
 				if (err) {
 					return cb(err);
-				}
-				else {
+				} else {
 					for (let i = 0; i < data.Reservations.length; i++) {
 						for (let y = 0; y < data.Reservations[i].Instances.length; y++) {
 							machinesList.push({
@@ -664,8 +648,8 @@ const AWSCluster = {
 			StackName: stack.name
 		};
 		let elasticLoadBalancers = [];
-		if (stack.options.ElbName){
-			elasticLoadBalancers.push(stack.options.ElbName)
+		if (stack.options.ElbName) {
+			elasticLoadBalancers.push(stack.options.ElbName);
 		}
 		for (let env in stack.loadBalancers) {
 			for (let service in stack.loadBalancers[env]) {
@@ -678,8 +662,7 @@ const AWSCluster = {
 			}, function (err) {
 				if (err) {
 					return cb(err);
-				}
-				else {
+				} else {
 					deleteStack();
 				}
 			});

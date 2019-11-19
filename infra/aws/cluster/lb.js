@@ -1,3 +1,5 @@
+'use strict';
+
 const randomString = require("randomstring");
 const async = require('async');
 const config = require("../config");
@@ -72,8 +74,7 @@ const AWSLB = {
 							if (lb && lb.Subnets && Array.isArray(lb.Subnets) && lb.Subnets.length > 0) {
 								let sParams = {SubnetIds: lb.Subnets};
 								ec2.describeSubnets(sParams, callback);
-							}
-							else {
+							} else {
 								return callback(null, null);
 							}
 						},
@@ -123,8 +124,7 @@ const AWSLB = {
 				}
 			};
 			return mCb(null, response);
-		}
-		else {
+		} else {
 			return mCb(null, {"id": stack.id});
 		}
 	},
@@ -200,22 +200,20 @@ const AWSLB = {
 			else {
 				if (!options.params.ElbName.name) {
 					return cb(null, true);
-				}
-				else {
+				} else {
 					options.params.name = options.params.ElbName.name;
 				}
 				AWSLB.delete(options, function (err) {
 					if (err) {
 						return cb(err);
-					}
-					else {
+					} else {
 						options.params.info = options.infra.info;
 						const envCode = options.params.envCode.toUpperCase();
 						options.params.name = service;
-						if (options.infra.deployments && options.infra.deployments[options.params.info[2]]
-							&& options.infra.deployments[options.params.info[2]].loadBalancers
-							&& options.infra.deployments[options.params.info[2]].loadBalancers[envCode]
-							&& options.infra.deployments[options.params.info[2]].loadBalancers[envCode][service]) {
+						if (options.infra.deployments && options.infra.deployments[options.params.info[2]] &&
+							options.infra.deployments[options.params.info[2]].loadBalancers &&
+							options.infra.deployments[options.params.info[2]].loadBalancers[envCode] &&
+							options.infra.deployments[options.params.info[2]].loadBalancers[envCode][service]) {
 							delete options.infra.deployments[options.params.info[2]].loadBalancers[envCode][service];
 						}
 						return cb(null, true);
@@ -279,8 +277,7 @@ const AWSLB = {
 				if (stack.options.ZonesAvailable) {
 					if (!Array.isArray(stack.options.ZonesAvailable)) {
 						lbParams.subnets = [stack.options.ZonesAvailable];
-					}
-					else {
+					} else {
 						lbParams.subnets = stack.options.ZonesAvailable;
 					}
 				}
@@ -307,8 +304,7 @@ const AWSLB = {
 					ec2.describeInstances(instanceParams, function (err, instances) {
 						if (err) {
 							return cb(err);
-						}
-						else {
+						} else {
 							for (let i = 0; i < instances.Reservations.length; i++) {
 								for (let y = 0; y < instances.Reservations[i].Instances.length; y++) {
 									instanceIds.push({InstanceId: instances.Reservations[i].Instances[y].InstanceId});
@@ -347,8 +343,7 @@ const AWSLB = {
 						}
 					});
 				});
-			}
-			else {
+			} else {
 				//do nothing
 				return cb(null, true);
 			}
@@ -389,32 +384,31 @@ const AWSLB = {
 				});
 			}
 			if (options.params.securityGroups) {
-				params.SecurityGroups = options.params.securityGroups
+				params.SecurityGroups = options.params.securityGroups;
 			}
 			if (options.params.subnets) {
-				params.Subnets = options.params.subnets
+				params.Subnets = options.params.subnets;
 			}
 			if (options.params.zones) {
-				params.AvailabilityZones = options.params.zones
+				params.AvailabilityZones = options.params.zones;
 			}
 			if (options.params.type === 'internal') {
-				params.Scheme = options.params.type
+				params.Scheme = options.params.type;
 			}
 			if (options.params.tags) {
-				params.Tags = options.params.tags
+				params.Tags = options.params.tags;
 			}
 			if (params.Listeners.length === 0) {
-				return cb(new Error("A load balancer must have at least one port open. "))
+				return cb(new Error("A load balancer must have at least one port open. "));
 			}
 			if (!params.AvailabilityZones && !params.Subnets) {
-				return cb(new Error("Either Zones or Subnet must be specified."))
+				return cb(new Error("Either Zones or Subnet must be specified."));
 			}
 			options.soajs.log.debug(params);
 			elb[elbResponse.method](params, (err, lbResponse) => {
 				if (err) {
 					return cb(err);
-				}
-				else {
+				} else {
 					if (options.params.healthProbe) {
 						params = {
 							HealthCheck: {},
@@ -427,8 +421,7 @@ const AWSLB = {
 							if (options.params.healthProbe.healthProbeProtocol.toUpperCase() === "HTTP" || options.params.healthProbe.healthProbePort.toUpperCase() === "HTTPS") {
 								if (options.params.healthProbe.healthProbePath) {
 									params.HealthCheck.Target += options.params.healthProbe.healthProbePath;
-								}
-								else {
+								} else {
 									return cb(new Error("A path must be specified for protocols HTTP/HTTPS, when creating a LoadBalancer Health Check."));
 								}
 							}
@@ -454,8 +447,7 @@ const AWSLB = {
 								return cb(err, lbResponse);
 							});
 						});
-					}
-					else {
+					} else {
 						return cb(null, lbResponse);
 					}
 				}
@@ -492,13 +484,12 @@ const AWSLB = {
 		elb.describeLoadBalancers(params, function (err, loadBalancer) {
 			if (err) {
 				return mCb(err);
-			}
-			else {
+			} else {
 				let listenerDescriptions;
 				//get listeners
-				if (loadBalancer.LoadBalancerDescriptions && loadBalancer.LoadBalancerDescriptions.length > 0
-					&& loadBalancer.LoadBalancerDescriptions[0].ListenerDescriptions
-					&& loadBalancer.LoadBalancerDescriptions[0].ListenerDescriptions.length > 0) {
+				if (loadBalancer.LoadBalancerDescriptions && loadBalancer.LoadBalancerDescriptions.length > 0 &&
+					loadBalancer.LoadBalancerDescriptions[0].ListenerDescriptions &&
+					loadBalancer.LoadBalancerDescriptions[0].ListenerDescriptions.length > 0) {
 					listenerDescriptions = loadBalancer.LoadBalancerDescriptions[0].ListenerDescriptions;
 				}
 				//check if listener is found
@@ -516,7 +507,7 @@ const AWSLB = {
 					//get list of listeners to be deleted
 					if (listenerDescriptions.length > 0) {
 						listenerDescriptions.forEach(function (oneListen) {
-							deleted.push(oneListen.Listener.LoadBalancerPort)
+							deleted.push(oneListen.Listener.LoadBalancerPort);
 						});
 					}
 				}
@@ -530,13 +521,11 @@ const AWSLB = {
 					elb.deleteLoadBalancerListeners(deletedParams, function (err) {
 						if (err) {
 							return mCb(err);
-						}
-						else {
+						} else {
 							updateListeners();
 						}
 					});
-				}
-				else {
+				} else {
 					updateListeners();
 				}
 			}
@@ -571,29 +560,28 @@ const AWSLB = {
 						return mCb(err);
 					}
 					//check if health check port is deleted ==> if yes update the health check
-					if (loadBalancer.LoadBalancerDescriptions[0].HealthCheck && loadBalancer.LoadBalancerDescriptions[0].HealthCheck.Target
-						&& loadBalancer.LoadBalancerDescriptions[0].HealthCheck.Target.split(":")[1]
-						&& deleted.indexOf(loadBalancer.LoadBalancerDescriptions[0].HealthCheck.Target.split(":")[1]) === -1) {
+					if (loadBalancer.LoadBalancerDescriptions[0].HealthCheck && loadBalancer.LoadBalancerDescriptions[0].HealthCheck.Target &&
+						loadBalancer.LoadBalancerDescriptions[0].HealthCheck.Target.split(":")[1] &&
+						deleted.indexOf(loadBalancer.LoadBalancerDescriptions[0].HealthCheck.Target.split(":")[1]) === -1) {
 						updateHealthCheck(elb, healthCheckPort, function (err) {
 							if (err) {
 								return mCb(err);
 							}
 							//update the exposed ports of the service //check if db was tampered with
-							if (options.infra.deployments && options.infra.deployments[options.params.info[2]]
-								&& options.infra.deployments[options.params.info[2]].loadBalancers
-								&& options.infra.deployments[options.params.info[2]].loadBalancers[envCode]
-								&& options.infra.deployments[options.params.info[2]].loadBalancers[envCode][opts.name]) {
+							if (options.infra.deployments && options.infra.deployments[options.params.info[2]] &&
+								options.infra.deployments[options.params.info[2]].loadBalancers &&
+								options.infra.deployments[options.params.info[2]].loadBalancers[envCode] &&
+								options.infra.deployments[options.params.info[2]].loadBalancers[envCode][opts.name]) {
 								options.infra.deployments[options.params.info[2]].loadBalancers[envCode][opts.name].ports = ports;
 							}
 							return mCb(null, true);
 						});
-					}
-					else {
+					} else {
 						//update the exposed ports of the service //check if db was tampered with
-						if (options.infra.deployments && options.infra.deployments[options.params.info[2]]
-							&& options.infra.deployments[options.params.info[2]].loadBalancers
-							&& options.infra.deployments[options.params.info[2]].loadBalancers[envCode]
-							&& options.infra.deployments[options.params.info[2]].loadBalancers[envCode][opts.name]) {
+						if (options.infra.deployments && options.infra.deployments[options.params.info[2]] &&
+							options.infra.deployments[options.params.info[2]].loadBalancers &&
+							options.infra.deployments[options.params.info[2]].loadBalancers[envCode] &&
+							options.infra.deployments[options.params.info[2]].loadBalancers[envCode][opts.name]) {
 							options.infra.deployments[options.params.info[2]].loadBalancers[envCode][opts.name].ports = ports;
 						}
 						return mCb(null, true);
@@ -608,8 +596,7 @@ const AWSLB = {
 				};
 				if (healthCheckPort === 80) {
 					healthCheckParams.HealthCheck.Target = "HTTP:80/";
-				}
-				else {
+				} else {
 					healthCheckParams.HealthCheck.Target = `TCP:${healthCheckPort}`;
 				}
 				options.soajs.log.debug(healthCheckParams);
@@ -670,9 +657,9 @@ const AWSLB = {
 										let found = false;
 										async.each(lb.ListenerDescriptions, (port, listenersCB) => {
 											if (rule.frontendPort === port.Listener.LoadBalancerPort &&
-												rule.backendPort === port.Listener.InstancePort
-												&& rule.frontendProtocol.toUpperCase() === port.Listener.Protocol.toUpperCase()
-												&& rule.backendProtocol.toUpperCase() === port.Listener.InstanceProtocol.toUpperCase()) {
+												rule.backendPort === port.Listener.InstancePort &&
+												rule.frontendProtocol.toUpperCase() === port.Listener.Protocol.toUpperCase() &&
+												rule.backendProtocol.toUpperCase() === port.Listener.InstanceProtocol.toUpperCase()) {
 												found = true;
 												if (rule.certificate !== port.Listener.SSLCertificateId) {
 													certificates.push({
@@ -708,9 +695,9 @@ const AWSLB = {
 										let found = false;
 										async.each(options.params.rules, (rule, ruleCB) => {
 											if (rule.frontendPort === port.Listener.LoadBalancerPort &&
-												rule.backendPort === port.Listener.InstancePort
-												&& rule.frontendProtocol.toUpperCase() === port.Listener.Protocol.toUpperCase()
-												&& rule.backendProtocol.toUpperCase() === port.Listener.InstanceProtocol.toUpperCase()) {
+												rule.backendPort === port.Listener.InstancePort &&
+												rule.frontendProtocol.toUpperCase() === port.Listener.Protocol.toUpperCase() &&
+												rule.backendProtocol.toUpperCase() === port.Listener.InstanceProtocol.toUpperCase()) {
 												found = true;
 											}
 											ruleCB();
@@ -728,10 +715,9 @@ const AWSLB = {
 									updateCertificate: (call) => {
 										if (certificates.length > 0) {
 											async.each(certificates, (certificate, miniCb) => {
-												elb.setLoadBalancerListenerSSLCertificate(certificate, miniCb)
+												elb.setLoadBalancerListenerSSLCertificate(certificate, miniCb);
 											}, call);
-										}
-										else {
+										} else {
 											return call();
 										}
 									},
@@ -739,13 +725,13 @@ const AWSLB = {
 										if (deleteListeners.LoadBalancerPorts.length === 0) {
 											return call();
 										}
-										elb.deleteLoadBalancerListeners(deleteListeners, call)
+										elb.deleteLoadBalancerListeners(deleteListeners, call);
 									},
 									add: (call) => {
 										if (addListeners.Listeners.length === 0) {
 											return call();
 										}
-										elb.createLoadBalancerListeners(addListeners, call)
+										elb.createLoadBalancerListeners(addListeners, call);
 									}
 								}, callback);
 							});
@@ -765,7 +751,7 @@ const AWSLB = {
 									elb.detachLoadBalancerFromSubnets({
 										LoadBalancerName: lb.LoadBalancerName,
 										Subnets: subnetsToDelete
-									}, call)
+									}, call);
 								},
 								add: (call) => {
 									if (subnetsToAdd.length === 0) {
@@ -774,7 +760,7 @@ const AWSLB = {
 									elb.attachLoadBalancerToSubnets({
 										LoadBalancerName: lb.LoadBalancerName,
 										Subnets: subnetsToAdd
-									}, call)
+									}, call);
 								}
 							}, callback);
 						},
@@ -785,8 +771,7 @@ const AWSLB = {
 										LoadBalancerName: lb.LoadBalancerName,
 										SecurityGroups: options.params.securityGroups
 									}, callback);
-							}
-							else {
+							} else {
 								return callback();
 							}
 						},
@@ -799,8 +784,7 @@ const AWSLB = {
 									if (options.params.healthProbe.healthProbeProtocol.toUpperCase() === "HTTP" || options.params.healthProbe.healthProbeProtocol.toUpperCase() === "HTTPS") {
 										if (options.params.healthProbe.healthProbePath) {
 											healthProbePath += options.params.healthProbe.healthProbePath;
-										}
-										else {
+										} else {
 											return callback(new Error("A path must be specified for protocols HTTP/HTTPS, when creating a LoadBalancer Health Check."));
 										}
 									}
@@ -808,11 +792,11 @@ const AWSLB = {
 								if (healthProbePath === "") {
 									return callback(new Error("A Health Check Path must be specified!"));
 								}
-								if (healthProbePath !== lb.HealthCheck.Target
-									|| options.params.healthProbe.healthProbeInterval !== lb.HealthCheck.Interval
-									|| options.params.healthProbe.healthProbeTimeout !== lb.HealthCheck.Timeout
-									|| options.params.healthProbe.maxFailureAttempts !== lb.HealthCheck.UnhealthyThreshold
-									|| options.params.healthProbe.maxSuccessAttempts !== lb.HealthCheck.HealthyThreshold) {
+								if (healthProbePath !== lb.HealthCheck.Target ||
+									options.params.healthProbe.healthProbeInterval !== lb.HealthCheck.Interval ||
+									options.params.healthProbe.healthProbeTimeout !== lb.HealthCheck.Timeout ||
+									options.params.healthProbe.maxFailureAttempts !== lb.HealthCheck.UnhealthyThreshold ||
+									options.params.healthProbe.maxSuccessAttempts !== lb.HealthCheck.HealthyThreshold) {
 									elb.configureHealthCheck({
 										LoadBalancerName: lb.LoadBalancerName,
 										HealthCheck: {
@@ -823,18 +807,15 @@ const AWSLB = {
 											HealthyThreshold: options.params.healthProbe.maxSuccessAttempts,
 										}
 									}, callback);
-								}
-								else {
+								} else {
 									return callback();
 								}
-							}
-							else {
+							} else {
 								return callback();
 							}
 						}
 					}, mCb);
-				}
-				else {
+				} else {
 					return mCb(new Error("Load balancer not found!"));
 				}
 			});
