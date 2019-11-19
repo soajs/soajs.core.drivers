@@ -1,5 +1,4 @@
 "use strict";
-const async = require("async");
 
 /**
  * appended code for testing
@@ -27,19 +26,17 @@ const extras = {
 		v1Compute().regions.get(request, function (err, response) {
 			if (err || !response) {
 				return cb(err, !response);
-			}
-			else {
-				if (verbose){
+			} else {
+				if (verbose) {
 					let zones = [];
-					if (response && response.zones){
-						response.zones.forEach((oneZone)=>{
+					if (response && response.zones) {
+						response.zones.forEach((oneZone) => {
 							let zone = oneZone.split("/");
 							zones.push(zone[zone.length - 1]);
 						});
 					}
 					return cb(null, zones);
-				}
-				else {
+				} else {
 					return cb(null, 'locations');
 				}
 			}
@@ -59,9 +56,8 @@ const extras = {
 		v1Compute().zones.get(request, function (err, response) {
 			if (err || !response) {
 				return cb(err, !response);
-			}
-			else {
-				return verbose ? cb(null, [zone]) : cb(null, 'zones')
+			} else {
+				return verbose ? cb(null, [zone]) : cb(null, 'zones');
 			}
 		});
 	}

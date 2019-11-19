@@ -616,7 +616,7 @@ let driver = {
 												if (foundNamespace) {
 													return fCb(null, true);
 												}
-												wrapper.namespace.post(deployer, {body: namespace}, (error, response) => {
+												wrapper.namespace.post(deployer, {body: namespace}, (error) => {
 													if (error) {
 														return fCb(error);
 													}
