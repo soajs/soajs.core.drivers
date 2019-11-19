@@ -100,7 +100,7 @@ module.exports = function (grunt) {
 				
 				//"validthis": true,
 				//"loopfunc": true,
-				"sub": true,
+				//"sub": true,
 				//"supernew": true,
 				
 				"node": true,
