@@ -25,7 +25,7 @@ const utils = {
 				config.scopes, // an array of auth scopes
 				null
 			)
-		}
+		};
 	}
 };
 

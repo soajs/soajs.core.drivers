@@ -92,7 +92,7 @@ let driver = {
 	 * @returns {*}
 	 */
 	"getRegions": function(options, cb){
-		return cb(null, {"regions": [] })
+		return cb(null, {"regions": [] });
 	},
 	
 	/**

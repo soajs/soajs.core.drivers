@@ -1,5 +1,4 @@
 'use strict';
-const _ = require('lodash');
 const async = require("async");
 const Client = require('kubernetes-client').Client;
 const wrapper = require('../../../lib/container/kubernetes/wrapper.js');
@@ -48,13 +47,11 @@ let driver = {
 			capitalization: 'lowercase'
 		})}`;
 		
-		let request = getConnector(options.infra.api);
-		
 		let name = '', createNewNetwork = false;
 		if (options.infra && options.infra._id && options.soajs && options.soajs.registry && options.soajs.registry.restriction && options.soajs.registry.restriction[options.infra._id]) {
 			if (Object.keys(options.soajs.registry.restriction[options.infra._id]).length > 0) {
 				options.params.region = Object.keys(options.soajs.registry.restriction[options.infra._id])[0];
-				if(options.soajs.registry.restriction[options.infra._id][options.params.region] && options.soajs.registry.restriction[options.infra._id][options.params.region].network) {
+				if (options.soajs.registry.restriction[options.infra._id][options.params.region] && options.soajs.registry.restriction[options.infra._id][options.params.region].network) {
 					options.soajs.log.debug("Cluster network provided as input, using it to deploy ...");
 					name = options.soajs.registry.restriction[options.infra._id][options.params.region].network;
 				}
@@ -99,7 +96,9 @@ let driver = {
 				returnGlobalOperation: true
 			};
 			networks.add(networksOptions, (error, globalOperationResponse) => {
-				if (error) return cb(error);
+				if (error) {
+					return cb(error);
+				}
 				
 				//assign network name to deployment entry
 				oneDeployment.options.network = name;
@@ -167,13 +166,17 @@ let driver = {
 				//list firewalls
 				//Ref: https://cloud.google.com/compute/docs/reference/rest/v1/firewalls/list
 				v1Compute().firewalls.list(request, function (error, firewalls) {
-					if (error) return mCb(error);
+					if (error) {
+						return mCb(error);
+					}
 					
-					if (!firewalls.items) firewalls.items = [];
+					if (!firewalls.items) {
+						firewalls.items = [];
+					}
 					
 					async.eachSeries(firewallRules, (oneRule, vCb) => {
 						let foundFirewall = firewalls.items.find((oneEntry) => {
-							return oneEntry.name === oneRule.name
+							return oneEntry.name === oneRule.name;
 						});
 						
 						if (foundFirewall) {
@@ -296,8 +299,8 @@ let driver = {
 					return mCb(err);
 				}
 				let version;
-				if (response && response.validMasterVersions && Array.isArray(response.validMasterVersions)
-					&& response.validMasterVersions.length > 0) {
+				if (response && response.validMasterVersions && Array.isArray(response.validMasterVersions) &&
+					response.validMasterVersions.length > 0) {
 					response.validMasterVersions.forEach(function (oneVersion) {
 						if (oneVersion.substring(0, 3) === "1.7") {
 							version = oneVersion;
@@ -309,7 +312,7 @@ let driver = {
 					version = response.defaultClusterVersion;
 					options.soajs.log.debug("Initial Cluster version set to default version :", version);
 				} else {
-					return mCb({"code": 410, "msg": "Invalid or no kubernetes cluster version found!"})
+					return mCb({"code": 410, "msg": "Invalid or no kubernetes cluster version found!"});
 				}
 				return mCb(null, version);
 			});
@@ -383,9 +386,9 @@ let driver = {
 					options.soajs.log.debug("Deploying new Cluster from Template:", oneDeployment.options.network);
 					driver.checkZoneRegion(options, options.params.region, false, (err, type) => {
 						if (err) {
-							return cb(err)
+							return cb(err);
 						}
-						request.parent = `projects/${options.infra.api.project}/locations/${options.params.region}`
+						request.parent = `projects/${options.infra.api.project}/locations/${options.params.region}`;
 						v1beta1container().projects[type].clusters.create(request, function (err, operation) {
 							if (err) {
 								if (createNewNetwork) {
@@ -400,7 +403,7 @@ let driver = {
 								return mCb(null, true);
 							}
 						});
-					})
+					});
 				});
 			});
 		}
@@ -433,7 +436,7 @@ let driver = {
 					mapTemplateInputsWithValues(oneInput.entries, params, template, iCb);
 				} else {
 					let paramValue;
-					if (params[oneInput.name]){
+					if (params[oneInput.name]) {
 						paramValue = params[oneInput.name].toString();
 					}
 					if (!paramValue) {
@@ -445,7 +448,7 @@ let driver = {
 			}, () => {
 				//loop in template recursively till you find a match, replace value of found matches
 				for (let property in templateInputs) {
-					traverse(template).forEach(function (x) {
+					traverse(template).forEach(function () {
 						if (this.key === property) {
 							this.update(templateInputs[property]);
 						}
@@ -519,7 +522,7 @@ let driver = {
 			}
 			driver.checkZoneRegion(options, cluster.options.zone, false, (err, type) => {
 				if (err) {
-					return cb(err)
+					return cb(err);
 				}
 				checkIfClusterisReady(type, function (err, response) {
 					if (err) {
@@ -551,7 +554,7 @@ let driver = {
 								let machineAuth = clusterInformation.masterAuth;
 								let deployer = {};
 								let deployerConfig = {
-									config :{
+									config: {
 										url: `https://${machineIp}`,
 										auth: {
 											user: machineAuth.username,
@@ -567,11 +570,10 @@ let driver = {
 										options.soajs.log.debug("Creating Kubernetes Token.");
 										try {
 											deployer = new Client(deployerConfig);
-										}
-										catch (e) {
+										} catch (e) {
 											return fCb(e);
 										}
-										wrapper.secret.get(deployer,{}, (error, secretsList) => {
+										wrapper.secret.get(deployer, {}, (error, secretsList) => {
 											if (error) {
 												return fCb(error);
 											}
@@ -593,8 +595,7 @@ let driver = {
 										try {
 											deployer = new Client(deployerConfig);
 											
-										}
-										catch (e) {
+										} catch (e) {
 											return fCb(e);
 										}
 										let namespace = {
@@ -615,7 +616,7 @@ let driver = {
 												if (foundNamespace) {
 													return fCb(null, true);
 												}
-												wrapper.namespace.post(deployer,{body: namespace}, (error, response) => {
+												wrapper.namespace.post(deployer, {body: namespace}, (error, response) => {
 													if (error) {
 														return fCb(error);
 													}
@@ -687,7 +688,7 @@ let driver = {
 															if (err) {
 																return cb(err);
 															}
-															if (response && response.region){
+															if (response && response.region) {
 																let regionUrl = response.region.split("/");
 																region = regionUrl[regionUrl.length - 1];
 															}
@@ -749,7 +750,7 @@ let driver = {
 		let nginxDeploymentName = options.soajs.registry.code.toLowerCase() + '-nginx';
 		let deployer = {};
 		let deployerConfig = {
-			config :{
+			config: {
 				url: `https://${options.soajs.registry.deployer.container.kubernetes.remote.nodes}:${options.soajs.registry.deployer.container.kubernetes.remote.apiPort}`,
 				auth: {
 					bearer: options.soajs.registry.deployer.container.kubernetes.remote.auth.token
@@ -761,8 +762,7 @@ let driver = {
 		try {
 			deployer = new Client(deployerConfig);
 			
-		}
-		catch (e) {
+		} catch (e) {
 			return cb(e);
 		}
 		//build namespace
@@ -775,7 +775,7 @@ let driver = {
 		wrapper.service.get(deployer, {
 			namespace: namespace,
 			name: nginxServiceName
-		}, (error, service) =>{
+		}, (error, service) => {
 			if (error) {
 				return cb(error);
 			}
@@ -940,7 +940,7 @@ let driver = {
 													if (err) {
 														return cb(err);
 													}
-													if (response && response.region){
+													if (response && response.region) {
 														let regionUrl = response.region.split("/");
 														region = regionUrl[regionUrl.length - 1];
 													}
@@ -1058,7 +1058,7 @@ let driver = {
 		};
 		driver.checkZoneRegion(options, cluster.options.zone, true, (err, zones) => {
 			if (err) {
-				return cb(err)
+				return cb(err);
 			}
 			//loop over all the zone ang get the ip of each location found in the zone
 			//if zonal we only have to loop once
@@ -1096,7 +1096,7 @@ let driver = {
 				});
 			}, function (err) {
 				if (err) {
-					return cb(err)
+					return cb(err);
 				} else {
 					return cb(null, response);
 				}
@@ -1147,7 +1147,7 @@ let driver = {
 		options.soajs.log.debug("Removing Cluster:", request.clusterId);
 		driver.checkZoneRegion(options, stack.options.zone, false, (err, type) => {
 			if (err) {
-				return cb(err)
+				return cb(err);
 			}
 			request.name = `projects/${options.infra.api.project}/locations/${stack.options.zone}/clusters/${stack.id}`;
 			v1beta1container().projects[type].clusters.get(request, function (err, clusterInformation) {
