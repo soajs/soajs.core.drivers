@@ -43,7 +43,9 @@ let lib = {
 	 */
 	loadTasks: function (grunt, rootPath, tasks) {
 		tasks.forEach(function (name) {
-			if (name === 'grunt-cli') return;
+			if (name === 'grunt-cli') {
+				return;
+			}
 			let cwd = process.cwd();
 			process.chdir(rootPath); // load files from proper root, I don't want to install everything locally per module!
 			grunt.loadNpmTasks(name);
@@ -55,8 +57,8 @@ let lib = {
 module.exports = function (grunt) {
 	//Loading the needed plugins to run the grunt tasks
 	let pluginsRootPath = lib.findRoot();
-	lib.loadTasks(grunt, pluginsRootPath, ['grunt-contrib-jshint', 'grunt-jsdoc', 'grunt-contrib-clean', 'grunt-mocha-test', 'grunt-env'
-		, 'grunt-istanbul', 'grunt-coveralls', 'grunt-babel', 'grunt-contrib-copy']);
+	lib.loadTasks(grunt, pluginsRootPath, ['grunt-contrib-jshint', 'grunt-jsdoc', 'grunt-contrib-clean', 'grunt-mocha-test', 'grunt-env',
+		'grunt-istanbul', 'grunt-coveralls', 'grunt-babel', 'grunt-contrib-copy']);
 	grunt.initConfig({
 		babel: {
 			options: {
@@ -78,7 +80,8 @@ module.exports = function (grunt) {
 		},
 		
 		//Defining jshint tasks
-		jshint: {	options: {
+		jshint: {
+			options: {
 				"bitwise": true,
 				"curly": true,
 				"eqeqeq": true,
@@ -97,7 +100,7 @@ module.exports = function (grunt) {
 				
 				//"validthis": true,
 				//"loopfunc": true,
-				//"sub": true,
+				"sub": true,
 				//"supernew": true,
 				
 				"node": true,
@@ -133,14 +136,14 @@ module.exports = function (grunt) {
 				SOAJS_ENV: "dev",
 				APP_DIR_FOR_CODE_COVERAGE: '../../test/coverage/instrument/dist/',
 				SOAJS_DAEMON_GRP_CONF: 'group1',
-				SOAJS_IMAGE_PREFIX : "soajsorg",
+				SOAJS_IMAGE_PREFIX: "soajsorg",
 				SOAJS_TEST_KUBE_PORT: '8080'
 			},
 			coverage: {
 				SOAJS_ENV: "dev",
 				APP_DIR_FOR_CODE_COVERAGE: '../../test/coverage/instrument/dist/',
 				SOAJS_DAEMON_GRP_CONF: 'group1',
-				SOAJS_IMAGE_PREFIX : "soajsorg",
+				SOAJS_IMAGE_PREFIX: "soajsorg",
 				SOAJS_TEST_KUBE_PORT: '8080',
 				SOAJS_CLOOSTRO_TEST: 1
 			}
@@ -199,7 +202,7 @@ module.exports = function (grunt) {
 					reporter: 'spec',
 					timeout: 90000
 				},
-				src: ['dist/test/unit/*.js', 'dist/test/unit/**/*.js', 'dist/test/unit/***/**/*.js','dist/test/unit/****/***/**/*.js']
+				src: ['dist/test/unit/*.js', 'dist/test/unit/**/*.js', 'dist/test/unit/***/**/*.js', 'dist/test/unit/****/***/**/*.js']
 			}
 		},
 		
@@ -223,7 +226,8 @@ module.exports = function (grunt) {
 	process.env.SHOW_LOGS = grunt.option('showLogs');
 	grunt.loadNpmTasks('grunt-babel');
 	grunt.loadNpmTasks('grunt-contrib-jshint');
-	grunt.registerTask("default", ['copy', 'babel', 'jshint']);
+	grunt.registerTask("default", ['jshint']);
+	grunt.registerTask("babel", ['copy', 'babel']);
 	grunt.registerTask("unit", ['env:mochaTest', 'instrument', 'mochaTest:unit']);
 	grunt.registerTask("test", ['clean', 'copy', 'babel', 'env:coverage', 'instrument', 'mochaTest:unitTest', 'storeCoverage', 'makeReport']);
 	grunt.registerTask("coverage", ['clean', 'copy', 'babel', 'env:coverage', 'instrument', 'mochaTest:unitTest', 'storeCoverage', 'makeReport', 'coveralls']);
