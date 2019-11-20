@@ -216,6 +216,42 @@ describe("testing /lib/container/docker/index.js", function () {
 		});
 	});
 	
+	describe("calling  getPVC", function () {
+		
+		it("Success", function (done) {
+			services.getPVC(options, function () {
+				done();
+			});
+		});
+	});
+	
+	describe("calling  createPVC", function () {
+		
+		it("Success", function (done) {
+			services.createPVC(options, function () {
+				done();
+			});
+		});
+	});
+	
+	describe("calling  deletePVC", function () {
+		
+		it("Success", function (done) {
+			services.deletePVC(options, function () {
+				done();
+			});
+		});
+	});
+	
+	describe("calling  listPVCs", function () {
+		
+		it("Success", function (done) {
+			services.listPVCs(options, function () {
+				done();
+			});
+		});
+	});
+	
 	describe("calling  createNameSpace", function () {
 		
 		it("Success", function (done) {
