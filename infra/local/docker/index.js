@@ -3,6 +3,7 @@
 const randomString = require("randomstring");
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
+const errorFile = require('../../../lib/utils/errors.js');
 const dockerDriver = require("../../../lib/container/docker/index.js");
 const dockerUtils = require("../../../lib/container/docker/utils.js");
 const infraUtils = require("../../utils");
@@ -29,7 +30,7 @@ let driver = {
 		}
 		catch(e){
 			options.soajs.log.error(e);
-			return cb({source: 'driver', value: 'Invalid docker configuration detected', code: 687, msg: errors[687]});
+			return cb({source: 'driver', value: 'Invalid docker configuration detected', code: 687, msg: errorFile[687]});
 		}
 		
 		dockerUtils.getDeployer(options, (error, deployer) => {
