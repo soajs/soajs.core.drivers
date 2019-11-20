@@ -534,10 +534,9 @@ const driver = {
 		
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#deleteVpc-property
 		async.parallel({
-			// unused
-			// vpcs: (callback) => {
-			// 	ec2.describeVpcs({VpcIds: [options.params.id]}, callback)
-			// },
+			vpcs: (callback) => {
+				ec2.describeVpcs({VpcIds: [options.params.id]}, callback)
+			},
 			
 			subnets: (callback) => {
 				ec2.describeSubnets({

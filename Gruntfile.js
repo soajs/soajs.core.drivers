@@ -227,7 +227,6 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-babel');
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.registerTask("default", ['jshint']);
-	grunt.registerTask("babel", ['copy', 'babel']);
 	grunt.registerTask("unit", ['env:mochaTest', 'instrument', 'mochaTest:unit']);
 	grunt.registerTask("test", ['clean', 'copy', 'babel', 'env:coverage', 'instrument', 'mochaTest:unitTest', 'storeCoverage', 'makeReport']);
 	grunt.registerTask("coverage", ['clean', 'copy', 'babel', 'env:coverage', 'instrument', 'mochaTest:unitTest', 'storeCoverage', 'makeReport', 'coveralls']);

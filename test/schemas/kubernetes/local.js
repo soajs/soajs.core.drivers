@@ -308,7 +308,7 @@ let soajs = {
 };
 
 module.exports = function () {
-	let data = {
+	return {
 		"deployer": {
 			"strategy": "kubernetes",
 			"driver": "kubernetes.remote",
@@ -760,7 +760,7 @@ module.exports = function () {
 							"soajs.secret.type": "Opaque"
 						}
 					}
-
+					
 				}
 			]
 		},
@@ -1185,7 +1185,7 @@ module.exports = function () {
 											}
 										],
 										"resources": {
-
+											
 											"requests": {
 												"cpu": "100m",
 												"memory": "70Mi"
@@ -1255,7 +1255,7 @@ module.exports = function () {
 											}
 										],
 										"resources": {
-
+										
 										},
 										"volumeMounts": [
 											{
@@ -1296,7 +1296,7 @@ module.exports = function () {
 											}
 										],
 										"resources": {
-
+										
 										},
 										"livenessProbe": {
 											"httpGet": {
@@ -2109,141 +2109,141 @@ module.exports = function () {
 		},
 		"podList": [
 			{
-			"kind": "PodList",
-			"apiVersion": "v1",
-			"metadata": {
-				"selfLink": "/api/v1/pods",
-				"resourceVersion": "144949"
-			},
-			"items": [
-				{
-					"metadata": {
-						"name": "compose-5d4f4d67b6-wb2vx",
-						"generateName": "compose-5d4f4d67b6-",
-						"namespace": "docker",
-						"selfLink": "/api/v1/namespaces/docker/pods/compose-5d4f4d67b6-wb2vx",
-						"uid": "346c28d5-5d98-11e8-9af0-025000000001",
-						"resourceVersion": "123022",
-						"creationTimestamp": "2018-05-22T08:14:53Z",
-						"labels": {
-							"com.docker.deploy-namespace": "docker",
-							"com.docker.fry": "compose",
-							"com.docker.image-tag": "v0.3.0-rc4",
-							"pod-template-hash": "1809082362"
-						},
-						"ownerReferences": [
-							{
-								"apiVersion": "extensions/v1beta1",
-								"kind": "ReplicaSet",
-								"name": "compose-5d4f4d67b6",
-								"uid": "346bdff2-5d98-11e8-9af0-025000000001",
-								"controller": true,
-								"blockOwnerDeletion": true
-							}
-						]
-					},
-					"spec": {
-						"volumes": [
-							{
-								"name": "compose-token-65hzj",
-								"secret": {
-									"secretName": "compose-token-65hzj",
-									"defaultMode": 420
+				"kind": "PodList",
+				"apiVersion": "v1",
+				"metadata": {
+					"selfLink": "/api/v1/pods",
+					"resourceVersion": "144949"
+				},
+				"items": [
+					{
+						"metadata": {
+							"name": "compose-5d4f4d67b6-wb2vx",
+							"generateName": "compose-5d4f4d67b6-",
+							"namespace": "docker",
+							"selfLink": "/api/v1/namespaces/docker/pods/compose-5d4f4d67b6-wb2vx",
+							"uid": "346c28d5-5d98-11e8-9af0-025000000001",
+							"resourceVersion": "123022",
+							"creationTimestamp": "2018-05-22T08:14:53Z",
+							"labels": {
+								"com.docker.deploy-namespace": "docker",
+								"com.docker.fry": "compose",
+								"com.docker.image-tag": "v0.3.0-rc4",
+								"pod-template-hash": "1809082362"
+							},
+							"ownerReferences": [
+								{
+									"apiVersion": "extensions/v1beta1",
+									"kind": "ReplicaSet",
+									"name": "compose-5d4f4d67b6",
+									"uid": "346bdff2-5d98-11e8-9af0-025000000001",
+									"controller": true,
+									"blockOwnerDeletion": true
 								}
-							}
-						],
-						"containers": [
-							{
-								"name": "compose",
-								"image": "docker/kube-compose-controller:v0.3.0-rc4",
-								"args": [
-									"--kubeconfig",
-									"",
-									"--reconciliation-interval",
-									"30s"
-								],
-								"resources": {},
-								"volumeMounts": [
-									{
-										"name": "compose-token-65hzj",
-										"readOnly": true,
-										"mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+							]
+						},
+						"spec": {
+							"volumes": [
+								{
+									"name": "compose-token-65hzj",
+									"secret": {
+										"secretName": "compose-token-65hzj",
+										"defaultMode": 420
 									}
-								],
-								"terminationMessagePath": "/dev/termination-log",
-								"terminationMessagePolicy": "File",
-								"imagePullPolicy": "Always"
-							}
-						],
-						"restartPolicy": "Always",
-						"terminationGracePeriodSeconds": 30,
-						"dnsPolicy": "ClusterFirst",
-						"serviceAccountName": "compose",
-						"serviceAccount": "compose",
-						"nodeName": "docker-for-desktop",
-						"securityContext": {},
-						"schedulerName": "default-scheduler",
-						"tolerations": [
-							{
-								"key": "node.kubernetes.io/not-ready",
-								"operator": "Exists",
-								"effect": "NoExecute",
-								"tolerationSeconds": 300
-							},
-							{
-								"key": "node.kubernetes.io/unreachable",
-								"operator": "Exists",
-								"effect": "NoExecute",
-								"tolerationSeconds": 300
-							}
-						]
-					},
-					"status": {
-						"phase": "Running",
-						"conditions": [
-							{
-								"type": "Initialized",
-								"status": "True",
-								"lastProbeTime": null,
-								"lastTransitionTime": "2018-05-22T08:14:53Z"
-							},
-							{
-								"type": "Ready",
-								"status": "True",
-								"lastProbeTime": null,
-								"lastTransitionTime": "2018-06-04T08:13:02Z"
-							},
-							{
-								"type": "PodScheduled",
-								"status": "True",
-								"lastProbeTime": null,
-								"lastTransitionTime": "2018-05-22T08:14:53Z"
-							}
-						],
-						"hostIP": "192.168.65.3",
-						"podIP": "10.1.0.54",
-						"startTime": "2018-05-22T08:14:53Z",
-						"containerStatuses": [
-							{
-								"name": "compose",
-								"state": {
-									"running": {
-										"startedAt": "2018-06-04T08:13:02Z"
-									}
+								}
+							],
+							"containers": [
+								{
+									"name": "compose",
+									"image": "docker/kube-compose-controller:v0.3.0-rc4",
+									"args": [
+										"--kubeconfig",
+										"",
+										"--reconciliation-interval",
+										"30s"
+									],
+									"resources": {},
+									"volumeMounts": [
+										{
+											"name": "compose-token-65hzj",
+											"readOnly": true,
+											"mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+										}
+									],
+									"terminationMessagePath": "/dev/termination-log",
+									"terminationMessagePolicy": "File",
+									"imagePullPolicy": "Always"
+								}
+							],
+							"restartPolicy": "Always",
+							"terminationGracePeriodSeconds": 30,
+							"dnsPolicy": "ClusterFirst",
+							"serviceAccountName": "compose",
+							"serviceAccount": "compose",
+							"nodeName": "docker-for-desktop",
+							"securityContext": {},
+							"schedulerName": "default-scheduler",
+							"tolerations": [
+								{
+									"key": "node.kubernetes.io/not-ready",
+									"operator": "Exists",
+									"effect": "NoExecute",
+									"tolerationSeconds": 300
 								},
-								"lastState": {},
-								"ready": true,
-								"restartCount": 0,
-								"image": "docker/kube-compose-controller:v0.3.0-rc4",
-								"imageID": "docker-pullable://docker/kube-compose-controller@sha256:144066d84addbf9de06a47911939c094f4e769476968d00feae17367011ba729",
-								"containerID": "docker://287a030369fb975bf2905635ab4703ad87f15837b4de433850b00f50d547d373"
-							}
-						],
-						"qosClass": "BestEffort"
+								{
+									"key": "node.kubernetes.io/unreachable",
+									"operator": "Exists",
+									"effect": "NoExecute",
+									"tolerationSeconds": 300
+								}
+							]
+						},
+						"status": {
+							"phase": "Running",
+							"conditions": [
+								{
+									"type": "Initialized",
+									"status": "True",
+									"lastProbeTime": null,
+									"lastTransitionTime": "2018-05-22T08:14:53Z"
+								},
+								{
+									"type": "Ready",
+									"status": "True",
+									"lastProbeTime": null,
+									"lastTransitionTime": "2018-06-04T08:13:02Z"
+								},
+								{
+									"type": "PodScheduled",
+									"status": "True",
+									"lastProbeTime": null,
+									"lastTransitionTime": "2018-05-22T08:14:53Z"
+								}
+							],
+							"hostIP": "192.168.65.3",
+							"podIP": "10.1.0.54",
+							"startTime": "2018-05-22T08:14:53Z",
+							"containerStatuses": [
+								{
+									"name": "compose",
+									"state": {
+										"running": {
+											"startedAt": "2018-06-04T08:13:02Z"
+										}
+									},
+									"lastState": {},
+									"ready": true,
+									"restartCount": 0,
+									"image": "docker/kube-compose-controller:v0.3.0-rc4",
+									"imageID": "docker-pullable://docker/kube-compose-controller@sha256:144066d84addbf9de06a47911939c094f4e769476968d00feae17367011ba729",
+									"containerID": "docker://287a030369fb975bf2905635ab4703ad87f15837b4de433850b00f50d547d373"
+								}
+							],
+							"qosClass": "BestEffort"
+						}
 					}
-				}
-			]
-		},
+				]
+			},
 			{
 				"kind": "PodList",
 				"apiVersion": "v1",
@@ -2730,7 +2730,139 @@ module.exports = function () {
 					}
 				}
 			]
+		},
+		"pvc": {
+			"kind": "PersistentVolumeClaim",
+			"apiVersion": "v1",
+			"metadata": {
+				"name": "test-pvc",
+				"namespace": "volume",
+				"selfLink": "/api/v1/namespaces/volume/persistentvolumeclaims/ragheb",
+				"uid": "d482be2d-c611-45f2-a731-dfbeb414b4f1",
+				"resourceVersion": "85058",
+				"creationTimestamp": "2019-11-19T11:59:13Z",
+				"labels": {
+					"soajs.persistentVolumeClaim.name": "ragheb"
+				},
+				"finalizers": [
+					"kubernetes.io/pvc-protection"
+				]
+			},
+			"spec": {
+				"accessModes": [
+					"ReadWriteOnce"
+				],
+				"resources": {
+					"requests": {
+						"storage": "1Gi"
+					}
+				},
+				"storageClassName": "standard",
+				"volumeMode": "Filesystem"
+			},
+			"status": {
+				"phase": "Pending"
+			}
+		},
+		"pvcList": {
+			"kind": "PersistentVolumeClaimList",
+			"apiVersion": "v1",
+			"metadata": {
+				"selfLink": "/api/v1/namespaces/volume/persistentvolumeclaims",
+				"resourceVersion": "119208"
+			},
+			"items": [
+				{
+					"metadata": {
+						"name": "ragheb",
+						"namespace": "volume",
+						"selfLink": "/api/v1/namespaces/volume/persistentvolumeclaims/ragheb",
+						"uid": "d482be2d-c611-45f2-a731-dfbeb414b4f1",
+						"resourceVersion": "85071",
+						"creationTimestamp": "2019-11-19T11:59:13Z",
+						"labels": {
+							"soajs.persistentVolumeClaim.name": "ragheb"
+						},
+						"annotations": {
+							"control-plane.alpha.kubernetes.io/leader": "{\"holderIdentity\":\"a8848d49-0ab6-11ea-b309-ee42fe8e1a3f\",\"leaseDurationSeconds\":15,\"acquireTime\":\"2019-11-19T11:59:13Z\",\"renewTime\":\"2019-11-19T11:59:15Z\",\"leaderTransitions\":0}",
+							"pv.kubernetes.io/bind-completed": "yes",
+							"pv.kubernetes.io/bound-by-controller": "yes",
+							"volume.beta.kubernetes.io/storage-provisioner": "k8s.io/minikube-hostpath"
+						},
+						"finalizers": [
+							"kubernetes.io/pvc-protection"
+						]
+					},
+					"spec": {
+						"accessModes": [
+							"ReadWriteOnce"
+						],
+						"resources": {
+							"requests": {
+								"storage": "1Gi"
+							}
+						},
+						"volumeName": "pvc-d482be2d-c611-45f2-a731-dfbeb414b4f1",
+						"storageClassName": "standard",
+						"volumeMode": "Filesystem"
+					},
+					"status": {
+						"phase": "Bound",
+						"accessModes": [
+							"ReadWriteOnce"
+						],
+						"capacity": {
+							"storage": "1Gi"
+						}
+					}
+				},
+				{
+					"metadata": {
+						"name": "ragheb2",
+						"namespace": "volume",
+						"selfLink": "/api/v1/namespaces/volume/persistentvolumeclaims/ragheb2",
+						"uid": "c4e5baeb-f100-4cbd-81d3-abf7d35ca77c",
+						"resourceVersion": "86532",
+						"creationTimestamp": "2019-11-19T12:18:53Z",
+						"labels": {
+							"soajs.persistentVolumeClaim.name": "ragheb2"
+						},
+						"annotations": {
+							"control-plane.alpha.kubernetes.io/leader": "{\"holderIdentity\":\"a8848d49-0ab6-11ea-b309-ee42fe8e1a3f\",\"leaseDurationSeconds\":15,\"acquireTime\":\"2019-11-19T12:18:53Z\",\"renewTime\":\"2019-11-19T12:18:55Z\",\"leaderTransitions\":0}",
+							"pv.kubernetes.io/bind-completed": "yes",
+							"pv.kubernetes.io/bound-by-controller": "yes",
+							"volume.beta.kubernetes.io/storage-provisioner": "k8s.io/minikube-hostpath"
+						},
+						"finalizers": [
+							"kubernetes.io/pvc-protection"
+						]
+					},
+					"spec": {
+						"accessModes": [
+							"ReadWriteOnce",
+							"ReadOnlyMany"
+						],
+						"resources": {
+							"requests": {
+								"storage": "1Gi"
+							}
+						},
+						"volumeName": "pvc-c4e5baeb-f100-4cbd-81d3-abf7d35ca77c",
+						"storageClassName": "standard",
+						"volumeMode": "Filesystem"
+					},
+					"status": {
+						"phase": "Bound",
+						"accessModes": [
+							"ReadWriteOnce",
+							"ReadOnlyMany"
+						],
+						"capacity": {
+							"storage": "1Gi"
+						}
+					}
+				}
+			]
 		}
 	};
-	return data;
 };
