@@ -69,7 +69,7 @@ let driver = {
 			options.soajs.log.debug("Creating SOAJS network.");
 			
 			dockerUtils.getDeployer(options, (error, deployer) => {
-				if(error){
+				if (error) {
 					return cb(error);
 				}
 				
@@ -85,10 +85,9 @@ let driver = {
 						}
 					});
 					
-					if(found){
+					if (found) {
 						return cb(null, true);
-					}
-					else{
+					} else {
 						let networkParams = {
 							Name: 'soajsnet',
 							Driver: 'overlay',
@@ -107,8 +106,7 @@ let driver = {
 					}
 				});
 			});
-		}
-		else {
+		} else {
 			return cb(null, false);
 		}
 	}
@@ -143,9 +141,9 @@ driver.deleteService = function (options, cb) {
 			
 			//if there is a load balancer for this service make a call to drivers to delete it
 			let infraStack = info[0];
-			if (infraStack.loadBalancers && infraStack.loadBalancers[options.soajs.registry.code.toUpperCase()]
-				&& infraStack.loadBalancers[options.soajs.registry.code.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']]
-				&& infraStack.loadBalancers[options.soajs.registry.code.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']].name) {
+			if (infraStack.loadBalancers && infraStack.loadBalancers[options.soajs.registry.code.toUpperCase()] &&
+				infraStack.loadBalancers[options.soajs.registry.code.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']] &&
+				infraStack.loadBalancers[options.soajs.registry.code.toUpperCase()][deployedServiceDetails.service.labels['soajs.service.name']].name) {
 				options.params = {
 					envCode: options.soajs.registry.code.toLowerCase(),
 					info: info,
@@ -156,20 +154,18 @@ driver.deleteService = function (options, cb) {
 				LBDriver.delete(options, function (err) {
 					if (err) {
 						return cb(err);
-					}
-					else {
+					} else {
 						const envCode = options.params.envCode.toUpperCase();
-						if (options.infra.deployments && options.infra.deployments[options.params.info[2]]
-							&& options.infra.deployments[options.params.info[2]].loadBalancers
-							&& options.infra.deployments[options.params.info[2]].loadBalancers[envCode]
-							&& options.infra.deployments[options.params.info[2]].loadBalancers[envCode][options.params.name]) {
+						if (options.infra.deployments && options.infra.deployments[options.params.info[2]] &&
+							options.infra.deployments[options.params.info[2]].loadBalancers &&
+							options.infra.deployments[options.params.info[2]].loadBalancers[envCode] &&
+							options.infra.deployments[options.params.info[2]].loadBalancers[envCode][options.params.name]) {
 							delete options.infra.deployments[options.params.info[2]].loadBalancers[envCode][options.params.name];
 						}
 						return cb(null, true);
 					}
 				});
-			}
-			else {
+			} else {
 				return cb(null, true);
 			}
 		});
@@ -179,7 +175,7 @@ driver.deleteService = function (options, cb) {
 driver.listNodes = function (options, cb) {
 	async.auto({
 		"getCluster": (mCb) => {
-			if(!options.params){
+			if (!options.params) {
 				options.params = {};
 			}
 			options.params.env = options.soajs.registry.code;
@@ -222,7 +218,7 @@ driver.listServices = function (options, cb) {
 						oneService.ports.forEach((onePort) => {
 							deployment.loadBalancers[env][oneService.labels['soajs.service.name']].ports.forEach((lbPorts) => {
 								if (lbPorts.published === onePort.published) {
-									onePort.published = lbPorts.target
+									onePort.published = lbPorts.target;
 								}
 							});
 						});
@@ -235,9 +231,11 @@ driver.listServices = function (options, cb) {
 	});
 };
 
-driver.deployService = function (options, cb){
+driver.deployService = function (options, cb) {
 	dockerDriver.deployService(options, (error, response) => {
-		if(error){ return cb(error); }
+		if (error) {
+			return cb(error);
+		}
 		
 		//update env settings
 		//check exposed external ports
@@ -255,8 +253,8 @@ driver.deployService = function (options, cb){
 	});
 };
 
-driver.redeployService = function (options, cb){
-	if (options.params.inputmaskData && options.params.inputmaskData.serviceId){
+driver.redeployService = function (options, cb) {
+	if (options.params.inputmaskData && options.params.inputmaskData.serviceId) {
 		options.params.id = options.params.inputmaskData.serviceId;
 	}
 	dockerDriver.inspectService(options, (error, inspectService) => {

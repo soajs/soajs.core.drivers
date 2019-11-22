@@ -2,8 +2,8 @@
 
 const helper = {
 	
-	"getDeploymentFromInfra" : (infra, env) =>{
-		let infraStack, info, index;
+	"getDeploymentFromInfra": (infra, env) => {
+		let infraStack, index;
 		for (let i = 0; i < infra.deployments.length; i++) {
 			let oneStack = infra.deployments[i];
 			if (oneStack.environments.indexOf(env.toUpperCase()) !== -1) {

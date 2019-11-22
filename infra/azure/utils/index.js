@@ -7,20 +7,21 @@ const AzureNetworkManagementClient = require('azure-arm-network');
 const AzureResourceManagementClient = require('azure-arm-resource').ResourceManagementClient;
 
 const driver = {
-
+	
 	"authenticate": function (options, cb) {
-		if (options && options.infra && options.infra.api && options.infra.api.clientId &&  options.infra.api.secret &&  options.infra.api.domain){
+		if (options && options.infra && options.infra.api && options.infra.api.clientId && options.infra.api.secret && options.infra.api.domain) {
 			azureApi.loginWithServicePrincipalSecret(options.infra.api.clientId, options.infra.api.secret, options.infra.api.domain, function (error, credentials, subscriptions) {
-				if(error) return cb(error);
-
-				return cb(null, { credentials, subscriptions });
+				if (error) {
+					return cb(error);
+				}
+				
+				return cb(null, {credentials, subscriptions});
 			});
-		}
-		else {
+		} else {
 			return cb(new Error("Invalid credentials"));
 		}
 	},
-
+	
 	/**
 	 * Gets the connector to the appropriate azure api
 	 * @param  {Object}   opts  Options passed to function as params

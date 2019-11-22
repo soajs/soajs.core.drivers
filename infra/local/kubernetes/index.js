@@ -15,9 +15,9 @@ let driver = {
 	 * @param cb
 	 * @returns {*}
 	 */
-	"authenticate": function(options, cb){
+	"authenticate": function (options, cb) {
 		options.kubeConfig = {
-			config:{
+			config: {
 				url: `https://${options.infra.api.ipaddress}:${options.infra.api.port}`,
 				auth: {
 					bearer: options.infra.api.token
@@ -33,7 +33,7 @@ let driver = {
 			
 			let env = options.env === 'dashboard' ? "soajs" : options.env;
 			
-			let namespaceName =  options.deployerConfig ? options.deployerConfig.namespace.default.toLowerCase(): env;
+			let namespaceName = options.deployerConfig ? options.deployerConfig.namespace.default.toLowerCase() : env;
 			let namespace = {
 				type: 'Namespace',
 				apiVersion: 'v1',
@@ -58,7 +58,7 @@ let driver = {
 						return cb(null, true);
 					}
 					
-					kubeWrapper.namespace.post(deployer, {body: namespace}, (error, response) => {
+					kubeWrapper.namespace.post(deployer, {body: namespace}, (error) => {
 						if (error) {
 							return cb(error);
 						}
@@ -73,18 +73,18 @@ let driver = {
 			});
 		});
 	},
-
-	"getExtras": function(options, cb) {
+	
+	"getExtras": function (options, cb) {
 		return cb(null, {technologies: ['kubernetes'], templates: null, drivers: ['Native']});
 	},
-
+	
 	/**
 	 * @param options
 	 * @param cb
 	 * @returns {*}
 	 */
-	"getRegions": function(options, cb){
-		return cb(null, {"regions": [] })
+	"getRegions": function (options, cb) {
+		return cb(null, {"regions": []});
 	},
 	
 	/**
@@ -93,8 +93,8 @@ let driver = {
 	 * @returns {*}
 	 */
 	"deployCluster": function (options, cb) {
-		driver.authenticate(options, (err)=>{
-			if (err){
+		driver.authenticate(options, (err) => {
+			if (err) {
 				return cb(err);
 			}
 			options.soajs.registry.deployer.container.kubernetes.remote.apiProtocol = options.infra.api.protocol;
@@ -104,7 +104,7 @@ let driver = {
 			let oneDeployment = {
 				technology: "kubernetes",
 				options: {},
-				environments:[],
+				environments: [],
 				loadBalancers: {}
 			};
 			
@@ -142,16 +142,16 @@ let driver = {
 			"id": options.infra.id,
 			"dns": {
 				"msg": "<table>" +
-				"<thead>" +
-				"<tr><th>Field Type</th><th>Field Value</th></tr>" +
-				"</thead>" +
-				"<tbody>" +
-				"<tr><td>DNS Type</td><td>CNAME</td></tr>" +
-				"<tr class='even'><td>Domain Value</td><td>%domain%</td></tr>" +
-				"<tr><td>IP Address</td><td>" + options.infra.api.ipaddress + "</td></tr>" +
-				"<tr class='even'><td>TTL</td><td>5 minutes</td></tr>" +
-				"</tbody>" +
-				"</table>"
+					"<thead>" +
+					"<tr><th>Field Type</th><th>Field Value</th></tr>" +
+					"</thead>" +
+					"<tbody>" +
+					"<tr><td>DNS Type</td><td>CNAME</td></tr>" +
+					"<tr class='even'><td>Domain Value</td><td>%domain%</td></tr>" +
+					"<tr><td>IP Address</td><td>" + options.infra.api.ipaddress + "</td></tr>" +
+					"<tr class='even'><td>TTL</td><td>5 minutes</td></tr>" +
+					"</tbody>" +
+					"</table>"
 			}
 		};
 		return cb(null, response);
@@ -249,16 +249,20 @@ let driver = {
 
 Object.assign(driver, kubeDriver);
 
-driver.deployService = function (options, cb){
+driver.deployService = function (options, cb) {
 	kubeDriver.deployService(options, (error, response) => {
-		if(error){ return cb(error); }
+		if (error) {
+			return cb(error);
+		}
 		
 		//update env settings
 		//check exposed external ports
 		setTimeout(() => {
 			options.params.id = response.id;
 			kubeDriver.inspectService(options, (error, deployedServiceDetails) => {
-				if(error){ return cb(error); }
+				if (error) {
+					return cb(error);
+				}
 				infraUtils.updateEnvSettings(driver, driver, options, deployedServiceDetails, (error) => {
 					return cb(error, deployedServiceDetails);
 				});
@@ -267,9 +271,11 @@ driver.deployService = function (options, cb){
 	});
 };
 
-driver.redeployService = function (options, cb){
+driver.redeployService = function (options, cb) {
 	kubeDriver.redeployService(options, (error, response) => {
-		if(error){ return cb(error); }
+		if (error) {
+			return cb(error);
+		}
 		
 		//update env settings
 		//check exposed external ports
@@ -280,7 +286,7 @@ driver.redeployService = function (options, cb){
 					return cb(error);
 				}
 				
-				if(options.params.action === 'redeploy'){
+				if (options.params.action === 'redeploy') {
 					return cb(null, deployedServiceDetails);
 				}
 				

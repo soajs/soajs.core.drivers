@@ -13,9 +13,11 @@ const LBDriver = require("./cluster/lb.js");
 const ClusterDriver = require("./cluster/cluster.js");
 const utils = require('../../lib/utils/utils.js');
 const networksModule = require('./cluster/networks.js');
+
 function runCorrespondingDriver(method, options, cb) {
 	utils.runCorrespondingDriver(method, options, defaultDriver, cb);
 }
+
 let date = new Date().getTime();
 let config = require('./config.js');
 let cashedRegions;
@@ -42,23 +44,23 @@ const driver = {
 			return cb(null, true);
 		});
 	},
-
-	"getExtras": function(options, cb) {
+	
+	"getExtras": function (options, cb) {
 		return cb(null, {technologies: ['kubernetes'], templates: ['local'], drivers: ['GKE']});
 	},
-
+	
 	"deployCluster": function (options, cb) {
 		ClusterDriver.deployCluster(options, cb);
 	},
-
+	
 	"getDeployClusterStatus": function (options, cb) {
 		ClusterDriver.getDeployClusterStatus(options, cb);
 	},
-
+	
 	"getDNSInfo": function (options, cb) {
 		ClusterDriver.getDNSInfo(options, cb);
 	},
-
+	
 	/**
 	 * This method returns the available deployment zones at google
 	 * @param options
@@ -73,19 +75,17 @@ const driver = {
 		
 		if (cashedRegions && (currentDate - date > config.regionsCashedTime)) {
 			return cb(null, cashedRegions);
-		}
-		else {
+		} else {
 			getRegions((err, result) => {
 				if (err) {
 					return cb(err);
-				}
-				else {
+				} else {
 					cashedRegions = {
 						"regions": result
 					};
 					return cb(null, cashedRegions);
 				}
-			})
+			});
 		}
 		
 		function getRegions(minCb) {
@@ -120,58 +120,58 @@ const driver = {
 		}
 		
 	},
-
+	
 	"listAvailabilityZones": function (options, cb) {
 		return cb(null, true);
 	},
-
+	
 	"scaleCluster": function (options, cb) {
 		ClusterDriver.scaleCluster(options, cb);
 	},
-
+	
 	"getCluster": function (options, cb) {
 		ClusterDriver.getCluster(options, cb);
 	},
-
+	
 	"updateCluster": function (options, cb) {
 		ClusterDriver.updateCluster(options, cb);
 	},
-
+	
 	"deleteCluster": function (options, cb) {
 		ClusterDriver.deleteCluster(options, cb);
 	},
-
+	
 	"publishPorts": function (options, cb) {
 		LBDriver.publishPorts(options, cb);
 	},
-
+	
 	"createLoadBalancer": function (options, cb) {
 		LBDriver.createLoadBalancer(options, cb);
 	},
-
+	
 	"updateLoadBalancer": function (options, cb) {
 		LBDriver.updateLoadBalancer(options, cb);
 	},
-
+	
 	"deleteLoadBalancer": function (options, cb) {
 		LBDriver.deleteLoadBalancer(options, cb);
 	},
-
-	"executeDriver": function(method, options, cb){
+	
+	"executeDriver": function (method, options, cb) {
 		runCorrespondingDriver(method, options, cb);
 	},
-
-    "listNetworks": function (options, cb) {
-        return networksModule.list(options, cb);
-    },
-
+	
+	"listNetworks": function (options, cb) {
+		return networksModule.list(options, cb);
+	},
+	
 	"deleteNetwork": function (options, cb) {
-        return networksModule.delete(options, cb);
-    },
-
+		return networksModule.delete(options, cb);
+	},
+	
 	"createNetwork": function (options, cb) {
-        return networksModule.add(options, cb);
-    },
+		return networksModule.add(options, cb);
+	},
 };
 
 module.exports = driver;

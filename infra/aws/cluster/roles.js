@@ -1,7 +1,7 @@
 'use strict';
+
 const async = require('async');
 const utils = require("../utils/utils");
-const helper = require('../utils/helper.js');
 
 const config = require("../config");
 
@@ -25,9 +25,11 @@ const certificates = {
 			secretAccessKey: aws.secretAccessKey
 		});
 		iam.listRoles({PathPrefix: "/"}, function (err, data) {
-			if (err) return cb(err);
+			if (err) {
+				return cb(err);
+			}
 			let roles = [];
-			if (data && data.Roles){
+			if (data && data.Roles) {
 				async.each(data.Roles, function (oneRole, callback) {
 					try {
 						let doc = decodeURIComponent(oneRole.AssumeRolePolicyDocument);
@@ -41,19 +43,16 @@ const certificates = {
 								}
 								return callback();
 							});
-						}
-						else {
+						} else {
 							return callback();
 						}
-					}
-					catch (e) {
+					} catch (e) {
 						return callback();
 					}
 				}, function () {
 					return cb(null, roles);
 				});
-			}
-			else {
+			} else {
 				return cb(null, roles);
 			}
 		});

@@ -107,8 +107,12 @@ const securityGroups = {
 					}
 				};
 				request(requestOptions, function (error, response, body) {
-					if (error) return cb(error);
-					if (body && body.error) return cb(body.error);
+					if (error) {
+						return cb(error);
+					}
+					if (body && body.error) {
+						return cb(body.error);
+					}
 					
 					return cb(null, {id: body.id});
 				});
@@ -235,12 +239,16 @@ const securityGroups = {
 						vmName: oneVmId
 					};
 					vms.inspectService(inspectOptions, (error, vmRecord) => {
-						if (error) return miniCallback(error);
+						if (error) {
+							return miniCallback(error);
+						}
 						
 						return miniCallback(null, vmRecord.securityGroup || []);
 					});
 				}, (error, vmsGroups = []) => {
-					if (error) return callback(error);
+					if (error) {
+						return callback(error);
+					}
 					
 					vmsGroups.forEach((oneGroup) => {
 						if (!options.params.securityGroups.includes(oneGroup)) {
@@ -253,8 +261,7 @@ const securityGroups = {
 					
 					return callback(null, true);
 				});
-			}
-			else {
+			} else {
 				return callback(null, true);
 			}
 		}
@@ -292,11 +299,15 @@ const securityGroups = {
 				async.concat(catalogPorts, function (oneCatalogPort, concatCallback) {
 					async.detect(sgPorts, function (oneSgPort, detectCallback) {
 						if (oneSgPort.access === 'allow' && oneSgPort.direction === 'inbound') {
-							if (!oneCatalogPort.published) oneCatalogPort.published = '';
-							if (!oneCatalogPort.target) oneCatalogPort.target = '';
+							if (!oneCatalogPort.published) {
+								oneCatalogPort.published = '';
+							}
+							if (!oneCatalogPort.target) {
+								oneCatalogPort.target = '';
+							}
 							if (oneSgPort.isPublished === oneCatalogPort.isPublished && !oneSgPort.readonly &&
-								((oneSgPort.published.toString() == oneCatalogPort.published.toString()) || oneSgPort.published === '*') &&
-								((oneSgPort.target.toString() == oneCatalogPort.target.toString()) || oneSgPort.target === '*')) {
+								((oneSgPort.published.toString() === oneCatalogPort.published.toString()) || oneSgPort.published === '*') &&
+								((oneSgPort.target.toString() === oneCatalogPort.target.toString()) || oneSgPort.target === '*')) {
 								return detectCallback(null, true);
 							}
 						}
@@ -359,7 +370,7 @@ const securityGroups = {
 			getSecurityGroups: ['checkSecurityGroups', getSecurityGroups],
 			computePorts: ['checkSecurityGroups', 'getSecurityGroups', computePorts],
 			updateSecurityGroups: ['computePorts', updateSecurityGroups]
-		}, function (error, result) {
+		}, function (error) {
 			utils.checkError(error, 734, cb, () => {
 				return cb(null, true);
 			});

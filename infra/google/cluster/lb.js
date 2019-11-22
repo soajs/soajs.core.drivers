@@ -86,7 +86,7 @@ const GCLB = {
 					}
 					
 					async.detect(firewalls.items, function (oneFireWall, call) {
-						return call(null, oneFireWall.name === name)
+						return call(null, oneFireWall.name === name);
 					}, function (err, result) {
 						if (err) {
 							return cb(err);

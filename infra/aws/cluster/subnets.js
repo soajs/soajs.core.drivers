@@ -46,8 +46,7 @@ const subnets = {
 				async.map(response.Subnets, function (subnet, callback) {
 					return callback(null, helper.buildSubnetkRecord({subnet}));
 				}, cb);
-			}
-			else {
+			} else {
 				return cb(null, []);
 			}
 		});
@@ -74,17 +73,17 @@ const subnets = {
 			DryRun: false,
 		};
 		if (options.params.zone) {
-			params.AvailabilityZone = options.params.zone
+			params.AvailabilityZone = options.params.zone;
 		}
 		if (options.params.ipv6Address) {
-			params.Ipv6CidrBlock = options.params.ipv6Address
+			params.Ipv6CidrBlock = options.params.ipv6Address;
 		}
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#createSubnet-property
 		ec2.createSubnet(params, (err, response) => {
 			if (err) {
 				return cb(err);
 			}
-			if (response.Subnet &&  response.Subnet.SubnetId && options.params.name){
+			if (response.Subnet && response.Subnet.SubnetId && options.params.name) {
 				params = {
 					Resources: [
 						response.Subnet.SubnetId
@@ -96,12 +95,11 @@ const subnets = {
 						}
 					]
 				};
-				ec2.createTags(params, function(err) {
+				ec2.createTags(params, function (err) {
 					options.soajs.log.error(err);
 					return cb(null, response);
 				});
-			}
-			else {
+			} else {
 				return cb(null, response);
 			}
 		});

@@ -51,7 +51,7 @@ const driver = {
 									]
 								}
 							]
-						}, call)
+						}, call);
 					},
 					subnet: (call) => {
 						subnetDriver.list(options, call);
@@ -64,30 +64,29 @@ const driver = {
 						attachInternetGateway: result.internetGateway
 					}));
 				});
-			}
-			else {
-				return cb(new Error ("Network not found!"));
+			} else {
+				return cb(new Error("Network not found!"));
 			}
 		});
 	},
 	
 	/**
 	 * List available networks
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	list: function (options, cb) {
 		const aws = options.infra.api;
-
+		
 		const ec2 = getConnector({
 			api: 'ec2',
 			region: options.params.region,
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-
+		
 		ec2.describeVpcs({}, function (err, networks) {
 			if (err) {
 				return cb(err);
@@ -106,7 +105,7 @@ const driver = {
 										]
 									}
 								]
-							}, call)
+							}, call);
 						},
 						subnet: (call) => {
 							subnetDriver.list(options, call);
@@ -119,24 +118,23 @@ const driver = {
 							attachInternetGateway: result.internetGateway
 						}));
 					});
-
+					
 				}, cb);
-			}
-			else {
+			} else {
 				return cb(null, []);
 			}
 		});
 	},
-
+	
 	/**
 	 * Create a new network
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
 	 */
 	create: function (options, cb) {
-
+		
 		const aws = options.infra.api;
 		const ec2 = getConnector({
 			api: 'ec2',
@@ -170,11 +168,12 @@ const driver = {
 							]
 						};
 						ec2.createTags(params, function (err) {
-							if (err) options.soajs.log.error(err);
+							if (err) {
+								options.soajs.log.error(err);
+							}
 							return callback(null, true);
 						});
-					}
-					else {
+					} else {
 						return callback(null, true);
 					}
 				},
@@ -182,23 +181,22 @@ const driver = {
 					if (!options.params.attachInternetGateway || !vpcResponse || !vpcResponse.Vpc || !vpcResponse.Vpc.VpcId) {
 						return callback(null, true);
 					}
-
+					
 					function createInternetGateway(call) {
 						ec2.createInternetGateway({}, call);
 					}
-
+					
 					function attachInternetGateway(result, call) {
 						if (result && result.createInternetGateway && result.createInternetGateway.InternetGateway && result.createInternetGateway.InternetGateway.InternetGatewayId) {
 							ec2.attachInternetGateway({
 								VpcId: vpcResponse.Vpc.VpcId,
 								InternetGatewayId: result.createInternetGateway.InternetGateway.InternetGatewayId
-							}, call)
-						}
-						else {
+							}, call);
+						} else {
 							return call();
 						}
 					}
-
+					
 					function describeRouteTables(result, call) {
 						ec2.describeRouteTables({
 							Filters: [
@@ -211,7 +209,7 @@ const driver = {
 							]
 						}, call);
 					}
-
+					
 					function createRoute(result, call) {
 						ec2.createRoute({
 							DestinationCidrBlock: '0.0.0.0/0',
@@ -219,7 +217,7 @@ const driver = {
 							RouteTableId: result.describeRouteTables.RouteTables[0].RouteTableId
 						}, call);
 					}
-
+					
 					async.auto({
 						createInternetGateway,
 						attachInternetGateway: ['createInternetGateway', attachInternetGateway],
@@ -230,10 +228,10 @@ const driver = {
 			}, cb);
 		});
 	},
-
+	
 	/**
 	 * Update a network
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -250,14 +248,14 @@ const driver = {
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-
+		
 		async.parallel({
 			vpc: function (callback) {
 				ec2.describeVpcs({
 					VpcIds: [
 						options.params.id
 					]
-				}, callback)
+				}, callback);
 			},
 			subnets: function (callback) {
 				ec2.describeSubnets({
@@ -269,7 +267,7 @@ const driver = {
 							]
 						}
 					]
-				}, callback)
+				}, callback);
 			},
 			describeInternetGateways: function (callback) {
 				ec2.describeInternetGateways({
@@ -281,7 +279,7 @@ const driver = {
 							]
 						}
 					]
-				}, callback)
+				}, callback);
 			}
 		}, function (err, results) {
 			if (err) {
@@ -314,8 +312,7 @@ const driver = {
 							let primIndex = addresses.indexOf(network.CidrBlock);
 							if (primIndex === -1) {
 								return callback(new Error("Primary Network address can't be modified."));
-							}
-							else {
+							} else {
 								addresses.splice(primIndex, 1);
 								async.parallel({
 									addedCidr: function (mini) {
@@ -328,8 +325,7 @@ const driver = {
 									}
 								}, callback);
 							}
-						}
-						else {
+						} else {
 							return callback(new Error("Invalid network address"));
 						}
 					},
@@ -341,12 +337,10 @@ const driver = {
 									InstanceTenancy: "default", /* required */
 								};
 								ec2.modifyVpcTenancy(params, callback);
-							}
-							else {
+							} else {
 								return callback(new Error(`You cannot change the instance tenancy attribute to ${options.params.instanceTenancy}`));
 							}
-						}
-						else {
+						} else {
 							callback();
 						}
 					},
@@ -373,7 +367,7 @@ const driver = {
 										}
 										pcb();
 									});
-								}, mini)
+								}, mini);
 							},
 							delete: function (mini) {
 								async.each(results.subnets.Subnets, (oneSubnet, pcb) => {
@@ -391,54 +385,52 @@ const driver = {
 										}
 										pcb();
 									});
-								}, mini)
+								}, mini);
 							}
 						}, () => {
 							async.parallel({
 								add: function (mini) {
 									async.each(addSubnets, (params, pcb) => {
 										ec2.createSubnet(params, pcb);
-									}, mini)
+									}, mini);
 								},
 								delete: function (mini) {
 									async.each(deleteSubnets, (params, miniCb) => {
 										ec2.deleteSubnet(params, miniCb);
-									}, mini)
+									}, mini);
 								}
 							}, callback);
 						});
 					},
 					internetGateway: function (callback) {
-
+						
 						function detachInternetGateway(call) {
 							if (results && results.describeInternetGateways && results.describeInternetGateways.InternetGateways && results.describeInternetGateways.InternetGateways[0] && results.describeInternetGateways.InternetGateways[0].InternetGatewayId) {
 								ec2.detachInternetGateway({
 									VpcId: options.params.id,
 									InternetGatewayId: results.describeInternetGateways.InternetGateways[0].InternetGatewayId
 								}, call);
-							}
-							else {
+							} else {
 								return call();
 							}
 						}
-
+						
 						function deleteInternetGateway(auto, call) {
 							if (results && results.describeInternetGateways && results.describeInternetGateways.InternetGateways && results.describeInternetGateways.InternetGateways[0] && results.describeInternetGateways.InternetGateways[0].InternetGatewayId) {
 								ec2.deleteInternetGateway({
 									InternetGatewayId: results.describeInternetGateways.InternetGateways[0].InternetGatewayId
 								}, call);
-							}
-							else {
+							} else {
 								return call();
 							}
 						}
-
+						
 						function describeRouteTables(auto, call) {
 							// in case function was called in async auto without dependency
-							if(!call && typeof(auto) === 'function') {
+							if (!call && typeof (auto) === 'function') {
 								call = auto;
 							}
-
+							
 							ec2.describeRouteTables({
 								Filters: [
 									{
@@ -450,7 +442,7 @@ const driver = {
 								]
 							}, call);
 						}
-
+						
 						function deleteRoute(auto, call) {
 							if (auto && auto.describeRouteTables && auto.describeRouteTables.RouteTables && auto.describeRouteTables.RouteTables[0] && auto.describeRouteTables.RouteTables[0].RouteTableId) {
 								ec2.deleteRoute({
@@ -458,48 +450,44 @@ const driver = {
 									DestinationCidrBlock: '0.0.0.0/0',
 									DryRun: false
 								}, call);
-							}
-							else {
+							} else {
 								return call();
 							}
 						}
-
+						
 						function createInternetGateway(call) {
 							ec2.createInternetGateway({}, call);
 						}
-
+						
 						function attachInternetGateway(auto, call) {
 							if (auto && auto.createInternetGateway && auto.createInternetGateway.InternetGateway && auto.createInternetGateway.InternetGateway.InternetGatewayId) {
 								ec2.attachInternetGateway({
 									VpcId: options.params.id,
 									InternetGatewayId: auto.createInternetGateway.InternetGateway.InternetGatewayId
 								}, call);
-							}
-							else {
+							} else {
 								return call();
 							}
 						}
-
+						
 						function createRoute(auto, call) {
-							if (auto && auto.createInternetGateway && auto.createInternetGateway.InternetGateway && auto.createInternetGateway.InternetGateway.InternetGatewayId
-								&& auto.describeRouteTables && auto.describeRouteTables.RouteTables && auto.describeRouteTables.RouteTables[0] && auto.describeRouteTables.RouteTables[0].RouteTableId) {
+							if (auto && auto.createInternetGateway && auto.createInternetGateway.InternetGateway && auto.createInternetGateway.InternetGateway.InternetGatewayId &&
+								auto.describeRouteTables && auto.describeRouteTables.RouteTables && auto.describeRouteTables.RouteTables[0] && auto.describeRouteTables.RouteTables[0].RouteTableId) {
 								ec2.createRoute({
 									DestinationCidrBlock: '0.0.0.0/0',
 									GatewayId: auto.createInternetGateway.InternetGateway.InternetGatewayId,
 									RouteTableId: auto.describeRouteTables.RouteTables[0].RouteTableId
 								}, call);
-							}
-							else {
+							} else {
 								return call();
 							}
 						}
-
+						
 						let jobs = {};
 						if (results && results.describeInternetGateways && results.describeInternetGateways.InternetGateways && results.describeInternetGateways.InternetGateways.length > 0) {
 							if (options.params.attachInternetGateway) {
 								return callback();
-							}
-							else {
+							} else {
 								jobs = {
 									detachInternetGateway,
 									describeRouteTables,
@@ -507,8 +495,7 @@ const driver = {
 									deleteRoute: ["deleteInternetGateway", "describeRouteTables", deleteRoute],
 								};
 							}
-						}
-						else {
+						} else {
 							if (options.params.attachInternetGateway) {
 								jobs = {
 									createInternetGateway,
@@ -516,24 +503,22 @@ const driver = {
 									describeRouteTables: ['attachInternetGateway', describeRouteTables],
 									createRoute: ['describeRouteTables', 'createInternetGateway', createRoute],
 								};
-							}
-							else {
+							} else {
 								return callback();
 							}
 						}
 						async.auto(jobs, callback);
 					}
 				}, cb);
-			}
-			else {
+			} else {
 				return cb(new Error("Vpc network not found"));
 			}
 		});
 	},
-
+	
 	/**
 	 * Delete a network
-
+	 
 	 * @param  {Object}   options  Data passed to function as params
 	 * @param  {Function} cb    Callback function
 	 * @return {void}
@@ -546,12 +531,13 @@ const driver = {
 			keyId: aws.keyId,
 			secretAccessKey: aws.secretAccessKey
 		});
-
+		
 		//Ref: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EC2.html#deleteVpc-property
 		async.parallel({
 			vpcs: (callback) => {
-				ec2.describeVpcs({VpcIds: [options.params.id]}, callback)
+				ec2.describeVpcs({VpcIds: [options.params.id]}, callback);
 			},
+			
 			subnets: (callback) => {
 				ec2.describeSubnets({
 					Filters: [
@@ -562,7 +548,7 @@ const driver = {
 							]
 						}
 					]
-				}, callback)
+				}, callback);
 			},
 			describeInternetGateways: (callback) => {
 				ec2.describeInternetGateways({
@@ -574,7 +560,7 @@ const driver = {
 							]
 						}
 					]
-				}, callback)
+				}, callback);
 			},
 		}, (err, response) => {
 			if (err) {
@@ -587,33 +573,30 @@ const driver = {
 							async.each(response.subnets.Subnets, (oneSubnet, callback) => {
 								ec2.deleteSubnet({SubnetId: oneSubnet.SubnetId}, callback);
 							}, call);
-						}
-						else {
+						} else {
 							return call();
 						}
 					}
-
+					
 					function detachInternetGateway(call) {
 						if (response.describeInternetGateways && response.describeInternetGateways.InternetGateways && response.describeInternetGateways.InternetGateways[0] && response.describeInternetGateways.InternetGateways[0].InternetGatewayId) {
 							ec2.detachInternetGateway({
 								InternetGatewayId: response.describeInternetGateways.InternetGateways[0].InternetGatewayId,
 								VpcId: options.params.id
 							}, call);
-						}
-						else {
+						} else {
 							return call();
 						}
 					}
-
+					
 					function deleteInternetGateway(auto, call) {
 						if (response.describeInternetGateways && response.describeInternetGateways.InternetGateways && response.describeInternetGateways.InternetGateways[0] && response.describeInternetGateways.InternetGateways[0].InternetGatewayId) {
 							ec2.deleteInternetGateway({InternetGatewayId: response.describeInternetGateways.InternetGateways[0].InternetGatewayId}, call);
-						}
-						else {
+						} else {
 							return call();
 						}
 					}
-
+					
 					function describeRouteTables(call) {
 						ec2.describeRouteTables({
 							Filters: [
@@ -626,19 +609,18 @@ const driver = {
 							]
 						}, call);
 					}
-
+					
 					function deleteRouteTable(auto, call) {
 						if (auto.describeRouteTables && auto.describeRouteTables.InternetGateway && auto.describeRouteTables.InternetGateway.RouteTableId) {
 							ec2.deleteRoute({
 								RouteTableId: auto.describeRouteTables.InternetGateway.RouteTableId, /* required */
 								DryRun: false
 							}, call);
-						}
-						else {
+						} else {
 							return call();
 						}
 					}
-
+					
 					function describeSecurityGroups(call) {
 						ec2.describeSecurityGroups({
 							Filters: [
@@ -651,23 +633,22 @@ const driver = {
 							]
 						}, call);
 					}
-
+					
 					function deleteSecurityGroups(auto, call) {
-						if (auto && auto.describeSecurityGroups && auto.describeSecurityGroups.SecurityGroups && auto.describeSecurityGroups.SecurityGroups.length > 0){
-							async.each(auto.describeSecurityGroups.SecurityGroups, (one, miniCB)=>{
-								if (one.GroupName === "default"){
+						if (auto && auto.describeSecurityGroups && auto.describeSecurityGroups.SecurityGroups && auto.describeSecurityGroups.SecurityGroups.length > 0) {
+							async.each(auto.describeSecurityGroups.SecurityGroups, (one, miniCB) => {
+								if (one.GroupName === "default") {
 									return miniCB();
 								}
 								ec2.deleteSecurityGroup({
 									GroupId: one.GroupId,
 								}, miniCB);
 							}, call);
-						}
-						else {
+						} else {
 							return call();
 						}
 					}
-
+					
 					async.auto({
 						describeRouteTables,
 						detachInternetGateway,
@@ -677,10 +658,10 @@ const driver = {
 						deleteInternetGateway: ["detachInternetGateway", deleteInternetGateway],
 						deleteRouteTable: ["deleteInternetGateway", "describeRouteTables", deleteRouteTable],
 					}, callback);
-
+					
 				},
 				deleteVpc: ['removeDependencies', (results, callback) => {
-					ec2.deleteVpc({VpcId: options.params.id}, callback)
+					ec2.deleteVpc({VpcId: options.params.id}, callback);
 				}]
 			}, cb);
 		});
@@ -725,7 +706,7 @@ const driver = {
 			}, callback);
 		}, cb);
 	},
-
+	
 };
 
 module.exports = driver;
