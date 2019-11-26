@@ -61,7 +61,7 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 				.stub(cronJobWrapper, 'get')
 				.yields(null, kubeData.deploymentListSys);
 			services.listServices(options, function (error, res) {
-				assert.equal(res.length, 7);
+				assert.equal(res.length, 8);
 				done();
 			});
 		});
@@ -102,7 +102,7 @@ describe("testing /lib/container/kubernetes/services.js", function () {
 				.yields(null, kubeData.deploymentListSys);
 			
 			services.listServices(options, function (error, res) {
-				assert.equal(res.length, 7);
+				assert.equal(res.length, 8);
 				done();
 			});
 		});
