@@ -20,7 +20,7 @@ module.exports = {
 		"url": "https://hub.docker.com/v2/repositories/%organization%/%imagename%/tags/"
 	},
 	
-	dynamicCatalogVariables: ['$SOAJS_NX_CONTROLLER_IP_N', '$SOAJS_MONGO_IP_N', '$SOAJS_MONGO_PORT_N'],
+	dynamicCatalogVariables: ['$SOAJS_NX_CONTROLLER_IP_N'],
 	
 	//allowed exposed ports range
 	exposedPorts: {

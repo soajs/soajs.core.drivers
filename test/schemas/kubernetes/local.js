@@ -334,12 +334,7 @@ module.exports = function () {
 					"$SOAJS_NX_DOMAIN": "",
 					"$SOAJS_NX_SITE_DOMAIN": "site.",
 					"$SOAJS_NX_API_DOMAIN": "api.",
-					"$SOAJS_PROFILE": "/opt/soajs/FILES/profiles/profile.js",
 					"$SOAJS_EXTKEY": "9b96ba56ce934ded56c3f21ac9bdaddc8ba4782b7753cf07576bfabcace8632eba1749ff1187239ef1f56dd74377aa1e5d0a1113de2ed18368af4b808ad245bc7da986e101caddb7b75992b14d6a866db884ea8aee5ab02786886ecf9f25e974",
-					"$SOAJS_MONGO_NB": 1,
-					"$SOAJS_MONGO_IP_1": "192.168.61.51",
-					"$SOAJS_MONGO_PORT_1": 27017,
-					"$SOAJS_MONGO_PREFIX": "local_"
 				}
 			},
 			"catalog": {
@@ -490,12 +485,7 @@ module.exports = function () {
 					"$SOAJS_NX_DOMAIN": "",
 					"$SOAJS_NX_SITE_DOMAIN": "site.",
 					"$SOAJS_NX_API_DOMAIN": "api.",
-					"$SOAJS_PROFILE": "/opt/soajs/FILES/profiles/profile.js",
 					"$SOAJS_EXTKEY": "9b96ba56ce934ded56c3f21ac9bdaddc8ba4782b7753cf07576bfabcace8632eba1749ff1187239ef1f56dd74377aa1e5d0a1113de2ed18368af4b808ad245bc7da986e101caddb7b75992b14d6a866db884ea8aee5ab02786886ecf9f25e974",
-					"$SOAJS_MONGO_NB": 1,
-					"$SOAJS_MONGO_IP_1": "192.168.61.51",
-					"$SOAJS_MONGO_PORT_1": 27017,
-					"$SOAJS_MONGO_PREFIX": "local_"
 				}
 			},
 			"catalog": {
@@ -2554,10 +2544,6 @@ module.exports = function () {
 										"value": "testenv"
 									},
 									{
-										"name": "SOAJS_PROFILE",
-										"value": "/opt/soajs/FILES/profiles/profile.js"
-									},
-									{
 										"name": "SOAJS_SRV_AUTOREGISTERHOST",
 										"value": "true"
 									},
@@ -2568,15 +2554,6 @@ module.exports = function () {
 									{
 										"name": "SOAJS_DEPLOY_HA",
 										"value": "kubernetes"
-									},
-									{
-										"name": "SOAJS_HA_NAME",
-										"valueFrom": {
-											"fieldRef": {
-												"apiVersion": "v1",
-												"fieldPath": "metadata.name"
-											}
-										}
 									},
 									{
 										"name": "SOAJS_NX_CONTROLLER_NB",
