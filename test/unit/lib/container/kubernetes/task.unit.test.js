@@ -96,7 +96,7 @@ describe("testing /lib/container/kubernetes/task.js", function () {
 				.yields(null, true);
 			sinon
 				.stub(podWrapper, 'getLogs')
-				.returns({});
+				.yields(null, {});
 			services.getContainerLogs(options, function (error, res) {
 				assert.ok(res);
 				done();

@@ -93,7 +93,7 @@ describe("testing /lib/container/kubernetes/clients/pod.js", function () {
 			});
 		});
 		
-		it("Success getLogs", function (done) {
+		it("Success getLogs no follow", function (done) {
 			let opts = {
 				namespace: "soajs",
 				body: {}
@@ -127,6 +127,45 @@ describe("testing /lib/container/kubernetes/clients/pod.js", function () {
 				done();
 			});
 		});
+		
+		it("Success getLogs with follow ", function (done) {
+			let opts = {
+				namespace: "soajs",
+				pod: "test",
+				qs: {
+					follow: true
+				}
+			};
+			deployer = {
+				api: {
+					v1: {
+						namespaces: () => {
+							return {
+								pods: () => {
+									return {
+										log: {
+											getByteStream: () => {
+												return new Promise((resolve, reject) => {
+													resolve({
+														body: true
+													});
+													reject(true);
+												});
+											}
+										}
+									}
+								}
+							};
+						}
+					}
+				}
+			};
+			service.getLogs(deployer, opts, function (error, res) {
+				assert.ok(res);
+				done();
+			});
+		});
+		
 		it("Fail getLogs", function (done) {
 			let opts = {
 				namespace: "soajs",
