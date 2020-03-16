@@ -2488,7 +2488,8 @@ module.exports = function () {
 							"soajs.service.repo.name": "soajs-controller",
 							"soajs.service.subtype": "soajs",
 							"soajs.service.type": "service",
-							"soajs.service.version": "1"
+							"soajs.service.version": "1",
+							"soajs.shell": "shell__slash__bin__slash__bash"
 						},
 						"ownerReferences": [
 							{
