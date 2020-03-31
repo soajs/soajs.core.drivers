@@ -652,8 +652,12 @@ const AWSCluster = {
 			elasticLoadBalancers.push(stack.options.ElbName);
 		}
 		for (let env in stack.loadBalancers) {
-			for (let service in stack.loadBalancers[env]) {
-				elasticLoadBalancers.push(stack.loadBalancers[env][service].name);
+			if (env){
+				for (let service in stack.loadBalancers[env]) {
+					if (service){
+						elasticLoadBalancers.push(stack.loadBalancers[env][service].name);
+					}
+				}
 			}
 		}
 		if (elasticLoadBalancers.length > 0) {
