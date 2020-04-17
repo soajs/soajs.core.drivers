@@ -63,7 +63,7 @@ const vms = {
 						helper.getVmNetworkInfo(networkClient, opts, function (error, networkInfo) {
 							if (error) {
 								options.soajs.log.error(`Unable to get network information for ${results.getVirtualMachine.name} while inspecting`);
-								options.soajs.log.error(error);
+								options.soajs.log.error(error.message);
 							} else {
 								vmRecordOptions = Object.assign(vmRecordOptions, networkInfo);
 								if (results.listNetworkExtras && results.listNetworkExtras.publicIps) {
@@ -145,7 +145,7 @@ const vms = {
 							helper.getVmNetworkInfo(networkClient, opts, function (error, networkInfo) {
 								if (error) {
 									options.soajs.log.error(`Unable to get network information for ${oneVm.name} while inspecting`);
-									options.soajs.log.error(error);
+									options.soajs.log.error(error.message);
 								} else {
 									vmRecordOptions = Object.assign(vmRecordOptions, networkInfo);
 									if (results.listNetworkExtras && results.listNetworkExtras.publicIps) {

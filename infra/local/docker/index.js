@@ -29,7 +29,7 @@ let driver = {
 			};
 		}
 		catch(e){
-			options.soajs.log.error(e);
+			options.soajs.log.error(e.message);
 			return cb({source: 'driver', value: 'Invalid docker configuration detected', code: 687, msg: errorFile[687]});
 		}
 		

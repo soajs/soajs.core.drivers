@@ -52,7 +52,7 @@ const GCLB = {
 		request.name = `projects/${options.infra.api.project}/locations/${stack.options.zone}/clusters/${stack.id}`;
 		v1Container().projects.zones.clusters.get(request, function (err, clusterInformation) {
 			if (err) {
-				options.soajs.log.error(err);
+				options.soajs.log.error(err.message);
 				return cb(new Error(`Failed to find ${stack.id} cluster!`));
 			}
 			if (!clusterInformation || clusterInformation === '' || typeof clusterInformation !== 'object' || Object.keys(clusterInformation).length === 0) {
@@ -64,7 +64,7 @@ const GCLB = {
 				request.project = project;
 				v1Compute().firewalls.list(request, (err, firewalls) => {
 					if (err) {
-						options.soajs.log.error(err);
+						options.soajs.log.error(err.message);
 						return cb(new Error(`Failed to find ${stack.name} network!`));
 					}
 					let name = stack.name + "-allow-tcp-";
@@ -76,11 +76,11 @@ const GCLB = {
 							name += options.params.envCode.toLowerCase() + "-" + options.params.name;
 							name += "-v" + options.params.version;
 						}
-						else if(options.params.type){
+						else if (options.params.type) {
 							name += options.params.envCode.toLowerCase() + "-" + options.params.type;
 							name += (options.params.version) ? "-v" + options.params.version : "";
 						}
-						else{
+						else {
 							name += options.params.name;
 						}
 					}
@@ -120,7 +120,7 @@ const GCLB = {
 							};
 							v1Compute().firewalls[method](request, function (err) {
 								if (err) {
-									options.soajs.log.error(err);
+									options.soajs.log.error(err.message);
 									return cb(new Error(`Failed to add ${ports} to Firewall Rules!`));
 								}
 								else {

@@ -15,6 +15,7 @@ jobs:
     before_script:
     - npm install -g grunt-cli
     script:
+    - grunt
     - if [ "$TRAVIS_BRANCH" != "master" ]; then grunt test; fi
     - if [ "$TRAVIS_BRANCH" = "master" ]; then grunt coverage; fi
 

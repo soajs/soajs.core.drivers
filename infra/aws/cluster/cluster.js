@@ -64,7 +64,7 @@ const AWSCluster = {
 					try {
 						templateInputsToUse = JSON.parse(templateInputsToUse);
 					} catch (e) {
-						options.soajs.log.error(e);
+						options.soajs.log.error(e.message);
 					}
 				}
 				let inputs = templateInputsToUse.inputs;
@@ -421,7 +421,7 @@ const AWSCluster = {
 			cloudFormation.describeStacks(stackParams, function (err, res) {
 				if (err) {
 					//only log the error
-					options.soajs.log.error(err);
+					options.soajs.log.error(err.message);
 				} else {
 					//update done
 					if (res.Stacks[0].StackStatus.indexOf("UPDATE_COMPLETE") !== -1) {
@@ -435,7 +435,7 @@ const AWSCluster = {
 						}, (process.env.SOAJS_CLOOSTRO_TEST) ? 1 : 20 * 1000);
 					} else {
 						//log the status and stop
-						options.soajs.log.error(new Error(`Stack status is ${res.Stacks[0].StackStatus}`));
+						options.soajs.log.error(`Stack status is ${res.Stacks[0].StackStatus}`);
 					}
 				}
 			});
@@ -470,7 +470,7 @@ const AWSCluster = {
 		function addInstances(elbs, instanceBefore) {
 			getInstances(function (err, instanceAfter) {
 				if (err) {
-					options.soajs.log.error(err);
+					options.soajs.log.error(err.message);
 				}
 				const opts = compare(instanceBefore, instanceAfter);
 				options.soajs.log.debug(opts);
@@ -506,7 +506,7 @@ const AWSCluster = {
 					}
 				], function (err) {
 					if (err) {
-						options.soajs.log.error(err);
+						options.soajs.log.error(err.message);
 					} else {
 						options.soajs.log.debug("External Load Balancers updated");
 					}
@@ -652,9 +652,9 @@ const AWSCluster = {
 			elasticLoadBalancers.push(stack.options.ElbName);
 		}
 		for (let env in stack.loadBalancers) {
-			if (env){
+			if (env) {
 				for (let service in stack.loadBalancers[env]) {
-					if (service){
+					if (service) {
 						elasticLoadBalancers.push(stack.loadBalancers[env][service].name);
 					}
 				}

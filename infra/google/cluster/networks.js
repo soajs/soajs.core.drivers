@@ -59,7 +59,7 @@ const networks = {
 							opts.subnetwork = name;
 							v1Compute().subnetworks.get(opts, (err, subs) => {
 								if (err) {
-									options.soajs.log.error(err);
+									options.soajs.log.error(err.message);
 									return iCb(err);
 								} else {
 									if (options.params.region) {
@@ -182,7 +182,7 @@ const networks = {
 						globalOperations(request, oneOperation, "Firewall", callback);
 					}, function (err) {
 						if (err) {
-							options.soajs.log.error(err);
+							options.soajs.log.error(err.message);
 							return cb(err);
 						} else {
 							request.network = options.params.name;

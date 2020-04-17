@@ -169,7 +169,7 @@ const driver = {
 						};
 						ec2.createTags(params, function (err) {
 							if (err) {
-								options.soajs.log.error(err);
+								options.soajs.log.error(err.message);
 							}
 							return callback(null, true);
 						});

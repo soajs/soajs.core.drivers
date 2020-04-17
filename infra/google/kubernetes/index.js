@@ -329,7 +329,7 @@ let driver = {
 				networksOptions.params = {name: oneDeployment.options.network};
 				networks.delete(networksOptions, (error) => {
 					if (error) {
-						options.soajs.log.error(error);
+						options.soajs.log.error(error.message);
 					} else {
 						options.soajs.log.debug("VPC Network Deleted Successfully.");
 					}
@@ -448,11 +448,13 @@ let driver = {
 			}, () => {
 				//loop in template recursively till you find a match, replace value of found matches
 				for (let property in templateInputs) {
-					traverse(template).forEach(function () {
-						if (this.key === property) {
-							this.update(templateInputs[property]);
-						}
-					});
+					if (templateInputs.hasOwnProperty(property)) {
+						traverse(template).forEach(function () {
+							if (this.key === property) {
+								this.update(templateInputs[property]);
+							}
+						});
+					}
 				}
 				return mapCb();
 			});
@@ -1023,7 +1025,7 @@ let driver = {
 				} else {
 					updateMachineIps((err) => {
 						if (err) {
-							options.soajs.log.error(err);
+							options.soajs.log.error(err.message);
 						}
 					});
 					return cb(null, true);
@@ -1161,7 +1163,7 @@ let driver = {
 					if (operation) {
 						checkIfDeleteIsDone(operation, type, (error) => {
 							if (error) {
-								options.soajs.log.error(error);
+								options.soajs.log.error(error.message);
 							} else {
 								let deleteNetwork = true;
 								if (options.infra && options.infra._id && options.soajs && options.soajs.registry && options.soajs.registry.restriction && options.soajs.registry.restriction[options.infra._id]) {
@@ -1183,7 +1185,7 @@ let driver = {
 									networkOptions.params = {name: clusterInformation.network};
 									networks.delete(networkOptions, (error) => {
 										if (error) {
-											options.soajs.log.error(error);
+											options.soajs.log.error(error.message);
 										} else {
 											deleteAddress();
 											options.soajs.log.debug("Cluster and Network Deleted Successfully.");
@@ -1234,7 +1236,7 @@ let driver = {
 				request.zone = stack.options.zone;
 				v1Compute().zones.get(request, function (err, response) {
 					if (err) {
-						options.soajs.log.error(err);
+						options.soajs.log.error(err.message);
 					} else {
 						//zonal
 						if (response && response.region) {
@@ -1253,7 +1255,7 @@ let driver = {
 			request.filter = "name eq gke-" + stack.id.substring(0, 19) + "-" + stack.options.nodePoolId + "-.*";
 			getRegion((err) => {
 				if (err) {
-					options.soajs.log.error(err);
+					options.soajs.log.error(err.message);
 				}
 				delete request.region;
 				delete request.clusterId;
@@ -1261,7 +1263,7 @@ let driver = {
 				//list all addresses
 				v1Compute().addresses.list(request, (err, addresses) => {
 					if (err) {
-						options.soajs.log.error(err);
+						options.soajs.log.error(err.message);
 					}
 					if (addresses && addresses.items && addresses.items.length > 0) {
 						async.eachSeries(addresses.items, function (one, callback) {
@@ -1276,7 +1278,7 @@ let driver = {
 							});
 						}, (err) => {
 							if (err) {
-								options.soajs.log.error(err);
+								options.soajs.log.error(err.message);
 							}
 						});
 					}

@@ -96,7 +96,9 @@ const subnets = {
 					]
 				};
 				ec2.createTags(params, function (err) {
-					options.soajs.log.error(err);
+					if (err) {
+						options.soajs.log.error(err.message);
+					}
 					return cb(null, response);
 				});
 			} else {

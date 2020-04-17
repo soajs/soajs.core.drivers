@@ -35,7 +35,7 @@ const maintenance = {
 					//todo: missing delete disk
 				}, (error) => {
 					if (error) {
-						options.soajs.log.error(error);
+						options.soajs.log.error(error.message);
 					}
 				});
 				return cb(null, true);
